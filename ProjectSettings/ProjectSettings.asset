@@ -825,7 +825,23 @@ PlayerSettings:
   webGLCloseOnQuit: 0
   webWasm2023: 0
   webEnableSubmoduleStrippingCompatibility: 0
-  scriptingDefineSymbols: {}
+  scriptingDefineSymbols:
+    Android: SORTIFY
+    EmbeddedLinux: SORTIFY
+    GameCoreScarlett: SORTIFY
+    GameCoreXboxOne: SORTIFY
+    Kepler: SORTIFY
+    LinuxHeadlessSimulation: SORTIFY
+    Nintendo Switch: SORTIFY
+    Nintendo Switch 2: SORTIFY
+    PS4: SORTIFY
+    PS5: SORTIFY
+    QNX: SORTIFY
+    Standalone: SORTIFY
+    VisionOS: SORTIFY
+    WebGL: SORTIFY
+    XboxOne: SORTIFY
+    tvOS: SORTIFY
   additionalCompilerArguments: {}
   platformArchitecture: {}
   scriptingBackend:

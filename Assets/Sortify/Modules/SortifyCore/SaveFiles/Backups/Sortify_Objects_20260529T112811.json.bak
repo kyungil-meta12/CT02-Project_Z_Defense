@@ -1,0 +1,15 @@
+{
+    "objectsData": [
+        {
+            "colors": [],
+            "styles": [
+                {
+                    "objID": "SampleScene_Camera_0",
+                    "styleType": 1
+                }
+            ],
+            "showComponents": [],
+            "sceneName": "SampleScene"
+        }
+    ]
+}

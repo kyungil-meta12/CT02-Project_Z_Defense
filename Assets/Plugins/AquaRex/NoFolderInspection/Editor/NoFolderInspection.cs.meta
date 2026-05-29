@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: 623b4dfecf7efac4599710ee0c928bdf
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 305876
+  packageName: No Folder Inspection
+  packageVersion: 1.2
+  assetPath: Assets/Plugins/AquaRex/NoFolderInspection/Editor/NoFolderInspection.cs
+  uploadId: 904562

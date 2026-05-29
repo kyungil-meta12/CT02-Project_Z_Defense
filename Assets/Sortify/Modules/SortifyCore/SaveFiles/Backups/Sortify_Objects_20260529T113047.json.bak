@@ -1,0 +1,20 @@
+{
+    "objectsData": [
+        {
+            "colors": [
+                {
+                    "objID": "SampleScene_Camera_0",
+                    "colorValue": "BF4040FF"
+                }
+            ],
+            "styles": [
+                {
+                    "objID": "SampleScene_Camera_0",
+                    "styleType": 1
+                }
+            ],
+            "showComponents": [],
+            "sceneName": "SampleScene"
+        }
+    ]
+}

@@ -826,22 +826,24 @@ PlayerSettings:
   webWasm2023: 0
   webEnableSubmoduleStrippingCompatibility: 0
   scriptingDefineSymbols:
-    Android: SORTIFY
-    EmbeddedLinux: SORTIFY
+    Android: SORTIFY;KAMGAM_UGUI_WORLD_IMAGE
+    EmbeddedLinux: SORTIFY;KAMGAM_UGUI_WORLD_IMAGE
     GameCoreScarlett: SORTIFY
-    GameCoreXboxOne: SORTIFY
-    Kepler: SORTIFY
-    LinuxHeadlessSimulation: SORTIFY
-    Nintendo Switch: SORTIFY
-    Nintendo Switch 2: SORTIFY
-    PS4: SORTIFY
-    PS5: SORTIFY
-    QNX: SORTIFY
-    Standalone: SORTIFY
-    VisionOS: SORTIFY
-    WebGL: SORTIFY
-    XboxOne: SORTIFY
-    tvOS: SORTIFY
+    GameCoreXboxOne: SORTIFY;KAMGAM_UGUI_WORLD_IMAGE
+    Kepler: SORTIFY;KAMGAM_UGUI_WORLD_IMAGE
+    LinuxHeadlessSimulation: SORTIFY;KAMGAM_UGUI_WORLD_IMAGE
+    Nintendo Switch: SORTIFY;KAMGAM_UGUI_WORLD_IMAGE
+    Nintendo Switch 2: SORTIFY;KAMGAM_UGUI_WORLD_IMAGE
+    PS4: SORTIFY;KAMGAM_UGUI_WORLD_IMAGE
+    PS5: SORTIFY;KAMGAM_UGUI_WORLD_IMAGE
+    QNX: SORTIFY;KAMGAM_UGUI_WORLD_IMAGE
+    Standalone: SORTIFY;KAMGAM_UGUI_WORLD_IMAGE
+    VisionOS: SORTIFY;KAMGAM_UGUI_WORLD_IMAGE
+    WebGL: SORTIFY;KAMGAM_UGUI_WORLD_IMAGE
+    Windows Store Apps: KAMGAM_UGUI_WORLD_IMAGE
+    XboxOne: SORTIFY;KAMGAM_UGUI_WORLD_IMAGE
+    iPhone: KAMGAM_UGUI_WORLD_IMAGE
+    tvOS: SORTIFY;KAMGAM_UGUI_WORLD_IMAGE
   additionalCompilerArguments: {}
   platformArchitecture: {}
   scriptingBackend:

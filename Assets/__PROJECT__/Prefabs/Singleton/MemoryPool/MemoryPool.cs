@@ -29,6 +29,14 @@ public class MemoryPool : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// <para>인스턴스의 Ty_ 타입의 컴포넌트를 리턴한다. 인스턴스가 없을 경우 새로 생성한다.</para>
+    /// <para>인스턴스를 사용하기 위해서는 프리펩이 PoolObject를 상속하여야 한다.</para>
+    /// <para>인스턴스 리턴 시 PoolObject의 OnSpawn() 가상 메서드가 호출된다.</para>
+    /// <para>예: var enemy = MemoryPool.Inst.GetInstance&lt;Enemy&gt;(enemyPrefab);</para>
+    /// </summary>
+    /// <param name="prefab"></param>
+    /// <returns></returns>
     public Ty_ GetInstance<Ty_>(PoolObject prefab) where Ty_ : Component
     {
         if (prefab == null)
@@ -66,6 +74,12 @@ public class MemoryPool : MonoBehaviour
         return comp;
     }
 
+    /// <summary>
+    /// <para>인스턴스를 생성하지만 컴포넌트를 리턴하지 않는다. 인스턴스가 없을 경우 새로 생성한다.</para>
+    /// <para>프리펩이 PoolObject를 상속하여야 한다.</para>
+    /// <para>인스턴스 리턴 시 PoolObject의 OnSpawn() 가상 메서드가 호출된다.</para>
+    /// </summary>
+    /// <param name="prefab"></param>
     public void CreateInstance(PoolObject prefab)
     {
         if (prefab == null)

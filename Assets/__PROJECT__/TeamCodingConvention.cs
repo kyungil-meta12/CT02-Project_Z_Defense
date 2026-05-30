@@ -85,6 +85,23 @@ public static class TeamCodingConvention
      *    이전 생명주기 데이터에 의존하지 않도록 아래 순서를 권장한다.
      *    Pop -> 위치/데이터 설정 -> Reset/Init -> SetActive(true)
      *
+     * H. MemoryPool 공용 API 문서화 규칙:
+     *    CreateInstance, GetInstance<T>()에는 XML 주석을 작성한다.
+     *    요약에는 반드시 아래 내용을 포함한다.
+     *
+     *    - CreateInstance:
+     *      1) 인스턴스를 생성하지만 컴포넌트는 반환하지 않음
+     *      2) 인스턴스가 없으면 새로 생성함
+     *      3) 프리팹은 PoolObject 상속 필요
+     *      4) 인스턴스 리턴 시 OnSpawn() 호출됨
+     *
+     *    - GetInstance<T>:
+     *      1) Ty_ 타입 컴포넌트를 반환함
+     *      2) 인스턴스가 없으면 새로 생성함
+     *      3) 프리팹은 PoolObject 상속 필요
+     *      4) 인스턴스 리턴 시 OnSpawn() 호출됨
+     *      5) 사용 예시 1개를 <para>로 기재
+     *
      * ============================================================
      * 2) Unity Editor 컨벤션
      * ============================================================

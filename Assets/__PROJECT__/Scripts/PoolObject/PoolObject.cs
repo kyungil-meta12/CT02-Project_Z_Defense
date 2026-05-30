@@ -18,6 +18,14 @@ public class PoolObject : MonoBehaviour
     }
 
     /// <summary>
+    /// MemoryPool에서 인스턴스를 꺼낸 직후, 활성화 전에 호출되는 가상 메서드.
+    /// 상태 초기화(체력, 위치, 속도, 타이머 등)에 사용한다.
+    /// </summary>
+    public virtual void OnBeforeSpawn()
+    {
+    }
+
+    /// <summary>
     /// MemoryPool에서 인스턴스 리턴 시 호출되는 가상 메서드
     /// </summary>
     public virtual void OnSpawn()

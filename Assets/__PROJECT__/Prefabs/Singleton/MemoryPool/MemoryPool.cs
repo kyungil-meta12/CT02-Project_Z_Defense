@@ -8,7 +8,9 @@ using UnityEngine;
 public class MemoryPool : MonoBehaviour
 {
     public static MemoryPool Inst;
+
     private readonly Dictionary<PoolObject, Stack<PoolObject>> memDict = new();
+    private readonly Dictionary<PoolObject, Transform> containerDict = new();
 
     private void Awake()
     {
@@ -45,25 +47,19 @@ public class MemoryPool : MonoBehaviour
             return null;
         }
 
-        if (!memDict.TryGetValue(prefab, out var memStack) || memStack == null)
-        {
-            memStack = new Stack<PoolObject>();
-            memDict[prefab] = memStack;
-        }
+        var memStack = GetOrCreateStack(prefab);
 
         PoolObject instance;
         if (memStack.Count == 0)
         {
-            instance = Instantiate(prefab);
-            instance.SetStack(memStack);
+            instance = CreateNewInstance(prefab, memStack);
         }
         else
         {
             instance = memStack.Pop();
-            instance.gameObject.SetActive(true);
         }
 
-        instance.OnSpawn();
+        ActivateInstance(instance);
 
         var comp = instance.GetComponent<Ty_>();
         if (comp == null)
@@ -88,23 +84,19 @@ public class MemoryPool : MonoBehaviour
             return;
         }
 
-        if (!memDict.TryGetValue(prefab, out var memStack) || memStack == null)
-        {
-            memStack = new Stack<PoolObject>();
-            memDict[prefab] = memStack;
-        }
+        var memStack = GetOrCreateStack(prefab);
 
+        PoolObject instance;
         if (memStack.Count == 0)
         {
-            var newInst = Instantiate(prefab);
-            newInst.SetStack(memStack);
-            newInst.OnSpawn();
-            return;
+            instance = CreateNewInstance(prefab, memStack);
+        }
+        else
+        {
+            instance = memStack.Pop();
         }
 
-        var retInst = memStack.Pop();
-        retInst.gameObject.SetActive(true);
-        retInst.OnSpawn();
+        ActivateInstance(instance);
     }
 
     /// <summary>
@@ -123,16 +115,10 @@ public class MemoryPool : MonoBehaviour
             return;
         }
 
-        if (!memDict.TryGetValue(prefab, out var memStack) || memStack == null)
-        {
-            memStack = new Stack<PoolObject>(count);
-            memDict[prefab] = memStack;
-        }
-
+        var memStack = GetOrCreateStack(prefab, count);
         for (int i = 0; i < count; i++)
         {
-            var inst = Instantiate(prefab);
-            inst.SetStack(memStack);
+            var inst = CreateNewInstance(prefab, memStack);
             inst.OnDespawn();
             inst.gameObject.SetActive(false);
             memStack.Push(inst);
@@ -155,5 +141,50 @@ public class MemoryPool : MonoBehaviour
         }
 
         return memStack.Count;
+    }
+
+    private Stack<PoolObject> GetOrCreateStack(PoolObject prefab, int initialCapacity = 0)
+    {
+        if (!memDict.TryGetValue(prefab, out var memStack) || memStack == null)
+        {
+            memStack = initialCapacity > 0 ? new Stack<PoolObject>(initialCapacity) : new Stack<PoolObject>();
+            memDict[prefab] = memStack;
+        }
+
+        return memStack;
+    }
+
+    private PoolObject CreateNewInstance(PoolObject prefab, Stack<PoolObject> memStack)
+    {
+        var container = GetOrCreateContainer(prefab);
+        var instance = Instantiate(prefab, container);
+
+        if (instance.gameObject.activeSelf)
+        {
+            instance.gameObject.SetActive(false);
+        }
+
+        instance.SetStack(memStack);
+        return instance;
+    }
+
+    private Transform GetOrCreateContainer(PoolObject prefab)
+    {
+        if (!containerDict.TryGetValue(prefab, out var container) || container == null)
+        {
+            var containerObject = new GameObject($"Spawned{prefab.name}");
+            container = containerObject.transform;
+            container.SetParent(transform);
+            containerDict[prefab] = container;
+        }
+
+        return container;
+    }
+
+    private static void ActivateInstance(PoolObject instance)
+    {
+        instance.OnBeforeSpawn();
+        instance.gameObject.SetActive(true);
+        instance.OnSpawn();
     }
 }

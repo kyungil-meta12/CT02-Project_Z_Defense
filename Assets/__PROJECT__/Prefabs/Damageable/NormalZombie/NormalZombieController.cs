@@ -39,19 +39,19 @@ public class NormalZombieController : PoolObject, IDamageable
         // 웨이브 1때는 웨이브 가중치를 적용하지 않는다.
 
         // 이동 속도
-        var moveSpeedMul = isFirstWave ? randomMoveSpeed : randomMoveSpeed * wave * spec.MoveSpeedWaveMultiply;
+        var moveSpeedMul = isFirstWave ? randomMoveSpeed : randomMoveSpeed * (wave * spec.MoveSpeedWaveMultiply);
         anim.SetFloat("MoveSpeed", spec.MoveSpeed * moveSpeedMul);
 
         // 공격 속도
-        var attackSpeedMul = isFirstWave ? randomAttackSpeed : randomAttackSpeed * wave * spec.AttackSpeedWaveMultiply;
+        var attackSpeedMul = isFirstWave ? randomAttackSpeed : randomAttackSpeed * (wave * spec.AttackSpeedWaveMultiply);
         anim.SetFloat("AttackSpeed", spec.AttackSpeed * attackSpeedMul);
 
         // 공격 대미지
-        var attackDamageMul = isFirstWave ? randomAttackDamage : randomAttackDamage * wave * spec.AttackDamageWaveMultiply;
+        var attackDamageMul = isFirstWave ? randomAttackDamage : randomAttackDamage * (wave * spec.AttackDamageWaveMultiply);
         attackDamage = spec.AttackDamage * attackDamageMul;
 
         // 체력
-        var hpMul = isFirstWave ? randomHp : randomHp * wave * spec.HpWaveMultiply;
+        var hpMul = isFirstWave ? randomHp : randomHp * (wave * spec.HpWaveMultiply);
         TotalHp = spec.Hp * hpMul;
         CurrHp = TotalHp;
     }

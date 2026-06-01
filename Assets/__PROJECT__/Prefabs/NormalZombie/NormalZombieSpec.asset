@@ -13,10 +13,13 @@ MonoBehaviour:
   m_Name: NormalZombieSpec
   m_EditorClassIdentifier: Assembly-CSharp::NormalZombieSpec
   MoveSpeed: 1
-  MoveSpeedRandomRange: 1.5
+  MinMoveSpeed: 0.5
+  MaxMoveSpeed: 1.5
   AttackSpeed: 1
-  AttackSpeedRandomRange: 1.5
+  MinAttackSpeed: 0.5
+  MaxAttackSpeed: 1.5
   AttackDamage: 25
-  AttackDamageRandomRange: 1.5
+  MinAttackDamage: 0.5
+  MaxAttackDamage: 1.5
   NoramlItemDropPercentage: 80
   RareItemDropPercentage: 20

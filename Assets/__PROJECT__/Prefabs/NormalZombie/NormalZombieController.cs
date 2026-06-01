@@ -23,9 +23,9 @@ public class NormalZombieController : PoolObject
 
     public override void OnSpawn()
     {
-        var randomMoveSpeed = Random.Range(-spec.MoveSpeedRandomRange, spec.MoveSpeedRandomRange);
-        var randomAttackSpeed = Random.Range(-spec.AttackSpeedRandomRange, spec.AttackSpeedRandomRange);
-        var randomAttackDamage = Random.Range(-spec.AttackDamageRandomRange, spec.AttackDamageRandomRange);
+        var randomMoveSpeed = Random.Range(spec.MinMoveSpeed, spec.MaxMoveSpeed);
+        var randomAttackSpeed = Random.Range(spec.MinAttackSpeed, spec.MaxAttackSpeed);
+        var randomAttackDamage = Random.Range(spec.MinAttackDamage, spec.MaxAttackDamage);
 
         // 기본 수치 * 랜덤 수치 * 웨이브 수를 곱하여 결정
         anim.SetFloat("MoveSpeed", spec.MoveSpeed * randomMoveSpeed);

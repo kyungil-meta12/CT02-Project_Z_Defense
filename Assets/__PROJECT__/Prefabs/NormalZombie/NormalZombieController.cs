@@ -1,50 +1,44 @@
 using UnityEngine;
 using System.Linq;
 
-public class NormalZombieController : MonoBehaviour
+public class NormalZombieController : PoolObject
 {
-    public float attackDistance;
-    public float defaultMoveSpeed;
+    [Header("테스트 모드")] public bool testMode;
+    [Header("일반 좀비 기본 스펙")] public NormalZombieSpec spec; // 일반 좀비 스펙 스크립터블 오브젝트
+    [Header("공격 가능 거리")] public float attackDistance;
+    [Header("추적할 타겟")]  public Transform target;
 
     private Animator anim;
-    private SphereCollider sightCollider; // 시야 콜라이더
-    private float checkTime = 0f; // 확인 시간
-    private Transform targetTransform; // 추적 대상 트랜스폼
-    private int humanLayerMask; // 레이어마스크 저장용
+    private float attackDamage; // 타워에 가할 대미지
 
     void Awake()
     {
         anim = GetComponent<Animator>();
-        anim.SetFloat("MoveSpeed", defaultMoveSpeed);
-        sightCollider = GetComponent<SphereCollider>();
-        humanLayerMask = LayerMask.GetMask("Human");
+
+        if(testMode)
+        {
+            OnSpawn();
+        }
+    }
+
+    public override void OnSpawn()
+    {
+        var randomMoveSpeed = Random.Range(-spec.MoveSpeedRandomRange, spec.MoveSpeedRandomRange);
+        var randomAttackSpeed = Random.Range(-spec.AttackSpeedRandomRange, spec.AttackSpeedRandomRange);
+        var randomAttackDamage = Random.Range(-spec.AttackDamageRandomRange, spec.AttackDamageRandomRange);
+
+        // 기본 수치 * 랜덤 수치 * 웨이브 수를 곱하여 결정
+        anim.SetFloat("MoveSpeed", spec.MoveSpeed * randomMoveSpeed);
+        anim.SetFloat("AttackSpeed", spec.AttackSpeed * randomAttackSpeed);
+        attackDamage = spec.AttackDamage + randomAttackDamage;
     }
 
     void Update()
     {
-        // 매 프레임 시야 콜라이더 충돌을 확인하면 오버헤드가 발생하므로 0.5초에 한 번씩 확인
-        // 가장 가까운 거리에 있는 대상을 우선 지정
-        checkTime += Time.deltaTime;
-        if (checkTime >= 0.5f)
-        {
-            checkTime -= 0.5f;
-            var hits = Physics.OverlapSphere(transform.position, sightCollider.radius, humanLayerMask);
-
-            var sortedHits = hits
-            .OrderBy(c => Vector3.Distance(transform.position, c.transform.position))
-            .ToArray();
-            
-            foreach (var collider in sortedHits)
-            {
-                targetTransform = collider.transform;
-                break;
-            }
-        }
-
         // 추적할 대상이 있다면 그 대상을 향하여 이동
-        if (targetTransform)
+        if (target)
         {
-            Vector3 destDir = targetTransform.position - transform.position;
+            Vector3 destDir = target.position - transform.position;
             destDir.y = 0;
             destDir.Normalize();
 
@@ -55,7 +49,7 @@ public class NormalZombieController : MonoBehaviour
             }
 
             //  attackDistance보다 가까워지면 그 대상 공격
-            float targetDist = Vector3.Distance(targetTransform.position, transform.position);
+            float targetDist = Vector3.Distance(target.position, transform.position);
             anim.SetBool("IsAttackState", targetDist <= attackDistance);
         }
     }

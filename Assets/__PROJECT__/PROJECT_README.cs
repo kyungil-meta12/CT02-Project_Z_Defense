@@ -51,6 +51,83 @@
  * - [Wave 클리어 실패 시] 소지하고 있는 코인 중 일정 비율(또는 고정 수치) 차감 패널티 부과.
  * - [재도전] 패널티 적용 후, 실패한 현재 Wave의 0초 시점으로 돌아가 다시 시작.
  * * ==========================================================================================
+ *
+ * ==========================================================================================
+ * 6. 팀 역할 및 작업 경계
+ * ==========================================================================================
+ *
+ * [준영] 게임 코어 / 시스템 담당
+ * - 웨이브 진행, 적 스폰 규칙, 타겟팅 정책, 데미지 규칙, 체력/사망/보상 흐름을 담당한다.
+ * - 터렛 스탯, 업그레이드 규칙, ScriptableObject 데이터 구조, 전체 게임 상태를 담당한다.
+ * - 예상 모듈:
+ *   WaveManager, EnemySpawner, TargetingSystem, DamageSystem, Health,
+ *   TowerStatData, EnemyStatData, UpgradeData, GameStateManager.
+ * - 최종 책임:
+ *   터렛, 좀비, 맵, 연출 시스템이 함께 사용할 게임 규칙과 공통 API를 정의한다.
+ *
+ * [규원] 터렛 / 발사체 연출 담당
+ * - 터렛 배치 연출, 조준/발사 연출, 발사체 VFX, 머즐 플래시, 히트 이펙트,
+ *   발사 사운드, 반동/총열 애니메이션, 터렛 연출 테스트 씬을 담당한다.
+ * - 터렛 연출에 필요한 VFX 데이터 구성을 담당한다.
+ * - 예상 모듈:
+ *   TurretVFXProfile, TurretFireVFXController, ProjectileVFXAdapter,
+ *   MuzzleFlashController, HitEffectController, turret range/debug gizmos,
+ *   AAA Projectiles candidate selection and matching.
+ * - 최종 책임:
+ *   터렛 발사가 잘 보이고, 반응성이 좋으며, 코어 전투 로직에 쉽게 연결되도록 만든다.
+ * - 작업 경계:
+ *   최종 데미지 공식, 업그레이드 밸런스, 웨이브 밸런스는 담당하지 않는다.
+ *   더미 적과 테스트용 훅은 터렛 연출 검증 용도로만 사용한다.
+ *
+ * [준호] 좀비 / 맵 / 애니메이션 / 행동 담당
+ * - 좀비 프리팹 구성, 좀비 이동, 좀비 애니메이션, 행동트리/상태 로직,
+ *   맵 경로, 스폰/목표 지점, 장애물 구성, 특수 좀비 행동을 담당한다.
+ * - 예상 모듈:
+ *   ZombieController, ZombieMovement, ZombieAnimator, ZombieBehaviorTree,
+ *   ZombieAttack, MapPath, SpawnPoint, GoalPoint.
+ * - 특수 좀비 담당:
+ *   Screamer, Boomer, Charger의 행동과 애니메이션 연동.
+ * - 최종 책임:
+ *   적이 이동, 반응, 공격할 수 있게 만들고, 게임 시스템이 사용할 타겟/데미지 연결점을 제공한다.
+ *
+ * ------------------------------------------------------------------------------------------
+ * 공통 API 계약
+ * ------------------------------------------------------------------------------------------
+ *
+ * 아래 계약은 작업 충돌과 담당 범위 중복을 줄이기 위해 초기에 합의한다.
+ *
+ * public interface IDamageable
+ * {
+ *     void TakeDamage(float damage);
+ * }
+ *
+ * public interface ITargetable
+ * {
+ *     Transform TargetPoint { get; }
+ *     bool IsAlive { get; }
+ * }
+ *
+ * public interface IProjectileHitHandler
+ * {
+ *     void OnProjectileHit(GameObject target);
+ * }
+ *
+ * 담당 연결:
+ * - 준영은 최종 데미지 계산과 IDamageable 구현 정책을 담당한다.
+ * - 규원은 발사체 충돌 전후의 연출과 합의된 피격 훅에 VFX를 연결하는 작업을 담당한다.
+ * - 준호는 좀비 쪽 IDamageable / ITargetable 연동과 적 반응을 담당한다.
+ *
+ * 우선순위:
+ * 1) 준영: IDamageable, ITargetable, 기본 Health, 테스트 가능한 데미지 흐름.
+ * 2) 준호: 더미 좀비 경로 이동, 피격 반응, 사망 반응.
+ * 3) 규원: 터렛 VFX 테스트 씬, 발사체 후보 선정, 머즐/히트/사운드 프로필 구성.
+ *
+ * 한 줄 요약:
+ * - 준영: 규칙과 데이터.
+ * - 규원: 터렛 발사 화면과 소리.
+ * - 준호: 적 이동과 반응.
+ *
+ * ==========================================================================================
  */
 
 using UnityEngine;

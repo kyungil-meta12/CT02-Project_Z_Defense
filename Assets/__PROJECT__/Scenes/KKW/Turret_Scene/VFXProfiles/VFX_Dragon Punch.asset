@@ -1,0 +1,20 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d6d09d1f6c7f2954b800f81fb1ad11ef, type: 3}
+  m_Name: VFX_Dragon Punch
+  m_EditorClassIdentifier: Assembly-CSharp::TurretVFXProfile
+  displayName: Dragon Punch
+  projectilePrefab: {fileID: 1328495139333439498, guid: 79f41e1c75bfb6e43b7f5ee13b33dc02, type: 3}
+  projectileSpeed: 0
+  muzzleVFX: {fileID: 0}
+  muzzleVFXDuration: 2
+  fireSound: {fileID: 0}

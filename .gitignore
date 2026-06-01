@@ -108,3 +108,5 @@ InitTestScene*.unity*
 
 # private assets
 /[Aa]ssets/__PROJECT__/Private Assets/**
+.idea
+.idea

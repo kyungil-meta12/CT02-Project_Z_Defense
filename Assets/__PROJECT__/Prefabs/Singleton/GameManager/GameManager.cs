@@ -2,15 +2,24 @@ using UnityEngine;
 
 public class GameManager : MonoBehaviour
 {
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
+    public static GameManager Inst;
+    public int wave = 1; // 현재 웨이브
+
+    void Awake()
     {
-        
+        if(Inst && Inst != this)
+        {
+            DestroyImmediate(gameObject);
+            return;
+        }    
+        Inst = this;
     }
 
-    // Update is called once per frame
-    void Update()
+    /// <summary>
+    ///  현재 웨이브를 1 증가시킨다.
+    /// </summary>
+    public void IncreaseWave()
     {
-        
+        wave++;
     }
 }

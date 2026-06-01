@@ -10,12 +10,15 @@ TagManager:
   - Default
   - TransparentFX
   - Ignore Raycast
-  - 
+  - Ground
   - Water
   - UI
   - Wall
   - Zombie
   - Human
+  - Obstacle
+  - 
+  - 
   - 
   - 
   - 

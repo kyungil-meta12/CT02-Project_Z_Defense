@@ -9,7 +9,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: edfc60b39b4d0c74fac9e7a742e85c74, type: 3}
+  m_Script: {fileID: 11500000, guid: 043bcd61105f5e44f87f3a3e75a61fbf, type: 3}
   m_Name: SortifyNoteDatabase
-  m_EditorClassIdentifier: 
+  m_EditorClassIdentifier: Assembly-CSharp::Sortify.SortifyNoteDatabase
   notes: []

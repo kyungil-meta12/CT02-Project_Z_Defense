@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d6d09d1f6c7f2954b800f81fb1ad11ef, type: 3}
   m_Name: VFX_YellowArrow
   m_EditorClassIdentifier: Assembly-CSharp::TurretVFXProfile
-  displayName: 
+  displayName: Yellow Arrow
   projectilePrefab: {fileID: 1878987882032996, guid: b30a964431c8c7b47948d64161c31478, type: 3}
   projectileSpeed: 0
   muzzleVFX: {fileID: 0}

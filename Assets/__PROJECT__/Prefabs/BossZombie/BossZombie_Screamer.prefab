@@ -695,9 +695,9 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3676798881068352528}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0.7071068, z: -0, w: 0.7071068}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 0.30622792, y: 0.306228, z: 0.30622792}
+  m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 8487050741437378786}
@@ -1948,9 +1948,9 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 9132459234666654572}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0.7071068, z: -0, w: 0.7071068}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 0.19999996, y: 0.2, z: 0.19999996}
+  m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 8225144644843875078}
@@ -1964,21 +1964,29 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 3317958215391167824, guid: bb3feed03de6ffc478b034fa5b6ed38f, type: 3}
+      propertyPath: m_Avatar
+      value: 
+      objectReference: {fileID: 9000000, guid: 03336d372b3854043b18096209507e9b, type: 3}
+    - target: {fileID: 3317958215391167824, guid: bb3feed03de6ffc478b034fa5b6ed38f, type: 3}
+      propertyPath: m_Controller
+      value: 
+      objectReference: {fileID: 22100000, guid: 1e3f23749b89d414fad1334e386c367a, type: 2}
     - target: {fileID: 3703631398934292930, guid: bb3feed03de6ffc478b034fa5b6ed38f, type: 3}
       propertyPath: m_Name
       value: BossZombie_Screamer
       objectReference: {fileID: 0}
     - target: {fileID: 6838670774652095222, guid: bb3feed03de6ffc478b034fa5b6ed38f, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 0
+      value: 33.3
       objectReference: {fileID: 0}
     - target: {fileID: 6838670774652095222, guid: bb3feed03de6ffc478b034fa5b6ed38f, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0
+      value: 0.0000031513578
       objectReference: {fileID: 0}
     - target: {fileID: 6838670774652095222, guid: bb3feed03de6ffc478b034fa5b6ed38f, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 0
+      value: 47.8
       objectReference: {fileID: 0}
     - target: {fileID: 6838670774652095222, guid: bb3feed03de6ffc478b034fa5b6ed38f, type: 3}
       propertyPath: m_LocalRotation.w

@@ -2,12 +2,6 @@
     "objectsData": [
         {
             "colors": [],
-            "styles": [],
-            "showComponents": [],
-            "sceneName": "Overview"
-        },
-        {
-            "colors": [],
             "styles": [
                 {
                     "objID": "SampleScene_Global Volume_2",
@@ -21,7 +15,7 @@
             "colors": [],
             "styles": [],
             "showComponents": [],
-            "sceneName": "Playground"
+            "sceneName": "Turret"
         }
     ]
 }

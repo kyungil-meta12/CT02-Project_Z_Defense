@@ -1,0 +1,15 @@
+{
+    "objectsData": [
+        {
+            "colors": [],
+            "styles": [
+                {
+                    "objID": "SampleScene_Global Volume_2",
+                    "styleType": 0
+                }
+            ],
+            "showComponents": [],
+            "sceneName": "SampleScene"
+        }
+    ]
+}

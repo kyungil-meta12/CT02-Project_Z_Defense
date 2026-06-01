@@ -331,8 +331,10 @@ GameObject:
   m_Component:
   - component: {fileID: 6352535554235262330}
   - component: {fileID: 1503997639947314262}
-  - component: {fileID: 275413793354633231}
   - component: {fileID: 4015250823583371656}
+  - component: {fileID: 6218777035783157810}
+  - component: {fileID: 1337321299415714987}
+  - component: {fileID: 2833650141138837925}
   m_Layer: 0
   m_Name: NormalZombie_BusinessMan
   m_TagString: Untagged
@@ -379,8 +381,45 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
---- !u!136 &275413793354633231
-CapsuleCollider:
+--- !u!114 &4015250823583371656
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3700086009382628690}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3d5b1ecefff3ffd46b91ce3639847689, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::NormalZombieController
+--- !u!143 &6218777035783157810
+CharacterController:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3700086009382628690}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Height: 3
+  m_Radius: 0.5
+  m_SlopeLimit: 45
+  m_StepOffset: 0.3
+  m_SkinWidth: 0.08
+  m_MinMoveDistance: 0.001
+  m_Center: {x: 0, y: 1.5, z: 0}
+--- !u!135 &1337321299415714987
+SphereCollider:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -397,23 +436,36 @@ CapsuleCollider:
   m_IsTrigger: 1
   m_ProvidesContacts: 0
   m_Enabled: 1
-  serializedVersion: 2
-  m_Radius: 0.69
-  m_Height: 3
-  m_Direction: 1
-  m_Center: {x: 0, y: 1.5, z: 0.83}
---- !u!114 &4015250823583371656
-MonoBehaviour:
+  serializedVersion: 3
+  m_Radius: 7
+  m_Center: {x: 0, y: 1.5, z: 0}
+--- !u!54 &2833650141138837925
+Rigidbody:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3700086009382628690}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3d5b1ecefff3ffd46b91ce3639847689, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::NormalZombieController
+  serializedVersion: 5
+  m_Mass: 1
+  m_LinearDamping: 0
+  m_AngularDamping: 0.05
+  m_CenterOfMass: {x: 0, y: 0, z: 0}
+  m_InertiaTensor: {x: 1, y: 1, z: 1}
+  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ImplicitCom: 1
+  m_ImplicitTensor: 1
+  m_UseGravity: 0
+  m_IsKinematic: 1
+  m_Interpolate: 0
+  m_Constraints: 0
+  m_CollisionDetection: 0
 --- !u!1 &4063881699870442701
 GameObject:
   m_ObjectHideFlags: 0
@@ -712,7 +764,7 @@ GameObject:
   - component: {fileID: 3476606595809372978}
   - component: {fileID: 291740533840875188}
   m_Layer: 0
-  m_Name: SA_Zombie_Businessman
+  m_Name: MeshRenderer
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

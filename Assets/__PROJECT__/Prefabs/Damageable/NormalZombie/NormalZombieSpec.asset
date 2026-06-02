@@ -21,7 +21,7 @@ MonoBehaviour:
   AttackDamageWeight: 0.05
   MinAttackDamage: 0.5
   MaxAttackDamage: 1.5
-  AttackDistance: 0.325
+  AttackDistance: 0.5
   Hp: 100
   HpWeight: 0.05
   MinHp: 0.9

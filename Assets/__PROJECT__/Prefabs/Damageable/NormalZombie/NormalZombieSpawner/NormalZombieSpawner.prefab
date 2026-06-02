@@ -45,7 +45,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::NormalZombieSpawner
   defaultSpawnInterval: 5
-  waveIntervalMultiply: 0.98
+  spawnIntervalWeight: 0.025
   spwanPoints: []
   destinations: []
   normalZombiePrefabs:

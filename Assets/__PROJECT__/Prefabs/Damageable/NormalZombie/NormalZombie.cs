@@ -119,6 +119,15 @@ public class NormalZombie : PoolObject, IDamageable
     }
 
     /// <summary>
+    /// 위치를 지정한다
+    /// </summary>
+    /// <param name="t"></param>
+    public void SetPosition(Transform t)
+    {
+        transform.position = t.position;
+    }
+
+    /// <summary>
     /// 추적할 대상을 지정한다
     /// </summary>
     /// <param name="t"></param>

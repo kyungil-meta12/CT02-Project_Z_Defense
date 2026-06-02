@@ -16,7 +16,7 @@ MonoBehaviour:
   AttackSpeed: 0.8
   MoveAttackSpeedWaveMultiply: 1
   MinMoveAttackSpeed: 1
-  MaxMoveAttackSpeed: 3
+  MaxMoveAttackSpeed: 1.5
   AttackDamage: 25
   AttackDamageWaveMultiply: 1
   MinAttackDamage: 0.5

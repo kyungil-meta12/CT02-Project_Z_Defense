@@ -14,11 +14,11 @@ public class NormalZombieAttackCollider : MonoBehaviour
 
     void Update()
     {
-        // 0.25초 마다 Obstacle 충돌 확인
+        // 0.1초 마다 Obstacle 충돌 확인
         checkTime += Time.deltaTime;
-        if(checkTime >= 0.25f)
+        if(checkTime >= 0.1f)
         {
-            checkTime -= 0.25f;
+            checkTime -= 0.1f;
             checkEnabled = true;
         }
     }

@@ -973,15 +973,15 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 642898603569332905, guid: 67116107db134114fafa48796f2c6255, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -3.34212
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 642898603569332905, guid: 67116107db134114fafa48796f2c6255, type: 3}
       propertyPath: m_LocalPosition.y
-      value: -0
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 642898603569332905, guid: 67116107db134114fafa48796f2c6255, type: 3}
       propertyPath: m_LocalPosition.z
-      value: -7.51114
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 642898603569332905, guid: 67116107db134114fafa48796f2c6255, type: 3}
       propertyPath: m_LocalRotation.w
@@ -1014,6 +1014,10 @@ PrefabInstance:
     - target: {fileID: 649941889588872443, guid: 67116107db134114fafa48796f2c6255, type: 3}
       propertyPath: waveMultiply
       value: 1.05
+      objectReference: {fileID: 0}
+    - target: {fileID: 649941889588872443, guid: 67116107db134114fafa48796f2c6255, type: 3}
+      propertyPath: defaultSpawnInterval
+      value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 649941889588872443, guid: 67116107db134114fafa48796f2c6255, type: 3}
       propertyPath: waveIntervalMultiply

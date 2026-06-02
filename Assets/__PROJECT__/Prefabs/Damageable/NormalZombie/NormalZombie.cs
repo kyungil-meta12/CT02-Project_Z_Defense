@@ -1,6 +1,7 @@
 using UnityEngine;
 using System.Linq;
 using UnityEditor.Animations;
+using Mono.Cecil.Cil;
 
 public class NormalZombie : PoolObject, IDamageable
 {
@@ -92,6 +93,25 @@ public class NormalZombie : PoolObject, IDamageable
             {
                 Quaternion targetRotation = Quaternion.LookRotation(destDir);
                 transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime * 2f);
+            }
+        }
+    }
+
+    /// <summary>
+    /// 애니메이션 이벤트, 직접 호출하지 않음
+    /// 공격 대상이 IDamageable 인터페이스를 상속해야 실제로 대미지가 적용됨
+    /// </summary>
+    public void OnZombieAttack()
+    {
+        if(attackState && attackTarget)
+        {
+            if(attackTarget.TryGetComponent<IDamageable>(out var iDmg))
+            {
+                iDmg.TakeDamage(attackDamage);
+            }
+            else
+            {
+                Debug.LogError("[NormalZombie] 공격 대상이 IDamageable을 상속하지 않음");
             }
         }
     }

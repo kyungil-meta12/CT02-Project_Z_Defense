@@ -3,6 +3,7 @@ using System.Linq;
 using UnityEditor.Animations;
 using Mono.Cecil.Cil;
 using UnityEngine.AI;
+using System.Collections;
 
 public class NormalZombie : PoolObject, IDamageable
 {
@@ -21,6 +22,8 @@ public class NormalZombie : PoolObject, IDamageable
     // IDamageable value
     public float CurrHp{ get; set; } // 현재 체력
     public float TotalHp{ get; set; } // 최대 체력
+
+    private bool returnInstanceCoroutineRunning = false;
 
     void Awake()
     {
@@ -68,7 +71,10 @@ public class NormalZombie : PoolObject, IDamageable
             var info = anim.GetCurrentAnimatorStateInfo(0);
             if (info.normalizedTime >= 1f)
             {
-                ReturnInstance();
+                if(!returnInstanceCoroutineRunning)
+                {
+                    StartCoroutine(ReturnInstanceCoroutine());
+                }
             }
             return;
         }
@@ -91,7 +97,7 @@ public class NormalZombie : PoolObject, IDamageable
             }
         }
 
-        // 공격 대상이 존재한다면 공격 대상을 향해 이동하고, 자신의 위치와 공격 포인트의 거리가 가까워지면 공격을 실행한다.
+        // 공격 대상이 존재한다면 공격 대상을 향해 회전한다.
         if (attackState && attackTarget)
         {
             LookAt(attackTargetContactPoint);
@@ -125,6 +131,14 @@ public class NormalZombie : PoolObject, IDamageable
             Quaternion targetRotation = Quaternion.LookRotation(destDir);
             transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime * 2f);
         }
+    }
+
+    // 인스턴스 반환 코루틴
+    IEnumerator ReturnInstanceCoroutine()
+    {
+        returnInstanceCoroutineRunning = true;
+        yield return new WaitForSeconds(1f);
+        ReturnInstance();
     }
 
     /// <summary>

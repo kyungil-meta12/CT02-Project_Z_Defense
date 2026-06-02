@@ -1094,12 +1094,20 @@ PrefabInstance:
       value: 1.05
       objectReference: {fileID: 0}
     - target: {fileID: 649941889588872443, guid: 67116107db134114fafa48796f2c6255, type: 3}
+      propertyPath: spawnIntervalWeight
+      value: 0.025
+      objectReference: {fileID: 0}
+    - target: {fileID: 649941889588872443, guid: 67116107db134114fafa48796f2c6255, type: 3}
       propertyPath: defaultSpawnInterval
       value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 649941889588872443, guid: 67116107db134114fafa48796f2c6255, type: 3}
       propertyPath: waveIntervalMultiply
       value: 0.98
+      objectReference: {fileID: 0}
+    - target: {fileID: 649941889588872443, guid: 67116107db134114fafa48796f2c6255, type: 3}
+      propertyPath: spawnIntervalMultiply
+      value: 0.05
       objectReference: {fileID: 0}
     - target: {fileID: 649941889588872443, guid: 67116107db134114fafa48796f2c6255, type: 3}
       propertyPath: spwanPoints.Array.size

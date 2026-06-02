@@ -7,8 +7,11 @@ using UnityEngine.UI;
 public class TurretVFXProfileTester : MonoBehaviour
 {
     [SerializeField] private Turret targetTurret;
+    [SerializeField] private TargetFinder targetFinder;
     [SerializeField] private FiringEvent targetFiringEvent;
+    [SerializeField] private Gun[] targetGuns;
     [SerializeField] private TurretVFXProfile[] profiles;
+    [SerializeField] private TurretStatProfileSO statProfile;
     [FormerlySerializedAs("currentIndex")]
     [SerializeField, Min(0)] private int profileIndex = 0;
     [SerializeField] private bool applyOnStart = true;
@@ -39,7 +42,9 @@ public class TurretVFXProfileTester : MonoBehaviour
     private void Reset()
     {
         targetTurret = GetComponent<Turret>();
+        targetFinder = GetComponent<TargetFinder>();
         targetFiringEvent = GetComponent<FiringEvent>();
+        targetGuns = GetComponentsInChildren<Gun>(true);
     }
 
     private void OnValidate()
@@ -72,6 +77,8 @@ public class TurretVFXProfileTester : MonoBehaviour
     [ContextMenu("Apply Current Profile")]
     public void ApplyCurrentProfile()
     {
+        EnsureReferences();
+
         TurretVFXProfile profile = CurrentProfile;
         if (profile == null)
         {
@@ -81,7 +88,8 @@ public class TurretVFXProfileTester : MonoBehaviour
 
         if (targetTurret != null)
         {
-            targetTurret.SetProjectilePrefab(profile.projectilePrefab, profile.projectileSpeed);
+            float projectileSpeed = statProfile != null ? statProfile.projectileSpeed : 0.0f;
+            targetTurret.SetProjectilePrefab(profile.projectilePrefab, projectileSpeed);
         }
 
         if (targetFiringEvent != null)
@@ -91,9 +99,79 @@ public class TurretVFXProfileTester : MonoBehaviour
             targetFiringEvent.firingSound = profile.fireSound;
         }
 
+        ApplyStatProfile();
+
         RefreshCurrentProfileName();
         RefreshRuntimeUI();
         Debug.Log($"[TurretVFXProfileTester] Applied profile: {profile.displayName}", this);
+    }
+
+    [ContextMenu("Apply Stat Profile")]
+    public void ApplyStatProfile()
+    {
+        EnsureReferences();
+
+        if (statProfile == null)
+        {
+            return;
+        }
+
+        if (targetFinder != null)
+        {
+            targetFinder.radius = statProfile.range;
+        }
+
+        if (targetTurret != null)
+        {
+            targetTurret.fireTick = statProfile.fireInterval;
+
+            if (targetTurret.projectilePrefab != null)
+            {
+                targetTurret.SetProjectilePrefab(targetTurret.projectilePrefab, statProfile.projectileSpeed);
+            }
+
+            targetTurret.SetAutoFireEnabled(autoFireEnabled);
+        }
+
+        if (targetGuns == null || targetGuns.Length == 0)
+        {
+            targetGuns = GetComponentsInChildren<Gun>(true);
+        }
+
+        int projectileCount = Mathf.Max(1, statProfile.projectileCount);
+        for (int i = 0; i < targetGuns.Length; i++)
+        {
+            Gun gun = targetGuns[i];
+            if (gun == null)
+            {
+                continue;
+            }
+
+            gun.burstFireCount = projectileCount;
+        }
+    }
+
+    private void EnsureReferences()
+    {
+        if (targetTurret == null)
+        {
+            targetTurret = GetComponent<Turret>();
+        }
+
+        if (targetFinder == null)
+        {
+            targetFinder = GetComponent<TargetFinder>();
+        }
+
+        if (targetFiringEvent == null)
+        {
+            targetFiringEvent = GetComponent<FiringEvent>();
+        }
+
+        if (targetGuns == null || targetGuns.Length == 0)
+        {
+            targetGuns = GetComponentsInChildren<Gun>(true);
+        }
     }
 
     public void SetProfileIndex(int index)

@@ -8,7 +8,6 @@ public class TurretVFXProfile : ScriptableObject
 
     [Header("Projectile")]
     public GameObject projectilePrefab;
-    public float projectileSpeed = 0.0f;
 
     [Header("Muzzle")]
     public GameObject muzzleVFX;

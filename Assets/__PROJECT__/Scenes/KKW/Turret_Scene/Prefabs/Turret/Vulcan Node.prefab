@@ -214,6 +214,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   muzzleObject: {fileID: 7546084286541153103}
   burstFireCount: 2
+  extraCollisionIgnoreRoots:
+  - {fileID: 0}
 --- !u!114 &102856515201917364
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -679,15 +681,15 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: -8679921383154817045, guid: 9938bcc1092190d41a5036cc7c05e5a0, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 0
+      value: -17.75431
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 9938bcc1092190d41a5036cc7c05e5a0, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0
+      value: 0.9785576
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 9938bcc1092190d41a5036cc7c05e5a0, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 0
+      value: -1.1536217
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 9938bcc1092190d41a5036cc7c05e5a0, type: 3}
       propertyPath: m_LocalRotation.w
@@ -719,7 +721,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: 9938bcc1092190d41a5036cc7c05e5a0, type: 3}
       propertyPath: m_Name
-      value: SM_Buckshot-Flamethrower
+      value: Vulcan Node
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 9938bcc1092190d41a5036cc7c05e5a0, type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -802,7 +808,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a31afd3a38f12d846bcc57f9abf2944d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  radius: 20
+  radius: 100
   targetTag: Enemy
   pivotObject: {fileID: 2421319688518584734}
   showDebug: 0
@@ -823,11 +829,46 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TurretVFXProfileTester
   targetTurret: {fileID: 113214822646184027}
+  targetFinder: {fileID: 6133019874014236239}
   targetFiringEvent: {fileID: 7573435724512310478}
+  targetGuns: []
   profiles:
+  - {fileID: 11400000, guid: 1d6a2940709cdd144b02d3266aa6ff67, type: 2}
+  - {fileID: 11400000, guid: e8c0022ca2f80e24ba36aedb4eecf42e, type: 2}
+  - {fileID: 11400000, guid: de79a2607ae20eb4a80b8be90bdb4f2a, type: 2}
+  - {fileID: 11400000, guid: 34b170d03f7d4e14d96851594cf268ff, type: 2}
+  - {fileID: 11400000, guid: b5d5f6d14b3b96a4a98c90e046319430, type: 2}
+  - {fileID: 11400000, guid: de112581bd4bd8c4db705eb6321974c6, type: 2}
+  - {fileID: 11400000, guid: f45fc6685120e7c4c9b415e2138acb76, type: 2}
+  - {fileID: 11400000, guid: 7094c9e3878781344a9825e06a5e111b, type: 2}
+  - {fileID: 11400000, guid: b4d78e06f686359488be46e9adeeff37, type: 2}
+  - {fileID: 11400000, guid: bd19a546d76a98345bbc078e5c5a3cd2, type: 2}
+  - {fileID: 11400000, guid: 2659c0ce3dee22647a8c504f840012c5, type: 2}
+  - {fileID: 11400000, guid: 320d0df5ca7cff546b851763c226a8ca, type: 2}
+  - {fileID: 11400000, guid: 19afa7c3f9522264a8aef69254a42fed, type: 2}
+  - {fileID: 11400000, guid: 1f4662e8573495c429dd28f61fb3078d, type: 2}
+  - {fileID: 11400000, guid: 0c7b109316a01a34d97bfd1a6060face, type: 2}
+  - {fileID: 11400000, guid: ef171364a72a2d844b92829f7f78f809, type: 2}
+  - {fileID: 11400000, guid: bc7ad5f0a7d0add4789f52dc80417ede, type: 2}
+  - {fileID: 11400000, guid: 14c221b812307fe4583751d45a6b4187, type: 2}
   - {fileID: 11400000, guid: 485fbf9d60d20424489effa54cb2d9b6, type: 2}
-  currentIndex: 0
+  - {fileID: 11400000, guid: c883d6d69528da1449321f3d7a459d12, type: 2}
+  - {fileID: 11400000, guid: 5f0b0b4fdd7da30439b804ded2a8ac6e, type: 2}
+  - {fileID: 11400000, guid: 1c870e551809ba648a511bf438b7dff3, type: 2}
+  - {fileID: 11400000, guid: 84eeeb378f292fb458e7cf441d9506a3, type: 2}
+  - {fileID: 11400000, guid: 01c9125550dc43d47a95cb842da26506, type: 2}
+  - {fileID: 11400000, guid: 9ddddcbd276dab64e945d1d1c842ffb8, type: 2}
+  - {fileID: 11400000, guid: ea805419acf85da40b6c1cd9dca97d6b, type: 2}
+  - {fileID: 11400000, guid: b88bbf8caa48ffc409a1253d6837aa0c, type: 2}
+  - {fileID: 11400000, guid: 5b23e360a988cc749b55d767e194747d, type: 2}
+  statProfile: {fileID: 11400000, guid: af3765c74b112ba49b5cc100f0bac4c8, type: 2}
+  profileIndex: 0
   applyOnStart: 1
+  applyOnInspectorChange: 1
+  currentProfileName: Black Fire
+  createRuntimeUI: 1
+  uiAnchoredPosition: {x: 20, y: -20}
+  uiSize: {x: 360, y: 150}
 --- !u!4 &4156454802162824831 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 9938bcc1092190d41a5036cc7c05e5a0, type: 3}
@@ -923,6 +964,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   muzzleObject: {fileID: 4521432513739505510}
   burstFireCount: 2
+  extraCollisionIgnoreRoots:
+  - {fileID: 0}
 --- !u!114 &919099439330858484
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1116,6 +1159,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   muzzleObject: {fileID: 2262112595115523464}
   burstFireCount: 2
+  extraCollisionIgnoreRoots:
+  - {fileID: 0}
 --- !u!114 &6063212099647892553
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1252,6 +1297,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   muzzleObject: {fileID: 6413619884355258905}
   burstFireCount: 2
+  extraCollisionIgnoreRoots:
+  - {fileID: 0}
 --- !u!114 &1362114360326425698
 MonoBehaviour:
   m_ObjectHideFlags: 0

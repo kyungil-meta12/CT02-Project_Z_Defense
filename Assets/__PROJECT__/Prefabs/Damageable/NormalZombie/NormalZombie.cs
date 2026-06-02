@@ -116,6 +116,10 @@ public class NormalZombie : PoolObject, IDamageable
     {
         CurrHp -= damage;
         CurrHp = Mathf.Clamp(CurrHp, 0f, TotalHp);
+        if(CurrHp <= 0f)
+        {
+            ReturnInstance();
+        }
     }
 
     /// <summary>

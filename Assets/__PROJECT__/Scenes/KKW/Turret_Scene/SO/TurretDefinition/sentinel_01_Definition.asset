@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 28db854c229931b498137181f212c559, type: 3}
+  m_Name: sentinel_01_Definition
+  m_EditorClassIdentifier: Assembly-CSharp::TurretDefinitionSO
+  turretId: sentinel_01
+  displayName: Sentinel-01
+  basePrefab: {fileID: 4672393858745932496, guid: e413d47f110c2694fbfb33e7712ccd89, type: 3}
+  baseStatProfile: {fileID: 11400000, guid: 9bbe5828d5cd65f4ebb42f2add75f289, type: 2}
+  statGrowthProfile: {fileID: 11400000, guid: fb0d8868cc4724d4baa808ca88424edf, type: 2}
+  vfxProgressionProfile: {fileID: 11400000, guid: 1a96b709960be014fa3cec0b17415ae5, type: 2}
+  partsProgressionProfile: {fileID: 11400000, guid: 4e44547889280d74bae844826fe551c3, type: 2}

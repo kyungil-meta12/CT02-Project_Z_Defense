@@ -382,6 +382,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: d92d70aa98a5713408d060d70ca3fbf1, type: 3}
       insertIndex: -1
       addedObject: {fileID: 67558619342333490}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: d92d70aa98a5713408d060d70ca3fbf1, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 6276699055580667231}
   m_SourcePrefab: {fileID: 100100000, guid: d92d70aa98a5713408d060d70ca3fbf1, type: 3}
 --- !u!1 &4672393858745932496 stripped
 GameObject:
@@ -492,10 +495,10 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 5b23e360a988cc749b55d767e194747d, type: 2}
   legacyStatProfile: {fileID: 11400000, guid: 9bbe5828d5cd65f4ebb42f2add75f289, type: 2}
   profileIndex: 0
-  applyOnStart: 1
+  applyOnStart: 0
   applyOnInspectorChange: 1
   currentProfileName: Black Fire
-  createRuntimeUI: 1
+  createRuntimeUI: 0
   uiAnchoredPosition: {x: 20, y: -20}
   uiSize: {x: 360, y: 150}
 --- !u!114 &67558619342333490
@@ -517,6 +520,28 @@ MonoBehaviour:
   - {fileID: 8486724908046527542}
   applyOnStart: 1
   applyOnInspectorChange: 1
+--- !u!114 &6276699055580667231
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4672393858745932496}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a87f91c13a2143e4aa6e691bd2b48bc7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TurretDefinitionRuntimeTester
+  turretDefinition: {fileID: 11400000, guid: bfd04d6c347d461469139eb424cb49cd, type: 2}
+  level: 1
+  applyOnStart: 1
+  applyOnInspectorChange: 1
+  applyStatsToTurret: 1
+  applyVFXToTurret: 1
+  logRuntimeStat: 1
+  statProfileApplier: {fileID: 67558619342333490}
+  targetTurret: {fileID: -7952466315715175992}
+  targetFiringEvent: {fileID: 7711865795365352569}
 --- !u!4 &5448368020507639914 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: d92d70aa98a5713408d060d70ca3fbf1, type: 3}

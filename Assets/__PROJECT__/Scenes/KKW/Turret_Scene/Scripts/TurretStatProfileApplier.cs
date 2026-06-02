@@ -87,6 +87,40 @@ public class TurretStatProfileApplier : MonoBehaviour
         }
     }
 
+    public void Apply(TurretRuntimeStat runtimeStat)
+    {
+        RefreshReferences();
+
+        if (targetFinder != null)
+        {
+            targetFinder.radius = runtimeStat.range;
+        }
+
+        if (targetTurret != null)
+        {
+            targetTurret.fireTick = runtimeStat.fireInterval;
+
+            if (targetTurret.projectilePrefab != null)
+            {
+                targetTurret.SetProjectilePrefab(targetTurret.projectilePrefab, runtimeStat.projectileSpeed);
+            }
+
+            targetTurret.SetAutoFireEnabled(autoFireEnabled);
+        }
+
+        int projectileCount = Mathf.Max(1, runtimeStat.projectileCount);
+        for (int i = 0; i < targetGuns.Length; i++)
+        {
+            Gun gun = targetGuns[i];
+            if (gun == null)
+            {
+                continue;
+            }
+
+            gun.burstFireCount = projectileCount;
+        }
+    }
+
     public void SetStatProfile(TurretStatProfileSO statProfile_)
     {
         statProfile = statProfile_;

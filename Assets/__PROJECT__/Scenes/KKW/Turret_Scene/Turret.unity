@@ -233,6 +233,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 6276699055580667231, guid: e413d47f110c2694fbfb33e7712ccd89, type: 3}
+      propertyPath: applyOnStart
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 8486724908046527542, guid: e413d47f110c2694fbfb33e7712ccd89, type: 3}
       propertyPath: 'extraCollisionIgnoreRoots.Array.data[0]'
       value: 

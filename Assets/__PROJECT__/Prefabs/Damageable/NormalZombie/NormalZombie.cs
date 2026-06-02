@@ -4,11 +4,14 @@ using System.Linq;
 public class NormalZombie : PoolObject, IDamageable
 {
     [Header("일반 좀비 기본 스펙")] public NormalZombieSpec spec;
-    [Header("공격 가능 거리")] public float attackDistance; 
     [Header("테스트 모드")] public bool testMode;
     [Header("추적할 타겟(테스트용)")]  public Transform destination;
 
-    private Animator anim;
+    [HideInInspector] public Animator anim;
+    [HideInInspector] public bool attackState;
+    [HideInInspector] public GameObject attackTarget; // 현재 공격 중인 타겟
+    [HideInInspector] public Vector3 attackTargetContactPoint; // 공격 콜라이더가 마지막으로 접촉한 지점
+
     private Transform target; // 현재 추적하는 타겟
     private float attackDamage; // 타워에 가할 대미지
 
@@ -59,7 +62,7 @@ public class NormalZombie : PoolObject, IDamageable
     void Update()
     {
         // 추적할 대상이 있다면 그 대상을 향하여 이동
-        if (target)
+        if (!attackState && target)
         {
             Vector3 destDir = target.position - transform.position;
             destDir.y = 0;
@@ -70,10 +73,20 @@ public class NormalZombie : PoolObject, IDamageable
                 Quaternion targetRotation = Quaternion.LookRotation(destDir);
                 transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime * 2f);
             }
+        }
 
-            //  attackDistance보다 가까워지면 그 대상 공격
-            float targetDist = Vector3.Distance(target.position, transform.position);
-            anim.SetBool("IsAttackState", targetDist <= attackDistance);
+        // 공격 대상이 존재한다면 공격 대상을 향한다
+        else if(attackState && attackTarget)
+        {
+            Vector3 destDir = target.position - attackTargetContactPoint;
+            destDir.y = 0;
+            destDir.Normalize();
+
+            if (destDir != Vector3.zero)
+            {
+                Quaternion targetRotation = Quaternion.LookRotation(destDir);
+                transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime * 2f);
+            }
         }
     }
 

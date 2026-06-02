@@ -24,9 +24,10 @@ MonoBehaviour:
   AttackDamageWaveMultiply: 1
   MinAttackDamage: 0.5
   MaxAttackDamage: 1.5
-  Hp: 0
-  HpWaveMultiply: 0
-  MinHp: 0
-  MaxHp: 0
+  AttackDistance: 5
+  Hp: 100
+  HpWaveMultiply: 1
+  MinHp: 0.9
+  MaxHp: 1.1
   NoramlItemDropPercentage: 80
   RareItemDropPercentage: 20

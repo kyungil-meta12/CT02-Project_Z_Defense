@@ -23,6 +23,8 @@ public class NormalZombieSpec : ScriptableObject
     public float MinAttackDamage;
     public float MaxAttackDamage;
 
+    [Header("공격 가능 사거리")] public float AttackDistance;
+
     [Header("기본 HP")] public float Hp;
     [Header("Hp 웨이브 반영 수치")] public float HpWaveMultiply;
     [Header("Hp 랜덤 범위")]

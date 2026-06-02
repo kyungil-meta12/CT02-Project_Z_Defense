@@ -47,6 +47,8 @@ public class NormalZombieAttackCollider : MonoBehaviour
                 zombie.agent.isStopped = true;
             }
         }
+
+        checkEnabled = false;
     }
 
     void OnTriggerExit(Collider c)

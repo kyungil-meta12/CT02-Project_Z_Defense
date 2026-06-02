@@ -33,7 +33,7 @@ public class NormalZombieSpawner : MonoBehaviour
             // 좀비, 스폰 위치, 목적지를 랜덤으로 선택한다
             var zombie = MemoryPool.Inst.GetInstance<NormalZombie>(normalZombiePrefabs[Random.Range(0, normalZombiePrefabs.Length)]);
             zombie.gameObject.transform.position = spwanPoints[Random.Range(0, spwanPoints.Length)].position;
-            zombie.SetTarget(destinations[Random.Range(0, destinations.Length)]);
+            zombie.SetDestination(destinations[Random.Range(0, destinations.Length)]);
         }
     }
 }

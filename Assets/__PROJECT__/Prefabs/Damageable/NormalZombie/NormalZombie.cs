@@ -7,15 +7,13 @@ public class NormalZombie : PoolObject, IDamageable
 {
     [Header("일반 좀비 기본 스펙")] public NormalZombieSpec spec;
     [Header("애니메이터 컨트롤러 목록")] public RuntimeAnimatorController[] animControllers;
-    [Header("테스트 모드")] public bool testMode;
-    [Header("추적할 타겟(테스트용)")]  public Transform destination;
 
     [HideInInspector] public Animator anim;
     [HideInInspector] public bool attackState;
     [HideInInspector] public GameObject attackTarget; // 현재 공격 중인 타겟
     [HideInInspector] public Vector3 attackTargetContactPoint; // 공격 콜라이더가 마지막으로 접촉한 지점
 
-    private Transform target; // 현재 추적하는 타겟
+    private Transform destination; // 현재 추적하는 타겟
     private float attackDamage; // 타워에 가할 대미지
 
     // IDamageable value
@@ -25,11 +23,6 @@ public class NormalZombie : PoolObject, IDamageable
     void Awake()
     {
         anim = GetComponent<Animator>();
-
-        if(testMode)
-        {
-            OnSpawn();
-        }
     }
 
     public override void OnSpawn()
@@ -69,31 +62,29 @@ public class NormalZombie : PoolObject, IDamageable
     void Update()
     {
         // 추적할 대상이 있다면 그 대상을 향하여 이동
-        if (!attackState && target)
+        if (!attackState && destination)
         {
-            Vector3 destDir = target.position - transform.position;
-            destDir.y = 0;
-            destDir.Normalize();
-
-            if (destDir != Vector3.zero)
-            {
-                Quaternion targetRotation = Quaternion.LookRotation(destDir);
-                transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime * 2f);
-            }
+            LookAt(destination.position);
         }
 
         // 공격 대상이 존재한다면 공격 대상을 향한다
         else if(attackState && attackTarget)
         {
-            Vector3 destDir = target.position - attackTargetContactPoint;
-            destDir.y = 0;
-            destDir.Normalize();
+            LookAt(attackTargetContactPoint);
+        }
+    }
 
-            if (destDir != Vector3.zero)
-            {
-                Quaternion targetRotation = Quaternion.LookRotation(destDir);
-                transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime * 2f);
-            }
+    // 특정 대상을 향한다
+    void LookAt(Vector3 point)
+    {
+        Vector3 destDir = point - transform.position;
+        destDir.y = 0;
+        destDir.Normalize();
+
+        if (destDir != Vector3.zero)
+        {
+            Quaternion targetRotation = Quaternion.LookRotation(destDir);
+            transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime * 2f);
         }
     }
 
@@ -131,8 +122,8 @@ public class NormalZombie : PoolObject, IDamageable
     /// 추적할 대상을 지정한다
     /// </summary>
     /// <param name="t"></param>
-    public void SetTarget(Transform t)
+    public void SetDestination(Transform t)
     {
-        target = t;
+        destination = t;
     }
 }

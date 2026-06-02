@@ -21,7 +21,7 @@ public class NormalZombieSpawner : MonoBehaviour
         // 웨이브 변화가 감지되면 스폰 간격을 웨이브에 맞추어 갱신한다.
         if(GameManager.Inst.wave > 1 && GameManager.Inst.WasWaveIncreased())
         {
-            currSpawnInterval = defaultSpawnInterval / Mathf.Pow(1f + spawnIntervalWeight, GameManager.Inst.wave);
+            currSpawnInterval = defaultSpawnInterval / Mathf.Pow(1f + spawnIntervalWeight, GameManager.Inst.wave - 1f);
         }
 
         // currSpawnInterval 간격으로 일반 좀비들을 스폰한다.

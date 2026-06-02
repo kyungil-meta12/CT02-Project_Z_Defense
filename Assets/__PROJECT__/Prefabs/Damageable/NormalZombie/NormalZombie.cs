@@ -1,9 +1,11 @@
 using UnityEngine;
 using System.Linq;
+using UnityEditor.Animations;
 
 public class NormalZombie : PoolObject, IDamageable
 {
     [Header("일반 좀비 기본 스펙")] public NormalZombieSpec spec;
+    [Header("애니메이터 컨트롤러 목록")] public RuntimeAnimatorController[] animControllers;
     [Header("테스트 모드")] public bool testMode;
     [Header("추적할 타겟(테스트용)")]  public Transform destination;
 
@@ -40,6 +42,10 @@ public class NormalZombie : PoolObject, IDamageable
 
         // 기본 수치 * 랜덤 수치 * 웨이브 반영 수치를 곱하여 결정
         // 웨이브 1때는 웨이브 가중치를 적용하지 않는다.
+
+        // 애니메이터 랜덤 선택
+        anim.runtimeAnimatorController = animControllers[Random.Range(0, animControllers.Length)];
+        anim.SetBool("IsAttackState", false);
 
         // 이동 속도
         var moveSpeedMul = isFirstWave ? randomMoveSpeed : randomMoveSpeed * (wave * spec.MoveSpeedWaveMultiply);

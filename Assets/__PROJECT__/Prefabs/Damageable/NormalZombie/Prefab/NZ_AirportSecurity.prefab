@@ -2325,7 +2325,7 @@ Animator:
   m_GameObject: {fileID: 2927825134225070825}
   m_Enabled: 1
   m_Avatar: {fileID: 9000000, guid: dbbc53a6bc8f5c64bb234194ce1380aa, type: 3}
-  m_Controller: {fileID: 9100000, guid: 92c93b80307cf90438fcfadd52eab10c, type: 2}
+  m_Controller: {fileID: 9100000, guid: 7276f3537f9bae045910ac2ab627a9f6, type: 2}
   m_CullingMode: 1
   m_UpdateMode: 0
   m_ApplyRootMotion: 1
@@ -2350,6 +2350,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::NormalZombieController
   spec: {fileID: 11400000, guid: d29bd727521c6034d914890009ba68aa, type: 2}
+  animControllers:
+  - {fileID: 9100000, guid: 7276f3537f9bae045910ac2ab627a9f6, type: 2}
+  - {fileID: 9100000, guid: 985bfe9b52205d943b40b81b207ca71a, type: 2}
+  - {fileID: 9100000, guid: a1a7cc6a304dc9a48a589802afc495d5, type: 2}
   testMode: 0
   destination: {fileID: 0}
   anim: {fileID: 0}

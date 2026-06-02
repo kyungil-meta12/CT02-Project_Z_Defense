@@ -12,10 +12,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 650023dcc7ad566419e00e19e4a298d0, type: 3}
   m_Name: Sentinel-01_TurretPartsProgression
   m_EditorClassIdentifier: Assembly-CSharp::TurretPartsProgressionSO
-  levelEntries:
-  - requiredLevel: 0
-    socketName: 
-    partPrefab: {fileID: 0}
-    localPosition: {x: 0, y: 0, z: 0}
-    localEulerAngles: {x: 0, y: 0, z: 0}
-    localScale: {x: 0, y: 0, z: 0}
+  levelEntries: []

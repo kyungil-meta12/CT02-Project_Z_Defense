@@ -2,6 +2,7 @@ using UnityEngine;
 using System.Linq;
 using UnityEditor.Animations;
 using Mono.Cecil.Cil;
+using UnityEngine.AI;
 
 public class NormalZombie : PoolObject, IDamageable
 {
@@ -10,6 +11,7 @@ public class NormalZombie : PoolObject, IDamageable
 
     [HideInInspector] public Animator anim;
     [HideInInspector] public bool attackState;
+    [HideInInspector] public NavMeshAgent agent;
     [HideInInspector] public GameObject attackTarget; // 현재 공격 중인 타겟
     [HideInInspector] public Vector3 attackTargetContactPoint; // 공격 콜라이더가 마지막으로 접촉한 지점
 
@@ -23,12 +25,14 @@ public class NormalZombie : PoolObject, IDamageable
     void Awake()
     {
         anim = GetComponent<Animator>();
+        agent = GetComponent<NavMeshAgent>();
+        agent.updatePosition = false;
+        agent.updateRotation = false;
     }
 
     public override void OnSpawn()
     {
-        var randomMoveSpeed = Random.Range(spec.MinMoveSpeed, spec.MaxMoveSpeed);
-        var randomAttackSpeed = Random.Range(spec.MinAttackSpeed, spec.MaxAttackSpeed);
+        var randomMoveAttackSpeed = Random.Range(spec.MinMoveAttackSpeed, spec.MaxMoveAttackSpeed);
         var randomAttackDamage = Random.Range(spec.MinAttackDamage, spec.MaxAttackDamage);
         var randomHp = Random.Range(spec.MinHp, spec.MaxHp);
         float wave = GameManager.Inst.wave;
@@ -41,13 +45,10 @@ public class NormalZombie : PoolObject, IDamageable
         anim.runtimeAnimatorController = animControllers[Random.Range(0, animControllers.Length)];
         anim.SetBool("IsAttackState", false);
 
-        // 이동 속도
-        var moveSpeedMul = isFirstWave ? randomMoveSpeed : randomMoveSpeed * (wave * spec.MoveSpeedWaveMultiply);
-        anim.SetFloat("MoveSpeed", spec.MoveSpeed * moveSpeedMul);
-
-        // 공격 속도
-        var attackSpeedMul = isFirstWave ? randomAttackSpeed : randomAttackSpeed * (wave * spec.AttackSpeedWaveMultiply);
-        anim.SetFloat("AttackSpeed", spec.AttackSpeed * attackSpeedMul);
+        // 이동/공격 속도
+        var moveAttackSpeedMul = isFirstWave ? randomMoveAttackSpeed : randomMoveAttackSpeed * (wave * spec.MoveAttackSpeedWaveMultiply);
+        anim.SetFloat("MoveSpeed", spec.MoveSpeed * moveAttackSpeedMul);
+        anim.SetFloat("AttackSpeed", spec.AttackSpeed * moveAttackSpeedMul);
 
         // 공격 대미지
         var attackDamageMul = isFirstWave ? randomAttackDamage : randomAttackDamage * (wave * spec.AttackDamageWaveMultiply);
@@ -61,16 +62,54 @@ public class NormalZombie : PoolObject, IDamageable
 
     void Update()
     {
-        // 추적할 대상이 있다면 그 대상을 향하여 이동
-        if (!attackState && destination)
+        // CurrHp가 0이 되면 죽는 모션을 재생한 후 메모리 풀로 반환
+        if(CurrHp <= 0f)
         {
-            LookAt(destination.position);
+            var info = anim.GetCurrentAnimatorStateInfo(0);
+            if (info.normalizedTime >= 1f)
+            {
+                ReturnInstance();
+            }
+            return;
         }
 
-        // 공격 대상이 존재한다면 공격 대상을 향한다
-        else if(attackState && attackTarget)
+        // 목적지가 있다면 그 대상을 향하여 이동, agent가 향하는 방향만 얻어 이동
+        // 위치는 애니메이션의 루트 모션 위치를 따른다
+        if (!attackState && destination)
+        {
+            agent.nextPosition = transform.position;
+
+            var destDir = agent.desiredVelocity;
+            destDir.y = 0f;
+
+            // 미세한 떨림을 방지하기 위해 일정 크기 이상의 벡터일 때만 회전 처리
+            if (destDir.sqrMagnitude > 0.1f)
+            {
+                destDir.Normalize();
+                Quaternion targetRotation = Quaternion.LookRotation(destDir);
+                transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime * 2.5f);
+            }
+        }
+
+        // 공격 대상이 존재한다면 공격 대상을 향해 이동하고, 자신의 위치와 공격 포인트의 거리가 가까워지면 공격을 실행한다.
+        if (attackState && attackTarget)
         {
             LookAt(attackTargetContactPoint);
+        }
+    }
+
+    void OnAnimatorMove()
+    {
+        if (CurrHp <= 0f)
+        {
+            return;
+        }
+
+        // agent 위치 수동 업데이트
+        if (!attackState && destination)
+        {
+            transform.position = anim.rootPosition;
+            agent.nextPosition = transform.position;
         }
     }
 
@@ -118,7 +157,7 @@ public class NormalZombie : PoolObject, IDamageable
         CurrHp = Mathf.Clamp(CurrHp, 0f, TotalHp);
         if(CurrHp <= 0f)
         {
-            ReturnInstance();
+            anim.SetTrigger("IsDeadState"); // 죽는 애니메이션으로 변경
         }
     }
 
@@ -129,6 +168,7 @@ public class NormalZombie : PoolObject, IDamageable
     public void SetPosition(Transform t)
     {
         transform.position = t.position;
+        agent.Warp(t.position);
     }
 
     /// <summary>
@@ -138,5 +178,6 @@ public class NormalZombie : PoolObject, IDamageable
     public void SetDestination(Transform t)
     {
         destination = t;
+        agent.SetDestination(t.position);
     }
 }

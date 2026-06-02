@@ -1,0 +1,31 @@
+using UnityEngine;
+
+[CreateAssetMenu(fileName = "BossZombieSpec", menuName = "Scriptable Objects/BossZombieSpec")]
+public class BossZombieSpec : ScriptableObject
+{
+    [Header("보스 좀비 스펙(웨이브 1 기준)")]
+
+    [Header("기본 이동 속도")] public float MoveSpeed;
+    [Header("기본 공격 속도")] public float AttackSpeed;
+    [Header("이동/공격 속도 웨이브 반영 수치")] public float MoveAttackSpeedWaveMultiply;
+    [Header("이동/공격 속도 랜덤 범위")] 
+    public float MinMoveAttackSpeed;
+    public float MaxMoveAttackSpeed;
+    
+    [Header("기본 공격 대미지")] public float AttackDamage;
+    [Header("공격 속도 웨이브 반영 수치")] public float AttackDamageWaveMultiply;
+    [Header("공격 대미지 랜덤 범위")] 
+    public float MinAttackDamage;
+    public float MaxAttackDamage;
+
+    [Header("공격 가능 사거리")] public float AttackDistance;
+
+    [Header("기본 HP")] public float Hp;
+    [Header("Hp 웨이브 반영 수치")] public float HpWaveMultiply;
+    [Header("Hp 랜덤 범위")]
+    public float MinHp;
+    public float MaxHp;
+
+    [Header("기본 아이템 드랍률(int)")] public float NoramlItemDropPercentage;
+    [Header("레어 아이템 드랍률(int)")] public float RareItemDropPercentage;
+}

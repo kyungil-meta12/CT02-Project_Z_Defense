@@ -171,6 +171,7 @@ public class NormalZombie : PoolObject, IDamageable
         CurrHp = Mathf.Clamp(CurrHp, 0f, TotalHp);
         if(CurrHp <= 0f)
         {
+            agent.enabled = false; // 에이전트 비활성화
             anim.SetTrigger("IsDeadState"); // 죽는 애니메이션으로 변경
         }
     }

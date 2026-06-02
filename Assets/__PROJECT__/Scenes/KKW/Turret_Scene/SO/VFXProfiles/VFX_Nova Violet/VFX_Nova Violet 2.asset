@@ -10,10 +10,10 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d6d09d1f6c7f2954b800f81fb1ad11ef, type: 3}
-  m_Name: VFX_Nova Orange 3
+  m_Name: VFX_Nova Violet 2
   m_EditorClassIdentifier: Assembly-CSharp::TurretVFXProfileSO
-  displayName: Nova Orange
-  projectilePrefab: {fileID: 1531814124222292, guid: 7498633e012de544a8ddbbfe75d6ca55, type: 3}
+  displayName: Nova Violet
+  projectilePrefab: {fileID: 1381080491605798, guid: ae378c2a4eb8f1840a0d84dfaf4b56bd, type: 3}
   muzzleVFX: {fileID: 0}
   muzzleVFXDuration: 2
   fireSound: {fileID: 0}

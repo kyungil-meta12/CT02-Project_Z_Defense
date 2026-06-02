@@ -385,6 +385,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: d92d70aa98a5713408d060d70ca3fbf1, type: 3}
       insertIndex: -1
       addedObject: {fileID: 6276699055580667231}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: d92d70aa98a5713408d060d70ca3fbf1, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 8217245221827881460}
   m_SourcePrefab: {fileID: 100100000, guid: d92d70aa98a5713408d060d70ca3fbf1, type: 3}
 --- !u!1 &4672393858745932496 stripped
 GameObject:
@@ -538,11 +541,29 @@ MonoBehaviour:
   applyOnInspectorChange: 1
   applyStatsToTurret: 1
   applyVFXToTurret: 1
+  applyPartsToTurret: 1
   logRuntimeStat: 1
   logProjectileDamage: 1
   statProfileApplier: {fileID: 67558619342333490}
+  partsProgressionApplier: {fileID: 0}
   targetTurret: {fileID: -7952466315715175992}
   targetFiringEvent: {fileID: 7711865795365352569}
+--- !u!114 &8217245221827881460
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4672393858745932496}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 10ae1c9318c8413bb27c137d016178a7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TurretPartsProgressionApplier
+  partsProgressionProfile: {fileID: 11400000, guid: 4e44547889280d74bae844826fe551c3, type: 2}
+  partsRoot: {fileID: 0}
+  applyOnStart: 0
+  startLevel: 1
 --- !u!4 &5448368020507639914 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: d92d70aa98a5713408d060d70ca3fbf1, type: 3}

@@ -13,8 +13,7 @@ MonoBehaviour:
   m_Name: VFX_Nova Orange 4
   m_EditorClassIdentifier: Assembly-CSharp::TurretVFXProfileSO
   displayName: Nova Orange
-  projectilePrefab: {fileID: 1531814124222292, guid: 53ad8717bf2973b49a7dae09bd642bc2, type: 3}
-  projectileSpeed: 0
+  projectilePrefab: {fileID: 1531814124222292, guid: 7ea8a87871c556142a44461481e421b2, type: 3}
   muzzleVFX: {fileID: 0}
   muzzleVFXDuration: 2
   fireSound: {fileID: 0}

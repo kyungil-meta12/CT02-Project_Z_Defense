@@ -3,7 +3,7 @@ using UnityEngine;
 public class NormalZombieSpawner : MonoBehaviour
 {
     [Header("기본 스폰 간격(웨이브 1 기준)")] public float defaultSpawnInterval;
-    [Header("웨이브 반영 간격 감소 수치")] public float waveIntervalMultiply;
+    [Header("스폰 간격 가중치")] public float spawnIntervalWeight;
     [Header("스폰될 위치 목록")]  public Transform[] spwanPoints;
     [Header("스폰된 좀비에게 지정할 위치 목록")] public Transform[] destinations;
     [Header("일반 좀비 프리펩 목록")] public PoolObject[] normalZombiePrefabs;
@@ -21,7 +21,7 @@ public class NormalZombieSpawner : MonoBehaviour
         // 웨이브 변화가 감지되면 스폰 간격을 웨이브에 맞추어 갱신한다.
         if(GameManager.Inst.wave > 1 && GameManager.Inst.WasWaveIncreased())
         {
-            currSpawnInterval = defaultSpawnInterval * GameManager.Inst.wave * waveIntervalMultiply; 
+            currSpawnInterval = defaultSpawnInterval / Mathf.Pow(1f + spawnIntervalWeight, GameManager.Inst.wave - 1f);
         }
 
         // currSpawnInterval 간격으로 일반 좀비들을 스폰한다.

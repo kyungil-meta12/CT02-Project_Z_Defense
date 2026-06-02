@@ -49,16 +49,16 @@ public class NormalZombie : PoolObject, IDamageable
         anim.SetBool("IsAttackState", false);
 
         // 이동/공격 속도
-        var moveAttackSpeedMul = isFirstWave ? randomMoveAttackSpeed : randomMoveAttackSpeed * (wave * spec.MoveAttackSpeedWaveMultiply);
+        var moveAttackSpeedMul = isFirstWave ? randomMoveAttackSpeed : randomMoveAttackSpeed * Mathf.Pow(1f + spec.MoveAttackSpeedWeight, wave - 1f);
         anim.SetFloat("MoveSpeed", spec.MoveSpeed * moveAttackSpeedMul);
         anim.SetFloat("AttackSpeed", spec.AttackSpeed * moveAttackSpeedMul);
 
         // 공격 대미지
-        var attackDamageMul = isFirstWave ? randomAttackDamage : randomAttackDamage * (wave * spec.AttackDamageWaveMultiply);
+        var attackDamageMul = isFirstWave ? randomAttackDamage : randomAttackDamage * Mathf.Pow(1f + spec.AttackDamageWeight, wave - 1f);
         attackDamage = spec.AttackDamage * attackDamageMul;
 
         // 체력
-        var hpMul = isFirstWave ? randomHp : randomHp * (wave * spec.HpWaveMultiply);
+        var hpMul = isFirstWave ? randomHp : randomHp * Mathf.Pow(1f + spec.HpWeight, wave - 1f);
         TotalHp = spec.Hp * hpMul;
         CurrHp = TotalHp;
     }
@@ -171,6 +171,7 @@ public class NormalZombie : PoolObject, IDamageable
         CurrHp = Mathf.Clamp(CurrHp, 0f, TotalHp);
         if(CurrHp <= 0f)
         {
+            agent.enabled = false; // 에이전트 비활성화
             anim.SetTrigger("IsDeadState"); // 죽는 애니메이션으로 변경
         }
     }

@@ -2355,8 +2355,12 @@ MonoBehaviour:
   - {fileID: 9100000, guid: 7276f3537f9bae045910ac2ab627a9f6, type: 2}
   - {fileID: 9100000, guid: 985bfe9b52205d943b40b81b207ca71a, type: 2}
   - {fileID: 9100000, guid: a1a7cc6a304dc9a48a589802afc495d5, type: 2}
+  - {fileID: 9100000, guid: 49d96b9de53b57c44bea24b5c2ec1fe6, type: 2}
+  - {fileID: 9100000, guid: ee04e9ecc40cc934c9a186a204ad27cc, type: 2}
+  - {fileID: 9100000, guid: 009756d2d85806a4e84f638b373d87cd, type: 2}
   anim: {fileID: 0}
   attackState: 0
+  agent: {fileID: 0}
   attackTarget: {fileID: 0}
   attackTargetContactPoint: {x: 0, y: 0, z: 0}
 --- !u!54 &4726929608158223230
@@ -2663,10 +2667,10 @@ CapsuleCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 2
-  m_Radius: 0.65
+  m_Radius: 1
   m_Height: 3
   m_Direction: 1
-  m_Center: {x: 0, y: 1.5, z: 1.2}
+  m_Center: {x: 0, y: 1.5, z: 1.17}
 --- !u!114 &7266545119360950869
 MonoBehaviour:
   m_ObjectHideFlags: 0

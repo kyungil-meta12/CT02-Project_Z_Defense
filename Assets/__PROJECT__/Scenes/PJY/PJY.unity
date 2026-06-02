@@ -926,13 +926,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1752530757}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0.8301009, z: -0, w: 0.55761325}
-  m_LocalPosition: {x: -0.98, y: -1.33, z: 6.92}
+  m_LocalRotation: {x: 0, y: 0.7071068, z: 0, w: 0.7071068}
+  m_LocalPosition: {x: -0.97999996, y: -1.33, z: 6.92}
   m_LocalScale: {x: 1, y: 6.9656, z: 67.534}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: -112.218, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 90, z: 0}
 --- !u!1 &1990417939
 GameObject:
   m_ObjectHideFlags: 0
@@ -1094,12 +1094,20 @@ PrefabInstance:
       value: 1.05
       objectReference: {fileID: 0}
     - target: {fileID: 649941889588872443, guid: 67116107db134114fafa48796f2c6255, type: 3}
+      propertyPath: spawnIntervalWeight
+      value: 0.025
+      objectReference: {fileID: 0}
+    - target: {fileID: 649941889588872443, guid: 67116107db134114fafa48796f2c6255, type: 3}
       propertyPath: defaultSpawnInterval
       value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 649941889588872443, guid: 67116107db134114fafa48796f2c6255, type: 3}
       propertyPath: waveIntervalMultiply
       value: 0.98
+      objectReference: {fileID: 0}
+    - target: {fileID: 649941889588872443, guid: 67116107db134114fafa48796f2c6255, type: 3}
+      propertyPath: spawnIntervalMultiply
+      value: 0.05
       objectReference: {fileID: 0}
     - target: {fileID: 649941889588872443, guid: 67116107db134114fafa48796f2c6255, type: 3}
       propertyPath: spwanPoints.Array.size

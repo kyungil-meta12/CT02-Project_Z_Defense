@@ -1,7 +1,7 @@
 using UnityEngine;
 using System.Linq;
 
-public class NormalZombieController : PoolObject, IDamageable
+public class NormalZombie : PoolObject, IDamageable
 {
     [Header("일반 좀비 기본 스펙")] public NormalZombieSpec spec;
     [Header("공격 가능 거리")] public float attackDistance; 

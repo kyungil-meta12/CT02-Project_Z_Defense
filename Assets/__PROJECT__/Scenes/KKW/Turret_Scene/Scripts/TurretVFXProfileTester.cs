@@ -286,7 +286,7 @@ public class TurretVFXProfileTester : MonoBehaviour
 
     private void EnsureEventSystem()
     {
-        if (FindObjectOfType<EventSystem>() != null)
+        if (FindFirstObjectByType<EventSystem>() != null)
         {
             return;
         }

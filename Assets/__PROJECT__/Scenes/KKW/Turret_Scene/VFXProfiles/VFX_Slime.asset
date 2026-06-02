@@ -11,7 +11,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d6d09d1f6c7f2954b800f81fb1ad11ef, type: 3}
   m_Name: VFX_Slime
-  m_EditorClassIdentifier: Assembly-CSharp::TurretVFXProfile
+  m_EditorClassIdentifier: Assembly-CSharp::TurretVFXProfileSO
   displayName: Slime
   projectilePrefab: {fileID: 1473103337094032, guid: 8deab7c43f91e3145ab06c6d87dba0c4, type: 3}
   projectileSpeed: 0

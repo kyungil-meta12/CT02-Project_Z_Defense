@@ -4,14 +4,18 @@ using UnityEngine.EventSystems;
 using UnityEngine.Serialization;
 using UnityEngine.UI;
 
-public class TurretVFXProfileTester : MonoBehaviour
+[DisallowMultipleComponent]
+[RequireComponent(typeof(TurretStatProfileApplier))]
+public class TurretVFXProfileRuntimeUI : MonoBehaviour
 {
+    private static readonly System.Collections.Generic.List<TurretVFXProfileRuntimeUI> ActiveRuntimes = new System.Collections.Generic.List<TurretVFXProfileRuntimeUI>(16);
+
     [SerializeField] private Turret targetTurret;
-    [SerializeField] private TargetFinder targetFinder;
     [SerializeField] private FiringEvent targetFiringEvent;
-    [SerializeField] private Gun[] targetGuns;
-    [SerializeField] private TurretVFXProfile[] profiles;
-    [SerializeField] private TurretStatProfileSO statProfile;
+    [SerializeField] private TurretStatProfileApplier statProfileApplier;
+    [SerializeField] private TurretVFXProfileSO[] profiles;
+    [FormerlySerializedAs("statProfile")]
+    [SerializeField, HideInInspector] private TurretStatProfileSO legacyStatProfile;
     [FormerlySerializedAs("currentIndex")]
     [SerializeField, Min(0)] private int profileIndex = 0;
     [SerializeField] private bool applyOnStart = true;
@@ -25,8 +29,9 @@ public class TurretVFXProfileTester : MonoBehaviour
     private Text profileNameText;
     private Text autoFireText;
     private bool autoFireEnabled = true;
+    private bool isApplyingSharedProfile;
 
-    public TurretVFXProfile CurrentProfile
+    public TurretVFXProfileSO CurrentProfile
     {
         get
         {
@@ -42,9 +47,8 @@ public class TurretVFXProfileTester : MonoBehaviour
     private void Reset()
     {
         targetTurret = GetComponent<Turret>();
-        targetFinder = GetComponent<TargetFinder>();
         targetFiringEvent = GetComponent<FiringEvent>();
-        targetGuns = GetComponentsInChildren<Gun>(true);
+        statProfileApplier = GetComponent<TurretStatProfileApplier>();
     }
 
     private void OnValidate()
@@ -74,22 +78,34 @@ public class TurretVFXProfileTester : MonoBehaviour
         }
     }
 
+    private void OnEnable()
+    {
+        if (!ActiveRuntimes.Contains(this))
+        {
+            ActiveRuntimes.Add(this);
+        }
+    }
+
+    private void OnDisable()
+    {
+        ActiveRuntimes.Remove(this);
+    }
+
     [ContextMenu("Apply Current Profile")]
     public void ApplyCurrentProfile()
     {
         EnsureReferences();
 
-        TurretVFXProfile profile = CurrentProfile;
+        TurretVFXProfileSO profile = CurrentProfile;
         if (profile == null)
         {
-            Debug.LogWarning("[TurretVFXProfileTester] No VFX profile assigned.", this);
+            Debug.LogWarning("[TurretVFXProfileRuntimeUI] No VFX profile assigned.", this);
             return;
         }
 
         if (targetTurret != null)
         {
-            float projectileSpeed = statProfile != null ? statProfile.projectileSpeed : 0.0f;
-            targetTurret.SetProjectilePrefab(profile.projectilePrefab, projectileSpeed);
+            targetTurret.SetProjectilePrefab(profile.projectilePrefab, 0.0f);
         }
 
         if (targetFiringEvent != null)
@@ -99,56 +115,29 @@ public class TurretVFXProfileTester : MonoBehaviour
             targetFiringEvent.firingSound = profile.fireSound;
         }
 
-        ApplyStatProfile();
+        ApplyStatProfileApplier();
 
         RefreshCurrentProfileName();
         RefreshRuntimeUI();
-        Debug.Log($"[TurretVFXProfileTester] Applied profile: {profile.displayName}", this);
+        Debug.Log($"[TurretVFXProfileRuntimeUI] Applied profile: {profile.displayName}", this);
     }
 
-    [ContextMenu("Apply Stat Profile")]
-    public void ApplyStatProfile()
+    private void ApplyStatProfileApplier()
     {
         EnsureReferences();
 
-        if (statProfile == null)
+        if (statProfileApplier == null)
         {
             return;
         }
 
-        if (targetFinder != null)
+        if (!statProfileApplier.HasStatProfile && legacyStatProfile != null)
         {
-            targetFinder.radius = statProfile.range;
+            statProfileApplier.SetStatProfile(legacyStatProfile);
         }
 
-        if (targetTurret != null)
-        {
-            targetTurret.fireTick = statProfile.fireInterval;
-
-            if (targetTurret.projectilePrefab != null)
-            {
-                targetTurret.SetProjectilePrefab(targetTurret.projectilePrefab, statProfile.projectileSpeed);
-            }
-
-            targetTurret.SetAutoFireEnabled(autoFireEnabled);
-        }
-
-        if (targetGuns == null || targetGuns.Length == 0)
-        {
-            targetGuns = GetComponentsInChildren<Gun>(true);
-        }
-
-        int projectileCount = Mathf.Max(1, statProfile.projectileCount);
-        for (int i = 0; i < targetGuns.Length; i++)
-        {
-            Gun gun = targetGuns[i];
-            if (gun == null)
-            {
-                continue;
-            }
-
-            gun.burstFireCount = projectileCount;
-        }
+        statProfileApplier.SetAutoFireEnabled(autoFireEnabled);
+        statProfileApplier.Apply();
     }
 
     private void EnsureReferences()
@@ -158,27 +147,25 @@ public class TurretVFXProfileTester : MonoBehaviour
             targetTurret = GetComponent<Turret>();
         }
 
-        if (targetFinder == null)
-        {
-            targetFinder = GetComponent<TargetFinder>();
-        }
-
         if (targetFiringEvent == null)
         {
             targetFiringEvent = GetComponent<FiringEvent>();
         }
 
-        if (targetGuns == null || targetGuns.Length == 0)
+        if (statProfileApplier == null)
         {
-            targetGuns = GetComponentsInChildren<Gun>(true);
+            statProfileApplier = GetComponent<TurretStatProfileApplier>();
+        }
+
+        if (statProfileApplier == null && legacyStatProfile != null)
+        {
+            statProfileApplier = gameObject.AddComponent<TurretStatProfileApplier>();
         }
     }
 
     public void SetProfileIndex(int index)
     {
-        profileIndex = index;
-        ClampProfileIndex();
-        ApplyCurrentProfile();
+        SetSharedProfileIndex(index);
     }
 
     public void FireOnce()
@@ -193,7 +180,13 @@ public class TurretVFXProfileTester : MonoBehaviour
     {
         autoFireEnabled = !autoFireEnabled;
 
-        if (targetTurret != null)
+        EnsureReferences();
+
+        if (statProfileApplier != null)
+        {
+            statProfileApplier.SetAutoFireEnabled(autoFireEnabled);
+        }
+        else if (targetTurret != null)
         {
             targetTurret.SetAutoFireEnabled(autoFireEnabled);
         }
@@ -209,8 +202,7 @@ public class TurretVFXProfileTester : MonoBehaviour
             return;
         }
 
-        profileIndex = (profileIndex + 1) % profiles.Length;
-        ApplyCurrentProfile();
+        SetSharedProfileIndex((profileIndex + 1) % profiles.Length);
     }
 
     [ContextMenu("Previous Profile")]
@@ -221,13 +213,42 @@ public class TurretVFXProfileTester : MonoBehaviour
             return;
         }
 
-        profileIndex--;
-        if (profileIndex < 0)
+        int nextProfileIndex = profileIndex - 1;
+        if (nextProfileIndex < 0)
         {
-            profileIndex = profiles.Length - 1;
+            nextProfileIndex = profiles.Length - 1;
         }
 
+        SetSharedProfileIndex(nextProfileIndex);
+    }
+
+    private void SetSharedProfileIndex(int index)
+    {
+        for (int i = ActiveRuntimes.Count - 1; i >= 0; i--)
+        {
+            TurretVFXProfileRuntimeUI runtime = ActiveRuntimes[i];
+            if (runtime == null)
+            {
+                ActiveRuntimes.RemoveAt(i);
+                continue;
+            }
+
+            runtime.ApplyProfileIndexSilently(index);
+        }
+    }
+
+    private void ApplyProfileIndexSilently(int index)
+    {
+        if (isApplyingSharedProfile)
+        {
+            return;
+        }
+
+        isApplyingSharedProfile = true;
+        profileIndex = index;
+        ClampProfileIndex();
         ApplyCurrentProfile();
+        isApplyingSharedProfile = false;
     }
 
     private void ClampProfileIndex()
@@ -243,7 +264,7 @@ public class TurretVFXProfileTester : MonoBehaviour
 
     private void RefreshCurrentProfileName()
     {
-        TurretVFXProfile profile = CurrentProfile;
+        TurretVFXProfileSO profile = CurrentProfile;
         if (profile == null)
         {
             currentProfileName = string.Empty;

@@ -11,7 +11,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d6d09d1f6c7f2954b800f81fb1ad11ef, type: 3}
   m_Name: VFX_Water
-  m_EditorClassIdentifier: Assembly-CSharp::TurretVFXProfile
+  m_EditorClassIdentifier: Assembly-CSharp::TurretVFXProfileSO
   displayName: Water
   projectilePrefab: {fileID: 1300573103503756, guid: b6543552e55fe77418d1b0a268d91abf, type: 3}
   projectileSpeed: 0

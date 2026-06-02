@@ -11,7 +11,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d6d09d1f6c7f2954b800f81fb1ad11ef, type: 3}
   m_Name: VFX_Orange Explosion
-  m_EditorClassIdentifier: Assembly-CSharp::TurretVFXProfile
+  m_EditorClassIdentifier: Assembly-CSharp::TurretVFXProfileSO
   displayName: Orange Explosion
   projectilePrefab: {fileID: 1079946990457772, guid: b74e730898bea9647a7615c792d38b33, type: 3}
   projectileSpeed: 0

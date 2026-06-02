@@ -11,7 +11,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d6d09d1f6c7f2954b800f81fb1ad11ef, type: 3}
   m_Name: VFX_Heart
-  m_EditorClassIdentifier: Assembly-CSharp::TurretVFXProfile
+  m_EditorClassIdentifier: Assembly-CSharp::TurretVFXProfileSO
   displayName: Heart
   projectilePrefab: {fileID: 1487245307642514, guid: cf55fb5db5de4d6408aab4982d33d47e, type: 3}
   projectileSpeed: 0

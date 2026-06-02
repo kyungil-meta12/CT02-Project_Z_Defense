@@ -11,7 +11,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d6d09d1f6c7f2954b800f81fb1ad11ef, type: 3}
   m_Name: VFX_Black Fire
-  m_EditorClassIdentifier: Assembly-CSharp::TurretVFXProfile
+  m_EditorClassIdentifier: Assembly-CSharp::TurretVFXProfileSO
   displayName: Black Fire
   projectilePrefab: {fileID: 1294834399362254, guid: 3a737c5e33310dc4f914fd3b9069f65e, type: 3}
   projectileSpeed: 0

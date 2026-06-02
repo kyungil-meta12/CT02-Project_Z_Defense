@@ -789,7 +789,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: 069723a5a664cfa4a83d609667cbf8fa, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -813,6 +813,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 069723a5a664cfa4a83d609667cbf8fa, type: 3}
       insertIndex: -1
       addedObject: {fileID: -8786709688862244141}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 069723a5a664cfa4a83d609667cbf8fa, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 9022440247686977918}
   m_SourcePrefab: {fileID: 100100000, guid: 069723a5a664cfa4a83d609667cbf8fa, type: 3}
 --- !u!1 &7226280265010825651 stripped
 GameObject:
@@ -889,11 +892,10 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 180936edd904e9f46b9c5d371f3211cc, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::TurretVFXProfileTester
+  m_EditorClassIdentifier: Assembly-CSharp::TurretVFXProfileRuntimeUI
   targetTurret: {fileID: 4334878516621669050}
-  targetFinder: {fileID: 6443846602863267145}
   targetFiringEvent: {fileID: 6466390976318459281}
-  targetGuns: []
+  statProfileApplier: {fileID: 9022440247686977918}
   profiles:
   - {fileID: 11400000, guid: 1d6a2940709cdd144b02d3266aa6ff67, type: 2}
   - {fileID: 11400000, guid: e8c0022ca2f80e24ba36aedb4eecf42e, type: 2}
@@ -923,7 +925,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: ea805419acf85da40b6c1cd9dca97d6b, type: 2}
   - {fileID: 11400000, guid: b88bbf8caa48ffc409a1253d6837aa0c, type: 2}
   - {fileID: 11400000, guid: 5b23e360a988cc749b55d767e194747d, type: 2}
-  statProfile: {fileID: 11400000, guid: a3717d00d5b2c434690db24692ad8bb3, type: 2}
+  legacyStatProfile: {fileID: 11400000, guid: a3717d00d5b2c434690db24692ad8bb3, type: 2}
   profileIndex: 0
   applyOnStart: 1
   applyOnInspectorChange: 1
@@ -931,6 +933,26 @@ MonoBehaviour:
   createRuntimeUI: 1
   uiAnchoredPosition: {x: 20, y: -20}
   uiSize: {x: 360, y: 150}
+--- !u!114 &9022440247686977918
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7226280265010825651}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 17296b2ce492c0d469b41f99c4838a6b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TurretStatProfileApplier
+  statProfile: {fileID: 11400000, guid: a3717d00d5b2c434690db24692ad8bb3, type: 2}
+  targetTurret: {fileID: 4334878516621669050}
+  targetFinder: {fileID: 6443846602863267145}
+  targetGuns:
+  - {fileID: 8303708865026957668}
+  - {fileID: 1216955966848438413}
+  applyOnStart: 1
+  applyOnInspectorChange: 1
 --- !u!4 &7999298050119078665 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 069723a5a664cfa4a83d609667cbf8fa, type: 3}

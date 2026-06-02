@@ -11,7 +11,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d6d09d1f6c7f2954b800f81fb1ad11ef, type: 3}
   m_Name: VFX_Pink Arrow
-  m_EditorClassIdentifier: Assembly-CSharp::TurretVFXProfile
+  m_EditorClassIdentifier: Assembly-CSharp::TurretVFXProfileSO
   displayName: Pink Arrow
   projectilePrefab: {fileID: 1481244868773408, guid: 4ea69b3b989fde0469e2e5b34e62f6eb, type: 3}
   projectileSpeed: 0

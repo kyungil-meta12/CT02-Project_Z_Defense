@@ -1,7 +1,7 @@
 using UnityEngine;
 
 [CreateAssetMenu(menuName = "Project Z Defense/Turret VFX Profile")]
-public class TurretVFXProfile : ScriptableObject
+public class TurretVFXProfileSO : ScriptableObject
 {
     [Header("Display")]
     public string displayName;

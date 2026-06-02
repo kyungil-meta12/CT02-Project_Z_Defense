@@ -11,7 +11,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d6d09d1f6c7f2954b800f81fb1ad11ef, type: 3}
   m_Name: VFX_OrangeArrow
-  m_EditorClassIdentifier: Assembly-CSharp::TurretVFXProfile
+  m_EditorClassIdentifier: Assembly-CSharp::TurretVFXProfileSO
   displayName: Orange Arrow
   projectilePrefab: {fileID: 1976014488594992, guid: b7598d5b9928a334fbdac42b683b2b02, type: 3}
   projectileSpeed: 0

@@ -12,10 +12,23 @@ public class TurretStatProfileApplier : MonoBehaviour
     [SerializeField] private bool applyOnInspectorChange = true;
 
     public TurretStatProfileSO StatProfile => statProfile;
+    public bool HasStatProfile => statProfile != null;
+
+    private bool autoFireEnabled = true;
 
     private void Reset()
     {
         RefreshReferences();
+    }
+
+    private void OnEnable()
+    {
+        TurretStatProfileSO.ProfileChanged += OnStatProfileChanged;
+    }
+
+    private void OnDisable()
+    {
+        TurretStatProfileSO.ProfileChanged -= OnStatProfileChanged;
     }
 
     private void OnValidate()
@@ -58,7 +71,7 @@ public class TurretStatProfileApplier : MonoBehaviour
                 targetTurret.SetProjectilePrefab(targetTurret.projectilePrefab, statProfile.projectileSpeed);
             }
 
-            targetTurret.SetAutoFireEnabled(true);
+            targetTurret.SetAutoFireEnabled(autoFireEnabled);
         }
 
         int projectileCount = Mathf.Max(1, statProfile.projectileCount);
@@ -72,6 +85,37 @@ public class TurretStatProfileApplier : MonoBehaviour
 
             gun.burstFireCount = projectileCount;
         }
+    }
+
+    public void SetStatProfile(TurretStatProfileSO statProfile_)
+    {
+        statProfile = statProfile_;
+
+        if (Application.isPlaying)
+        {
+            Apply();
+        }
+    }
+
+    public void SetAutoFireEnabled(bool enabled)
+    {
+        autoFireEnabled = enabled;
+        RefreshReferences();
+
+        if (targetTurret != null)
+        {
+            targetTurret.SetAutoFireEnabled(autoFireEnabled);
+        }
+    }
+
+    private void OnStatProfileChanged(TurretStatProfileSO changedProfile)
+    {
+        if (!Application.isPlaying || !applyOnInspectorChange || changedProfile != statProfile)
+        {
+            return;
+        }
+
+        Apply();
     }
 
     private void RefreshReferences()

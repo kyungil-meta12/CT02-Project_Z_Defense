@@ -11,7 +11,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d6d09d1f6c7f2954b800f81fb1ad11ef, type: 3}
   m_Name: VFX_Dragon Punch
-  m_EditorClassIdentifier: Assembly-CSharp::TurretVFXProfile
+  m_EditorClassIdentifier: Assembly-CSharp::TurretVFXProfileSO
   displayName: Dragon Punch
   projectilePrefab: {fileID: 1328495139333439498, guid: 79f41e1c75bfb6e43b7f5ee13b33dc02, type: 3}
   projectileSpeed: 0

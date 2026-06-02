@@ -8,6 +8,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 3317958215391167824, guid: bb3feed03de6ffc478b034fa5b6ed38f, type: 3}
+      propertyPath: m_Controller
+      value: 
+      objectReference: {fileID: 22100000, guid: 3533fe716b606ee42844d2b74686d032, type: 2}
     - target: {fileID: 3703631398934292930, guid: bb3feed03de6ffc478b034fa5b6ed38f, type: 3}
       propertyPath: m_Name
       value: BossZombie_Boomer
@@ -18,15 +22,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6838670774652095222, guid: bb3feed03de6ffc478b034fa5b6ed38f, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 0
+      value: 13.025637
       objectReference: {fileID: 0}
     - target: {fileID: 6838670774652095222, guid: bb3feed03de6ffc478b034fa5b6ed38f, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0
+      value: 0.000005797847
       objectReference: {fileID: 0}
     - target: {fileID: 6838670774652095222, guid: bb3feed03de6ffc478b034fa5b6ed38f, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 0
+      value: 41.59047
       objectReference: {fileID: 0}
     - target: {fileID: 6838670774652095222, guid: bb3feed03de6ffc478b034fa5b6ed38f, type: 3}
       propertyPath: m_LocalRotation.w

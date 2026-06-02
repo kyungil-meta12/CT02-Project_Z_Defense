@@ -1971,7 +1971,7 @@ PrefabInstance:
     - target: {fileID: 3317958215391167824, guid: bb3feed03de6ffc478b034fa5b6ed38f, type: 3}
       propertyPath: m_Controller
       value: 
-      objectReference: {fileID: 22100000, guid: 1e3f23749b89d414fad1334e386c367a, type: 2}
+      objectReference: {fileID: 22100000, guid: 2636c121d2fa2fa47acc805c37eccfe1, type: 2}
     - target: {fileID: 3703631398934292930, guid: bb3feed03de6ffc478b034fa5b6ed38f, type: 3}
       propertyPath: m_Name
       value: BossZombie_Screamer

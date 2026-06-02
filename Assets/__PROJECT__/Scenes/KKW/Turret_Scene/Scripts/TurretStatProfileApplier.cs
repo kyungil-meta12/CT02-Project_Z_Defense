@@ -65,6 +65,7 @@ public class TurretStatProfileApplier : MonoBehaviour
         if (targetTurret != null)
         {
             targetTurret.fireTick = statProfile.fireInterval;
+            targetTurret.SetProjectileCombatStats(statProfile.damage, statProfile.pierceCount);
 
             if (targetTurret.projectilePrefab != null)
             {
@@ -89,6 +90,11 @@ public class TurretStatProfileApplier : MonoBehaviour
 
     public void Apply(TurretRuntimeStat runtimeStat)
     {
+        Apply(runtimeStat, false);
+    }
+
+    public void Apply(TurretRuntimeStat runtimeStat, bool logProjectileDamage)
+    {
         RefreshReferences();
 
         if (targetFinder != null)
@@ -99,6 +105,7 @@ public class TurretStatProfileApplier : MonoBehaviour
         if (targetTurret != null)
         {
             targetTurret.fireTick = runtimeStat.fireInterval;
+            targetTurret.SetProjectileCombatStats(runtimeStat.damage, runtimeStat.pierceCount, logProjectileDamage);
 
             if (targetTurret.projectilePrefab != null)
             {

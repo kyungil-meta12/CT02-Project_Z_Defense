@@ -56,4 +56,9 @@ public class PoolObject : MonoBehaviour
         gameObject.SetActive(false);
         OriginStack.Push(this);
     }
+
+    public void ReturnToPool()
+    {
+        ReturnInstance();
+    }
 }

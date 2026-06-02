@@ -11,6 +11,8 @@ public class MemoryPool : MonoBehaviour
 
     private readonly Dictionary<PoolObject, Stack<PoolObject>> memDict = new();
     private readonly Dictionary<PoolObject, Transform> containerDict = new();
+    private readonly Dictionary<GameObject, Stack<PoolObject>> gameObjectMemDict = new();
+    private readonly Dictionary<GameObject, Transform> gameObjectContainerDict = new();
 
     private void Awake()
     {
@@ -143,6 +145,79 @@ public class MemoryPool : MonoBehaviour
         return memStack.Count;
     }
 
+    /// <summary>
+    /// <para>Returns an instance of a GameObject prefab from the pool.</para>
+    /// <para>If the prefab does not inherit PoolObject, a PoolObject component is attached to the created instance.</para>
+    /// <para>Example: var projectile = MemoryPool.Inst.GetInstance(projectilePrefab, position, rotation);</para>
+    /// </summary>
+    public GameObject GetInstance(GameObject prefab, Vector3 position, Quaternion rotation)
+    {
+        if (prefab == null)
+        {
+            Debug.LogError("[MemoryPool] GetInstance called with null GameObject prefab.");
+            return null;
+        }
+
+        var memStack = GetOrCreateGameObjectStack(prefab);
+
+        PoolObject instance;
+        if (memStack.Count == 0)
+        {
+            instance = CreateNewGameObjectInstance(prefab, memStack);
+        }
+        else
+        {
+            instance = memStack.Pop();
+        }
+
+        ActivateInstance(instance, position, rotation);
+        return instance.gameObject;
+    }
+
+    /// <summary>
+    /// Pre-creates inactive GameObject prefab instances and stores them in the pool.
+    /// </summary>
+    public void Prewarm(GameObject prefab, int count)
+    {
+        if (prefab == null)
+        {
+            Debug.LogError("[MemoryPool] Prewarm called with null GameObject prefab.");
+            return;
+        }
+
+        if (count <= 0)
+        {
+            return;
+        }
+
+        var memStack = GetOrCreateGameObjectStack(prefab, count);
+        for (int i = 0; i < count; i++)
+        {
+            var inst = CreateNewGameObjectInstance(prefab, memStack);
+            inst.OnDespawn();
+            inst.gameObject.SetActive(false);
+            memStack.Push(inst);
+        }
+    }
+
+    /// <summary>
+    /// Returns current available inactive GameObject instance count.
+    /// </summary>
+    public int GetCount(GameObject prefab)
+    {
+        if (prefab == null)
+        {
+            return 0;
+        }
+
+        if (!gameObjectMemDict.TryGetValue(prefab, out var memStack) || memStack == null)
+        {
+            return 0;
+        }
+
+        return memStack.Count;
+    }
+
     private Stack<PoolObject> GetOrCreateStack(PoolObject prefab, int initialCapacity = 0)
     {
         if (!memDict.TryGetValue(prefab, out var memStack) || memStack == null)
@@ -168,6 +243,37 @@ public class MemoryPool : MonoBehaviour
         return instance;
     }
 
+    private Stack<PoolObject> GetOrCreateGameObjectStack(GameObject prefab, int initialCapacity = 0)
+    {
+        if (!gameObjectMemDict.TryGetValue(prefab, out var memStack) || memStack == null)
+        {
+            memStack = initialCapacity > 0 ? new Stack<PoolObject>(initialCapacity) : new Stack<PoolObject>();
+            gameObjectMemDict[prefab] = memStack;
+        }
+
+        return memStack;
+    }
+
+    private PoolObject CreateNewGameObjectInstance(GameObject prefab, Stack<PoolObject> memStack)
+    {
+        var container = GetOrCreateGameObjectContainer(prefab);
+        var instanceObject = Instantiate(prefab, container);
+
+        if (instanceObject.activeSelf)
+        {
+            instanceObject.SetActive(false);
+        }
+
+        var instance = instanceObject.GetComponent<PoolObject>();
+        if (instance == null)
+        {
+            instance = instanceObject.AddComponent<PoolObject>();
+        }
+
+        instance.SetStack(memStack);
+        return instance;
+    }
+
     private Transform GetOrCreateContainer(PoolObject prefab)
     {
         if (!containerDict.TryGetValue(prefab, out var container) || container == null)
@@ -181,8 +287,29 @@ public class MemoryPool : MonoBehaviour
         return container;
     }
 
+    private Transform GetOrCreateGameObjectContainer(GameObject prefab)
+    {
+        if (!gameObjectContainerDict.TryGetValue(prefab, out var container) || container == null)
+        {
+            var containerObject = new GameObject($"Spawned{prefab.name}");
+            container = containerObject.transform;
+            container.SetParent(transform);
+            gameObjectContainerDict[prefab] = container;
+        }
+
+        return container;
+    }
+
     private static void ActivateInstance(PoolObject instance)
     {
+        instance.OnBeforeSpawn();
+        instance.gameObject.SetActive(true);
+        instance.OnSpawn();
+    }
+
+    private static void ActivateInstance(PoolObject instance, Vector3 position, Quaternion rotation)
+    {
+        instance.transform.SetPositionAndRotation(position, rotation);
         instance.OnBeforeSpawn();
         instance.gameObject.SetActive(true);
         instance.OnSpawn();

@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 569645566211208362}
   - component: {fileID: 5122710782398535471}
   - component: {fileID: 1080612659046596205}
+  - component: {fileID: 2484936679301608259}
   m_Layer: 0
   m_Name: Enemy
   m_TagString: Enemy
@@ -131,3 +132,19 @@ MonoBehaviour:
   moveRange: 10
   moveSpeed: 2
   lookMoveDirection: 1
+--- !u!114 &2484936679301608259
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1041156264066642943}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6126735b2b7a4d9faf2f99a7cbf31491, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TestDamageableTarget
+  totalHp: 1000000
+  resetHpOnEnable: 1
+  logDamage: 1
+  deactivateOnDeath: 0

@@ -12,6 +12,7 @@ public class TurretDefinitionRuntimeTester : MonoBehaviour
     [SerializeField] private bool applyStatsToTurret = true;
     [SerializeField] private bool applyVFXToTurret = true;
     [SerializeField] private bool logRuntimeStat = true;
+    [SerializeField] private bool logProjectileDamage = true;
     [SerializeField] private TurretStatProfileApplier statProfileApplier;
     [SerializeField] private Turret targetTurret;
     [SerializeField] private FiringEvent targetFiringEvent;
@@ -54,7 +55,7 @@ public class TurretDefinitionRuntimeTester : MonoBehaviour
 
         if (applyStatsToTurret && statProfileApplier != null)
         {
-            statProfileApplier.Apply(runtimeStat);
+            statProfileApplier.Apply(runtimeStat, logProjectileDamage);
         }
 
         if (applyVFXToTurret)

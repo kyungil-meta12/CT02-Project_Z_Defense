@@ -518,7 +518,7 @@ MonoBehaviour:
   targetFinder: {fileID: 4343940118528154943}
   targetGuns:
   - {fileID: 8486724908046527542}
-  applyOnStart: 1
+  applyOnStart: 0
   applyOnInspectorChange: 1
 --- !u!114 &6276699055580667231
 MonoBehaviour:
@@ -539,6 +539,7 @@ MonoBehaviour:
   applyStatsToTurret: 1
   applyVFXToTurret: 1
   logRuntimeStat: 1
+  logProjectileDamage: 1
   statProfileApplier: {fileID: 67558619342333490}
   targetTurret: {fileID: -7952466315715175992}
   targetFiringEvent: {fileID: 7711865795365352569}

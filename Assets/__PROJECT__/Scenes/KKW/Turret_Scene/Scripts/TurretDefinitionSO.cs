@@ -14,5 +14,4 @@ public class TurretDefinitionSO : ScriptableObject
     [Header("Progression")]
     public TurretStatGrowthProfileSO statGrowthProfile;
     public TurretVFXProgressionSO vfxProgressionProfile;
-    public TurretPartsProgressionSO partsProgressionProfile;
 }

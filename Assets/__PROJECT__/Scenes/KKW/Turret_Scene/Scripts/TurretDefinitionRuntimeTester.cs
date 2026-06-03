@@ -11,11 +11,9 @@ public class TurretDefinitionRuntimeTester : MonoBehaviour
     [SerializeField] private bool applyOnInspectorChange = true;
     [SerializeField] private bool applyStatsToTurret = true;
     [SerializeField] private bool applyVFXToTurret = true;
-    [SerializeField] private bool applyPartsToTurret = true;
     [SerializeField] private bool logRuntimeStat = true;
     [SerializeField] private bool logProjectileDamage = true;
     [SerializeField] private TurretStatProfileApplier statProfileApplier;
-    [SerializeField] private TurretPartsProgressionApplier partsProgressionApplier;
     [SerializeField] private Turret targetTurret;
     [SerializeField] private FiringEvent targetFiringEvent;
 
@@ -65,11 +63,6 @@ public class TurretDefinitionRuntimeTester : MonoBehaviour
             ApplyVFX(runtimeStat);
         }
 
-        if (applyPartsToTurret)
-        {
-            ApplyParts();
-        }
-
         if (logRuntimeStat)
         {
             Debug.Log(
@@ -78,17 +71,6 @@ public class TurretDefinitionRuntimeTester : MonoBehaviour
                 $"ProjectileSpeed:{runtimeStat.projectileSpeed:0.###}, ProjectileCount:{runtimeStat.projectileCount}, PierceCount:{runtimeStat.pierceCount}",
                 this);
         }
-    }
-
-    private void ApplyParts()
-    {
-        if (partsProgressionApplier == null)
-        {
-            return;
-        }
-
-        partsProgressionApplier.SetProfile(turretDefinition.partsProgressionProfile);
-        partsProgressionApplier.Apply(level);
     }
 
     private void ApplyVFX(TurretRuntimeStat runtimeStat)
@@ -122,11 +104,6 @@ public class TurretDefinitionRuntimeTester : MonoBehaviour
         if (statProfileApplier == null)
         {
             statProfileApplier = GetComponent<TurretStatProfileApplier>();
-        }
-
-        if (partsProgressionApplier == null)
-        {
-            partsProgressionApplier = GetComponent<TurretPartsProgressionApplier>();
         }
 
         if (targetTurret == null)

@@ -1,152 +1,149 @@
-/*
+﻿/*
  * Turret Data Structure Plan
  *
- * 목적
- * - 터렛 강화 단계에 따라 스탯, 발사체/VFX, 사운드, 외형 파츠가 바뀌는 구조를 정리한다.
- * - 팀장 담당 로직/밸런스 데이터와 규원 담당 연출 데이터를 분리해 작업 충돌을 줄인다.
- * - 최종적으로 터렛은 하나의 상위 설정을 읽고, 내부에서 스탯/연출/파츠 데이터를 나누어 적용한다.
+ * Purpose
+ * - Turret progression data is separated from runtime logic so balancing and VFX work can be edited safely in ScriptableObjects.
+ * - Current design starts every turret run from Sentinel-01.
+ * - At specific levels, Sentinel-01 can evolve into one of the following turret branches:
+ *   Mass Driver, Sentry Pulse, Vector MG, Vulcan Node.
+ * - Evolution branch selection is not implemented yet. The current implemented step is level-based projectile scale progression.
  *
- * 기본 방향
- * - 스탯 SO와 VFX SO는 서로를 직접 참조하지 않는다.
- * - 강화 단계 SO 또는 터렛 정의 SO가 스탯/VFX/파츠 프로필을 묶는다.
- * - VFX 프로필에는 데미지, 공격 속도, 사거리 같은 밸런스 값을 넣지 않는다.
- * - 스탯 프로필에는 projectile prefab, muzzle VFX, hit VFX 같은 연출 값을 넣지 않는다.
- *
- * 추천 ScriptableObject 구조
+ * Current Implemented Structure
  *
  * 1. TurretDefinitionSO
- * - 터렛 하나의 최상위 정의 데이터.
- * - 터렛 ID
- * - 표시 이름
- * - 기본 터렛 프리팹
- * - 강화 단계 목록
+ * - Top-level definition for a turret.
+ * - Holds identity, base prefab, stat growth, VFX progression, and projectile scale progression.
+ * - Sentinel-01 currently owns the initial definition.
  *
- * 예시:
+ * Current fields:
+ * public string turretId;
+ * public string displayName;
+ * public GameObject basePrefab;
+ * public TurretStatProfileSO baseStatProfile;
+ * public TurretStatGrowthProfileSO statGrowthProfile;
+ * public TurretVFXProgressionSO vfxProgressionProfile;
+ * public TurretProjectileScaleProgressionSO projectileScaleProgressionProfile;
  *
- * public class TurretDefinitionSO : ScriptableObject
- * {
- *     public string turretId;
- *     public string displayName;
- *     public GameObject basePrefab;
- *     public TurretUpgradeLevelSO[] upgradeLevels;
- * }
+ * 2. TurretStatProfileSO
+ * - Holds base combat values.
+ * - Damage, range, fire interval, projectile speed, projectile count, pierce count.
+ * - Projectile speed belongs here, not in VFX data.
  *
- * 2. TurretUpgradeLevelSO
- * - 특정 강화 단계에서 사용할 데이터를 묶는 단계별 config.
- * - 레벨
- * - 스탯 프로필
- * - VFX 프로필
- * - 파츠 프로필
- * - 강화 비용/해금 조건
- *
- * 예시:
- *
- * public class TurretUpgradeLevelSO : ScriptableObject
- * {
- *     public int level;
- *     public TurretStatProfileSO statProfile;
- *     public TurretVFXProfileSO vfxProfile;
- *     public TurretPartsProfileSO partsProfile;
- *     public int upgradeCost;
- * }
- *
- * 3. TurretStatProfileSO
- * - 게임 로직과 밸런스에 필요한 수치 데이터.
- * - 팀장 담당 영역.
- * - 데미지
- * - 사거리
- * - 공격 속도
- * - 탄속
- * - 투사체 수
- * - 관통 수
- * - 치명타 관련 값
- *
- * 예시:
- *
- * public class TurretStatProfileSO : ScriptableObject
- * {
- *     public float damage;
- *     public float range;
- *     public float fireInterval;
- *     public float projectileSpeed;
- *     public int projectileCount;
- *     public int pierceCount;
- * }
+ * 3. TurretStatGrowthProfileSO
+ * - Calculates level-based runtime stat growth.
+ * - TurretDefinitionRuntimeTester combines baseStatProfile and statGrowthProfile into TurretRuntimeStat.
  *
  * 4. TurretVFXProfileSO
- * - 터렛 발사 연출에 필요한 데이터.
- * - 규원 담당 영역.
- * - projectile prefab
- * - muzzle VFX
- * - hit VFX
- * - fire sound
- * - impact sound
- * - VFX duration
- * - 화면에서 보이는 연출용 scale/color 보정값
+ * - Holds visual/audio projectile data only.
+ * - Projectile prefab, muzzle VFX, muzzle duration, fire sound.
+ * - It should not be duplicated just to represent projectile size.
+ * - It should not contain balance values such as damage, range, fire interval, projectile speed.
  *
- * 예시:
+ * 5. TurretVFXProgressionSO
+ * - Selects which TurretVFXProfileSO is active for a level.
+ * - This is for projectile type/VFX/sound changes.
+ * - Example use:
+ *   Level 1 uses OrangeArrow projectile.
+ *   Later evolution branches may use Mass Driver/Sentry Pulse/Vector MG/Vulcan Node projectile profiles.
  *
- * public class TurretVFXProfileSO : ScriptableObject
- * {
- *     public string displayName;
- *     public GameObject projectilePrefab;
- *     public GameObject muzzleVFX;
- *     public GameObject hitVFX;
- *     public AudioClip fireSound;
- *     public AudioClip impactSound;
- *     public float muzzleVFXDuration;
- *     public float hitVFXDuration;
- * }
+ * 6. TurretProjectileScaleProgressionSO
+ * - Selects projectile scale by level.
+ * - This is separate from VFX profile selection.
+ * - Current recommended Sentinel-01 setup:
+ *   Level 1  -> scale 1
+ *   Level 5  -> scale 2
+ *   Level 10 -> scale 3
+ *   Level 15 -> scale 4
+ *   Level 20 -> scale 5
+ * - Runtime applies this scale when pooled projectiles are spawned.
+ * - Scale is multiplied by the projectile prefab's original localScale.
  *
- * 5. TurretPartsProfileSO
- * - 강화 단계별로 붙거나 사라지는 외형 파츠 데이터.
- * - 규원 담당 영역.
- * - 추가 파츠 prefab
- * - 부착할 socket 이름
- * - local position/rotation/scale
- * - 기존 파츠 활성/비활성 옵션
+ * Removed / Deprecated
  *
- * 예시:
+ * TurretPartsProgression
+ * - No longer used by current design.
+ * - TurretPartsProgressionSO, TurretPartsProgressionApplier, and related scene/prefab references were removed.
+ * - Do not add new upgrade part toggling data unless the design explicitly brings visual parts progression back.
  *
- * public class TurretPartsProfileSO : ScriptableObject
- * {
- *     public TurretPartEntry[] parts;
- * }
+ * Projectile Size VFXProfile Duplicates
+ * - VFXProfile assets should not be duplicated as size 1~5 variants.
+ * - Keep one baseline VFXProfile per projectile type.
+ * - Use TurretProjectileScaleProgressionSO for size growth.
+ * - This avoids asset explosion when evolution branches are added.
  *
- * [System.Serializable]
- * public class TurretPartEntry
- * {
- *     public string socketName;
- *     public GameObject partPrefab;
- *     public Vector3 localPosition;
- *     public Vector3 localEulerAngles;
- *     public Vector3 localScale = Vector3.one;
- * }
+ * Runtime Flow
  *
- * 런타임 적용 흐름
+ * 1. TurretDefinitionRuntimeTester receives the current level.
+ * 2. It calculates runtime stats using TurretStatCalculator.
+ * 3. It applies combat stats through TurretStatProfileApplier.
+ * 4. It selects projectile prefab/muzzle/sound through TurretVFXProgressionSO.
+ * 5. It selects projectile scale through TurretProjectileScaleProgressionSO.
+ * 6. Turret stores the selected projectile scale.
+ * 7. Gun/RocketFire applies the scale to each spawned pooled projectile.
  *
- * 1. 터렛이 자신의 TurretDefinitionSO를 가진다.
- * 2. 현재 강화 레벨에 맞는 TurretUpgradeLevelSO를 가져온다.
- * 3. statProfile은 공격 로직/타겟팅/데미지 시스템에 적용한다.
- * 4. vfxProfile은 발사체, 머즐, 히트, 사운드 연출에 적용한다.
- * 5. partsProfile은 터렛 모델의 socket에 파츠를 붙이거나 교체한다.
+ * Important Pooling Note
+ * - Projectile scale must be applied every time a projectile is spawned from the pool.
+ * - Do not rely on prefab scale or previous pooled object state.
+ * - Reused pooled projectiles may retain their old transform state unless explicitly reset.
  *
- * 역할 경계
+ * Evolution Design Direction
  *
- * 준영
- * - TurretStatProfileSO
- * - 업그레이드 비용/해금 조건
- * - 데미지, 타겟팅, 웨이브, 데이터 로딩 구조
+ * Planned high-level flow:
+ * 1. Player starts with Sentinel-01.
+ * 2. Sentinel-01 levels up normally.
+ * 3. At specific evolution levels, player can choose one evolution branch:
+ *    Mass Driver, Sentry Pulse, Vector MG, Vulcan Node.
+ * 4. Evolution changes turret identity, visual prefab/model, projectile profile, and possibly stat growth.
+ * 5. Projectile scale progression can remain shared or become branch-specific depending on balance needs.
  *
- * 규원
- * - TurretVFXProfileSO
- * - TurretPartsProfileSO
- * - 발사체 VFX, 머즐 VFX, 히트 VFX, 사운드, 강화 외형 파츠
- * - 터렛 연출 테스트 씬
+ * Recommended future data structure:
  *
- * 주의사항
- * - 현재 TurretVFXProfile의 projectileSpeed는 테스트 편의용이다.
- * - 최종 구조에서는 projectileSpeed를 TurretStatProfileSO로 옮기는 것이 좋다.
- * - VFX 비교용 테스트 UI는 실제 게임 UI와 분리한다.
- * - Private Assets의 외부 에셋 원본은 직접 수정 범위를 최소화하고, 프로젝트용 복사본/프로필에서 조립한다.
+ * TurretEvolutionProgressionSO
+ * - Holds possible evolution entries.
+ * - Each entry has required level, target TurretDefinitionSO, and optional unlock conditions.
+ *
+ * TurretEvolutionEntry
+ * - requiredLevel
+ * - targetDefinition
+ * - displayName
+ * - unlockCost or required item
+ *
+ * Suggested Responsibility Boundaries
+ *
+ * Combat / Core Logic
+ * - Damage, range, attack rate, projectile count, projectile speed, pierce count.
+ * - Targeting, health, wave interaction, economy, upgrade cost.
+ *
+ * Turret / Projectile Presentation
+ * - Turret model selection.
+ * - Projectile prefab and visual effects.
+ * - Muzzle VFX and fire sound.
+ * - Projectile scale progression.
+ *
+ * Private Assets Rule
+ * - Avoid direct modification of Private Assets originals when possible.
+ * - Prefer project-level wrappers, profiles, adapters, or duplicated prefabs under the project scene folder.
+ * - If direct modification is unavoidable for runtime integration, keep the change small and document why.
+ *
+ * Current Editor Setup Checklist
+ *
+ * Sentinel-01 Definition:
+ * - baseStatProfile assigned.
+ * - statGrowthProfile assigned.
+ * - vfxProgressionProfile assigned.
+ * - projectileScaleProgressionProfile assigned.
+ *
+ * Sentinel-01 VFX Progression:
+ * - Uses baseline VFXProfile assets only.
+ * - Does not use size 2~5 duplicate VFXProfiles.
+ *
+ * Sentinel-01 Projectile Scale Progression:
+ * - Contains level entries for scale 1~5.
+ * - Assigned to TurretDefinitionSO.projectileScaleProgressionProfile.
  */
+
+using UnityEngine;
+
+public class TURRET_DATA_STRUCTURE_PLAN : MonoBehaviour
+{
+}

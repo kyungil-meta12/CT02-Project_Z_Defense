@@ -89,6 +89,7 @@ public class TurretDefinitionRuntimeTester : MonoBehaviour
         if (targetTurret != null && vfxProfile.projectilePrefab != null)
         {
             targetTurret.SetProjectilePrefab(vfxProfile.projectilePrefab, runtimeStat.projectileSpeed);
+            targetTurret.SetProjectileScale(GetProjectileScale());
         }
 
         if (targetFiringEvent != null)
@@ -97,6 +98,16 @@ public class TurretDefinitionRuntimeTester : MonoBehaviour
             targetFiringEvent.muzzleVFXDuration = vfxProfile.muzzleVFXDuration;
             targetFiringEvent.firingSound = vfxProfile.fireSound;
         }
+    }
+
+    private float GetProjectileScale()
+    {
+        if (turretDefinition.projectileScaleProgressionProfile == null)
+        {
+            return 1.0f;
+        }
+
+        return turretDefinition.projectileScaleProgressionProfile.GetScaleForLevel(level);
     }
 
     private void RefreshReferences()

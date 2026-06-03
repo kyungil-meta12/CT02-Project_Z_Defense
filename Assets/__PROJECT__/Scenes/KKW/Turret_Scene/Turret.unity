@@ -228,10 +228,6 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 6276699055580667231, guid: e413d47f110c2694fbfb33e7712ccd89, type: 3}
-      propertyPath: applyOnStart
-      value: 1
-      objectReference: {fileID: 0}
     - target: {fileID: 8486724908046527542, guid: e413d47f110c2694fbfb33e7712ccd89, type: 3}
       propertyPath: 'extraCollisionIgnoreRoots.Array.data[0]'
       value: 
@@ -753,10 +749,6 @@ PrefabInstance:
       propertyPath: m_Name
       value: Sentry Pulse
       objectReference: {fileID: 0}
-    - target: {fileID: 5304553910520936683, guid: f574943089594464fb73719d3c491d3d, type: 3}
-      propertyPath: m_IsActive
-      value: 0
-      objectReference: {fileID: 0}
     - target: {fileID: 6083121399775048580, guid: f574943089594464fb73719d3c491d3d, type: 3}
       propertyPath: 'extraCollisionIgnoreRoots.Array.data[0]'
       value: 
@@ -831,11 +823,6 @@ PrefabInstance:
 Transform:
   m_CorrespondingSourceObject: {fileID: 1742778519932050804, guid: 9a335312bd605bb4980a36c12cb1e7fa, type: 3}
   m_PrefabInstance: {fileID: 960671478}
-  m_PrefabAsset: {fileID: 0}
---- !u!1 &993567338 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 4672393858745932496, guid: e413d47f110c2694fbfb33e7712ccd89, type: 3}
-  m_PrefabInstance: {fileID: 185342090}
   m_PrefabAsset: {fileID: 0}
 --- !u!1 &1124479938
 GameObject:
@@ -1145,10 +1132,6 @@ PrefabInstance:
     - target: {fileID: 3667444341041917125, guid: 23e84a9ce65b8744193e1494d2d29144, type: 3}
       propertyPath: m_Name
       value: Vulcan Node
-      objectReference: {fileID: 0}
-    - target: {fileID: 3667444341041917125, guid: 23e84a9ce65b8744193e1494d2d29144, type: 3}
-      propertyPath: m_IsActive
-      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4156454802162824831, guid: 23e84a9ce65b8744193e1494d2d29144, type: 3}
       propertyPath: m_LocalPosition.x
@@ -1489,10 +1472,6 @@ PrefabInstance:
       propertyPath: m_Name
       value: Mass Driver
       objectReference: {fileID: 0}
-    - target: {fileID: 5397442684410628395, guid: eb284d70c7f7a22459dfb7edcb0f5535, type: 3}
-      propertyPath: m_IsActive
-      value: 0
-      objectReference: {fileID: 0}
     - target: {fileID: 6678949975885195248, guid: eb284d70c7f7a22459dfb7edcb0f5535, type: 3}
       propertyPath: 'extraCollisionIgnoreRoots.Array.data[0]'
       value: 
@@ -1674,10 +1653,6 @@ PrefabInstance:
     - target: {fileID: 7226280265010825651, guid: 22fa6bb3a6084d340be63ebc26db9639, type: 3}
       propertyPath: m_Name
       value: Vector MG
-      objectReference: {fileID: 0}
-    - target: {fileID: 7226280265010825651, guid: 22fa6bb3a6084d340be63ebc26db9639, type: 3}
-      propertyPath: m_IsActive
-      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7999298050119078665, guid: 22fa6bb3a6084d340be63ebc26db9639, type: 3}
       propertyPath: m_LocalPosition.x

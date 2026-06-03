@@ -8,6 +8,7 @@ public class TurretPartsProgressionApplier : MonoBehaviour
     [SerializeField] private Transform partsRoot;
     [SerializeField] private bool applyOnStart;
     [SerializeField] private int startLevel = 1;
+    [SerializeField] private bool createMissingPartsRoot = true;
 
     private readonly List<Transform> partTransforms = new List<Transform>(16);
     private readonly List<string> activePartNames = new List<string>(8);
@@ -68,6 +69,13 @@ public class TurretPartsProgressionApplier : MonoBehaviour
 
             partsRoot = foundRoot;
         }
+
+        if (partsRoot == null && createMissingPartsRoot)
+        {
+            GameObject partsRootObject = new GameObject("UpgradeParts");
+            partsRootObject.transform.SetParent(transform, false);
+            partsRoot = partsRootObject.transform;
+        }
     }
 
     private void CachePartTransforms()
@@ -77,7 +85,7 @@ public class TurretPartsProgressionApplier : MonoBehaviour
 
         if (partsRoot == null)
         {
-            Debug.LogWarning("[TurretPartsProgressionApplier] Parts root is missing. Create/assign UpgradeParts or PartsRoot.", this);
+            Debug.LogWarning("[TurretPartsProgressionApplier] Parts root is missing and auto creation is disabled. Assign UpgradeParts or PartsRoot.", this);
             return;
         }
 

@@ -83,6 +83,11 @@ public class TurretStatProfileApplier : MonoBehaviour
         }
 
         int projectileCount = Mathf.Max(1, statProfile.projectileCount);
+        if (targetGuns == null)
+        {
+            return;
+        }
+
         for (int i = 0; i < targetGuns.Length; i++)
         {
             Gun gun = targetGuns[i];
@@ -126,6 +131,11 @@ public class TurretStatProfileApplier : MonoBehaviour
         }
 
         int projectileCount = Mathf.Max(1, runtimeStat.projectileCount);
+        if (targetGuns == null)
+        {
+            return;
+        }
+
         for (int i = 0; i < targetGuns.Length; i++)
         {
             Gun gun = targetGuns[i];

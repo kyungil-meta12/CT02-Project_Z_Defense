@@ -68,6 +68,11 @@ public class PooledEffectReturner : MonoBehaviour
 
     private void PlayParticles()
     {
+        if (particleSystems == null)
+        {
+            return;
+        }
+
         for (int i = 0; i < particleSystems.Length; i++)
         {
             ParticleSystem particleSystem = particleSystems[i];

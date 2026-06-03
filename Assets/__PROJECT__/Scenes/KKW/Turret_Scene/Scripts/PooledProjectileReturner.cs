@@ -141,12 +141,22 @@ public class PooledProjectileReturner : MonoBehaviour
             rigidbodyComp.angularVelocity = Vector3.zero;
         }
 
+        if (trailRenderers == null)
+        {
+            trailRenderers = System.Array.Empty<TrailRenderer>();
+        }
+
         for (int i = 0; i < trailRenderers.Length; i++)
         {
             if (trailRenderers[i] != null)
             {
                 trailRenderers[i].Clear();
             }
+        }
+
+        if (particleSystems == null)
+        {
+            particleSystems = System.Array.Empty<ParticleSystem>();
         }
 
         for (int i = 0; i < particleSystems.Length; i++)

@@ -1,0 +1,22 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 28db854c229931b498137181f212c559, type: 3}
+  m_Name: Vector MG_Definition
+  m_EditorClassIdentifier: Assembly-CSharp::TurretDefinitionSO
+  turretId: vector MG
+  displayName: Vector MG
+  basePrefab: {fileID: 7226280265010825651, guid: 22fa6bb3a6084d340be63ebc26db9639, type: 3}
+  baseStatProfile: {fileID: 11400000, guid: a3717d00d5b2c434690db24692ad8bb3, type: 2}
+  statGrowthProfile: {fileID: 11400000, guid: 4f9e9463bc45fbb4c8f1f96b8c6fae48, type: 2}
+  vfxProgressionProfile: {fileID: 11400000, guid: dd9947c4a6d900846a5d66068386b4ee, type: 2}
+  projectileScaleProgressionProfile: {fileID: 11400000, guid: 99fc20b3fb287164ba7429ee544f3dd3, type: 2}
+  evolutionProgressionProfile: {fileID: 0}

@@ -68,7 +68,7 @@ public class PooledProjectileReturner : MonoBehaviour
             return;
         }
 
-        var returner = target.GetComponent<PooledProjectileReturner>();
+        PooledProjectileReturner returner = target.GetComponent<PooledProjectileReturner>();
         if (returner != null)
         {
             returner.ReturnNow();
@@ -85,7 +85,7 @@ public class PooledProjectileReturner : MonoBehaviour
             return;
         }
 
-        var returner = target.GetComponent<PooledProjectileReturner>();
+        PooledProjectileReturner returner = target.GetComponent<PooledProjectileReturner>();
         if (returner != null)
         {
             returner.ReturnAfter(delay);

@@ -15,4 +15,5 @@ public class TurretDefinitionSO : ScriptableObject
     public TurretStatGrowthProfileSO statGrowthProfile;
     public TurretVFXProgressionSO vfxProgressionProfile;
     public TurretProjectileScaleProgressionSO projectileScaleProgressionProfile;
+    public TurretEvolutionProgressionSO evolutionProgressionProfile;
 }

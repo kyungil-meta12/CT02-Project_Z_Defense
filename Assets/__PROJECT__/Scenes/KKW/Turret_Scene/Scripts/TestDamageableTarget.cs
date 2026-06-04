@@ -10,8 +10,14 @@ public class TestDamageableTarget : MonoBehaviour, IDamageable
 
     public float TotalHp
     {
-        get => totalHp;
-        set => totalHp = Mathf.Max(0.0f, value);
+        get
+        {
+            return totalHp;
+        }
+        set
+        {
+            totalHp = Mathf.Max(0.0f, value);
+        }
     }
 
     public float CurrHp { get; set; }

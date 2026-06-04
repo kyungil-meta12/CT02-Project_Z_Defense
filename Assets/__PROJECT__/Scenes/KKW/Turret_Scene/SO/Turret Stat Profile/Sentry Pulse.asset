@@ -12,9 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 64086bcb185c80947a81b76bc4479622, type: 3}
   m_Name: Sentry Pulse
   m_EditorClassIdentifier: Assembly-CSharp::TurretStatProfileSO
-  damage: 1
-  range: 100
-  fireInterval: 1
-  projectileSpeed: 20
+  damage: 25
+  range: 60
+  fireInterval: 0.8
+  projectileSpeed: 25
   projectileCount: 1
   pierceCount: 0

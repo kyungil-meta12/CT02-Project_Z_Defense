@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 17d6903509f1fc34bbc3c6c79616ff05, type: 3}
-  m_Name: Turret Projectile Scale Progression SO
+  m_Name: Vector MG_Projectile Scale Progression SO
   m_EditorClassIdentifier: Assembly-CSharp::TurretProjectileScaleProgressionSO
   defaultScale: 1
   levelEntries:
@@ -19,7 +19,7 @@ MonoBehaviour:
   - requiredLevel: 50
     projectileScale: 2
   - requiredLevel: 100
-    projectileScale: 3
+    projectileScale: 5
   - requiredLevel: 150
     projectileScale: 4
   - requiredLevel: 200

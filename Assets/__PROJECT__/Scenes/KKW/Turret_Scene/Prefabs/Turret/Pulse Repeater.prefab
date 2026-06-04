@@ -515,7 +515,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: 9938bcc1092190d41a5036cc7c05e5a0, type: 3}
       propertyPath: m_Name
-      value: Mass Driver
+      value: Pulse Repeater
       objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: 9938bcc1092190d41a5036cc7c05e5a0, type: 3}
       propertyPath: m_IsActive
@@ -575,7 +575,7 @@ MonoBehaviour:
   canRotateXRotator: 0
   canRotateHeadSeparately: 1
   rotateSpeed: 50
-  turretAngleAttack: 30
+  turretAngleAttack: 8
   fireTick: 0.1
   showDebug: 0
 --- !u!114 &3454635284654324131
@@ -607,7 +607,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 5397442684410628395}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b41aab23c1c36d94aa4af80b1de3076a, type: 3}
+    m_Script: {fileID: 11500000, guid: 2a2ccf1968d1f15418760020b23a2a8b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   gunPrefabs:

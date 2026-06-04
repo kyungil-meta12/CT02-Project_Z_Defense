@@ -7,6 +7,7 @@ public class TurretDefinitionRuntimeTester : MonoBehaviour
 {
     [SerializeField] private TurretDefinitionSO turretDefinition;
     [SerializeField, Min(1)] private int level = 1;
+    [SerializeField, Min(1)] private int totalLevel = 1;
     [SerializeField] private bool applyOnStart = true;
     [SerializeField] private bool applyOnInspectorChange = true;
     [SerializeField] private bool applyStatsToTurret = true;
@@ -35,6 +36,22 @@ public class TurretDefinitionRuntimeTester : MonoBehaviour
         }
     }
 
+    public int CurrentTierLevel
+    {
+        get
+        {
+            return level;
+        }
+    }
+
+    public int CurrentTotalLevel
+    {
+        get
+        {
+            return totalLevel;
+        }
+    }
+
     public string CurrentTurretName
     {
         get
@@ -59,6 +76,7 @@ public class TurretDefinitionRuntimeTester : MonoBehaviour
     private void OnValidate()
     {
         level = Mathf.Max(1, level);
+        totalLevel = Mathf.Max(1, totalLevel, level);
 
         if (Application.isPlaying && applyOnInspectorChange)
         {
@@ -68,6 +86,8 @@ public class TurretDefinitionRuntimeTester : MonoBehaviour
 
     private void Start()
     {
+        totalLevel = Mathf.Max(totalLevel, level);
+
         if (applyOnStart)
         {
             Apply();
@@ -101,7 +121,7 @@ public class TurretDefinitionRuntimeTester : MonoBehaviour
         if (logRuntimeStat)
         {
             Debug.Log(
-                $"[TurretDefinitionRuntimeTester] {turretDefinition.displayName} Lv.{level} " +
+                $"[TurretDefinitionRuntimeTester] {turretDefinition.displayName} Tier Lv.{level} Total Lv.{totalLevel} " +
                 $"Damage:{runtimeStat.damage:0.###}, Range:{runtimeStat.range:0.###}, FireInterval:{runtimeStat.fireInterval:0.###}, " +
                 $"ProjectileSpeed:{runtimeStat.projectileSpeed:0.###}, ProjectileCount:{runtimeStat.projectileCount}, PierceCount:{runtimeStat.pierceCount}",
                 this);
@@ -145,6 +165,7 @@ public class TurretDefinitionRuntimeTester : MonoBehaviour
 
         PlayEvolutionEffect(evolutionEntry);
         turretDefinition = evolutionEntry.targetDefinition;
+        level = 1;
         Apply();
         return true;
     }
@@ -172,20 +193,22 @@ public class TurretDefinitionRuntimeTester : MonoBehaviour
             evolvedRuntimeTester = evolvedObject.AddComponent<TurretDefinitionRuntimeTester>();
         }
 
-        evolvedRuntimeTester.SetDefinition(evolutionEntry.targetDefinition, level);
+        evolvedRuntimeTester.SetDefinition(evolutionEntry.targetDefinition, totalLevel, 1);
         Destroy(gameObject);
         return evolvedRuntimeTester;
     }
 
     public void SetLevel(int level_)
     {
-        int nextLevel = GetClampedLevelForEvolution(level_);
+        int previousLevel = level;
+        int nextLevel = GetClampedLevelForEvolution(level_, level);
         if (nextLevel == level)
         {
             return;
         }
 
         level = nextLevel;
+        totalLevel += Mathf.Max(0, level - previousLevel);
         Apply();
     }
 
@@ -201,8 +224,14 @@ public class TurretDefinitionRuntimeTester : MonoBehaviour
 
     public void SetDefinition(TurretDefinitionSO turretDefinition_, int level_)
     {
+        SetDefinition(turretDefinition_, Mathf.Max(totalLevel, level_), level_);
+    }
+
+    public void SetDefinition(TurretDefinitionSO turretDefinition_, int totalLevel_, int tierLevel_)
+    {
         turretDefinition = turretDefinition_;
-        level = GetClampedLevelForEvolution(level_);
+        totalLevel = Mathf.Max(1, totalLevel_);
+        level = GetClampedLevelForEvolution(tierLevel_, 1);
         Apply();
     }
 
@@ -264,21 +293,22 @@ public class TurretDefinitionRuntimeTester : MonoBehaviour
         PooledObjectUtility.SpawnEffect(evolutionEntry.evolutionEffectPrefab, effectPosition, transform.rotation, effectDuration);
     }
 
-    private int GetClampedLevelForEvolution(int requestedLevel)
+    private int GetClampedLevelForEvolution(int requestedLevel, int currentLevel)
     {
         int clampedLevel = Mathf.Max(1, requestedLevel);
+        int currentLevelValue = Mathf.Max(1, currentLevel);
 
         if (turretDefinition == null || turretDefinition.evolutionProgressionProfile == null)
         {
             return clampedLevel;
         }
 
-        if (turretDefinition.evolutionProgressionProfile.CanEvolve(level))
+        if (turretDefinition.evolutionProgressionProfile.CanEvolve(currentLevelValue))
         {
-            return Mathf.Max(1, level);
+            return currentLevelValue;
         }
 
-        int nextRequiredLevel = turretDefinition.evolutionProgressionProfile.GetNextRequiredEvolutionLevel(level);
+        int nextRequiredLevel = turretDefinition.evolutionProgressionProfile.GetNextRequiredEvolutionLevel(currentLevelValue);
         if (nextRequiredLevel <= 0)
         {
             return clampedLevel;

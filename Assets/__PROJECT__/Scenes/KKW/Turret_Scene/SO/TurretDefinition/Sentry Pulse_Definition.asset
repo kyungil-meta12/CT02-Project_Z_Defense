@@ -17,6 +17,6 @@ MonoBehaviour:
   basePrefab: {fileID: 5304553910520936683, guid: f574943089594464fb73719d3c491d3d, type: 3}
   baseStatProfile: {fileID: 11400000, guid: 260cf9b038e0ee74dad52648c40b8168, type: 2}
   statGrowthProfile: {fileID: 11400000, guid: ce52f19ac45612d4c8c778f9b464fab5, type: 2}
-  vfxProgressionProfile: {fileID: 11400000, guid: 1a96b709960be014fa3cec0b17415ae5, type: 2}
-  projectileScaleProgressionProfile: {fileID: 11400000, guid: 99fc20b3fb287164ba7429ee544f3dd3, type: 2}
+  vfxProgressionProfile: {fileID: 11400000, guid: dd9947c4a6d900846a5d66068386b4ee, type: 2}
+  projectileScaleProgressionProfile: {fileID: 11400000, guid: 0e09e6a53921bdc46ad0c2c77ae02ec8, type: 2}
   evolutionProgressionProfile: {fileID: 11400000, guid: 122fc59da70c8b046abe519c3801092c, type: 2}

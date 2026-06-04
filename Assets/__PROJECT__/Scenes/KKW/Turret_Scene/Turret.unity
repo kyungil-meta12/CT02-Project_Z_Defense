@@ -2412,7 +2412,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5397442684410628395, guid: eb284d70c7f7a22459dfb7edcb0f5535, type: 3}
       propertyPath: m_Name
-      value: Mass Driver
+      value: Pulse Repeater
       objectReference: {fileID: 0}
     - target: {fileID: 5397442684410628395, guid: eb284d70c7f7a22459dfb7edcb0f5535, type: 3}
       propertyPath: m_IsActive

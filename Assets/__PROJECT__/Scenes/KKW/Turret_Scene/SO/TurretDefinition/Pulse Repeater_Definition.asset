@@ -10,13 +10,13 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 28db854c229931b498137181f212c559, type: 3}
-  m_Name: Mass Driver_Definition
+  m_Name: Pulse Repeater_Definition
   m_EditorClassIdentifier: Assembly-CSharp::TurretDefinitionSO
-  turretId: mass Driver
-  displayName: Mass Driver
+  turretId: pulse_repeater
+  displayName: Pulse Repeater
   basePrefab: {fileID: 5397442684410628395, guid: eb284d70c7f7a22459dfb7edcb0f5535, type: 3}
   baseStatProfile: {fileID: 11400000, guid: f992afcfc3ca7fe4da2d7b478c6fb654, type: 2}
   statGrowthProfile: {fileID: 11400000, guid: c9cb4b18088b7e54cac9623a33861f6a, type: 2}
-  vfxProgressionProfile: {fileID: 11400000, guid: dd9947c4a6d900846a5d66068386b4ee, type: 2}
-  projectileScaleProgressionProfile: {fileID: 11400000, guid: 99fc20b3fb287164ba7429ee544f3dd3, type: 2}
+  vfxProgressionProfile: {fileID: 11400000, guid: d502c033e94a1434ea50cec93c22adb3, type: 2}
+  projectileScaleProgressionProfile: {fileID: 11400000, guid: 47f6449fe233cf54e919b0ba2a215cbe, type: 2}
   evolutionProgressionProfile: {fileID: 0}

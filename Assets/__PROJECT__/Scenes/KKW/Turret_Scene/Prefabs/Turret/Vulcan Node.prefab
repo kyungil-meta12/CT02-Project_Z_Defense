@@ -776,7 +776,7 @@ MonoBehaviour:
   canRotateXRotator: 0
   canRotateHeadSeparately: 1
   rotateSpeed: 50
-  turretAngleAttack: 30
+  turretAngleAttack: 8
   fireTick: 0.3
   showDebug: 0
 --- !u!114 &7573435724512310478

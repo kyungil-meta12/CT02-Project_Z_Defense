@@ -319,12 +319,12 @@ public class TurretEvolutionRuntimeUI : MonoBehaviour
 
         if (levelText != null)
         {
-            levelText.text = $"Level {runtimeTester.CurrentLevel}";
+            levelText.text = GetLevelText();
         }
 
         if (tmpLevelText != null)
         {
-            tmpLevelText.text = $"Level {runtimeTester.CurrentLevel}";
+            tmpLevelText.text = GetLevelText();
         }
 
         if (levelText == null && tmpLevelText == null)
@@ -349,7 +349,7 @@ public class TurretEvolutionRuntimeUI : MonoBehaviour
 
     private void SetFallbackLevelButtonText()
     {
-        string buttonText = $"Level Up\nLv. {runtimeTester.CurrentLevel}";
+        string buttonText = $"Level Up\n{GetLevelText()}";
 
         if (levelButtonLabelText != null)
         {
@@ -360,6 +360,16 @@ public class TurretEvolutionRuntimeUI : MonoBehaviour
         {
             tmpLevelButtonLabelText.text = buttonText;
         }
+    }
+
+    private string GetLevelText()
+    {
+        if (runtimeTester.CurrentTierLevel == runtimeTester.CurrentTotalLevel)
+        {
+            return $"Lv. {runtimeTester.CurrentTierLevel}";
+        }
+
+        return $"Tier Lv. {runtimeTester.CurrentTierLevel} / Total Lv. {runtimeTester.CurrentTotalLevel}";
     }
 
     private void RefreshEvolutionButtons(int evolutionCount)

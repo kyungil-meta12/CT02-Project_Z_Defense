@@ -65,7 +65,14 @@ public class NormalZombie : PoolObject, IDamageable
         hpUI.InputTotalHp(TotalHp);
         hpUI.InputCurrHp(TotalHp);
 
+        // 코루틴 동작 상태 초기화
         returnInstanceCoroutineRunning = false;
+    }
+
+    // 사망 시 게임 매니저의 현재 킬 카운트 증가
+    public override void OnDespawn()
+    {
+        GameManager.Inst.IncreaseKillCount();
     }
 
     void Update()

@@ -50,7 +50,7 @@ GameObject:
   - component: {fileID: 663073977784636163}
   - component: {fileID: 1392061041479227189}
   m_Layer: 7
-  m_Name: WorldHpUI
+  m_Name: HpUI
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -151,6 +151,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bdce3b18a8460d74d8f50794f61bd29a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::HpUIController
+  canvasScale: {x: 1, y: 1}
+  sliderBackColor: {r: 0, g: 0, b: 0, a: 1}
+  sliderFrontColor: {r: 1, g: 0, b: 0, a: 1}
+  slider: {fileID: 7942809727975941725}
+  sliderBack: {fileID: 6734192303226522122}
+  sliderFront: {fileID: 3704726505333625340}
 --- !u!1 &3826823484462870055
 GameObject:
   m_ObjectHideFlags: 0

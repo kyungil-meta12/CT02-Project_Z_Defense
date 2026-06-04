@@ -2359,7 +2359,7 @@ MonoBehaviour:
   - {fileID: 9100000, guid: 49d96b9de53b57c44bea24b5c2ec1fe6, type: 2}
   - {fileID: 9100000, guid: ee04e9ecc40cc934c9a186a204ad27cc, type: 2}
   - {fileID: 9100000, guid: 009756d2d85806a4e84f638b373d87cd, type: 2}
-  hpSlider: {fileID: 632779041634312045}
+  hpUI: {fileID: 8476630290883587589}
   anim: {fileID: 0}
   attackState: 0
   agent: {fileID: 0}
@@ -6689,6 +6689,38 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 7326208106863662701}
     m_Modifications:
+    - target: {fileID: 1392061041479227189, guid: 38f8e62c8151e14438f8e5b0fb9484a7, type: 3}
+      propertyPath: canvasScale
+      value: 1.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 1392061041479227189, guid: 38f8e62c8151e14438f8e5b0fb9484a7, type: 3}
+      propertyPath: canvasScale.x
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1392061041479227189, guid: 38f8e62c8151e14438f8e5b0fb9484a7, type: 3}
+      propertyPath: canvasScale.y
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1392061041479227189, guid: 38f8e62c8151e14438f8e5b0fb9484a7, type: 3}
+      propertyPath: sliderBackColor.a
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1392061041479227189, guid: 38f8e62c8151e14438f8e5b0fb9484a7, type: 3}
+      propertyPath: sliderFrontColor.a
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1392061041479227189, guid: 38f8e62c8151e14438f8e5b0fb9484a7, type: 3}
+      propertyPath: sliderFrontColor.b
+      value: 0.060963154
+      objectReference: {fileID: 0}
+    - target: {fileID: 1392061041479227189, guid: 38f8e62c8151e14438f8e5b0fb9484a7, type: 3}
+      propertyPath: sliderFrontColor.g
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1392061041479227189, guid: 38f8e62c8151e14438f8e5b0fb9484a7, type: 3}
+      propertyPath: sliderFrontColor.r
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 1847657382218322912, guid: 38f8e62c8151e14438f8e5b0fb9484a7, type: 3}
       propertyPath: m_AnchorMax.x
       value: 0
@@ -6699,7 +6731,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2539923636683628352, guid: 38f8e62c8151e14438f8e5b0fb9484a7, type: 3}
       propertyPath: m_Name
-      value: WorldHpUI
+      value: HpUI
       objectReference: {fileID: 0}
     - target: {fileID: 4775573691278992367, guid: 38f8e62c8151e14438f8e5b0fb9484a7, type: 3}
       propertyPath: m_PresetInfoIsWorld
@@ -6790,19 +6822,19 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 38f8e62c8151e14438f8e5b0fb9484a7, type: 3}
---- !u!114 &632779041634312045 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 7942809727975941725, guid: 38f8e62c8151e14438f8e5b0fb9484a7, type: 3}
-  m_PrefabInstance: {fileID: 7418152558573205808}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 67db9e8f0e2ae9c40bc1e2b64352a6b4, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Slider
 --- !u!224 &3789467093306962976 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 5937000280255024400, guid: 38f8e62c8151e14438f8e5b0fb9484a7, type: 3}
   m_PrefabInstance: {fileID: 7418152558573205808}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &8476630290883587589 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 1392061041479227189, guid: 38f8e62c8151e14438f8e5b0fb9484a7, type: 3}
+  m_PrefabInstance: {fileID: 7418152558573205808}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bdce3b18a8460d74d8f50794f61bd29a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HpUIController

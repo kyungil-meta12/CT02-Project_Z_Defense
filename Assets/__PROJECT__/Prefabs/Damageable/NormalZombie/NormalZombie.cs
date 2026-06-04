@@ -11,7 +11,7 @@ public class NormalZombie : PoolObject, IDamageable
     [Header("일반 좀비 기본 스펙")] public NormalZombieSpec spec;
     [Header("애니메이터 컨트롤러 목록")] public RuntimeAnimatorController[] animControllers;
     
-    public Slider hpSlider;
+    public HpUI hpUI;
 
     [HideInInspector] public Animator anim;
     [HideInInspector] public bool attackState;
@@ -66,8 +66,8 @@ public class NormalZombie : PoolObject, IDamageable
         CurrHp = TotalHp;
 
         // 체력 UI 슬라이더 값 지정
-        hpSlider.maxValue = TotalHp;
-        hpSlider.value = TotalHp;
+        hpUI.InputTotalHp(TotalHp);
+        hpUI.InputCurrHp(TotalHp);
     }
 
     void Update()
@@ -174,16 +174,18 @@ public class NormalZombie : PoolObject, IDamageable
     /// <param name="damage"></param>
     public void TakeDamage(float damage)
     {
-        if(!agent.enabled) // 한 번 체력이 0이 되면 더 이상 TakeDamage를 받지 않음
+        if(!hpUI.enabled) // 한 번 체력이 0이 되면 더 이상 TakeDamage를 받지 않음
         {
             return;
         }
         CurrHp -= damage;
         CurrHp = Mathf.Clamp(CurrHp, 0f, TotalHp);
-        hpSlider.value = CurrHp;
+        hpUI.InputCurrHp(CurrHp);
+
+        // 체력이 완전히 떨어지면
         if (CurrHp <= 0f)
         {
-            hpSlider.gameObject.SetActive(false); // hp UI 비활성화
+            hpUI.gameObject.SetActive(false); // hp UI 비활성화
             agent.enabled = false; // 에이전트 비활성화
             anim.SetTrigger("IsDeadState"); // 죽는 애니메이션으로 변경
         }

@@ -7,5 +7,17 @@ AnimatorOverrideController:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: Boomer
-  m_Controller: {fileID: 9100000, guid: 96ca4a6977152ef478bb685acfb47c13, type: 2}
-  m_Clips: []
+  m_Controller: {fileID: 9100000, guid: ab306825753691c4f802a01ae83ff963, type: 2}
+  m_Clips:
+  - m_OriginalClip: {fileID: -203655887218126122, guid: 3ec77625ec184824195232f8df628a3d, type: 3}
+    m_OverrideClip: {fileID: -203655887218126122, guid: 27770e57ae250cc4da0b8b6942212b2d, type: 3}
+  - m_OriginalClip: {fileID: -203655887218126122, guid: 886c33f4631f9ed41bb36ce7d83a6935, type: 3}
+    m_OverrideClip: {fileID: -203655887218126122, guid: 0d570c3c20fbf224dac524fd40f05725, type: 3}
+  - m_OriginalClip: {fileID: 7400000, guid: b35eeb40cbd53b84d81f647620ecb9f1, type: 3}
+    m_OverrideClip: {fileID: 7400000, guid: 7c04b5db5ba9f2349bec572278964421, type: 3}
+  - m_OriginalClip: {fileID: -203655887218126122, guid: afaed4e76087c5745a10f00507cbfcdd, type: 3}
+    m_OverrideClip: {fileID: -203655887218126122, guid: 932627aa372fe304796350ba50470afa, type: 3}
+  - m_OriginalClip: {fileID: -203655887218126122, guid: 79b58f9ce692fd24581ce7f1243c3197, type: 3}
+    m_OverrideClip: {fileID: -203655887218126122, guid: b738d9f8e751cb643972392c6902ddd9, type: 3}
+  - m_OriginalClip: {fileID: 7400000, guid: 339a3cd39006fde4fb03f9cb76bd981e, type: 3}
+    m_OverrideClip: {fileID: -203655887218126122, guid: c3922c789db7c83449dd753b683245a9, type: 3}

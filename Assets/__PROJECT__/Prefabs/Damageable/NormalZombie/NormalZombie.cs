@@ -182,7 +182,14 @@ public class NormalZombie : PoolObject, IDamageable
         {
             if(attackTarget.TryGetComponent<IDamageable>(out var iDmg))
             {
-                iDmg.TakeDamage(attackDamage);
+                if(iDmg.IsAlive)
+                {
+                    iDmg.TakeDamage(attackDamage);
+                }
+                else
+                {
+                    print("[NormalZombie] 살아있지 않은 오브젝트임");
+                }
             }
             else
             {

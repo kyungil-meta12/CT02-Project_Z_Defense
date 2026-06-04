@@ -1,10 +1,6 @@
 using UnityEngine;
-using System.Linq;
-using UnityEditor.Animations;
-using Mono.Cecil.Cil;
 using UnityEngine.AI;
 using System.Collections;
-using UnityEngine.UI;
 
 public class NormalZombie : PoolObject, IDamageable
 {

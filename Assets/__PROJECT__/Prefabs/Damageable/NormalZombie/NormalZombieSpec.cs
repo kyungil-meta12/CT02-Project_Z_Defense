@@ -26,6 +26,6 @@ public class NormalZombieSpec : ScriptableObject
     public float MinHp;
     public float MaxHp;
 
-    [Header("기본 아이템 드랍률(int)")] public float NoramlItemDropPercentage;
+    [Header("기본 아이템 드랍률(int)")] public float NormalItemDropPercentage;
     [Header("레어 아이템 드랍률(int)")] public float RareItemDropPercentage;
 }

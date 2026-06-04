@@ -58,6 +58,38 @@ public class TurretEvolutionProgressionSO : ScriptableObject
         return GetAvailableEvolutionCount(level) > 0;
     }
 
+    public int GetNextRequiredEvolutionLevel(int level)
+    {
+        int nextRequiredLevel = 0;
+
+        if (evolutionEntries == null)
+        {
+            return nextRequiredLevel;
+        }
+
+        for (int i = 0; i < evolutionEntries.Length; i++)
+        {
+            TurretEvolutionEntry entry = evolutionEntries[i];
+            if (entry == null || entry.targetDefinition == null)
+            {
+                continue;
+            }
+
+            int requiredLevel = Mathf.Max(1, entry.requiredLevel);
+            if (level >= requiredLevel)
+            {
+                continue;
+            }
+
+            if (nextRequiredLevel == 0 || requiredLevel < nextRequiredLevel)
+            {
+                nextRequiredLevel = requiredLevel;
+            }
+        }
+
+        return nextRequiredLevel;
+    }
+
     private bool IsEntryAvailable(TurretEvolutionEntry entry, int level)
     {
         if (entry == null || entry.targetDefinition == null)
@@ -76,4 +108,7 @@ public class TurretEvolutionEntry
     public TurretDefinitionSO targetDefinition;
     public string displayName;
     public Sprite evolutionIcon;
+    public GameObject evolutionEffectPrefab;
+    public Vector3 evolutionEffectLocalOffset;
+    public float evolutionEffectDuration = 2.0f;
 }

@@ -13,7 +13,10 @@ MonoBehaviour:
   m_Name: Vector MG_Evolution Progression SO
   m_EditorClassIdentifier: Assembly-CSharp::TurretEvolutionProgressionSO
   evolutionEntries:
-  - requiredLevel: 500
+  - requiredLevel: 300
     targetDefinition: {fileID: 11400000, guid: 9286c83b02e9eb54fa44fe5285239739, type: 2}
     displayName: Vulcan Node
     evolutionIcon: {fileID: 21300000, guid: 7c4ef125d1c37e84e85958119b80e944, type: 3}
+    evolutionEffectPrefab: {fileID: 640602461530948004, guid: 938be4f127f81d348a60fe4019a9422c, type: 3}
+    evolutionEffectLocalOffset: {x: 0, y: 0, z: 0}
+    evolutionEffectDuration: 2

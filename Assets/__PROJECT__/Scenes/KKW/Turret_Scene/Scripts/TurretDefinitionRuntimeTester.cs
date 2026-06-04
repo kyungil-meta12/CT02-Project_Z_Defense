@@ -143,6 +143,7 @@ public class TurretDefinitionRuntimeTester : MonoBehaviour
             return false;
         }
 
+        PlayEvolutionEffect(evolutionEntry);
         turretDefinition = evolutionEntry.targetDefinition;
         Apply();
         return true;
@@ -161,6 +162,7 @@ public class TurretDefinitionRuntimeTester : MonoBehaviour
             return Evolve(availableIndex) ? this : null;
         }
 
+        PlayEvolutionEffect(evolutionEntry);
         GameObject evolvedObject = Instantiate(evolutionEntry.targetDefinition.basePrefab, transform.position, transform.rotation, transform.parent);
         evolvedObject.transform.localScale = transform.localScale;
 
@@ -177,7 +179,13 @@ public class TurretDefinitionRuntimeTester : MonoBehaviour
 
     public void SetLevel(int level_)
     {
-        level = Mathf.Max(1, level_);
+        int nextLevel = GetClampedLevelForEvolution(level_);
+        if (nextLevel == level)
+        {
+            return;
+        }
+
+        level = nextLevel;
         Apply();
     }
 
@@ -194,7 +202,7 @@ public class TurretDefinitionRuntimeTester : MonoBehaviour
     public void SetDefinition(TurretDefinitionSO turretDefinition_, int level_)
     {
         turretDefinition = turretDefinition_;
-        level = Mathf.Max(1, level_);
+        level = GetClampedLevelForEvolution(level_);
         Apply();
     }
 
@@ -242,6 +250,41 @@ public class TurretDefinitionRuntimeTester : MonoBehaviour
         }
 
         return turretDefinition.projectileScaleProgressionProfile.GetScaleForLevel(level);
+    }
+
+    private void PlayEvolutionEffect(TurretEvolutionEntry evolutionEntry)
+    {
+        if (evolutionEntry == null || evolutionEntry.evolutionEffectPrefab == null)
+        {
+            return;
+        }
+
+        Vector3 effectPosition = transform.TransformPoint(evolutionEntry.evolutionEffectLocalOffset);
+        float effectDuration = Mathf.Max(0.0f, evolutionEntry.evolutionEffectDuration);
+        PooledObjectUtility.SpawnEffect(evolutionEntry.evolutionEffectPrefab, effectPosition, transform.rotation, effectDuration);
+    }
+
+    private int GetClampedLevelForEvolution(int requestedLevel)
+    {
+        int clampedLevel = Mathf.Max(1, requestedLevel);
+
+        if (turretDefinition == null || turretDefinition.evolutionProgressionProfile == null)
+        {
+            return clampedLevel;
+        }
+
+        if (turretDefinition.evolutionProgressionProfile.CanEvolve(level))
+        {
+            return Mathf.Max(1, level);
+        }
+
+        int nextRequiredLevel = turretDefinition.evolutionProgressionProfile.GetNextRequiredEvolutionLevel(level);
+        if (nextRequiredLevel <= 0)
+        {
+            return clampedLevel;
+        }
+
+        return Mathf.Min(clampedLevel, nextRequiredLevel);
     }
 
     private void RefreshReferences()

@@ -5,7 +5,7 @@ using UnityEngine;
 using UnityEngine.AI;
 using Random = UnityEngine.Random;
 
-public class BossZombieController : PoolObject, IDamageable
+public class BossZombie : PoolObject, IDamageable
 {
     public BossZombieSpec spec;
     public HpUI hpUI;
@@ -134,13 +134,25 @@ public class BossZombieController : PoolObject, IDamageable
             return;
         }
         CurrHp -= damage;
-        //todo 데미지 축적, 넉백 로직 필요 hitCountBV
+        StoreDamage(damage);
         CurrHp = Mathf.Clamp(CurrHp, 0f, TotalHp);
         hpUI.InputCurrHp(CurrHp);
 
         if (CurrHp <= 0f)
         {
             Die();
+        }
+    }
+
+    float storeDamage = 0;
+    //데미지 축적 및 넉백 호출 메서드
+    public void StoreDamage(float damage)
+    {
+        storeDamage += damage;
+        if (storeDamage >= TotalHp % 10)
+        {
+            hitCountBV.Value++;
+            storeDamage = 0;
         }
     }
     

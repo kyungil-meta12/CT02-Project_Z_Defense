@@ -1,5 +1,4 @@
 using System.Numerics;
-using Unity.Mathematics;
 using UnityEngine;
 
 /// <summary>
@@ -20,6 +19,9 @@ public class ItemManager : MonoBehaviour
     // 소지한 속성 부품 개수
     public BigInteger SpecialPartCount { get; private set; } = 0;
 
+    // 현재 웨이브에서 얻은 코인 개수
+    public BigInteger WaveCollectCoinCount { get; private set; } = 0;
+
 
     void Awake()
     {
@@ -31,13 +33,38 @@ public class ItemManager : MonoBehaviour
         DontDestroyOnLoad(gameObject);
     }
 
+    void Update()
+    {
+        // 웨이브 증가 시 이전 웨이브에서 모은 코인의 20%만큼을 보너스로 추가한다.
+        if(GameManager.Inst.WasWaveIncreased())
+        {
+            AddCoinBouns(20);
+        }
+    }
+
     /// <summary>
-    /// 코인 소지량을 증가시킨다.
+    /// 코인 소지량을 증가시킨다.<para/>
+    /// 웨이브 동안에 수집된 코인이 기록된다.
     /// </summary>
     /// <param name="coinsToAdd"></param>
     public void AddCoinCount(int coinsToAdd)
     {
         CoinCount += coinsToAdd;
+        WaveCollectCoinCount += coinsToAdd;
+    }
+
+    /// <summary>
+    /// 웨이브 동안에 수집한 WaveCollectCoinCount의 percentage만큼을 현재 코인 소지량에 추가한다.<para/>
+    /// 이 메서드를 호출하면 WaveCollectCoinCount가 0으로 초기화 된다.
+    /// </summary>
+    /// <param name="percentage"></param>
+    public void AddCoinBouns(int percentage)
+    {
+        int percentNumerator = percentage;
+        int percentDenominator = 100;
+        var result = WaveCollectCoinCount * percentNumerator / percentDenominator;
+        CoinCount += result;
+        WaveCollectCoinCount = 0;
     }
 
     /// <summary>
@@ -162,5 +189,14 @@ public class ItemManager : MonoBehaviour
     public string SpecialPartCountToString()
     {
         return SpecialPartCount.ToString();
+    }
+
+    /// <summary>
+    /// 웨이브 동안에 모은 코인 개수를 string 타입으로 리턴한다.
+    /// </summary>
+    /// <returns></returns>
+    public string WaveCollectCointCountToString()
+    {
+        return WaveCollectCoinCount.ToString();
     }
 }

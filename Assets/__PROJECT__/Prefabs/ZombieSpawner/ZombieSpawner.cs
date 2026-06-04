@@ -33,13 +33,13 @@ public class ZombieSpawner : MonoBehaviour
     
     void Update()
     {
-        // 웨이브 변화가 감지되면 스폰 간격과 최대 스폰 횟수를 웨이브에 맞추어 갱신한다.
-        if(GameManager.Inst.wave > 1 && GameManager.Inst.WasWaveIncreased())
+        // 웨이브 증가 시 스폰 간격과 최대 스폰 횟수를 갱신한다.
+        if(GameManager.Inst.WasWaveIncreased())
         {
-            currSpawnInterval = spawnData.DefaultSpawnInterval / Mathf.Pow(1f + spawnData.SpawnIntervalWeight, GameManager.Inst.wave - 1f);
+            currSpawnInterval = spawnData.DefaultSpawnInterval / Mathf.Pow(1f + spawnData.SpawnIntervalWeight, GameManager.Inst.Wave - 1f);
 
             // 최대 스폰 횟수 증가는 지수가 아닌 선형 계산식 사용
-            currMaxSpawnCount = spawnData.DefaultSpawnCount + GameManager.Inst.wave * spawnData.SpawnCountWeight;
+            currMaxSpawnCount = spawnData.DefaultSpawnCount + GameManager.Inst.Wave * spawnData.SpawnCountWeight;
 
             // 게임 매니저로 목표 킬 카운트 전달
             GameManager.Inst.InputDestKillCount(currMaxSpawnCount);

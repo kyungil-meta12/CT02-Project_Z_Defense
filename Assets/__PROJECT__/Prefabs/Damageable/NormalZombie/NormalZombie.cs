@@ -38,8 +38,8 @@ public class NormalZombie : PoolObject, IDamageable
         var randomMoveAttackSpeed = Random.Range(spec.MinMoveAttackSpeed, spec.MaxMoveAttackSpeed);
         var randomAttackDamage = Random.Range(spec.MinAttackDamage, spec.MaxAttackDamage);
         var randomHp = Random.Range(spec.MinHp, spec.MaxHp);
-        float wave = GameManager.Inst.wave;
-        bool isFirstWave = GameManager.Inst.wave == 1;
+        float wave = GameManager.Inst.Wave;
+        bool isFirstWave = GameManager.Inst.Wave == 1;
 
         // 기본 수치 * 랜덤 수치 * 웨이브 반영 수치를 곱하여 결정
         // 웨이브 1때는 웨이브 가중치를 적용하지 않는다.

@@ -4,11 +4,11 @@ using UnityEngine;
 public class GameManager : MonoBehaviour
 {
     public static GameManager Inst;
-    public int prevWave = 1; // 이전 웨이브
-    public int wave = 1; // 현재 웨이브
 
-    public int killCount = 0; // 현재 킬 카운트
-    public int destKillCount = 0; // 목표 킬 카운트
+    [HideInInspector] public int prevWave = 1; // 이전 웨이브
+    public int Wave{ get; private set; } = 1;
+    public int KillCount{ get; private set; }= 0; // 현재 킬 카운트
+    public int DestKillCount{ get; private set; } = 0; // 목표 킬 카운트
 
     void Awake()
     {
@@ -25,16 +25,16 @@ public class GameManager : MonoBehaviour
     {
         // 킬 카운트가 목표 킬 카운트에 도달할 시 웨이브 증가
         // 다음 목표 킬 카운트는 ZombieSpawner에서 전달한다.
-        if(killCount == destKillCount)
+        if(KillCount == DestKillCount)
         {
-            killCount = 0;
-            wave++;
+            KillCount = 0;
+            Wave++;
         }
     }
 
     void LateUpdate()
     {
-        prevWave = wave; // 웨이브 수치 갱신
+        prevWave = Wave; // 웨이브 수치 갱신
     }
 
     /// <summary>
@@ -43,7 +43,7 @@ public class GameManager : MonoBehaviour
     /// <returns></returns>
     public bool WasWaveIncreased()
     {
-        return prevWave < wave;
+        return prevWave < Wave;
     }
     
     /// <summary>
@@ -53,7 +53,7 @@ public class GameManager : MonoBehaviour
     /// <param name="val"></param>
     public void InputDestKillCount(int val)
     {
-        destKillCount = val;
+        DestKillCount = val;
     }
 
     /// <summary>
@@ -61,6 +61,6 @@ public class GameManager : MonoBehaviour
     /// </summary>
     public void IncreaseKillCount()
     {
-        killCount++;
+        KillCount++;
     }
 }

@@ -50,8 +50,8 @@ public class BossZombie : PoolObject, IDamageable
         var randomMoveAttackSpeed = Random.Range(spec.MinMoveAttackSpeed, spec.MaxMoveAttackSpeed);
         var randomAttackDamage = Random.Range(spec.MinAttackDamage, spec.MaxAttackDamage);
         var randomHp = Random.Range(spec.MinHp, spec.MaxHp);
-        float wave = GameManager.Inst.wave;
-        bool isFirstWave = GameManager.Inst.wave == 1;
+        float wave = GameManager.Inst.Wave;
+        bool isFirstWave = GameManager.Inst.Wave == 1;
         
         // 이동/공격 속도
         var moveAttackSpeedMul = isFirstWave ? randomMoveAttackSpeed : randomMoveAttackSpeed * Mathf.Pow(1f + spec.MoveAttackSpeedWeight, wave - 1f);
@@ -188,6 +188,5 @@ public class BossZombie : PoolObject, IDamageable
     {
         destination = t;
         agent.enabled = true;
-        agent.SetDestination(t.position);
     }
 }

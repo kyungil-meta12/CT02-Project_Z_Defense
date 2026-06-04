@@ -15,6 +15,7 @@ public class TurretStatProfileApplier : MonoBehaviour
     public bool HasStatProfile => statProfile != null;
 
     private bool autoFireEnabled = true;
+    private bool isStarted;
 
     private void Reset()
     {
@@ -29,6 +30,7 @@ public class TurretStatProfileApplier : MonoBehaviour
     private void OnDisable()
     {
         TurretStatProfileSO.ProfileChanged -= OnStatProfileChanged;
+        isStarted = false;
     }
 
     private void OnValidate()
@@ -41,6 +43,8 @@ public class TurretStatProfileApplier : MonoBehaviour
 
     private void Start()
     {
+        isStarted = true;
+
         if (applyOnStart)
         {
             Apply();
@@ -72,10 +76,18 @@ public class TurretStatProfileApplier : MonoBehaviour
                 targetTurret.SetProjectilePrefab(targetTurret.projectilePrefab, statProfile.projectileSpeed);
             }
 
-            targetTurret.SetAutoFireEnabled(autoFireEnabled);
+            if (isStarted)
+            {
+                targetTurret.SetAutoFireEnabled(autoFireEnabled);
+            }
         }
 
         int projectileCount = Mathf.Max(1, statProfile.projectileCount);
+        if (targetGuns == null)
+        {
+            return;
+        }
+
         for (int i = 0; i < targetGuns.Length; i++)
         {
             Gun gun = targetGuns[i];
@@ -112,10 +124,18 @@ public class TurretStatProfileApplier : MonoBehaviour
                 targetTurret.SetProjectilePrefab(targetTurret.projectilePrefab, runtimeStat.projectileSpeed);
             }
 
-            targetTurret.SetAutoFireEnabled(autoFireEnabled);
+            if (isStarted)
+            {
+                targetTurret.SetAutoFireEnabled(autoFireEnabled);
+            }
         }
 
         int projectileCount = Mathf.Max(1, runtimeStat.projectileCount);
+        if (targetGuns == null)
+        {
+            return;
+        }
+
         for (int i = 0; i < targetGuns.Length; i++)
         {
             Gun gun = targetGuns[i];

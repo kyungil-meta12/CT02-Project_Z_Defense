@@ -18,6 +18,7 @@ public class GameManager : MonoBehaviour
             return;
         }    
         Inst = this;
+        DontDestroyOnLoad(gameObject);
     }
 
     void Update()

@@ -21,6 +21,7 @@ public class NormalZombie : PoolObject, IDamageable
     // IDamageable value
     public float CurrHp{ get; set; } // 현재 체력
     public float TotalHp{ get; set; } // 최대 체력
+    public bool IsAlive{ get; set;} // 살아있는 상태
 
     private bool returnInstanceCoroutineRunning = false;
 
@@ -60,6 +61,7 @@ public class NormalZombie : PoolObject, IDamageable
         var hpMul = isFirstWave ? randomHp : randomHp * Mathf.Pow(1f + spec.HpWeight, wave - 1f);
         TotalHp = spec.Hp * hpMul;
         CurrHp = TotalHp;
+        IsAlive = true;
 
         // 체력 UI 슬라이더 값 지정
         hpUI.InputTotalHp(TotalHp);
@@ -84,7 +86,7 @@ public class NormalZombie : PoolObject, IDamageable
     // 죽었을 때 인스턴스를 지연 리턴 한다
     void UpdateDeath()
     {
-        if(agent.enabled)
+        if(IsAlive)
         {
             return;
         }
@@ -103,7 +105,7 @@ public class NormalZombie : PoolObject, IDamageable
     // attackState, attackTarget 및 agent의 동작 여부는 NormalZombieAttackCollider에서 변경한다
     void UpdateMoveAndAttack()
     {
-        if(!agent.enabled)
+        if(!IsAlive)
         {
             return;
         }
@@ -135,7 +137,7 @@ public class NormalZombie : PoolObject, IDamageable
 
     void OnAnimatorMove()
     {
-        if (!agent.enabled)
+        if (!IsAlive)
         {
             return;
         }
@@ -196,7 +198,7 @@ public class NormalZombie : PoolObject, IDamageable
     /// <param name="damage"></param>
     public void TakeDamage(float damage)
     {
-        if(!agent.enabled) // 한 번 체력이 0이 되면 더 이상 TakeDamage를 받지 않음
+        if(!IsAlive) // 한 번 체력이 0이 되면 더 이상 TakeDamage를 받지 않음
         {
             return;
         }
@@ -209,6 +211,7 @@ public class NormalZombie : PoolObject, IDamageable
         {
             hpUI.gameObject.SetActive(false); // hp UI 비활성화
             agent.enabled = false; // 에이전트 비활성화
+            IsAlive = false; // 생존 상태 비활성화
             anim.SetTrigger("DeadTrigger"); // 죽는 애니메이션으로 변경
         }
     }

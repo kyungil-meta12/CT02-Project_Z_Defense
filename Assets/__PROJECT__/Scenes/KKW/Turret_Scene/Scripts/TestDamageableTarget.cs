@@ -22,6 +22,8 @@ public class TestDamageableTarget : MonoBehaviour, IDamageable
 
     public float CurrHp { get; set; }
 
+    public bool IsAlive {get; set; }
+
     private void OnEnable()
     {
         if (resetHpOnEnable)

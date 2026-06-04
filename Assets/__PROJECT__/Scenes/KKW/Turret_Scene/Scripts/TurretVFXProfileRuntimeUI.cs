@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using ProjectZima.PolygonModularTurretsPack;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -8,7 +9,7 @@ using UnityEngine.UI;
 [RequireComponent(typeof(TurretStatProfileApplier))]
 public class TurretVFXProfileRuntimeUI : MonoBehaviour
 {
-    private static readonly System.Collections.Generic.List<TurretVFXProfileRuntimeUI> ActiveRuntimes = new System.Collections.Generic.List<TurretVFXProfileRuntimeUI>(16);
+    private static readonly List<TurretVFXProfileRuntimeUI> ActiveRuntimes = new List<TurretVFXProfileRuntimeUI>(16);
 
     [SerializeField] private Turret targetTurret;
     [SerializeField] private FiringEvent targetFiringEvent;
@@ -303,13 +304,25 @@ public class TurretVFXProfileRuntimeUI : MonoBehaviour
         Image panelImage = panelObject.AddComponent<Image>();
         panelImage.color = new Color(0.05f, 0.05f, 0.05f, 0.78f);
 
-        profileNameText = CreateText(panelObject.transform, "Profile Text", new Vector2(16.0f, -16.0f), new Vector2(328.0f, 32.0f), 24, TextAnchor.MiddleLeft);
+        profileNameText = CreateText(
+            panelObject.transform,
+            "Profile Text",
+            new Vector2(16.0f, -16.0f),
+            new Vector2(328.0f, 32.0f),
+            24,
+            TextAnchor.MiddleLeft);
 
         CreateButton(panelObject.transform, "Prev Button", "Prev", new Vector2(16.0f, -60.0f), new Vector2(82.0f, 44.0f), PreviousProfile);
         CreateButton(panelObject.transform, "Next Button", "Next", new Vector2(106.0f, -60.0f), new Vector2(82.0f, 44.0f), NextProfile);
         CreateButton(panelObject.transform, "Fire Button", "Fire", new Vector2(196.0f, -60.0f), new Vector2(82.0f, 44.0f), FireOnce);
 
-        Button autoFireButton = CreateButton(panelObject.transform, "Auto Fire Button", string.Empty, new Vector2(16.0f, -110.0f), new Vector2(172.0f, 44.0f), ToggleAutoFire);
+        Button autoFireButton = CreateButton(
+            panelObject.transform,
+            "Auto Fire Button",
+            string.Empty,
+            new Vector2(16.0f, -110.0f),
+            new Vector2(172.0f, 44.0f),
+            ToggleAutoFire);
         autoFireText = autoFireButton.GetComponentInChildren<Text>();
     }
 
@@ -339,7 +352,13 @@ public class TurretVFXProfileRuntimeUI : MonoBehaviour
         return text;
     }
 
-    private Button CreateButton(Transform parent, string objectName, string label, Vector2 anchoredPosition, Vector2 size, UnityEngine.Events.UnityAction onClick)
+    private Button CreateButton(
+        Transform parent,
+        string objectName,
+        string label,
+        Vector2 anchoredPosition,
+        Vector2 size,
+        UnityEngine.Events.UnityAction onClick)
     {
         GameObject buttonObject = new GameObject(objectName);
         buttonObject.transform.SetParent(parent, false);

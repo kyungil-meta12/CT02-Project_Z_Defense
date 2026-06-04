@@ -43,7 +43,7 @@ public static class PooledObjectUtility
             return null;
         }
 
-        var returner = effect.GetComponent<PooledEffectReturner>();
+        PooledEffectReturner returner = effect.GetComponent<PooledEffectReturner>();
         if (returner == null)
         {
             returner = effect.AddComponent<PooledEffectReturner>();

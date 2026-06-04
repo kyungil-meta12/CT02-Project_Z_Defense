@@ -11,8 +11,21 @@ public class TurretStatProfileApplier : MonoBehaviour
     [SerializeField] private bool applyOnStart = true;
     [SerializeField] private bool applyOnInspectorChange = true;
 
-    public TurretStatProfileSO StatProfile => statProfile;
-    public bool HasStatProfile => statProfile != null;
+    public TurretStatProfileSO StatProfile
+    {
+        get
+        {
+            return statProfile;
+        }
+    }
+
+    public bool HasStatProfile
+    {
+        get
+        {
+            return statProfile != null;
+        }
+    }
 
     private bool autoFireEnabled = true;
     private bool isStarted;

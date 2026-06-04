@@ -385,6 +385,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: d92d70aa98a5713408d060d70ca3fbf1, type: 3}
       insertIndex: -1
       addedObject: {fileID: 6276699055580667231}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: d92d70aa98a5713408d060d70ca3fbf1, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 882345610223987654}
   m_SourcePrefab: {fileID: 100100000, guid: d92d70aa98a5713408d060d70ca3fbf1, type: 3}
 --- !u!1 &4672393858745932496 stripped
 GameObject:
@@ -456,7 +459,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4672393858745932496}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 180936edd904e9f46b9c5d371f3211cc, type: 3}
   m_Name: 
@@ -543,6 +546,43 @@ MonoBehaviour:
   statProfileApplier: {fileID: 67558619342333490}
   targetTurret: {fileID: -7952466315715175992}
   targetFiringEvent: {fileID: 7711865795365352569}
+  currentTurretName: 
+  availableEvolutionNames: 
+--- !u!114 &882345610223987654
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4672393858745932496}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ed41be34f6e64ef4b85a90d903ac51bb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TurretEvolutionRuntimeUI
+  runtimeTester: {fileID: 6276699055580667231}
+  levelUpButton: {fileID: 0}
+  levelText: {fileID: 0}
+  tmpLevelText: {fileID: 0}
+  evolutionStatusText: {fileID: 0}
+  tmpEvolutionStatusText: {fileID: 0}
+  evolutionButtons:
+  - button: {fileID: 0}
+    iconImage: {fileID: 0}
+    labelText: {fileID: 0}
+    tmpLabelText: {fileID: 0}
+    sprite: {fileID: 21300000, guid: 6d09530bfe4f5184b992fa84c274a713, type: 3}
+  - button: {fileID: 0}
+    iconImage: {fileID: 0}
+    labelText: {fileID: 0}
+    tmpLabelText: {fileID: 0}
+    sprite: {fileID: 21300000, guid: e128f6a2e61018a48bafa3204eb7f4ad, type: 3}
+  replacePrefabOnEvolution: 1
+  clickLevelAmount: 1
+  holdStartDelay: 0.5
+  minHoldLevelsPerSecond: 4
+  maxHoldLevelsPerSecond: 45
+  accelerationDuration: 4
 --- !u!4 &5448368020507639914 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: d92d70aa98a5713408d060d70ca3fbf1, type: 3}

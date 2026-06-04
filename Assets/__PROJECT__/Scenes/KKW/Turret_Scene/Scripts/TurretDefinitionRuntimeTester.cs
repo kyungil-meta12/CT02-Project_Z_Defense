@@ -16,6 +16,40 @@ public class TurretDefinitionRuntimeTester : MonoBehaviour
     [SerializeField] private TurretStatProfileApplier statProfileApplier;
     [SerializeField] private Turret targetTurret;
     [SerializeField] private FiringEvent targetFiringEvent;
+    [SerializeField] private string currentTurretName;
+    [SerializeField] private string availableEvolutionNames;
+
+    public TurretDefinitionSO CurrentTurretDefinition
+    {
+        get
+        {
+            return turretDefinition;
+        }
+    }
+
+    public int CurrentLevel
+    {
+        get
+        {
+            return level;
+        }
+    }
+
+    public string CurrentTurretName
+    {
+        get
+        {
+            return currentTurretName;
+        }
+    }
+
+    public string AvailableEvolutionNames
+    {
+        get
+        {
+            return availableEvolutionNames;
+        }
+    }
 
     private void Reset()
     {
@@ -52,6 +86,7 @@ public class TurretDefinitionRuntimeTester : MonoBehaviour
         }
 
         TurretRuntimeStat runtimeStat = TurretStatCalculator.Calculate(turretDefinition.baseStatProfile, turretDefinition.statGrowthProfile, level);
+        RefreshRuntimeNames();
 
         if (applyStatsToTurret && statProfileApplier != null)
         {
@@ -70,6 +105,105 @@ public class TurretDefinitionRuntimeTester : MonoBehaviour
                 $"Damage:{runtimeStat.damage:0.###}, Range:{runtimeStat.range:0.###}, FireInterval:{runtimeStat.fireInterval:0.###}, " +
                 $"ProjectileSpeed:{runtimeStat.projectileSpeed:0.###}, ProjectileCount:{runtimeStat.projectileCount}, PierceCount:{runtimeStat.pierceCount}",
                 this);
+        }
+    }
+
+    public bool CanEvolve()
+    {
+        return turretDefinition != null &&
+               turretDefinition.evolutionProgressionProfile != null &&
+               turretDefinition.evolutionProgressionProfile.CanEvolve(level);
+    }
+
+    public int GetAvailableEvolutionCount()
+    {
+        if (turretDefinition == null || turretDefinition.evolutionProgressionProfile == null)
+        {
+            return 0;
+        }
+
+        return turretDefinition.evolutionProgressionProfile.GetAvailableEvolutionCount(level);
+    }
+
+    public TurretEvolutionEntry GetAvailableEvolution(int availableIndex)
+    {
+        if (turretDefinition == null || turretDefinition.evolutionProgressionProfile == null)
+        {
+            return null;
+        }
+
+        return turretDefinition.evolutionProgressionProfile.GetAvailableEvolution(level, availableIndex);
+    }
+
+    public bool Evolve(int availableIndex)
+    {
+        TurretEvolutionEntry evolutionEntry = GetAvailableEvolution(availableIndex);
+        if (evolutionEntry == null || evolutionEntry.targetDefinition == null)
+        {
+            return false;
+        }
+
+        turretDefinition = evolutionEntry.targetDefinition;
+        Apply();
+        return true;
+    }
+
+    public TurretDefinitionRuntimeTester CreateEvolvedInstance(int availableIndex)
+    {
+        TurretEvolutionEntry evolutionEntry = GetAvailableEvolution(availableIndex);
+        if (evolutionEntry == null || evolutionEntry.targetDefinition == null)
+        {
+            return null;
+        }
+
+        if (evolutionEntry.targetDefinition.basePrefab == null)
+        {
+            return Evolve(availableIndex) ? this : null;
+        }
+
+        GameObject evolvedObject = Instantiate(evolutionEntry.targetDefinition.basePrefab, transform.position, transform.rotation, transform.parent);
+        evolvedObject.transform.localScale = transform.localScale;
+
+        TurretDefinitionRuntimeTester evolvedRuntimeTester = evolvedObject.GetComponent<TurretDefinitionRuntimeTester>();
+        if (evolvedRuntimeTester == null)
+        {
+            evolvedRuntimeTester = evolvedObject.AddComponent<TurretDefinitionRuntimeTester>();
+        }
+
+        evolvedRuntimeTester.SetDefinition(evolutionEntry.targetDefinition, level);
+        Destroy(gameObject);
+        return evolvedRuntimeTester;
+    }
+
+    public void SetLevel(int level_)
+    {
+        level = Mathf.Max(1, level_);
+        Apply();
+    }
+
+    public void AddLevel(int levelAmount)
+    {
+        if (levelAmount <= 0)
+        {
+            return;
+        }
+
+        SetLevel(level + levelAmount);
+    }
+
+    public void SetDefinition(TurretDefinitionSO turretDefinition_, int level_)
+    {
+        turretDefinition = turretDefinition_;
+        level = Mathf.Max(1, level_);
+        Apply();
+    }
+
+    [ContextMenu("Evolve To First Available")]
+    private void EvolveToFirstAvailable()
+    {
+        if (!Evolve(0))
+        {
+            Debug.LogWarning("[TurretDefinitionRuntimeTester] No available evolution for the current level.", this);
         }
     }
 
@@ -126,5 +260,72 @@ public class TurretDefinitionRuntimeTester : MonoBehaviour
         {
             targetFiringEvent = GetComponent<FiringEvent>();
         }
+    }
+
+    private void RefreshRuntimeNames()
+    {
+        currentTurretName = turretDefinition == null ? string.Empty : GetDefinitionName(turretDefinition);
+
+        if (turretDefinition == null || turretDefinition.evolutionProgressionProfile == null)
+        {
+            availableEvolutionNames = string.Empty;
+            return;
+        }
+
+        int availableEvolutionCount = turretDefinition.evolutionProgressionProfile.GetAvailableEvolutionCount(level);
+        if (availableEvolutionCount == 0)
+        {
+            availableEvolutionNames = string.Empty;
+            return;
+        }
+
+        System.Text.StringBuilder builder = new System.Text.StringBuilder();
+        for (int i = 0; i < availableEvolutionCount; i++)
+        {
+            TurretEvolutionEntry entry = turretDefinition.evolutionProgressionProfile.GetAvailableEvolution(level, i);
+            if (entry == null)
+            {
+                continue;
+            }
+
+            if (builder.Length > 0)
+            {
+                builder.Append(", ");
+            }
+
+            builder.Append(GetEvolutionName(entry));
+        }
+
+        availableEvolutionNames = builder.ToString();
+    }
+
+    private string GetEvolutionName(TurretEvolutionEntry entry)
+    {
+        if (entry == null)
+        {
+            return string.Empty;
+        }
+
+        if (!string.IsNullOrWhiteSpace(entry.displayName))
+        {
+            return entry.displayName;
+        }
+
+        return GetDefinitionName(entry.targetDefinition);
+    }
+
+    private string GetDefinitionName(TurretDefinitionSO definition)
+    {
+        if (definition == null)
+        {
+            return string.Empty;
+        }
+
+        if (!string.IsNullOrWhiteSpace(definition.displayName))
+        {
+            return definition.displayName;
+        }
+
+        return definition.name;
     }
 }

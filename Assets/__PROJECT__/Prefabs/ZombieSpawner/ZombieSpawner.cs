@@ -59,8 +59,10 @@ public class ZombieSpawner : MonoBehaviour
                 // 마지막 좀비로 보스 좀비를 스폰한다.
                 if (currMaxSpawnCount - currSpawnCount == 1)
                 {
+                    var bossZombie = MemoryPool.Inst.GetInstance<BossZombieController>(bossZombiePrefabs[Random.Range(0, bossZombiePrefabs.Length)]);
+                    bossZombie.SetPosition(spwanPoints[Random.Range(0, spwanPoints.Length)]);
+                    bossZombie.SetDestination(destinations[Random.Range(0, destinations.Length)]);
                     print("보스 좀비 스폰됨");
-                    // 보스 좀비 스폰 로직 추가 필요
                 }
                 // 아니라면 일반 좀비 스폰
                 else

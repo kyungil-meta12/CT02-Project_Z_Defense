@@ -12,9 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3bdc0c7b9357a70449f6f4bff47f2e82, type: 3}
   m_Name: Vulcan Node_VFX Progression SO
   m_EditorClassIdentifier: Assembly-CSharp::TurretVFXProgressionSO
-  defaultProfile: {fileID: 11400000, guid: 485fbf9d60d20424489effa54cb2d9b6, type: 2}
+  defaultProfile: {fileID: 11400000, guid: bd19a546d76a98345bbc078e5c5a3cd2, type: 2}
   levelEntries:
   - requiredLevel: 0
-    vfxProfile: {fileID: 11400000, guid: 485fbf9d60d20424489effa54cb2d9b6, type: 2}
-  - requiredLevel: 50
-    vfxProfile: {fileID: 11400000, guid: 1c870e551809ba648a511bf438b7dff3, type: 2}
+    vfxProfile: {fileID: 11400000, guid: bd19a546d76a98345bbc078e5c5a3cd2, type: 2}

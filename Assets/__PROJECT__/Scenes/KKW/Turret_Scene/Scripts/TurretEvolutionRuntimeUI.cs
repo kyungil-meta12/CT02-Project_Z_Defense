@@ -333,7 +333,7 @@ public class TurretEvolutionRuntimeUI : MonoBehaviour
         }
 
         int evolutionCount = runtimeTester.GetAvailableEvolutionCount();
-        string statusText = evolutionCount > 0 ? "Evolution Available" : "Evolution Locked";
+        string statusText = GetEvolutionStatusText(evolutionCount);
         if (evolutionStatusText != null)
         {
             evolutionStatusText.text = statusText;
@@ -370,6 +370,21 @@ public class TurretEvolutionRuntimeUI : MonoBehaviour
         }
 
         return $"Tier Lv. {runtimeTester.CurrentTierLevel} / Total Lv. {runtimeTester.CurrentTotalLevel}";
+    }
+
+    private string GetEvolutionStatusText(int evolutionCount)
+    {
+        if (evolutionCount > 0)
+        {
+            return "Evolution Available";
+        }
+
+        if (runtimeTester.IsMaxTierLevelReached)
+        {
+            return "Max Level";
+        }
+
+        return "Evolution Locked";
     }
 
     private void RefreshEvolutionButtons(int evolutionCount)

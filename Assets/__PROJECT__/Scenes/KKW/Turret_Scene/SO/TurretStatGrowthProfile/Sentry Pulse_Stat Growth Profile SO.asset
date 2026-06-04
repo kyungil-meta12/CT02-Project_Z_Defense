@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5e18c5f48204fa04fb0e390cc01c28bf, type: 3}
   m_Name: Sentry Pulse_Stat Growth Profile SO
   m_EditorClassIdentifier: Assembly-CSharp::TurretStatGrowthProfileSO
-  damagePercentPerLevel: 0.09166086
+  damagePercentPerLevel: 0.20395903
   rangePerLevel: 0.15075377
   fireIntervalReductionPerLevel: 0.0025125628
   projectileSpeedIntervalLevel: 20

@@ -52,6 +52,28 @@ public class TurretDefinitionRuntimeTester : MonoBehaviour
         }
     }
 
+    public int CurrentMaxTierLevel
+    {
+        get
+        {
+            if (turretDefinition == null)
+            {
+                return 0;
+            }
+
+            return Mathf.Max(0, turretDefinition.maxLevel);
+        }
+    }
+
+    public bool IsMaxTierLevelReached
+    {
+        get
+        {
+            int maxTierLevel = CurrentMaxTierLevel;
+            return maxTierLevel > 0 && level >= maxTierLevel;
+        }
+    }
+
     public string CurrentTurretName
     {
         get
@@ -201,7 +223,7 @@ public class TurretDefinitionRuntimeTester : MonoBehaviour
     public void SetLevel(int level_)
     {
         int previousLevel = level;
-        int nextLevel = GetClampedLevelForEvolution(level_, level);
+        int nextLevel = GetClampedLevelForProgression(level_, level);
         if (nextLevel == level)
         {
             return;
@@ -231,7 +253,7 @@ public class TurretDefinitionRuntimeTester : MonoBehaviour
     {
         turretDefinition = turretDefinition_;
         totalLevel = Mathf.Max(1, totalLevel_);
-        level = GetClampedLevelForEvolution(tierLevel_, 1);
+        level = GetClampedLevelForProgression(tierLevel_, 1);
         Apply();
     }
 
@@ -293,12 +315,22 @@ public class TurretDefinitionRuntimeTester : MonoBehaviour
         PooledObjectUtility.SpawnEffect(evolutionEntry.evolutionEffectPrefab, effectPosition, transform.rotation, effectDuration);
     }
 
-    private int GetClampedLevelForEvolution(int requestedLevel, int currentLevel)
+    private int GetClampedLevelForProgression(int requestedLevel, int currentLevel)
     {
         int clampedLevel = Mathf.Max(1, requestedLevel);
         int currentLevelValue = Mathf.Max(1, currentLevel);
 
-        if (turretDefinition == null || turretDefinition.evolutionProgressionProfile == null)
+        if (turretDefinition == null)
+        {
+            return clampedLevel;
+        }
+
+        if (turretDefinition.maxLevel > 0)
+        {
+            clampedLevel = Mathf.Min(clampedLevel, turretDefinition.maxLevel);
+        }
+
+        if (turretDefinition.evolutionProgressionProfile == null)
         {
             return clampedLevel;
         }

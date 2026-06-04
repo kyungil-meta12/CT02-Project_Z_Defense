@@ -12,8 +12,14 @@ public class TurretDefinitionSO : ScriptableObject
     public TurretStatProfileSO baseStatProfile;
 
     [Header("Progression")]
+    public int maxLevel;
     public TurretStatGrowthProfileSO statGrowthProfile;
     public TurretVFXProgressionSO vfxProgressionProfile;
     public TurretProjectileScaleProgressionSO projectileScaleProgressionProfile;
     public TurretEvolutionProgressionSO evolutionProgressionProfile;
+
+    private void OnValidate()
+    {
+        maxLevel = Mathf.Max(0, maxLevel);
+    }
 }

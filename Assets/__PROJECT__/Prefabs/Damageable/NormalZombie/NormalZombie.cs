@@ -1,7 +1,4 @@
 using UnityEngine;
-using System.Linq;
-using UnityEditor.Animations;
-using Mono.Cecil.Cil;
 using UnityEngine.AI;
 using System.Collections;
 
@@ -9,6 +6,8 @@ public class NormalZombie : PoolObject, IDamageable
 {
     [Header("일반 좀비 기본 스펙")] public NormalZombieSpec spec;
     [Header("애니메이터 컨트롤러 목록")] public RuntimeAnimatorController[] animControllers;
+    
+    public HpUI hpUI;
 
     [HideInInspector] public Animator anim;
     [HideInInspector] public bool attackState;
@@ -61,21 +60,44 @@ public class NormalZombie : PoolObject, IDamageable
         var hpMul = isFirstWave ? randomHp : randomHp * Mathf.Pow(1f + spec.HpWeight, wave - 1f);
         TotalHp = spec.Hp * hpMul;
         CurrHp = TotalHp;
+
+        // 체력 UI 슬라이더 값 지정
+        hpUI.InputTotalHp(TotalHp);
+        hpUI.InputCurrHp(TotalHp);
+
+        returnInstanceCoroutineRunning = false;
     }
 
     void Update()
     {
-        // CurrHp가 0이 되면 죽는 모션을 재생한 후 메모리 풀로 반환
-        if(CurrHp <= 0f)
+        UpdateDeath();
+        UpdateMoveAndAttack();
+    }
+
+    // 죽었을 때 인스턴스를 지연 리턴 한다
+    void UpdateDeath()
+    {
+        if(agent.enabled)
         {
-            var info = anim.GetCurrentAnimatorStateInfo(0);
-            if (info.normalizedTime >= 1f)
+            return;
+        }
+        var info = anim.GetCurrentAnimatorStateInfo(0);
+        if (info.normalizedTime >= 1f)
+        {
+            if (!returnInstanceCoroutineRunning)
             {
-                if(!returnInstanceCoroutineRunning)
-                {
-                    StartCoroutine(ReturnInstanceCoroutine());
-                }
+                StartCoroutine(ReturnInstanceCoroutine());
             }
+        }
+        return;
+    }
+
+    // 이동 및 공격 업데이트
+    // attackState, attackTarget 및 agent의 동작 여부는 NormalZombieAttackCollider에서 변경한다
+    void UpdateMoveAndAttack()
+    {
+        if(!agent.enabled)
+        {
             return;
         }
 
@@ -106,7 +128,7 @@ public class NormalZombie : PoolObject, IDamageable
 
     void OnAnimatorMove()
     {
-        if (CurrHp <= 0f)
+        if (!agent.enabled)
         {
             return;
         }
@@ -137,7 +159,7 @@ public class NormalZombie : PoolObject, IDamageable
     IEnumerator ReturnInstanceCoroutine()
     {
         returnInstanceCoroutineRunning = true;
-        yield return new WaitForSeconds(1f);
+        yield return new WaitForSeconds(3f);
         ReturnInstance();
     }
 
@@ -167,12 +189,20 @@ public class NormalZombie : PoolObject, IDamageable
     /// <param name="damage"></param>
     public void TakeDamage(float damage)
     {
+        if(!agent.enabled) // 한 번 체력이 0이 되면 더 이상 TakeDamage를 받지 않음
+        {
+            return;
+        }
         CurrHp -= damage;
         CurrHp = Mathf.Clamp(CurrHp, 0f, TotalHp);
-        if(CurrHp <= 0f)
+        hpUI.InputCurrHp(CurrHp);
+
+        // 체력이 완전히 떨어지면
+        if (CurrHp <= 0f)
         {
+            hpUI.gameObject.SetActive(false); // hp UI 비활성화
             agent.enabled = false; // 에이전트 비활성화
-            anim.SetTrigger("IsDeadState"); // 죽는 애니메이션으로 변경
+            anim.SetTrigger("DeadTrigger"); // 죽는 애니메이션으로 변경
         }
     }
 
@@ -183,6 +213,7 @@ public class NormalZombie : PoolObject, IDamageable
     public void SetPosition(Transform t)
     {
         transform.position = t.position;
+        agent.enabled = true;
         agent.Warp(t.position);
     }
 
@@ -193,6 +224,7 @@ public class NormalZombie : PoolObject, IDamageable
     public void SetDestination(Transform t)
     {
         destination = t;
+        agent.enabled = true;
         agent.SetDestination(t.position);
     }
 }

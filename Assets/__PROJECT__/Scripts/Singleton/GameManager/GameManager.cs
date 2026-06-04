@@ -1,11 +1,12 @@
-using Unity.VisualScripting;
+using System;
 using UnityEngine;
 
 public class GameManager : MonoBehaviour
 {
     public static GameManager Inst;
 
-    [HideInInspector] public int prevWave = 1; // 이전 웨이브
+    public event Action<int> OnWaveIncrease; // 웨이브 증가 이벤트
+
     public int Wave{ get; private set; } = 1;
     public int KillCount{ get; private set; }= 0; // 현재 킬 카운트
     public int DestKillCount{ get; private set; } = 0; // 목표 킬 카운트
@@ -29,21 +30,8 @@ public class GameManager : MonoBehaviour
         {
             KillCount = 0;
             Wave++;
+            OnWaveIncrease?.Invoke(Wave);
         }
-    }
-
-    void LateUpdate()
-    {
-        prevWave = Wave; // 웨이브 수치 갱신
-    }
-
-    /// <summary>
-    /// 현재 웨이브가 증가했는지 확인한다. LateUpdate()에서 확인하지 않도록 한다.
-    /// </summary>
-    /// <returns></returns>
-    public bool WasWaveIncreased()
-    {
-        return prevWave < Wave;
     }
     
     /// <summary>

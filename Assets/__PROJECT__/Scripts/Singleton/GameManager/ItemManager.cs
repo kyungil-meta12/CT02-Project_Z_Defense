@@ -33,13 +33,22 @@ public class ItemManager : MonoBehaviour
         DontDestroyOnLoad(gameObject);
     }
 
-    void Update()
+    void Start()
     {
-        // 웨이브 증가 시 이전 웨이브에서 모은 코인의 20%만큼을 보너스로 추가한다.
-        if(GameManager.Inst.WasWaveIncreased())
-        {
-            AddCoinBouns(20);
-        }
+        // 웨이브 증가 이벤트 체이닝 추가
+        GameManager.Inst.OnWaveIncrease += OnWaveIncrease;
+    }
+
+    void OnDestroy()
+    {
+        Inst = null;
+        GameManager.Inst.OnWaveIncrease -= OnWaveIncrease;
+    }
+
+    // 웨이브 증가 이벤트
+    void OnWaveIncrease(int wave)
+    {
+        AddCoinBouns(20);
     }
 
     /// <summary>

@@ -75,4 +75,5 @@ public class TurretEvolutionEntry
     public int requiredLevel = 100;
     public TurretDefinitionSO targetDefinition;
     public string displayName;
+    public Sprite evolutionIcon;
 }

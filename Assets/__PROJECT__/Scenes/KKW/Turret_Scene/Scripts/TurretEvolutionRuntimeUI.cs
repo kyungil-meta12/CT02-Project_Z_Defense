@@ -397,12 +397,23 @@ public class TurretEvolutionRuntimeUI : MonoBehaviour
                 binding.tmpLabelText.text = displayName;
             }
 
-            if (binding.iconImage != null && binding.sprite != null)
+            Sprite evolutionIcon = GetEvolutionIcon(entry, binding);
+            if (binding.iconImage != null && evolutionIcon != null)
             {
-                binding.iconImage.sprite = binding.sprite;
+                binding.iconImage.sprite = evolutionIcon;
                 binding.iconImage.preserveAspect = true;
             }
         }
+    }
+
+    private Sprite GetEvolutionIcon(TurretEvolutionEntry entry, EvolutionButtonBinding binding)
+    {
+        if (entry != null && entry.evolutionIcon != null)
+        {
+            return entry.evolutionIcon;
+        }
+
+        return binding == null ? null : binding.sprite;
     }
 
     private void AttachRuntimeUIToEvolvedTester(TurretDefinitionRuntimeTester evolvedRuntimeTester)

@@ -1,0 +1,28 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3bdc0c7b9357a70449f6f4bff47f2e82, type: 3}
+  m_Name: Mass Driver_VFX Progression SO
+  m_EditorClassIdentifier: Assembly-CSharp::TurretVFXProgressionSO
+  defaultProfile: {fileID: 11400000, guid: 485fbf9d60d20424489effa54cb2d9b6, type: 2}
+  levelEntries:
+  - requiredLevel: 0
+    vfxProfile: {fileID: 11400000, guid: 485fbf9d60d20424489effa54cb2d9b6, type: 2}
+  - requiredLevel: 50
+    vfxProfile: {fileID: 11400000, guid: 1c870e551809ba648a511bf438b7dff3, type: 2}
+  - requiredLevel: 100
+    vfxProfile: {fileID: 11400000, guid: e8c0022ca2f80e24ba36aedb4eecf42e, type: 2}
+  - requiredLevel: 150
+    vfxProfile: {fileID: 11400000, guid: 2659c0ce3dee22647a8c504f840012c5, type: 2}
+  - requiredLevel: 200
+    vfxProfile: {fileID: 11400000, guid: 0c7b109316a01a34d97bfd1a6060face, type: 2}
+  - requiredLevel: 250
+    vfxProfile: {fileID: 11400000, guid: 19afa7c3f9522264a8aef69254a42fed, type: 2}

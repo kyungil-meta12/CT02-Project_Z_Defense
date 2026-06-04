@@ -20,6 +20,26 @@ public class ZombieSpawner : MonoBehaviour
         currSpawnInterval = spawnData.DefaultSpawnInterval;
         currMaxSpawnCount = spawnData.DefaultSpawnCount;
         GameManager.Inst.InputDestKillCount(currMaxSpawnCount); // 게임 매니저로 목표 킬 수 전달
+
+        // 웨이브 증가 이벤트 체이닝 추가
+        GameManager.Inst.OnWaveIncrease += OnWaveIncrease;
+    }
+
+    void OnDestroy()
+    {
+        GameManager.Inst.OnWaveIncrease -= OnWaveIncrease;
+    }
+
+    // 웨이브 증가 이벤트
+    void OnWaveIncrease(int wave)
+    {
+        currSpawnInterval = spawnData.DefaultSpawnInterval / Mathf.Pow(1f + spawnData.SpawnIntervalWeight, wave - 1f);
+        // 최대 스폰 횟수 증가는 지수가 아닌 선형 계산식 사용
+        currMaxSpawnCount = spawnData.DefaultSpawnCount + wave * spawnData.SpawnCountWeight;
+        // 게임 매니저로 목표 킬 카운트 전달
+        GameManager.Inst.InputDestKillCount(currMaxSpawnCount);
+        // 웨이브 대기 코루틴 시작 // 웨이브가 증가한 순간부터 5초간 스폰하지 않음
+        StartCoroutine(WaveWaitCoroutine());
     }
 
     // 웨이브가 증가할 때 5초간 스폰하지 않는다.
@@ -30,24 +50,8 @@ public class ZombieSpawner : MonoBehaviour
         yield return new WaitForSeconds(5f);
         spawnEnabled = true;
     }
-    
     void Update()
     {
-        // 웨이브 변화가 감지되면 스폰 간격과 최대 스폰 횟수를 웨이브에 맞추어 갱신한다.
-        if(GameManager.Inst.wave > 1 && GameManager.Inst.WasWaveIncreased())
-        {
-            currSpawnInterval = spawnData.DefaultSpawnInterval / Mathf.Pow(1f + spawnData.SpawnIntervalWeight, GameManager.Inst.wave - 1f);
-
-            // 최대 스폰 횟수 증가는 지수가 아닌 선형 계산식 사용
-            currMaxSpawnCount = spawnData.DefaultSpawnCount + GameManager.Inst.wave * spawnData.SpawnCountWeight;
-
-            // 게임 매니저로 목표 킬 카운트 전달
-            GameManager.Inst.InputDestKillCount(currMaxSpawnCount);
-
-            // 웨이브 대기 코루틴 시작 // 웨이브가 증가한 순간부터 5초간 스폰하지 않음
-            StartCoroutine(WaveWaitCoroutine());
-        }
-
         // currSpawnInterval 간격으로 일반 좀비들을 스폰한다.
         // 최대 스폰 횟수 - 현재 스폰 횟수 == 1일 경우 보스 좀비를 스폰한다.
         // 최대 스폰 횟수를 넘기면 좀비는 더 이상 스폰되지 않는다.

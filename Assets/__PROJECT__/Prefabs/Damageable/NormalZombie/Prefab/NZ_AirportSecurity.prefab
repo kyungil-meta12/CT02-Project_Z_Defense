@@ -2354,11 +2354,11 @@ MonoBehaviour:
   spec: {fileID: 11400000, guid: d29bd727521c6034d914890009ba68aa, type: 2}
   animControllers:
   - {fileID: 9100000, guid: 7276f3537f9bae045910ac2ab627a9f6, type: 2}
-  - {fileID: 9100000, guid: 985bfe9b52205d943b40b81b207ca71a, type: 2}
-  - {fileID: 9100000, guid: a1a7cc6a304dc9a48a589802afc495d5, type: 2}
-  - {fileID: 9100000, guid: 49d96b9de53b57c44bea24b5c2ec1fe6, type: 2}
-  - {fileID: 9100000, guid: ee04e9ecc40cc934c9a186a204ad27cc, type: 2}
-  - {fileID: 9100000, guid: 009756d2d85806a4e84f638b373d87cd, type: 2}
+  - {fileID: 22100000, guid: 76ecaf9415f78914d9b61a8ef19bd17c, type: 2}
+  - {fileID: 22100000, guid: bab19bc558969094f9a7792c49a09f49, type: 2}
+  - {fileID: 22100000, guid: c8ab4e27c8b2b2341b0a57f6fea44b8a, type: 2}
+  - {fileID: 22100000, guid: 42499c0794d724f4396528ea423197b5, type: 2}
+  - {fileID: 22100000, guid: 0b7c52e7343462241a8817465a95215c, type: 2}
   hpUI: {fileID: 8476630290883587589}
   anim: {fileID: 0}
   attackState: 0
@@ -6695,30 +6695,10 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1392061041479227189, guid: 38f8e62c8151e14438f8e5b0fb9484a7, type: 3}
       propertyPath: canvasScale.x
-      value: 1
+      value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 1392061041479227189, guid: 38f8e62c8151e14438f8e5b0fb9484a7, type: 3}
       propertyPath: canvasScale.y
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 1392061041479227189, guid: 38f8e62c8151e14438f8e5b0fb9484a7, type: 3}
-      propertyPath: sliderBackColor.a
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 1392061041479227189, guid: 38f8e62c8151e14438f8e5b0fb9484a7, type: 3}
-      propertyPath: sliderFrontColor.a
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 1392061041479227189, guid: 38f8e62c8151e14438f8e5b0fb9484a7, type: 3}
-      propertyPath: sliderFrontColor.b
-      value: 0.060963154
-      objectReference: {fileID: 0}
-    - target: {fileID: 1392061041479227189, guid: 38f8e62c8151e14438f8e5b0fb9484a7, type: 3}
-      propertyPath: sliderFrontColor.g
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1392061041479227189, guid: 38f8e62c8151e14438f8e5b0fb9484a7, type: 3}
-      propertyPath: sliderFrontColor.r
       value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 1847657382218322912, guid: 38f8e62c8151e14438f8e5b0fb9484a7, type: 3}

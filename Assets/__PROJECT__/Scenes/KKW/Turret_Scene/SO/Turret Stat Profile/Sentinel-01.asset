@@ -12,9 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 64086bcb185c80947a81b76bc4479622, type: 3}
   m_Name: Sentinel-01
   m_EditorClassIdentifier: Assembly-CSharp::TurretStatProfileSO
-  damage: 1
-  range: 100
-  fireInterval: 0.5
+  damage: 10
+  range: 50
+  fireInterval: 1
   projectileSpeed: 20
   projectileCount: 1
   pierceCount: 0

@@ -534,7 +534,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a87f91c13a2143e4aa6e691bd2b48bc7, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::TurretDefinitionRuntimeTester
+  m_EditorClassIdentifier: Assembly-CSharp::TurretDefinitionRuntimeController
   turretDefinition: {fileID: 11400000, guid: bfd04d6c347d461469139eb424cb49cd, type: 2}
   level: 1
   applyOnStart: 1
@@ -560,7 +560,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ed41be34f6e64ef4b85a90d903ac51bb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TurretEvolutionRuntimeUI
-  runtimeTester: {fileID: 6276699055580667231}
+  runtimeController: {fileID: 6276699055580667231}
   levelUpButton: {fileID: 0}
   levelText: {fileID: 0}
   tmpLevelText: {fileID: 0}

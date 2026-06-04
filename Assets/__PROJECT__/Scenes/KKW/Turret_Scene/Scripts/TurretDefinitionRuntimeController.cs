@@ -3,7 +3,7 @@ using UnityEngine;
 
 [DisallowMultipleComponent]
 [RequireComponent(typeof(TurretStatProfileApplier))]
-public class TurretDefinitionRuntimeTester : MonoBehaviour
+public class TurretDefinitionRuntimeController : MonoBehaviour
 {
     [SerializeField] private TurretDefinitionSO turretDefinition;
     [SerializeField, Min(1)] private int level = 1;
@@ -123,7 +123,7 @@ public class TurretDefinitionRuntimeTester : MonoBehaviour
 
         if (turretDefinition == null)
         {
-            Debug.LogWarning("[TurretDefinitionRuntimeTester] Turret definition is missing.", this);
+            Debug.LogWarning("[TurretDefinitionRuntimeController] Turret definition is missing.", this);
             return;
         }
 
@@ -143,7 +143,7 @@ public class TurretDefinitionRuntimeTester : MonoBehaviour
         if (logRuntimeStat)
         {
             Debug.Log(
-                $"[TurretDefinitionRuntimeTester] {turretDefinition.displayName} Tier Lv.{level} Total Lv.{totalLevel} " +
+                $"[TurretDefinitionRuntimeController] {turretDefinition.displayName} Tier Lv.{level} Total Lv.{totalLevel} " +
                 $"Damage:{runtimeStat.damage:0.###}, Range:{runtimeStat.range:0.###}, FireInterval:{runtimeStat.fireInterval:0.###}, " +
                 $"ProjectileSpeed:{runtimeStat.projectileSpeed:0.###}, ProjectileCount:{runtimeStat.projectileCount}, PierceCount:{runtimeStat.pierceCount}",
                 this);
@@ -192,7 +192,7 @@ public class TurretDefinitionRuntimeTester : MonoBehaviour
         return true;
     }
 
-    public TurretDefinitionRuntimeTester CreateEvolvedInstance(int availableIndex)
+    public TurretDefinitionRuntimeController CreateEvolvedInstance(int availableIndex)
     {
         TurretEvolutionEntry evolutionEntry = GetAvailableEvolution(availableIndex);
         if (evolutionEntry == null || evolutionEntry.targetDefinition == null)
@@ -209,15 +209,15 @@ public class TurretDefinitionRuntimeTester : MonoBehaviour
         GameObject evolvedObject = Instantiate(evolutionEntry.targetDefinition.basePrefab, transform.position, transform.rotation, transform.parent);
         evolvedObject.transform.localScale = transform.localScale;
 
-        TurretDefinitionRuntimeTester evolvedRuntimeTester = evolvedObject.GetComponent<TurretDefinitionRuntimeTester>();
-        if (evolvedRuntimeTester == null)
+        TurretDefinitionRuntimeController evolvedRuntimeController = evolvedObject.GetComponent<TurretDefinitionRuntimeController>();
+        if (evolvedRuntimeController == null)
         {
-            evolvedRuntimeTester = evolvedObject.AddComponent<TurretDefinitionRuntimeTester>();
+            evolvedRuntimeController = evolvedObject.AddComponent<TurretDefinitionRuntimeController>();
         }
 
-        evolvedRuntimeTester.SetDefinition(evolutionEntry.targetDefinition, totalLevel, 1);
+        evolvedRuntimeController.SetDefinition(evolutionEntry.targetDefinition, totalLevel, 1);
         Destroy(gameObject);
-        return evolvedRuntimeTester;
+        return evolvedRuntimeController;
     }
 
     public void SetLevel(int level_)
@@ -262,7 +262,7 @@ public class TurretDefinitionRuntimeTester : MonoBehaviour
     {
         if (!Evolve(0))
         {
-            Debug.LogWarning("[TurretDefinitionRuntimeTester] No available evolution for the current level.", this);
+            Debug.LogWarning("[TurretDefinitionRuntimeController] No available evolution for the current level.", this);
         }
     }
 

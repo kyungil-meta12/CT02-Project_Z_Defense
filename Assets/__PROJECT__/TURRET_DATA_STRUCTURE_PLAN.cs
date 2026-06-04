@@ -47,14 +47,14 @@
  * Runtime Level Model
  *
  * Tier Level
- * - Stored as TurretDefinitionRuntimeTester.level.
+ * - Stored as TurretDefinitionRuntimeController.level.
  * - Exposed as CurrentTierLevel.
  * - Used for all current turret balancing:
  *   stat growth, VFX progression, projectile scale progression, evolution requirements, and max level caps.
  * - Resets to 1 after evolution.
  *
  * Total Level
- * - Stored as TurretDefinitionRuntimeTester.totalLevel.
+ * - Stored as TurretDefinitionRuntimeController.totalLevel.
  * - Exposed as CurrentTotalLevel.
  * - Does not drive stat growth.
  * - Used for UI display and future progression/economy hooks.
@@ -101,7 +101,7 @@
  *
  * 3. TurretStatGrowthProfileSO
  * - Calculates tier-level-based runtime stat growth.
- * - TurretDefinitionRuntimeTester combines baseStatProfile and statGrowthProfile into TurretRuntimeStat.
+ * - TurretDefinitionRuntimeController combines baseStatProfile and statGrowthProfile into TurretRuntimeStat.
  * - Growth uses completed levels: level 1 means 0 completed growth steps.
  * - Example: level 300 means 299 completed growth steps.
  *
@@ -142,7 +142,7 @@
  *
  * Evolution Runtime Flow
  *
- * 1. TurretDefinitionRuntimeTester checks the current turret's evolutionProgressionProfile using current tier level.
+ * 1. TurretDefinitionRuntimeController checks the current turret's evolutionProgressionProfile using current tier level.
  * 2. TurretEvolutionRuntimeUI displays available evolution buttons.
  * 3. Each button uses the evolution entry icon first, then its fallback sprite.
  * 4. When an evolution is selected:
@@ -155,7 +155,7 @@
  *
  * Stat/VFX Runtime Flow
  *
- * 1. TurretDefinitionRuntimeTester receives the current tier level.
+ * 1. TurretDefinitionRuntimeController receives the current tier level.
  * 2. It clamps the requested tier level by evolution requirements and maxLevel.
  * 3. It calculates runtime stats using TurretStatCalculator.
  * 4. It applies combat stats through TurretStatProfileApplier.

@@ -1,6 +1,6 @@
 using UnityEngine;
-using UnityEngine.EventSystems;
 using UnityEngine.Events;
+using UnityEngine.Serialization;
 using UnityEngine.UI;
 using TMPro;
 
@@ -18,7 +18,8 @@ public class TurretEvolutionRuntimeUI : MonoBehaviour
     }
 
     [Header("References")]
-    [SerializeField] private TurretDefinitionRuntimeTester runtimeTester;
+    [FormerlySerializedAs("runtimeTester")]
+    [SerializeField] private TurretDefinitionRuntimeController runtimeController;
     [SerializeField] private Button levelUpButton;
     [SerializeField] private Text levelText;
     [SerializeField] private TMP_Text tmpLevelText;
@@ -44,14 +45,14 @@ public class TurretEvolutionRuntimeUI : MonoBehaviour
 
     private void Reset()
     {
-        runtimeTester = GetComponent<TurretDefinitionRuntimeTester>();
+        runtimeController = GetComponent<TurretDefinitionRuntimeController>();
     }
 
     private void Awake()
     {
-        if (runtimeTester == null)
+        if (runtimeController == null)
         {
-            runtimeTester = GetComponent<TurretDefinitionRuntimeTester>();
+            runtimeController = GetComponent<TurretDefinitionRuntimeController>();
         }
 
         CacheOptionalTextReferences();
@@ -62,9 +63,9 @@ public class TurretEvolutionRuntimeUI : MonoBehaviour
 
     private void Start()
     {
-        if (runtimeTester != null)
+        if (runtimeController != null)
         {
-            runtimeTester.Apply();
+            runtimeController.Apply();
         }
 
         RefreshUI();
@@ -133,9 +134,9 @@ public class TurretEvolutionRuntimeUI : MonoBehaviour
         Evolve(1);
     }
 
-    public void Initialize(TurretDefinitionRuntimeTester runtimeTester_, TurretEvolutionRuntimeUI source)
+    public void Initialize(TurretDefinitionRuntimeController runtimeController_, TurretEvolutionRuntimeUI source)
     {
-        runtimeTester = runtimeTester_;
+        runtimeController = runtimeController_;
 
         if (source == null)
         {
@@ -163,34 +164,34 @@ public class TurretEvolutionRuntimeUI : MonoBehaviour
 
     private void AddLevel(int levelAmount)
     {
-        if (runtimeTester == null)
+        if (runtimeController == null)
         {
             return;
         }
 
-        runtimeTester.AddLevel(levelAmount);
+        runtimeController.AddLevel(levelAmount);
         RefreshUI();
     }
 
     private void Evolve(int availableIndex)
     {
-        if (runtimeTester == null)
+        if (runtimeController == null)
         {
             return;
         }
 
         if (replacePrefabOnEvolution)
         {
-            TurretDefinitionRuntimeTester evolvedRuntimeTester = runtimeTester.CreateEvolvedInstance(availableIndex);
-            if (evolvedRuntimeTester == null)
+            TurretDefinitionRuntimeController evolvedRuntimeController = runtimeController.CreateEvolvedInstance(availableIndex);
+            if (evolvedRuntimeController == null)
             {
                 return;
             }
 
-            AttachRuntimeUIToEvolvedTester(evolvedRuntimeTester);
-            runtimeTester = evolvedRuntimeTester;
+            AttachRuntimeUIToEvolvedTester(evolvedRuntimeController);
+            runtimeController = evolvedRuntimeController;
         }
-        else if (!runtimeTester.Evolve(availableIndex))
+        else if (!runtimeController.Evolve(availableIndex))
         {
             return;
         }
@@ -312,7 +313,7 @@ public class TurretEvolutionRuntimeUI : MonoBehaviour
 
     private void RefreshUI()
     {
-        if (runtimeTester == null)
+        if (runtimeController == null)
         {
             return;
         }
@@ -332,7 +333,7 @@ public class TurretEvolutionRuntimeUI : MonoBehaviour
             SetFallbackLevelButtonText();
         }
 
-        int evolutionCount = runtimeTester.GetAvailableEvolutionCount();
+        int evolutionCount = runtimeController.GetAvailableEvolutionCount();
         string statusText = GetEvolutionStatusText(evolutionCount);
         if (evolutionStatusText != null)
         {
@@ -364,12 +365,12 @@ public class TurretEvolutionRuntimeUI : MonoBehaviour
 
     private string GetLevelText()
     {
-        if (runtimeTester.CurrentTierLevel == runtimeTester.CurrentTotalLevel)
+        if (runtimeController.CurrentTierLevel == runtimeController.CurrentTotalLevel)
         {
-            return $"Lv. {runtimeTester.CurrentTierLevel}";
+            return $"Lv. {runtimeController.CurrentTierLevel}";
         }
 
-        return $"Tier Lv. {runtimeTester.CurrentTierLevel} / Total Lv. {runtimeTester.CurrentTotalLevel}";
+        return $"Tier Lv. {runtimeController.CurrentTierLevel} / Total Lv. {runtimeController.CurrentTotalLevel}";
     }
 
     private string GetEvolutionStatusText(int evolutionCount)
@@ -379,7 +380,7 @@ public class TurretEvolutionRuntimeUI : MonoBehaviour
             return "Evolution Available";
         }
 
-        if (runtimeTester.IsMaxTierLevelReached)
+        if (runtimeController.IsMaxTierLevelReached)
         {
             return "Max Level";
         }
@@ -402,7 +403,7 @@ public class TurretEvolutionRuntimeUI : MonoBehaviour
                 continue;
             }
 
-            TurretEvolutionEntry entry = runtimeTester.GetAvailableEvolution(i);
+            TurretEvolutionEntry entry = runtimeController.GetAvailableEvolution(i);
             bool isVisible = i < evolutionCount && entry != null;
             binding.button.gameObject.SetActive(isVisible);
 
@@ -441,20 +442,20 @@ public class TurretEvolutionRuntimeUI : MonoBehaviour
         return binding == null ? null : binding.sprite;
     }
 
-    private void AttachRuntimeUIToEvolvedTester(TurretDefinitionRuntimeTester evolvedRuntimeTester)
+    private void AttachRuntimeUIToEvolvedTester(TurretDefinitionRuntimeController evolvedRuntimeController)
     {
-        if (evolvedRuntimeTester == null)
+        if (evolvedRuntimeController == null)
         {
             return;
         }
 
-        TurretEvolutionRuntimeUI evolvedRuntimeUI = evolvedRuntimeTester.GetComponent<TurretEvolutionRuntimeUI>();
+        TurretEvolutionRuntimeUI evolvedRuntimeUI = evolvedRuntimeController.GetComponent<TurretEvolutionRuntimeUI>();
         if (evolvedRuntimeUI == null)
         {
-            evolvedRuntimeUI = evolvedRuntimeTester.gameObject.AddComponent<TurretEvolutionRuntimeUI>();
+            evolvedRuntimeUI = evolvedRuntimeController.gameObject.AddComponent<TurretEvolutionRuntimeUI>();
         }
 
-        evolvedRuntimeUI.Initialize(evolvedRuntimeTester, this);
+        evolvedRuntimeUI.Initialize(evolvedRuntimeController, this);
     }
 
     private string GetEvolutionName(TurretEvolutionEntry entry)
@@ -475,39 +476,5 @@ public class TurretEvolutionRuntimeUI : MonoBehaviour
         }
 
         return entry.targetDefinition == null ? string.Empty : entry.targetDefinition.name;
-    }
-}
-
-public class LevelHoldButton : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, IPointerExitHandler
-{
-    private TurretEvolutionRuntimeUI owner;
-
-    public void Initialize(TurretEvolutionRuntimeUI owner_)
-    {
-        owner = owner_;
-    }
-
-    public void OnPointerDown(PointerEventData eventData)
-    {
-        if (owner != null)
-        {
-            owner.BeginLevelHold();
-        }
-    }
-
-    public void OnPointerUp(PointerEventData eventData)
-    {
-        if (owner != null)
-        {
-            owner.EndLevelHold();
-        }
-    }
-
-    public void OnPointerExit(PointerEventData eventData)
-    {
-        if (owner != null)
-        {
-            owner.EndLevelHold();
-        }
     }
 }

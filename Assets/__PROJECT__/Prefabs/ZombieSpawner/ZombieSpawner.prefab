@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 642898603569332905}
   - component: {fileID: 649941889588872443}
   m_Layer: 0
-  m_Name: NormalZombieSpawner
+  m_Name: ZombieSpawner
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -44,8 +44,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bff78d83e94dce84c9cec90575b78cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::NormalZombieSpawner
-  defaultSpawnInterval: 5
-  spawnIntervalWeight: 0.025
+  spawnData: {fileID: 11400000, guid: af646cd8a781bfe489afc467438a4fe0, type: 2}
   spwanPoints: []
   destinations: []
   normalZombiePrefabs:
@@ -54,3 +53,4 @@ MonoBehaviour:
   - {fileID: 2806085393236536966, guid: 44b09035b4b6858428756597f0435352, type: 3}
   - {fileID: 5502594719600009177, guid: ec29304ae13577d41b67fb3957589ed2, type: 3}
   - {fileID: 7715568713718172981, guid: a1fd445e88254c34b9adbc7ec7ff31c4, type: 3}
+  bossZombiePrefabs: []

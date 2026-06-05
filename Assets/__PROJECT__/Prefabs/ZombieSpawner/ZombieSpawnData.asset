@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 45c9355bb45b15e45910c168ffc947af, type: 3}
   m_Name: ZombieSpawnData
   m_EditorClassIdentifier: Assembly-CSharp::ZombieSpawnData
-  DefaultSpawnInterval: 1
+  DefaultSpawnInterval: 0.5
   SpawnIntervalWeight: 0.025
-  DefaultSpawnCount: 10
+  DefaultSpawnCount: 100
   SpawnCountWeight: 2

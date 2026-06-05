@@ -20,6 +20,7 @@ public class BossZombie : PoolObject, IDamageable
     private float attackDamage;
     private bool returnInstanceCoroutineRunning = false;
     private static readonly int SpeedHash = Animator.StringToHash("speed");
+    private readonly List<Collider> colliders = new List<Collider>(4);
     [SerializeField] private float animationSpeedDampTime = 0.1f;
     [SerializeField] private float screamerSkillRadius = 10f;
     [SerializeField] private float screamerSkillSpeedMultiplier = 1.5f;
@@ -43,6 +44,7 @@ public class BossZombie : PoolObject, IDamageable
         anim = GetComponent<Animator>();
         agent = GetComponent<NavMeshAgent>();
         col = GetComponent<Collider>();
+        GetComponentsInChildren(false, colliders);
         
         behaviorAgent.GetVariable("Enum", out bossZombieEnum);
         behaviorAgent.GetVariable("AttackTarget", out attackTargetBV);
@@ -80,7 +82,7 @@ public class BossZombie : PoolObject, IDamageable
         hpUI.InputTotalHp(TotalHp);
         hpUI.InputCurrHp(TotalHp);
         
-        col.enabled = true;
+        SetCollidersEnabled(true);
         agent.enabled = true;
         isDieBV.Value = false;
         anim.SetFloat(SpeedHash, 0f);
@@ -346,11 +348,15 @@ public class BossZombie : PoolObject, IDamageable
         return true;
     }
     
+    /// <summary>
+    /// 사망 상태로 전환한다<para/>
+    /// 죽은 보스가 타겟/충돌 대상으로 남지 않도록 콜라이더를 비활성화한다
+    /// </summary>
     private void Die()
     {
-        IsAlive = false;
+        IsAlive = false; // 생존 상태 비활성화
 
-        hpUI.gameObject.SetActive(false);
+        hpUI.gameObject.SetActive(false); // hp UI 비활성화
 
         if (agent.enabled)
         {
@@ -362,13 +368,32 @@ public class BossZombie : PoolObject, IDamageable
             agent.enabled = false;
         }
 
-        col.enabled = false;
+        SetCollidersEnabled(false); // 사망 후 터렛 타겟/발사체 충돌 대상에서 제외
 
         isDieBV.Value = true;
+    }
+
+    /// <summary>
+    /// 풀링 재사용과 사망 상태에 맞춰 전체 콜라이더 활성 상태를 변경한다
+    /// </summary>
+    /// <param name="isEnabled"></param>
+    private void SetCollidersEnabled(bool isEnabled)
+    {
+        for (int i = 0; i < colliders.Count; i++)
+        {
+            Collider colliderComp = colliders[i];
+            if (colliderComp == null)
+            {
+                continue;
+            }
+
+            colliderComp.enabled = isEnabled;
+        }
     }
     
     public void SetPosition(Transform t)
     {
+        SetCollidersEnabled(true);
         transform.position = t.position;
         agent.enabled = true;
         agent.Warp(t.position);

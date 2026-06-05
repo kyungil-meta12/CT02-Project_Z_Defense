@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.AI;
 using System.Collections;
+using System.Collections.Generic;
 
 public class NormalZombie : PoolObject, IDamageable
 {
@@ -18,6 +19,7 @@ public class NormalZombie : PoolObject, IDamageable
 
     private Transform destination; // 현재 추적하는 타겟
     private float attackDamage; // 타워에 가할 대미지
+    private readonly List<Collider> colliders = new List<Collider>(4);
 
     // IDamageable value
     public float CurrHp{ get; set; } // 현재 체력
@@ -32,6 +34,7 @@ public class NormalZombie : PoolObject, IDamageable
         agent = GetComponent<NavMeshAgent>();
         agent.updatePosition = false;
         agent.updateRotation = false;
+        GetComponentsInChildren(false, colliders);
     }
 
     public override void OnSpawn()
@@ -63,8 +66,12 @@ public class NormalZombie : PoolObject, IDamageable
         TotalHp = spec.Hp * hpMul;
         CurrHp = TotalHp;
         IsAlive = true;
+        attackState = false;
+        attackTarget = null;
+        SetCollidersEnabled(true);
 
         // 체력 UI 슬라이더 값 지정
+        hpUI.gameObject.SetActive(true);
         hpUI.InputTotalHp(TotalHp);
         hpUI.InputCurrHp(TotalHp);
 
@@ -225,10 +232,41 @@ public class NormalZombie : PoolObject, IDamageable
         // 체력이 완전히 떨어지면
         if (CurrHp <= 0f)
         {
-            hpUI.gameObject.SetActive(false); // hp UI 비활성화
-            agent.enabled = false; // 에이전트 비활성화
-            IsAlive = false; // 생존 상태 비활성화
-            anim.SetTrigger("DeadTrigger"); // 죽는 애니메이션으로 변경
+            Die();
+        }
+    }
+
+    /// <summary>
+    /// 사망 상태로 전환한다<para/>
+    /// 죽은 좀비가 타겟/충돌 대상으로 남지 않도록 콜라이더를 비활성화한다
+    /// </summary>
+    private void Die()
+    {
+        hpUI.gameObject.SetActive(false); // hp UI 비활성화
+        attackState = false; // 공격 상태 초기화
+        attackTarget = null; // 공격 대상 초기화
+        SetCollidersEnabled(false); // 사망 후 터렛 타겟/발사체 충돌 대상에서 제외
+        agent.enabled = false; // 에이전트 비활성화
+        IsAlive = false; // 생존 상태 비활성화
+        anim.SetBool("IsAttackState", false);
+        anim.SetTrigger("DeadTrigger"); // 죽는 애니메이션으로 변경
+    }
+
+    /// <summary>
+    /// 풀링 재사용과 사망 상태에 맞춰 전체 콜라이더 활성 상태를 변경한다
+    /// </summary>
+    /// <param name="isEnabled"></param>
+    private void SetCollidersEnabled(bool isEnabled)
+    {
+        for (int i = 0; i < colliders.Count; i++)
+        {
+            Collider colliderComp = colliders[i];
+            if (colliderComp == null)
+            {
+                continue;
+            }
+
+            colliderComp.enabled = isEnabled;
         }
     }
 
@@ -238,6 +276,7 @@ public class NormalZombie : PoolObject, IDamageable
     /// <param name="t"></param>
     public void SetPosition(Transform t)
     {
+        SetCollidersEnabled(true);
         transform.position = t.position;
         agent.enabled = true;
         agent.Warp(t.position);

@@ -170,41 +170,4 @@ public class ItemManager : MonoBehaviour
         SpecialPartCount -= partsToUse;
         return true;
     }
-
-
-    /// <summary>
-    /// 현재 코인 소지량을 string 타입으로 리턴한다.
-    /// </summary>
-    /// <returns></returns>
-    public string CoinCountToString()
-    {
-        return CoinCount.ToString();
-    }
-
-    /// <summary>
-    /// 현재 화기 부품 소지량을 string 타입으로 리턴한다.
-    /// </summary>
-    /// <returns></returns>
-    public string FirePartCountToString()
-    {
-        return FirePartCount.ToString();
-    }
-
-    /// <summary>
-    /// 현재 속성 부품 소지량을 string 타입으로 리턴한다.
-    /// </summary>
-    /// <returns></returns>
-    public string SpecialPartCountToString()
-    {
-        return SpecialPartCount.ToString();
-    }
-
-    /// <summary>
-    /// 웨이브 동안에 모은 코인 개수를 string 타입으로 리턴한다.
-    /// </summary>
-    /// <returns></returns>
-    public string WaveCollectCointCountToString()
-    {
-        return WaveCollectCoinCount.ToString();
-    }
 }

@@ -21,7 +21,6 @@ public class BossZombie : PoolObject, IDamageable
     private bool returnInstanceCoroutineRunning = false;
     [SerializeField] private float screamerSkillRadius = 10f;
     [SerializeField] private float screamerSkillSpeedMultiplier = 1.5f;
-    [SerializeField] private float screamerSkillDuration = 5f;
     private Coroutine screamerSkillCoroutine;
     private readonly Dictionary<NormalZombie, Vector2> screamerOriginalSpeeds = new Dictionary<NormalZombie, Vector2>();
 

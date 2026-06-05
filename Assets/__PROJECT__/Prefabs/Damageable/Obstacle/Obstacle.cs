@@ -43,8 +43,6 @@ public class Obstacle : PoolObject, IDamageable
 
     public override void OnSpawn()
     {
-        base.OnSpawn();
-        
         var randomHp = Random.Range(spec.MinHp, spec.MaxHp);
         
         //레벨에 맞춰서 hp 설정

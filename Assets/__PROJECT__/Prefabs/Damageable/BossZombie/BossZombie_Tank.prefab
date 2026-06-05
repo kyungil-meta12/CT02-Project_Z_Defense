@@ -1100,6 +1100,16 @@ MonoBehaviour:
   anim: {fileID: 3317958215391167824}
   agent: {fileID: 3250142583933110996}
   col: {fileID: 6951844493432217934}
+  animationSpeedDampTime: 0.15
+  animationStopSpeedThreshold: 0.05
+  screamerSkillRadius: 10
+  screamerSkillSpeedMultiplier: 1.5
+  bossZombieEnum:
+    GUID:
+      m_Value0: 0
+      m_Value1: 0
+    Name: 
+    m_Value: 0
   attackTargetBV:
     GUID:
       m_Value0: 0

@@ -19,6 +19,8 @@ public class BossZombie : PoolObject, IDamageable
     private Transform destination;
     private float attackDamage;
     private bool returnInstanceCoroutineRunning = false;
+    private static readonly int SpeedHash = Animator.StringToHash("speed");
+    [SerializeField] private float animationSpeedDampTime = 0.1f;
     [SerializeField] private float screamerSkillRadius = 10f;
     [SerializeField] private float screamerSkillSpeedMultiplier = 1.5f;
     private Coroutine screamerSkillCoroutine;
@@ -40,10 +42,7 @@ public class BossZombie : PoolObject, IDamageable
         anim = GetComponent<Animator>();
         agent = GetComponent<NavMeshAgent>();
         col = GetComponent<Collider>();
-    }
-
-    public void Start()
-    {
+        
         behaviorAgent.GetVariable("Enum", out bossZombieEnum);
         behaviorAgent.GetVariable("AttackTarget", out attackTargetBV);
         behaviorAgent.GetVariable("isDie", out isDieBV);
@@ -82,6 +81,7 @@ public class BossZombie : PoolObject, IDamageable
         col.enabled = true;
         agent.enabled = true;
         isDieBV.Value = false;
+        anim.SetFloat(SpeedHash, 0f);
 
         // 코루틴 동작 상태 초기화
         returnInstanceCoroutineRunning = false;
@@ -102,6 +102,35 @@ public class BossZombie : PoolObject, IDamageable
     void Update()
     {
         UpdateDeath();
+        UpdateMoveAnimationSpeed();
+    }
+
+    private void UpdateMoveAnimationSpeed()
+    {
+        if (!anim)
+        {
+            return;
+        }
+
+        if (!IsAlive)
+        {
+            anim.SetFloat(SpeedHash, 0f);
+            return;
+        }
+
+        if (!agent || !agent.enabled)
+        {
+            anim.SetFloat(SpeedHash, 0f, animationSpeedDampTime, Time.deltaTime);
+            return;
+        }
+
+        float speed = agent.desiredVelocity.magnitude;
+        if (speed > 1f)
+        {
+            speed = 1f;
+        }
+
+        anim.SetFloat(SpeedHash, speed, animationSpeedDampTime, Time.deltaTime);
     }
     
     void UpdateDeath()

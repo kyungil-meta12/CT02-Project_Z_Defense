@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9fb77552a118a05468b369f46109ba8f, type: 3}
   m_Name: Tank
   m_EditorClassIdentifier: Assembly-CSharp::BossZombieSpec
-  MoveSpeed: 1
+  MoveSpeed: 2
   AttackSpeed: 0.8
   MoveAttackSpeedWeight: 0
   MinMoveAttackSpeed: 0.9

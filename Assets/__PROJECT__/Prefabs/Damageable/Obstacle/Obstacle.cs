@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using DinoFracture;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
@@ -14,6 +15,31 @@ public class Obstacle : PoolObject, IDamageable
     public bool IsAlive { get; set; }
     
     private bool returnInstanceCoroutineRunning = false;
+    
+    private RuntimeFracturedGeometry fractureGeometry;
+
+    private void Awake()
+    {
+        fractureGeometry = GetComponent<RuntimeFracturedGeometry>();
+    }
+
+    //todo 레벨업시 호출, 레벨 가중치를 hp최대치에 추가
+    public void LevelUp()
+    {
+        TotalHp = spec.Hp + spec.level * spec.levelWeight;
+        hpUI.InputTotalHp(TotalHp);
+    }
+    
+    //파편화 
+    public void Fracture()
+    {
+        if (fractureGeometry == null || fractureGeometry.IsProcessingFracture)
+        {
+            return;
+        }
+
+        fractureGeometry.Fracture();
+    }
 
     public override void OnSpawn()
     {
@@ -21,9 +47,8 @@ public class Obstacle : PoolObject, IDamageable
         
         var randomHp = Random.Range(spec.MinHp, spec.MaxHp);
         
-        //var hpMul = isFirstWave ? randomHp : randomHp * Mathf.Pow(1f + spec.HpWeight, wave - 1f);
-        //todo 레벨디자인에 맞춰서 hpMul 설정 필요
-        TotalHp = spec.Hp;// *hpMul;
+        //레벨에 맞춰서 hp 설정
+        TotalHp = spec.Hp + spec.level * spec.levelWeight;
         CurrHp = TotalHp;
         IsAlive = true;
         
@@ -73,7 +98,8 @@ public class Obstacle : PoolObject, IDamageable
         {
             hpUI.gameObject.SetActive(false); // hp UI 비활성화
             IsAlive = false; // 생존 상태 비활성화
-            //todo DinoFracture 파편 효과
+            
+            Fracture(); //DinoFracture 파편 효과
         }
     }
     

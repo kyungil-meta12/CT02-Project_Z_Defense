@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 23916271547767130}
   - component: {fileID: 64882360787207048}
   - component: {fileID: 5835674188501093774}
+  - component: {fileID: 1817414814248744831}
   m_Layer: 0
   m_Name: Obstacle
   m_TagString: Untagged
@@ -129,6 +130,49 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Obstacle
   spec: {fileID: 11400000, guid: 97c7de20a7a9e514e80ff6a15ca48b15, type: 2}
   hpUI: {fileID: 7309547130089230364}
+--- !u!114 &1817414814248744831
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1242232213132576}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e5711ac80149b2e449032315bef115b0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: DinoFracture.Scripts::DinoFracture.PreFracturedGeometry
+  InsideMaterial: {fileID: 2100000, guid: 35714f144b2aeb34d86e5cf87bfa5d17, type: 2}
+  OptimizeMaterialUsage: 1
+  FractureTemplate: {fileID: 100000, guid: bb85f1155c6bfa044bd2c250028a85b8, type: 3}
+  PiecesParent: {fileID: 0}
+  FractureType: 0
+  SlicePlanes: []
+  NumFracturePieces: 10
+  NumIterations: 2
+  EvenlySizedPieces: 1
+  NumGenerations: 1
+  FractureRadius: -3.4028235e+38
+  FractureSize:
+    Space: 1
+    Value: 10
+  UVScale: 1
+  UVBounds:
+    StartUV: {x: 0, y: 0}
+    EndUV: {x: 1, y: 1}
+  DistributeMass: 1
+  SeparateDisjointPieces: 1
+  VertexMergingPolicy: 0
+  RandomSeed: 0
+  OnFractureCompleted:
+    m_PersistentCalls:
+      m_Calls: []
+  _meshValidity: 2
+  SkipMeshCleaning: 0
+  GeneratedPieces: {fileID: 0}
+  EntireMeshBounds:
+    m_Center: {x: 0, y: 0.46036658, z: 0}
+    m_Extent: {x: 2.7909503, y: 1.3810997, z: 0.6357686}
 --- !u!1001 &8512122460503951145
 PrefabInstance:
   m_ObjectHideFlags: 0

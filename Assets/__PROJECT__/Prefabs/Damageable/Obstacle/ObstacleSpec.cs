@@ -3,7 +3,11 @@ using UnityEngine;
 [CreateAssetMenu(fileName = "ObstacleSpec", menuName = "Scriptable Objects/ObstacleSpec")]
 public class ObstacleSpec : ScriptableObject
 {
-    [Header("장애물 스펙")]
+    [Header("장애물 스펙")] 
+    
+    [Header("레벨")] public int level;
+
+    [Header("레벨 가중치")] public float levelWeight;
     
     [Header("기본 HP")] public float Hp;
     [Header("Hp 가중치")] public float HpWeight;

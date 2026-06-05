@@ -11,6 +11,8 @@ public class DamagePopup : PoolObject
     private Vector3 startPosition;
     private Vector3 moveOffset;
     private Color startColor;
+    private float startScale;
+    private float endScale;
     private bool isInitialized;
 
     private void Awake()
@@ -36,10 +38,13 @@ public class DamagePopup : PoolObject
     /// <param name="position"></param>
     /// <param name="color"></param>
     /// <param name="fontSize"></param>
+    /// <param name="fontAsset"></param>
+    /// <param name="startScale_"></param>
+    /// <param name="endScale_"></param>
     /// <param name="lifetime_"></param>
     /// <param name="moveOffset_"></param>
     /// <param name="camera_"></param>
-    public void Init(string text, Vector3 position, Color color, int fontSize, float lifetime_, Vector3 moveOffset_, Camera camera_)
+    public void Init(string text, Vector3 position, Color color, int fontSize, TMP_FontAsset fontAsset, float startScale_, float endScale_, float lifetime_, Vector3 moveOffset_, Camera camera_)
     {
         if (textMesh == null)
         {
@@ -51,6 +56,10 @@ public class DamagePopup : PoolObject
         textMesh.alignment = TextAlignmentOptions.Center;
         textMesh.fontSize = fontSize;
         textMesh.enableAutoSizing = false;
+        if (fontAsset != null)
+        {
+            textMesh.font = fontAsset;
+        }
 
         targetCamera = camera_;
         lifetime = Mathf.Max(0.01f, lifetime_);
@@ -58,10 +67,12 @@ public class DamagePopup : PoolObject
         startPosition = position;
         moveOffset = moveOffset_;
         startColor = color;
+        startScale = startScale_;
+        endScale = endScale_;
         isInitialized = true;
 
         transform.position = startPosition;
-        transform.localScale = Vector3.one;
+        transform.localScale = Vector3.one * startScale;
     }
 
     private void Update()
@@ -75,7 +86,7 @@ public class DamagePopup : PoolObject
         float normalizedTime = Mathf.Clamp01(elapsedTime / lifetime);
 
         transform.position = startPosition + (moveOffset * normalizedTime);
-        transform.localScale = Vector3.one * Mathf.Lerp(1.15f, 0.85f, normalizedTime);
+        transform.localScale = Vector3.one * Mathf.Lerp(startScale, endScale, normalizedTime);
 
         Color currentColor = startColor;
         currentColor.a = Mathf.Lerp(startColor.a, 0f, normalizedTime);

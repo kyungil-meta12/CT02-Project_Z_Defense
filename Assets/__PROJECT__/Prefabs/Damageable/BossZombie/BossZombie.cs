@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using Unity.Behavior;
 using UnityEngine;
 using UnityEngine.AI;
@@ -18,7 +19,13 @@ public class BossZombie : PoolObject, IDamageable
     private Transform destination;
     private float attackDamage;
     private bool returnInstanceCoroutineRunning = false;
+    [SerializeField] private float screamerSkillRadius = 10f;
+    [SerializeField] private float screamerSkillSpeedMultiplier = 1.5f;
+    [SerializeField] private float screamerSkillDuration = 5f;
+    private Coroutine screamerSkillCoroutine;
+    private readonly Dictionary<NormalZombie, Vector2> screamerOriginalSpeeds = new Dictionary<NormalZombie, Vector2>();
 
+    public BlackboardVariable<BossZombieEnum> bossZombieEnum;
     public BlackboardVariable<GameObject> attackTargetBV;
     private BlackboardVariable<bool> isDieBV;
     private BlackboardVariable<int> hitCountBV;
@@ -38,6 +45,7 @@ public class BossZombie : PoolObject, IDamageable
 
     public void Start()
     {
+        behaviorAgent.GetVariable("Enum", out bossZombieEnum);
         behaviorAgent.GetVariable("AttackTarget", out attackTargetBV);
         behaviorAgent.GetVariable("isDie", out isDieBV);
         behaviorAgent.GetVariable("hitCount", out hitCountBV);
@@ -82,6 +90,13 @@ public class BossZombie : PoolObject, IDamageable
 
     public override void OnDespawn()
     {
+        if (screamerSkillCoroutine != null)
+        {
+            StopCoroutine(screamerSkillCoroutine);
+            screamerSkillCoroutine = null;
+        }
+
+        RestoreAllScreamerSpeedBuffs();
         GameManager.Inst.IncreaseKillCount();
     }
 
@@ -122,8 +137,146 @@ public class BossZombie : PoolObject, IDamageable
             }
             else
             {
-                Debug.LogError("[NormalZombie] 공격 대상이 IDamageable을 상속하지 않음");
+                Debug.LogError("[BossZombie] 공격 대상이 IDamageable을 상속하지 않음");
             }
+        }
+    }
+
+    public void OnSkill()
+    {
+        switch (bossZombieEnum.Value)
+        {
+            case BossZombieEnum.Tank:
+                TankSkill();
+                break;
+            case BossZombieEnum.Screamer:
+                screamerSkillCoroutine = StartCoroutine(ScreamerSkill());
+                break;
+            case BossZombieEnum.Boomer:
+                StartCoroutine(BoomerSkill());
+                break;
+        }
+    }
+
+    //탱크 스킬 : 5배 데미지로 1회 타격
+    private void TankSkill()
+    {
+        //todo 탱크 스킬타격 이펙트
+        if(attackTargetBV.Value)
+        {
+            if(attackTargetBV.Value.TryGetComponent<IDamageable>(out var iDmg))
+            {
+                iDmg.TakeDamage(attackDamage * 5f);
+            }
+            else
+            {
+                Debug.LogError("[BossZombie] 공격 대상이 IDamageable을 상속하지 않음");
+            }
+        }
+    }
+
+    readonly WaitForSeconds screamerSkillWait = new WaitForSeconds(10f);
+    //스크리머 스킬 : 주변 좀비 속도 버프
+    private IEnumerator ScreamerSkill()
+    {
+        //todo 스크림 이펙트
+        var colliders = Physics.OverlapSphere(transform.position, screamerSkillRadius);
+        //List대신 HashSet으로 중복방지
+        var zombies = new HashSet<NormalZombie>();
+
+        foreach (var c in colliders)
+        {
+            var zombie = c.GetComponentInParent<NormalZombie>();
+
+            if (!zombie || !zombie.IsAlive)
+            {
+                continue;
+            }
+
+            zombies.Add(zombie);
+        }
+
+        foreach (var zombie in zombies)
+        {
+            ApplyScreamerSpeedBuff(zombie);
+        }
+
+        yield return screamerSkillWait;
+
+        foreach (var zombie in zombies)
+        {
+            RestoreScreamerSpeedBuff(zombie);
+        }
+
+        screamerSkillCoroutine = null;
+    }
+
+    //노말좀비 스피드 버프
+    private void ApplyScreamerSpeedBuff(NormalZombie zombie)
+    {
+        if (!zombie || !zombie.anim)
+        {
+            return;
+        }
+
+        if (!screamerOriginalSpeeds.ContainsKey(zombie))
+        {
+            screamerOriginalSpeeds[zombie] = new Vector2(
+                zombie.anim.GetFloat("MoveSpeed"),
+                zombie.anim.GetFloat("AttackSpeed")
+            );
+        }
+
+        var originalSpeeds = screamerOriginalSpeeds[zombie];
+        zombie.anim.SetFloat("MoveSpeed", originalSpeeds.x * screamerSkillSpeedMultiplier);
+        zombie.anim.SetFloat("AttackSpeed", originalSpeeds.y * screamerSkillSpeedMultiplier);
+    }
+
+    //노말좀비 버프 해제
+    private void RestoreScreamerSpeedBuff(NormalZombie zombie)
+    {
+        if (zombie && zombie.anim && screamerOriginalSpeeds.TryGetValue(zombie, out var originalSpeeds))
+        {
+            zombie.anim.SetFloat("MoveSpeed", originalSpeeds.x);
+            zombie.anim.SetFloat("AttackSpeed", originalSpeeds.y);
+        }
+
+        screamerOriginalSpeeds.Remove(zombie);
+    }
+
+    //스크리머 사망시 전체 좀비 버프해제
+    private void RestoreAllScreamerSpeedBuffs()
+    {
+        var zombies = new List<NormalZombie>(screamerOriginalSpeeds.Keys);
+
+        foreach (var zombie in zombies)
+        {
+            RestoreScreamerSpeedBuff(zombie);
+        }
+    }
+
+    //부머 스킬 : 1/2데미지로 1초마다 타격 10회 반복
+    readonly WaitForSeconds boomerSkillWait = new WaitForSeconds(1f);
+    private IEnumerator BoomerSkill()
+    {
+        int t = 0;
+        //todo 토하는 이펙트
+        while (t < 10)
+        {
+            if(attackTargetBV.Value)
+            {
+                if(attackTargetBV.Value.TryGetComponent<IDamageable>(out var iDmg))
+                {
+                    iDmg.TakeDamage(attackDamage / 2f);
+                }
+                else
+                {
+                    Debug.LogError("[BossZombie] 공격 대상이 IDamageable을 상속하지 않음");
+                }
+            }
+
+            t++;
+            yield return boomerSkillWait;
         }
     }
     

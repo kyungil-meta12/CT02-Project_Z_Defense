@@ -25,13 +25,22 @@ public class NormalZombieAttackCollider : MonoBehaviour
 
     void OnTriggerStay(Collider c)
     {
-        if(!checkEnabled)
+        if (!checkEnabled)
         {
             return;
         }
+
+        IDamageable damageable = c.GetComponentInParent<IDamageable>();
+        if (damageable == null || !damageable.IsAlive || object.ReferenceEquals(damageable, zombie))
+        {
+            checkEnabled = false;
+            return;
+        }
+
         // attackCollider가 Obstacle 오브젝트에 충돌 후 distancer가 spec.AttackDistance 이상이 되면 공격 시작
         // collision jitter를 방지하기 위함
-        if (!zombie.attackState) {
+        if (!zombie.attackState)
+        {
             bool isOverlapping = Physics.ComputePenetration(
                 attackCollider, attackCollider.transform.position, attackCollider.transform.rotation,
                 c, c.transform.position, c.transform.rotation,
@@ -53,6 +62,23 @@ public class NormalZombieAttackCollider : MonoBehaviour
 
     void OnTriggerExit(Collider c)
     {
+        if (!zombie.attackState)
+        {
+            return;
+        }
+
+        IDamageable currentDamageable = null;
+        if (zombie.attackTarget)
+        {
+            currentDamageable = zombie.attackTarget.GetComponentInParent<IDamageable>();
+        }
+
+        IDamageable exitDamageable = c.GetComponentInParent<IDamageable>();
+        if (currentDamageable != null && !object.ReferenceEquals(currentDamageable, exitDamageable))
+        {
+            return;
+        }
+
         zombie.attackState = false;
         zombie.attackTarget = null;
         zombie.anim.SetBool("IsAttackState", false);

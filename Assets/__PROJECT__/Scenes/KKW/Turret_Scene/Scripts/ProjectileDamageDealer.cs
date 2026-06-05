@@ -10,7 +10,14 @@ public class ProjectileDamageDealer : MonoBehaviour
     [SerializeField] private bool logDamage;
 
     private readonly List<IDamageable> hitDamageables = new List<IDamageable>(4);
-    private readonly List<Collider> projectileColliders = new List<Collider>(4);
+
+    public bool HasReachedPierceLimit
+    {
+        get
+        {
+            return hitDamageables.Count > pierceCount;
+        }
+    }
 
     public void Init(float damage_, int pierceCount_)
     {
@@ -19,13 +26,47 @@ public class ProjectileDamageDealer : MonoBehaviour
 
     public void Init(float damage_, int pierceCount_, bool logDamage_)
     {
+        Init(damage_, pierceCount_, logDamage_, null);
+    }
+
+    public void Init(float damage_, int pierceCount_, bool logDamage_, GameObject target)
+    {
         damage = Mathf.Max(0.0f, damage_);
         pierceCount = Mathf.Max(0, pierceCount_);
         logDamage = logDamage_;
         hitDamageables.Clear();
         enabled = true;
-        ConfigureProjectileColliders();
 
+        ApplyLegacyProjectileDamageValues();
+        InitHitDetector(target);
+    }
+
+    public bool TryApplyDamage(Collider hitCollider)
+    {
+        if (hitCollider == null)
+        {
+            return false;
+        }
+
+        IDamageable damageable = hitCollider.GetComponentInParent<IDamageable>();
+        if (damageable == null || !damageable.IsAlive || hitDamageables.Contains(damageable))
+        {
+            return false;
+        }
+
+        damageable.TakeDamage(damage);
+        hitDamageables.Add(damageable);
+
+        if (logDamage)
+        {
+            Debug.Log($"[ProjectileDamageDealer] Damage:{damage:0.###}, TargetHp:{damageable.CurrHp:0.###}/{damageable.TotalHp:0.###}", this);
+        }
+
+        return true;
+    }
+
+    private void ApplyLegacyProjectileDamageValues()
+    {
         DamageManager damageManager = GetComponent<DamageManager>();
         if (damageManager != null)
         {
@@ -39,43 +80,14 @@ public class ProjectileDamageDealer : MonoBehaviour
         }
     }
 
-    private void OnTriggerEnter(Collider other)
+    private void InitHitDetector(GameObject target)
     {
-        IDamageable damageable = other.GetComponentInParent<IDamageable>();
-        if (damageable == null || hitDamageables.Contains(damageable))
+        ProjectileHitDetector hitDetector = GetComponent<ProjectileHitDetector>();
+        if (hitDetector == null)
         {
-            return;
+            hitDetector = gameObject.AddComponent<ProjectileHitDetector>();
         }
 
-        damageable.TakeDamage(damage);
-        hitDamageables.Add(damageable);
-
-        if (logDamage)
-        {
-            Debug.Log($"[ProjectileDamageDealer] Damage:{damage:0.###}, TargetHp:{damageable.CurrHp:0.###}/{damageable.TotalHp:0.###}", this);
-        }
-
-        if (hitDamageables.Count > pierceCount)
-        {
-            enabled = false;
-            PooledProjectileReturner.ReturnOrDestroy(gameObject);
-        }
-    }
-
-    private void ConfigureProjectileColliders()
-    {
-        projectileColliders.Clear();
-        GetComponentsInChildren(false, projectileColliders);
-
-        for (int i = 0; i < projectileColliders.Count; i++)
-        {
-            Collider projectileCollider = projectileColliders[i];
-            if (projectileCollider == null)
-            {
-                continue;
-            }
-
-            projectileCollider.isTrigger = true;
-        }
+        hitDetector.Init(this, target);
     }
 }

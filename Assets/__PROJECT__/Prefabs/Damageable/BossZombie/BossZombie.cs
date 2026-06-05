@@ -23,6 +23,7 @@ public class BossZombie : PoolObject, IDamageable
     [SerializeField] private float animationSpeedDampTime = 0.1f;
     [SerializeField] private float screamerSkillRadius = 10f;
     [SerializeField] private float screamerSkillSpeedMultiplier = 1.5f;
+    [SerializeField] private bool logReceivedDamage = true;
     private Coroutine screamerSkillCoroutine;
     private readonly Dictionary<NormalZombie, Vector2> screamerOriginalSpeeds = new Dictionary<NormalZombie, Vector2>();
 
@@ -72,6 +73,7 @@ public class BossZombie : PoolObject, IDamageable
         TotalHp = spec.Hp * hpMul;
         CurrHp = TotalHp;
         IsAlive = true;
+        storeDamage = 0f;
 
         // 체력 UI 슬라이더 값 지정
         hpUI.gameObject.SetActive(true);
@@ -156,17 +158,9 @@ public class BossZombie : PoolObject, IDamageable
     
     public void OnAttack()
     {
-        if(attackTargetBV.Value)
+        if (TryDamageAttackTarget(attackDamage))
         {
-            if(attackTargetBV.Value.TryGetComponent<IDamageable>(out var iDmg))
-            {
-                iDmg.TakeDamage(attackDamage);
-                curAttackCountBV.Value++;
-            }
-            else
-            {
-                Debug.LogError("[BossZombie] 공격 대상이 IDamageable을 상속하지 않음");
-            }
+            curAttackCountBV.Value++;
         }
     }
 
@@ -190,17 +184,7 @@ public class BossZombie : PoolObject, IDamageable
     private void TankSkill()
     {
         //todo 탱크 스킬타격 이펙트
-        if(attackTargetBV.Value)
-        {
-            if(attackTargetBV.Value.TryGetComponent<IDamageable>(out var iDmg))
-            {
-                iDmg.TakeDamage(attackDamage * 5f);
-            }
-            else
-            {
-                Debug.LogError("[BossZombie] 공격 대상이 IDamageable을 상속하지 않음");
-            }
-        }
+        TryDamageAttackTarget(attackDamage * 5f);
     }
 
     readonly WaitForSeconds screamerSkillWait = new WaitForSeconds(10f);
@@ -291,16 +275,9 @@ public class BossZombie : PoolObject, IDamageable
         //todo 토하는 이펙트
         while (t < 10)
         {
-            if(attackTargetBV.Value)
+            if (attackTargetBV.Value)
             {
-                if(attackTargetBV.Value.TryGetComponent<IDamageable>(out var iDmg))
-                {
-                    iDmg.TakeDamage(attackDamage / 2f);
-                }
-                else
-                {
-                    Debug.LogError("[BossZombie] 공격 대상이 IDamageable을 상속하지 않음");
-                }
+                TryDamageAttackTarget(attackDamage / 2f);
             }
 
             t++;
@@ -310,14 +287,21 @@ public class BossZombie : PoolObject, IDamageable
     
     public void TakeDamage(float damage)
     {
-        if(!IsAlive) 
+        if (!IsAlive)
         {
             return;
         }
-        CurrHp -= damage;
-        StoreDamage(damage);
+
+        float appliedDamage = Mathf.Max(0f, damage);
+        CurrHp -= appliedDamage;
+        StoreDamage(appliedDamage);
         CurrHp = Mathf.Clamp(CurrHp, 0f, TotalHp);
         hpUI.InputCurrHp(CurrHp);
+
+        if (logReceivedDamage)
+        {
+            Debug.Log($"[BossZombie] Damage:{appliedDamage:0.###}, HP:{CurrHp:0.###}/{TotalHp:0.###}", this);
+        }
 
         if (CurrHp <= 0f)
         {
@@ -330,11 +314,36 @@ public class BossZombie : PoolObject, IDamageable
     public void StoreDamage(float damage)
     {
         storeDamage += damage;
-        if (storeDamage >= TotalHp % 10)
+        float hitCountDamageThreshold = TotalHp / 10f;
+        if (storeDamage >= hitCountDamageThreshold)
         {
             hitCountBV.Value++;
-            storeDamage = 0;
+            storeDamage = 0f;
         }
+    }
+
+    private bool TryDamageAttackTarget(float damage)
+    {
+        if (!attackTargetBV.Value)
+        {
+            return false;
+        }
+
+        IDamageable iDmg = attackTargetBV.Value.GetComponentInParent<IDamageable>();
+        if (iDmg == null)
+        {
+            Debug.LogError("[BossZombie] 공격 대상이 IDamageable을 상속하지 않음");
+            return false;
+        }
+
+        if (!iDmg.IsAlive)
+        {
+            print("[BossZombie] 살아있지 않은 오브젝트임");
+            return false;
+        }
+
+        iDmg.TakeDamage(damage);
+        return true;
     }
     
     private void Die()

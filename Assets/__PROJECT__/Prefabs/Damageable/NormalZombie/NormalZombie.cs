@@ -6,6 +6,7 @@ public class NormalZombie : PoolObject, IDamageable
 {
     [Header("일반 좀비 기본 스펙")] public NormalZombieSpec spec;
     [Header("애니메이터 컨트롤러 목록")] public RuntimeAnimatorController[] animControllers;
+    [SerializeField] private bool logReceivedDamage = true;
     
     public HpUI hpUI;
 
@@ -178,11 +179,12 @@ public class NormalZombie : PoolObject, IDamageable
     /// </summary>
     public void OnZombieAttack()
     {
-        if(attackState && attackTarget)
+        if (attackState && attackTarget)
         {
-            if(attackTarget.TryGetComponent<IDamageable>(out var iDmg))
+            IDamageable iDmg = attackTarget.GetComponentInParent<IDamageable>();
+            if (iDmg != null)
             {
-                if(iDmg.IsAlive)
+                if (iDmg.IsAlive)
                 {
                     iDmg.TakeDamage(attackDamage);
                 }
@@ -209,9 +211,16 @@ public class NormalZombie : PoolObject, IDamageable
         {
             return;
         }
-        CurrHp -= damage;
+
+        float appliedDamage = Mathf.Max(0f, damage);
+        CurrHp -= appliedDamage;
         CurrHp = Mathf.Clamp(CurrHp, 0f, TotalHp);
         hpUI.InputCurrHp(CurrHp);
+
+        if (logReceivedDamage)
+        {
+            Debug.Log($"[NormalZombie] Damage:{appliedDamage:0.###}, HP:{CurrHp:0.###}/{TotalHp:0.###}", this);
+        }
 
         // 체력이 완전히 떨어지면
         if (CurrHp <= 0f)

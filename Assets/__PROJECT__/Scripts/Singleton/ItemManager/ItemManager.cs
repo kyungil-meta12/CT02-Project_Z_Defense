@@ -1,5 +1,6 @@
 using System.Numerics;
 using UnityEngine;
+using IncrementalLib;
 
 /// <summary>
 /// 플레이어가 가진 아이템을 관리하는 싱글톤 모듈
@@ -8,19 +9,17 @@ public class ItemManager : MonoBehaviour
 {
     public static ItemManager Inst;
 
-    // BigInteger: 메모리가 버티는 한 무제한으로 큰 수를 저장할 수 있는 정수
-
     // 소지한 코인 개수
-    public BigInteger CoinCount{ get; private set; } = 0;
+    public Incremental CoinCount{ get; private set; } = new(0);
 
     // 소지한 화기 부품 개수
-    public BigInteger FirePartCount { get; private set; } = 0;
+    public Incremental FirePartCount { get; private set; } = new(0);
 
     // 소지한 속성 부품 개수
-    public BigInteger SpecialPartCount { get; private set; } = 0;
+    public Incremental SpecialPartCount { get; private set; } = new(0);
 
     // 현재 웨이브에서 얻은 코인 개수
-    public BigInteger WaveCollectCoinCount { get; private set; } = 0;
+    public Incremental WaveCollectCoinCount { get; private set; } = new(0);
 
 
     void Awake()

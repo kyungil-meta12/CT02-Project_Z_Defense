@@ -14,7 +14,7 @@ PrefabInstance:
       objectReference: {fileID: 2100000, guid: 614d2a64adcf4434e8a116a2a5302e3b, type: 2}
     - target: {fileID: 2927825134225070825, guid: 4696f3a76ac50b74dba3cd8982cf1807, type: 3}
       propertyPath: m_Name
-      value: NZ_AirportSecurity Variant
+      value: NZ_Trucker
       objectReference: {fileID: 0}
     - target: {fileID: 2966364673565351028, guid: 4696f3a76ac50b74dba3cd8982cf1807, type: 3}
       propertyPath: m_IsActive

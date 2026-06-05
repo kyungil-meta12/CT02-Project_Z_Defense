@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.Serialization;
@@ -42,6 +43,7 @@ public class TurretEvolutionRuntimeUI : MonoBehaviour
     private TMP_Text tmpLevelButtonLabelText;
     private Button[] boundEvolutionButtons;
     private UnityAction[] boundEvolutionActions;
+    private const string AUTO_BIND_CANVAS_NAME = "TurretEvolutionRuntimeCanvas";
 
     private void Reset()
     {
@@ -55,6 +57,7 @@ public class TurretEvolutionRuntimeUI : MonoBehaviour
             runtimeController = GetComponent<TurretDefinitionRuntimeController>();
         }
 
+        AutoBindSceneCanvasIfNeeded();
         CacheOptionalTextReferences();
         BindLevelButton();
         BindEvolutionButtons();
@@ -156,6 +159,7 @@ public class TurretEvolutionRuntimeUI : MonoBehaviour
         maxHoldLevelsPerSecond = source.maxHoldLevelsPerSecond;
         accelerationDuration = source.accelerationDuration;
 
+        AutoBindSceneCanvasIfNeeded();
         CacheOptionalTextReferences();
         BindLevelButton();
         BindEvolutionButtons();
@@ -214,6 +218,118 @@ public class TurretEvolutionRuntimeUI : MonoBehaviour
         }
 
         levelHoldButton.Initialize(this);
+    }
+
+    private void AutoBindSceneCanvasIfNeeded()
+    {
+        if (!NeedsSceneCanvasBinding())
+        {
+            return;
+        }
+
+        GameObject canvasObject = GameObject.Find(AUTO_BIND_CANVAS_NAME);
+        if (canvasObject == null)
+        {
+            return;
+        }
+
+        Button[] sceneButtons = canvasObject.GetComponentsInChildren<Button>(true);
+        if (sceneButtons == null || sceneButtons.Length == 0)
+        {
+            return;
+        }
+
+        List<Button> evolutionButtonList = new List<Button>();
+        for (int i = 0; i < sceneButtons.Length; i++)
+        {
+            Button sceneButton = sceneButtons[i];
+            if (sceneButton == null)
+            {
+                continue;
+            }
+
+            if (IsLevelButton(sceneButton))
+            {
+                levelUpButton = sceneButton;
+                continue;
+            }
+
+            evolutionButtonList.Add(sceneButton);
+        }
+
+        evolutionButtonList.Sort(CompareButtonsByScreenPosition);
+        AssignAutoEvolutionButtons(evolutionButtonList);
+    }
+
+    private bool NeedsSceneCanvasBinding()
+    {
+        if (levelUpButton == null)
+        {
+            return true;
+        }
+
+        if (evolutionButtons == null || evolutionButtons.Length == 0)
+        {
+            return true;
+        }
+
+        for (int i = 0; i < evolutionButtons.Length; i++)
+        {
+            EvolutionButtonBinding binding = evolutionButtons[i];
+            if (binding == null || binding.button == null)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private bool IsLevelButton(Button sceneButton)
+    {
+        TMP_Text tmpText = sceneButton.GetComponentInChildren<TMP_Text>(true);
+        if (tmpText != null && tmpText.text.Contains("Level Up"))
+        {
+            return true;
+        }
+
+        Text text = sceneButton.GetComponentInChildren<Text>(true);
+        return text != null && text.text.Contains("Level Up");
+    }
+
+    private int CompareButtonsByScreenPosition(Button left, Button right)
+    {
+        RectTransform leftTransform = left == null ? null : left.transform as RectTransform;
+        RectTransform rightTransform = right == null ? null : right.transform as RectTransform;
+
+        float leftX = leftTransform == null ? 0.0f : leftTransform.anchoredPosition.x;
+        float rightX = rightTransform == null ? 0.0f : rightTransform.anchoredPosition.x;
+        return leftX.CompareTo(rightX);
+    }
+
+    private void AssignAutoEvolutionButtons(List<Button> sceneButtons)
+    {
+        if (sceneButtons == null || sceneButtons.Count == 0)
+        {
+            return;
+        }
+
+        if (evolutionButtons == null || evolutionButtons.Length < sceneButtons.Count)
+        {
+            System.Array.Resize(ref evolutionButtons, sceneButtons.Count);
+        }
+
+        for (int i = 0; i < sceneButtons.Count && i < evolutionButtons.Length; i++)
+        {
+            if (evolutionButtons[i] == null)
+            {
+                evolutionButtons[i] = new EvolutionButtonBinding();
+            }
+
+            Button sceneButton = sceneButtons[i];
+            evolutionButtons[i].button = sceneButton;
+            evolutionButtons[i].iconImage = sceneButton.GetComponent<Image>();
+        }
     }
 
     private void CacheOptionalTextReferences()

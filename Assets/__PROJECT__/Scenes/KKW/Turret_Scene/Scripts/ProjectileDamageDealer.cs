@@ -10,6 +10,7 @@ public class ProjectileDamageDealer : MonoBehaviour
     [SerializeField] private bool logDamage;
 
     private readonly List<IDamageable> hitDamageables = new List<IDamageable>(4);
+    private readonly List<Collider> projectileColliders = new List<Collider>(4);
 
     public void Init(float damage_, int pierceCount_)
     {
@@ -23,6 +24,7 @@ public class ProjectileDamageDealer : MonoBehaviour
         logDamage = logDamage_;
         hitDamageables.Clear();
         enabled = true;
+        ConfigureProjectileColliders();
 
         DamageManager damageManager = GetComponent<DamageManager>();
         if (damageManager != null)
@@ -57,6 +59,23 @@ public class ProjectileDamageDealer : MonoBehaviour
         {
             enabled = false;
             PooledProjectileReturner.ReturnOrDestroy(gameObject);
+        }
+    }
+
+    private void ConfigureProjectileColliders()
+    {
+        projectileColliders.Clear();
+        GetComponentsInChildren(false, projectileColliders);
+
+        for (int i = 0; i < projectileColliders.Count; i++)
+        {
+            Collider projectileCollider = projectileColliders[i];
+            if (projectileCollider == null)
+            {
+                continue;
+            }
+
+            projectileCollider.isTrigger = true;
         }
     }
 }

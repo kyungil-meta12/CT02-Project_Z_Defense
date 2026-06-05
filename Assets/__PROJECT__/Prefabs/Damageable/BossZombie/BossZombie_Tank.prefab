@@ -934,7 +934,7 @@ GameObject:
   - component: {fileID: 5496418273564551380}
   m_Layer: 0
   m_Name: BossZombie_Tank
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -1101,7 +1101,6 @@ MonoBehaviour:
   agent: {fileID: 3250142583933110996}
   col: {fileID: 6951844493432217934}
   animationSpeedDampTime: 0.15
-  animationStopSpeedThreshold: 0.05
   screamerSkillRadius: 10
   screamerSkillSpeedMultiplier: 1.5
   bossZombieEnum:

@@ -342,6 +342,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   muzzleObject: {fileID: 1001665169424856915}
   burstFireCount: 1
+  useMuzzleForwardDirection: 1
   extraCollisionIgnoreRoots:
   - {fileID: 0}
 --- !u!4 &670174016576113146 stripped
@@ -757,19 +758,19 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 069723a5a664cfa4a83d609667cbf8fa, type: 3}
       propertyPath: m_LocalRotation.w
-      value: 1
+      value: 0.7071068
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 069723a5a664cfa4a83d609667cbf8fa, type: 3}
       propertyPath: m_LocalRotation.x
-      value: -0
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 069723a5a664cfa4a83d609667cbf8fa, type: 3}
       propertyPath: m_LocalRotation.y
-      value: -0
+      value: -0.7071068
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 069723a5a664cfa4a83d609667cbf8fa, type: 3}
       propertyPath: m_LocalRotation.z
-      value: -0
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 069723a5a664cfa4a83d609667cbf8fa, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
@@ -777,7 +778,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 069723a5a664cfa4a83d609667cbf8fa, type: 3}
       propertyPath: m_LocalEulerAnglesHint.y
-      value: 0
+      value: -90
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 069723a5a664cfa4a83d609667cbf8fa, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
@@ -1089,6 +1090,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   muzzleObject: {fileID: 6692689710972077709}
   burstFireCount: 1
+  useMuzzleForwardDirection: 1
   extraCollisionIgnoreRoots:
   - {fileID: 0}
 --- !u!4 &7623321665242927237 stripped

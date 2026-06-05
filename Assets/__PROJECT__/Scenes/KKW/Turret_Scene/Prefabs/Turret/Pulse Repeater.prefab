@@ -225,6 +225,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   muzzleObject: {fileID: 8744693790383890007}
   burstFireCount: 1
+  useMuzzleForwardDirection: 1
   extraCollisionIgnoreRoots:
   - {fileID: 0}
 --- !u!1001 &2972637409857863392
@@ -323,6 +324,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   muzzleObject: {fileID: 5120718789191142344}
   burstFireCount: 1
+  useMuzzleForwardDirection: 1
   extraCollisionIgnoreRoots:
   - {fileID: 0}
 --- !u!4 &7987017355253536044 stripped
@@ -487,19 +489,19 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 9938bcc1092190d41a5036cc7c05e5a0, type: 3}
       propertyPath: m_LocalRotation.w
-      value: 1
+      value: 0.7071068
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 9938bcc1092190d41a5036cc7c05e5a0, type: 3}
       propertyPath: m_LocalRotation.x
-      value: -0
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 9938bcc1092190d41a5036cc7c05e5a0, type: 3}
       propertyPath: m_LocalRotation.y
-      value: -0
+      value: -0.7071068
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 9938bcc1092190d41a5036cc7c05e5a0, type: 3}
       propertyPath: m_LocalRotation.z
-      value: -0
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 9938bcc1092190d41a5036cc7c05e5a0, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
@@ -507,7 +509,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 9938bcc1092190d41a5036cc7c05e5a0, type: 3}
       propertyPath: m_LocalEulerAnglesHint.y
-      value: 0
+      value: -90
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 9938bcc1092190d41a5036cc7c05e5a0, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
@@ -607,7 +609,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 5397442684410628395}
   m_Enabled: 1
   m_EditorHideFlags: 0
-    m_Script: {fileID: 11500000, guid: 2a2ccf1968d1f15418760020b23a2a8b, type: 3}
+  m_Script: {fileID: 11500000, guid: 2a2ccf1968d1f15418760020b23a2a8b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   gunPrefabs:

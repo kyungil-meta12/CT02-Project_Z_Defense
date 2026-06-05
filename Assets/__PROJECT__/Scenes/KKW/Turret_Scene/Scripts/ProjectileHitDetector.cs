@@ -11,6 +11,12 @@ public class ProjectileHitDetector : MonoBehaviour
     private Collider targetCollider;
     private Vector3 previousPosition;
 
+    private void Awake()
+    {
+        CacheProjectileColliders();
+        ConfigureProjectileColliders();
+    }
+
     public void Init(ProjectileDamageDealer damageDealer_, GameObject target)
     {
         damageDealer = damageDealer_;
@@ -72,8 +78,7 @@ public class ProjectileHitDetector : MonoBehaviour
 
         if (TryApplyDamage(targetCollider))
         {
-            enabled = false;
-            return true;
+            return HandleDamageApplied();
         }
 
         return false;
@@ -135,8 +140,10 @@ public class ProjectileHitDetector : MonoBehaviour
 
             if (TryApplyDamage(hitCollider))
             {
-                enabled = false;
-                return;
+                if (HandleDamageApplied())
+                {
+                    return;
+                }
             }
         }
     }
@@ -148,11 +155,7 @@ public class ProjectileHitDetector : MonoBehaviour
             return;
         }
 
-        if (damageDealer.HasReachedPierceLimit)
-        {
-            enabled = false;
-            PooledProjectileReturner.ReturnOrDestroy(gameObject);
-        }
+        HandleDamageApplied();
     }
 
     private bool TryApplyDamage(Collider hitCollider)
@@ -165,11 +168,20 @@ public class ProjectileHitDetector : MonoBehaviour
         return damageDealer != null && !damageDealer.HasReachedPierceLimit;
     }
 
+    private bool HandleDamageApplied()
+    {
+        if (damageDealer == null || !damageDealer.HasReachedPierceLimit)
+        {
+            return false;
+        }
+
+        enabled = false;
+        PooledProjectileReturner.ReturnOrDestroy(gameObject);
+        return true;
+    }
+
     private void ConfigureProjectileColliders()
     {
-        projectileColliders.Clear();
-        GetComponentsInChildren(false, projectileColliders);
-
         for (int i = 0; i < projectileColliders.Count; i++)
         {
             Collider projectileCollider = projectileColliders[i];
@@ -180,5 +192,11 @@ public class ProjectileHitDetector : MonoBehaviour
 
             projectileCollider.isTrigger = true;
         }
+    }
+
+    private void CacheProjectileColliders()
+    {
+        projectileColliders.Clear();
+        GetComponentsInChildren(true, projectileColliders);
     }
 }

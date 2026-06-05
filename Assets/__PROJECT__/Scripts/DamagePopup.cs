@@ -5,6 +5,7 @@ using UnityEngine;
 public class DamagePopup : PoolObject
 {
     private TextMeshPro textMesh;
+    private TMP_FontAsset defaultFontAsset;
     private Camera targetCamera;
     private float lifetime;
     private float elapsedTime;
@@ -36,39 +37,36 @@ public class DamagePopup : PoolObject
     /// </summary>
     /// <param name="text"></param>
     /// <param name="position"></param>
-    /// <param name="color"></param>
-    /// <param name="fontSize"></param>
-    /// <param name="fontAsset"></param>
-    /// <param name="startScale_"></param>
-    /// <param name="endScale_"></param>
-    /// <param name="lifetime_"></param>
-    /// <param name="moveOffset_"></param>
+    /// <param name="settings"></param>
     /// <param name="camera_"></param>
-    public void Init(string text, Vector3 position, Color color, int fontSize, TMP_FontAsset fontAsset, float startScale_, float endScale_, float lifetime_, Vector3 moveOffset_, Camera camera_)
+    public void Init(string text, Vector3 position, DamagePopupSettings settings, Camera camera_)
     {
+        if (settings == null)
+        {
+            Debug.LogWarning("[DamagePopup] Settings was null. Runtime default settings will be used.", this);
+            settings = DamagePopupSettings.CreateRuntimeDefault();
+        }
+
         if (textMesh == null)
         {
             EnsureTextMesh();
         }
 
         textMesh.text = text;
-        textMesh.color = color;
+        textMesh.color = settings.DamageColor;
         textMesh.alignment = TextAlignmentOptions.Center;
-        textMesh.fontSize = fontSize;
+        textMesh.fontSize = settings.FontSize;
         textMesh.enableAutoSizing = false;
-        if (fontAsset != null)
-        {
-            textMesh.font = fontAsset;
-        }
+        textMesh.font = settings.FontAsset != null ? settings.FontAsset : defaultFontAsset;
 
         targetCamera = camera_;
-        lifetime = Mathf.Max(0.01f, lifetime_);
+        lifetime = Mathf.Max(0.01f, settings.Lifetime);
         elapsedTime = 0f;
         startPosition = position;
-        moveOffset = moveOffset_;
-        startColor = color;
-        startScale = startScale_;
-        endScale = endScale_;
+        moveOffset = settings.MoveOffset;
+        startColor = settings.DamageColor;
+        startScale = settings.StartScale;
+        endScale = settings.EndScale;
         isInitialized = true;
 
         transform.position = startPosition;
@@ -117,6 +115,11 @@ public class DamagePopup : PoolObject
         if (textMesh == null)
         {
             textMesh = gameObject.AddComponent<TextMeshPro>();
+        }
+
+        if (defaultFontAsset == null)
+        {
+            defaultFontAsset = textMesh.font;
         }
     }
 }

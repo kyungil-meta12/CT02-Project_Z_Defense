@@ -22,13 +22,13 @@ public class NormalZombie : PoolObject, IDamageable
     private readonly List<Collider> colliders = new List<Collider>(4);
 
     // IDamageable value
-    public float CurrHp{ get; set; } // 현재 체력
-    public float TotalHp{ get; set; } // 최대 체력
-    public bool IsAlive{ get; set;} // 살아있는 상태
+    public float CurrHp { get; private set; } // 현재 체력
+    public float TotalHp { get; private set; } // 최대 체력
+    public bool IsAlive { get; private set; } // 살아있는 상태
 
     private bool returnInstanceCoroutineRunning = false;
 
-    void Awake()
+    private void Awake()
     {
         anim = GetComponent<Animator>();
         agent = GetComponent<NavMeshAgent>();
@@ -39,9 +39,9 @@ public class NormalZombie : PoolObject, IDamageable
 
     public override void OnSpawn()
     {
-        var randomMoveAttackSpeed = Random.Range(spec.MinMoveAttackSpeed, spec.MaxMoveAttackSpeed);
-        var randomAttackDamage = Random.Range(spec.MinAttackDamage, spec.MaxAttackDamage);
-        var randomHp = Random.Range(spec.MinHp, spec.MaxHp);
+        float randomMoveAttackSpeed = Random.Range(spec.MinMoveAttackSpeed, spec.MaxMoveAttackSpeed);
+        float randomAttackDamage = Random.Range(spec.MinAttackDamage, spec.MaxAttackDamage);
+        float randomHp = Random.Range(spec.MinHp, spec.MaxHp);
         float wave = GameManager.Inst.Wave;
         bool isFirstWave = GameManager.Inst.Wave == 1;
 
@@ -53,16 +53,16 @@ public class NormalZombie : PoolObject, IDamageable
         anim.SetBool("IsAttackState", false);
 
         // 이동/공격 속도
-        var moveAttackSpeedMul = isFirstWave ? randomMoveAttackSpeed : randomMoveAttackSpeed * Mathf.Pow(1f + spec.MoveAttackSpeedWeight, wave - 1f);
+        float moveAttackSpeedMul = isFirstWave ? randomMoveAttackSpeed : randomMoveAttackSpeed * Mathf.Pow(1f + spec.MoveAttackSpeedWeight, wave - 1f);
         anim.SetFloat("MoveSpeed", spec.MoveSpeed * moveAttackSpeedMul);
         anim.SetFloat("AttackSpeed", spec.AttackSpeed * moveAttackSpeedMul);
 
         // 공격 대미지
-        var attackDamageMul = isFirstWave ? randomAttackDamage : randomAttackDamage * Mathf.Pow(1f + spec.AttackDamageWeight, wave - 1f);
+        float attackDamageMul = isFirstWave ? randomAttackDamage : randomAttackDamage * Mathf.Pow(1f + spec.AttackDamageWeight, wave - 1f);
         attackDamage = spec.AttackDamage * attackDamageMul;
 
         // 체력
-        var hpMul = isFirstWave ? randomHp : randomHp * Mathf.Pow(1f + spec.HpWeight, wave - 1f);
+        float hpMul = isFirstWave ? randomHp : randomHp * Mathf.Pow(1f + spec.HpWeight, wave - 1f);
         TotalHp = spec.Hp * hpMul;
         CurrHp = TotalHp;
         IsAlive = true;
@@ -79,26 +79,21 @@ public class NormalZombie : PoolObject, IDamageable
         returnInstanceCoroutineRunning = false;
     }
 
-    // 사망 시 게임 매니저의 현재 킬 카운트 증가
-    public override void OnDespawn()
-    {
-        GameManager.Inst.IncreaseKillCount();
-    }
-
-    void Update()
+    private void Update()
     {
         UpdateDeath();
         UpdateMoveAndAttack();
     }
 
     // 죽었을 때 인스턴스를 지연 리턴 한다
-    void UpdateDeath()
+    private void UpdateDeath()
     {
-        if(IsAlive)
+        if (IsAlive)
         {
             return;
         }
-        var info = anim.GetCurrentAnimatorStateInfo(0);
+
+        AnimatorStateInfo info = anim.GetCurrentAnimatorStateInfo(0);
         if (info.normalizedTime >= 1f)
         {
             if (!returnInstanceCoroutineRunning)
@@ -111,9 +106,9 @@ public class NormalZombie : PoolObject, IDamageable
 
     // 이동 및 공격 업데이트
     // attackState, attackTarget 및 agent의 동작 여부는 NormalZombieAttackCollider에서 변경한다
-    void UpdateMoveAndAttack()
+    private void UpdateMoveAndAttack()
     {
-        if(!IsAlive)
+        if (!IsAlive)
         {
             return;
         }
@@ -124,7 +119,7 @@ public class NormalZombie : PoolObject, IDamageable
         {
             agent.nextPosition = transform.position;
 
-            var destDir = agent.desiredVelocity;
+            Vector3 destDir = agent.desiredVelocity;
             destDir.y = 0f;
 
             // 미세한 떨림을 방지하기 위해 일정 크기 이상의 벡터일 때만 회전 처리
@@ -143,7 +138,7 @@ public class NormalZombie : PoolObject, IDamageable
         }
     }
 
-    void OnAnimatorMove()
+    private void OnAnimatorMove()
     {
         if (!IsAlive)
         {
@@ -159,7 +154,7 @@ public class NormalZombie : PoolObject, IDamageable
     }
 
     // 특정 대상을 향한다
-    void LookAt(Vector3 point)
+    private void LookAt(Vector3 point)
     {
         Vector3 destDir = point - transform.position;
         destDir.y = 0;
@@ -173,7 +168,7 @@ public class NormalZombie : PoolObject, IDamageable
     }
 
     // 인스턴스 반환 코루틴
-    IEnumerator ReturnInstanceCoroutine()
+    private IEnumerator ReturnInstanceCoroutine()
     {
         returnInstanceCoroutineRunning = true;
         yield return new WaitForSeconds(3f);
@@ -214,7 +209,7 @@ public class NormalZombie : PoolObject, IDamageable
     /// <param name="damage"></param>
     public void TakeDamage(float damage)
     {
-        if(!IsAlive) // 한 번 체력이 0이 되면 더 이상 TakeDamage를 받지 않음
+        if (!IsAlive) // 한 번 체력이 0이 되면 더 이상 TakeDamage를 받지 않음
         {
             return;
         }
@@ -244,12 +239,14 @@ public class NormalZombie : PoolObject, IDamageable
     /// </summary>
     private void Die()
     {
+        IsAlive = false; // 생존 상태 비활성화
+        GameManager.Inst.IncreaseKillCount();
+
         hpUI.gameObject.SetActive(false); // hp UI 비활성화
         attackState = false; // 공격 상태 초기화
         attackTarget = null; // 공격 대상 초기화
         SetCollidersEnabled(false); // 사망 후 터렛 타겟/발사체 충돌 대상에서 제외
         agent.enabled = false; // 에이전트 비활성화
-        IsAlive = false; // 생존 상태 비활성화
         anim.SetBool("IsAttackState", false);
         anim.SetTrigger("DeadTrigger"); // 죽는 애니메이션으로 변경
     }

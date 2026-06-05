@@ -14,21 +14,18 @@ public class TestDamageableTarget : MonoBehaviour, IDamageable
         {
             return totalHp;
         }
-        set
-        {
-            totalHp = Mathf.Max(0.0f, value);
-        }
     }
 
-    public float CurrHp { get; set; }
+    public float CurrHp { get; private set; }
 
-    public bool IsAlive {get; set; }
+    public bool IsAlive { get; private set; }
 
     private void OnEnable()
     {
         if (resetHpOnEnable)
         {
             CurrHp = TotalHp;
+            IsAlive = CurrHp > 0.0f;
         }
     }
 
@@ -52,9 +49,13 @@ public class TestDamageableTarget : MonoBehaviour, IDamageable
             Debug.Log($"[TestDamageableTarget] Damage:{appliedDamage:0.###}, HP:{CurrHp:0.###}/{TotalHp:0.###}", this);
         }
 
-        if (CurrHp <= 0.0f && deactivateOnDeath)
+        if (CurrHp <= 0.0f)
         {
-            gameObject.SetActive(false);
+            IsAlive = false;
+            if (deactivateOnDeath)
+            {
+                gameObject.SetActive(false);
+            }
         }
     }
 }

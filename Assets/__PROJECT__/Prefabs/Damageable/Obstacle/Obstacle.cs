@@ -10,9 +10,9 @@ public class Obstacle : PoolObject, IDamageable
     
     public HpUI hpUI;
     
-    public float TotalHp { get; set; }
-    public float CurrHp { get; set; }
-    public bool IsAlive { get; set; }
+    public float TotalHp { get; private set; }
+    public float CurrHp { get; private set; }
+    public bool IsAlive { get; private set; }
     
     private bool returnInstanceCoroutineRunning = false;
     

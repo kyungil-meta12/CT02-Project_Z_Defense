@@ -1,9 +1,7 @@
-using UnityEngine;
-
 public interface IDamageable
 {
-    float TotalHp{ get; set; }
-    float CurrHp { get; set; }
-    bool IsAlive { get; set; }
+    float TotalHp { get; }
+    float CurrHp { get; }
+    bool IsAlive { get; }
     void TakeDamage(float damage);
 }

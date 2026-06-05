@@ -7,6 +7,7 @@
  * - Turrets use tier level for their own stat/VFX/projectile scale progression.
  * - Total level is tracked separately for display and future reward/economy systems.
  * - Evolution, final turret level caps, projectile scale progression, and runtime evolution UI are currently implemented.
+ * - Projectile damage delivery, zombie death-state filtering, and world-space damage popups are currently connected.
  *
  * Current Evolution Tree
  *
@@ -140,6 +141,14 @@
  * public Vector3 evolutionEffectLocalOffset;
  * public float evolutionEffectDuration;
  *
+ * 8. DamagePopupSettings
+ * - Holds runtime configuration for world-space damage numbers.
+ * - Loaded through Resources.Load("UI/DamagePopupSettings") by DamagePopupSpawner.
+ * - References the DamagePopup prefab and controls pool size, font size, optional TMP font asset, color, lifetime, height offset, movement offset, start scale, and end scale.
+ * - The current asset lives under:
+ *   Assets/__PROJECT__/Resources/UI/DamagePopupSettings.asset
+ * - The DamagePopup prefab lives in the same Resources folder so it can be loaded without a scene reference.
+ *
  * Evolution Runtime Flow
  *
  * 1. TurretDefinitionRuntimeController checks the current turret's evolutionProgressionProfile using current tier level.
@@ -163,6 +172,9 @@
  * 6. It selects projectile scale through TurretProjectileScaleProgressionSO.
  * 7. Turret stores the selected projectile prefab, projectile speed, damage, pierce count, and scale.
  * 8. Gun/RocketFire applies damage, speed, scale, pooling reset, and collision ignore rules to each spawned projectile.
+ * 9. ProjectileDamageDealer refreshes damage, pierce count, logging state, legacy DamageManager/Projectile damage values, and hit detector state on spawn.
+ * 10. ProjectileHitDetector applies damage to tracked targets, trigger/collision hits, or movement raycast hits.
+ * 11. DamagePopupSpawner displays damage values when IDamageable implementations report damage.
  *
  * Targeting And Firing Notes
  *
@@ -178,6 +190,49 @@
  * - Projectile speed, damage, pierce count, and collision ignores must also be refreshed on spawn.
  * - Do not rely on prefab state or previous pooled object state.
  * - Evolution effects should be spawned through PooledObjectUtility.SpawnEffect.
+ * - DamagePopup instances are pooled through MemoryPool and prewarmed using DamagePopupSettings.InitialPoolSize.
+ * - DamagePopup.Init must receive DamagePopupSettings every spawn because pooled text objects retain previous state.
+ * - ProjectileHitDetector clears target/collider state through Init whenever a projectile is reused.
+ *
+ * Damage And Targeting Integration
+ *
+ * IDamageable contract
+ * - Current runtime damage receivers expose:
+ *   float TotalHp { get; }
+ *   float CurrHp { get; }
+ *   bool IsAlive { get; }
+ *   void TakeDamage(float damage);
+ * - Damageable state is read-only to external systems. Implementations update HP and alive state internally.
+ * - ProjectileDamageDealer skips null targets, dead targets, and already-hit IDamageable instances.
+ * - NormalZombie and BossZombie currently implement this contract.
+ *
+ * ProjectileDamageDealer
+ * - Owns damage and pierce count for each projectile instance.
+ * - Applies damage through hitCollider.GetComponentInParent<IDamageable>().
+ * - Keeps a per-projectile hit list so one projectile does not hit the same damageable repeatedly.
+ * - Updates legacy projectile damage components so existing asset logic remains compatible.
+ *
+ * ProjectileHitDetector
+ * - Adds a robust hit path around projectile motion.
+ * - Uses tracked target bounds first when a target is supplied.
+ * - Falls back to trigger/collision callbacks and movement RaycastNonAlloc.
+ * - Returns or disables the projectile when pierce limits are reached.
+ *
+ * Zombie death-state handling
+ * - Dead zombies should report IsAlive == false before they can be selected again.
+ * - Targeting and projectile damage paths should both respect IsAlive.
+ * - Colliders left after death must not keep receiving turret damage or remain valid target candidates.
+ *
+ * Damage Popup Runtime Flow
+ *
+ * 1. IDamageable implementation receives TakeDamage.
+ * 2. The implementation updates CurrHp and IsAlive.
+ * 3. DamagePopupSpawner.SpawnDamage(targetTransform, damage) is called for visible feedback.
+ * 4. DamagePopupSpawner lazily creates itself if no scene instance exists.
+ * 5. It loads UI/DamagePopupSettings and UI/DamagePopup from Resources.
+ * 6. It prewarms MemoryPool with the configured InitialPoolSize.
+ * 7. DamagePopup.Init applies text, DamagePopupSettings, and camera.
+ * 8. DamagePopup fades and moves upward, then returns itself to the pool through PoolObject.Despawn.
  *
  * Current Balance Data
  *
@@ -256,6 +311,7 @@
  * - Current direct Private Assets changes:
  *   Turret.cs: fire only when aim angle is within turretAngleAttack.
  *   Gun.cs: default projectile rotation follows muzzleObject forward direction.
+ * - Recent damage popup and projectile damage integration work is project-level and does not require new Private Assets repository changes.
  */
 
 using UnityEngine;

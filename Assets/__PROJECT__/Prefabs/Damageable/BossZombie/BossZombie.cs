@@ -34,9 +34,9 @@ public class BossZombie : PoolObject, IDamageable
     private BlackboardVariable<int> hitCountBV;
     private BlackboardVariable<int> curAttackCountBV;
     
-    public float TotalHp { get; set; }
-    public float CurrHp { get; set; }
-    public bool IsAlive{ get; set; }
+    public float TotalHp { get; private set; }
+    public float CurrHp { get; private set; }
+    public bool IsAlive { get; private set; }
 
     public void Awake()
     {
@@ -100,7 +100,6 @@ public class BossZombie : PoolObject, IDamageable
         }
 
         RestoreAllScreamerSpeedBuffs();
-        GameManager.Inst.IncreaseKillCount();
     }
 
     void Update()
@@ -357,6 +356,7 @@ public class BossZombie : PoolObject, IDamageable
     private void Die()
     {
         IsAlive = false; // 생존 상태 비활성화
+        GameManager.Inst.IncreaseKillCount();
 
         hpUI.gameObject.SetActive(false); // hp UI 비활성화
 

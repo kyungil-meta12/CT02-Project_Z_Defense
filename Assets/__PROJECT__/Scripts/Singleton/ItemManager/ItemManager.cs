@@ -10,21 +10,25 @@ public class ItemManager : MonoBehaviour
     public static ItemManager Inst;
 
     // 소지한 코인 개수
-    public Incremental CoinCount{ get; private set; } = new(0);
+    public Incremental CoinCount { get; private set; } = new(0);
+    public string CoinCountString { get; private set; }
 
     // 소지한 화기 부품 개수
     public Incremental FirePartCount { get; private set; } = new(0);
+    public string FirePartCountString { get; private set; }
 
     // 소지한 속성 부품 개수
     public Incremental SpecialPartCount { get; private set; } = new(0);
+    public string SpecialPartCountString { get; private set; }
 
     // 현재 웨이브에서 얻은 코인 개수
     public Incremental WaveCollectCoinCount { get; private set; } = new(0);
+    public string WaveCollectCoinCountString { get; private set; }
 
 
     void Awake()
     {
-        if(Inst && Inst != this)
+        if (Inst && Inst != this)
         {
             DestroyImmediate(gameObject);
         }
@@ -59,6 +63,8 @@ public class ItemManager : MonoBehaviour
     {
         CoinCount += coinsToAdd;
         WaveCollectCoinCount += coinsToAdd;
+        CoinCountString = CoinCount.ToString();
+        WaveCollectCoinCountString = WaveCollectCoinCount.ToString();
     }
 
     /// <summary>
@@ -73,6 +79,8 @@ public class ItemManager : MonoBehaviour
         var result = WaveCollectCoinCount * percentNumerator / percentDenominator;
         CoinCount += result;
         WaveCollectCoinCount = 0;
+        CoinCountString = CoinCount.ToString();
+        WaveCollectCoinCountString = WaveCollectCoinCount.ToString();
     }
 
     /// <summary>
@@ -82,6 +90,7 @@ public class ItemManager : MonoBehaviour
     public void AddFirePartCount(int partsToAdd)
     {
         FirePartCount += partsToAdd;
+        FirePartCountString = FirePartCount.ToString();
     }
 
     /// <summary>
@@ -91,6 +100,7 @@ public class ItemManager : MonoBehaviour
     public void AddSpecialPartCount(int partsToAdd)
     {
         SpecialPartCount += partsToAdd;
+        SpecialPartCountString = SpecialPartCount.ToString();
     }
 
     /// <summary>
@@ -131,11 +141,12 @@ public class ItemManager : MonoBehaviour
     /// <returns></returns>
     public bool TryUseCoin(int coinsToUse)
     {
-        if(CoinCount < coinsToUse)
+        if (CoinCount < coinsToUse)
         {
             return false;
         }
         CoinCount -= coinsToUse;
+        CoinCountString = CoinCount.ToString();
         return true;
     }
 
@@ -147,11 +158,12 @@ public class ItemManager : MonoBehaviour
     /// <returns></returns>
     public bool TryUseFirePart(int partsToUse)
     {
-        if(FirePartCount < partsToUse)
+        if (FirePartCount < partsToUse)
         {
             return false;
         }
         FirePartCount -= partsToUse;
+        FirePartCountString = FirePartCount.ToString();
         return true;
     }
 
@@ -168,6 +180,7 @@ public class ItemManager : MonoBehaviour
             return false;
         }
         SpecialPartCount -= partsToUse;
+        SpecialPartCountString = SpecialPartCount.ToString();
         return true;
     }
 }

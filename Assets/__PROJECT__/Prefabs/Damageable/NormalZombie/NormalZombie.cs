@@ -229,6 +229,8 @@ public class NormalZombie : PoolObject, IDamageable
             Debug.Log($"[NormalZombie] Damage:{appliedDamage:0.###}, HP:{CurrHp:0.###}/{TotalHp:0.###}", this);
         }
 
+        DamagePopupSpawner.SpawnDamage(transform, appliedDamage);
+
         // 체력이 완전히 떨어지면
         if (CurrHp <= 0f)
         {

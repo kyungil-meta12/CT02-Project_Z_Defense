@@ -73,7 +73,7 @@ public class TurretBaseSlot : MonoBehaviour
             return false;
         }
 
-        GameObject turretObject = Instantiate(shopEntry.TurretPrefab, buildPoint.position, buildPoint.rotation, buildPoint);
+        GameObject turretObject = Instantiate(shopEntry.TurretPrefab, buildPoint);
         turretObject.transform.localPosition = Vector3.zero;
         turretObject.transform.localRotation = Quaternion.identity;
 

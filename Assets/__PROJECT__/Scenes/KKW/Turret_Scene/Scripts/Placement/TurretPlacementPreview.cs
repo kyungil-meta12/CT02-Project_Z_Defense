@@ -4,8 +4,10 @@ using UnityEngine;
 public class TurretPlacementPreview
 {
     private readonly List<Renderer> renderers = new List<Renderer>();
+    private readonly List<Material[]> originalSharedMaterials = new List<Material[]>();
     private MaterialPropertyBlock propertyBlock;
     private GameObject previewObject;
+    private Vector3 originalLocalScale = Vector3.one;
 
     public bool IsActive
     {
@@ -26,9 +28,9 @@ public class TurretPlacementPreview
 
         previewObject = Object.Instantiate(prefab);
         previewObject.name = prefab.name + " Placement Preview";
+        originalLocalScale = previewObject.transform.localScale;
         DisableGameplayComponents(previewObject);
         CacheRenderers();
-        SetValid(false);
     }
 
     public void Hide()
@@ -39,17 +41,34 @@ public class TurretPlacementPreview
         }
 
         previewObject = null;
+        originalLocalScale = Vector3.one;
         renderers.Clear();
+        originalSharedMaterials.Clear();
     }
 
-    public void SetPose(Vector3 position, Quaternion rotation)
+    public void SnapTo(Transform buildPoint, Vector3 localOffset, float scaleMultiplier)
+    {
+        if (previewObject == null || buildPoint == null)
+        {
+            return;
+        }
+
+        previewObject.transform.SetParent(buildPoint, false);
+        previewObject.transform.localPosition = localOffset;
+        previewObject.transform.localRotation = Quaternion.identity;
+        previewObject.transform.localScale = originalLocalScale * Mathf.Max(0.01f, scaleMultiplier);
+    }
+
+    public void SetPose(Vector3 position, Quaternion rotation, float scaleMultiplier)
     {
         if (previewObject == null)
         {
             return;
         }
 
+        previewObject.transform.SetParent(null, true);
         previewObject.transform.SetPositionAndRotation(position, rotation);
+        previewObject.transform.localScale = originalLocalScale * Mathf.Max(0.01f, scaleMultiplier);
     }
 
     public void SetVisible(bool isVisible)
@@ -62,21 +81,76 @@ public class TurretPlacementPreview
         previewObject.SetActive(isVisible);
     }
 
-    public void SetValid(bool isValid)
+    public void SetVisualState(bool isValid, Material validMaterial, Material invalidMaterial, Color validTintColor, Color invalidTintColor)
     {
-        Color tintColor = isValid ? new Color(0.2f, 1.0f, 0.35f, 0.45f) : new Color(1.0f, 0.15f, 0.12f, 0.45f);
+        Color tintColor = isValid ? validTintColor : invalidTintColor;
+        Material previewMaterial = isValid ? validMaterial : invalidMaterial;
+
+        if (previewMaterial != null)
+        {
+            ApplyMaterial(previewMaterial);
+            ApplyTint(tintColor);
+            return;
+        }
+
+        RestoreOriginalMaterials();
         ApplyTint(tintColor);
     }
 
     private void CacheRenderers()
     {
         renderers.Clear();
+        originalSharedMaterials.Clear();
+
         if (previewObject == null)
         {
             return;
         }
 
         previewObject.GetComponentsInChildren(true, renderers);
+        foreach (Renderer previewRenderer in renderers)
+        {
+            if (previewRenderer == null)
+            {
+                originalSharedMaterials.Add(new Material[0]);
+                continue;
+            }
+
+            originalSharedMaterials.Add(previewRenderer.sharedMaterials);
+        }
+    }
+
+    private void ApplyMaterial(Material previewMaterial)
+    {
+        foreach (Renderer previewRenderer in renderers)
+        {
+            if (previewRenderer == null)
+            {
+                continue;
+            }
+
+            Material[] materials = previewRenderer.sharedMaterials;
+            for (int i = 0; i < materials.Length; i++)
+            {
+                materials[i] = previewMaterial;
+            }
+
+            previewRenderer.sharedMaterials = materials;
+        }
+    }
+
+    private void RestoreOriginalMaterials()
+    {
+        for (int i = 0; i < renderers.Count; i++)
+        {
+            Renderer previewRenderer = renderers[i];
+            if (previewRenderer == null || i >= originalSharedMaterials.Count)
+            {
+                continue;
+            }
+
+            previewRenderer.sharedMaterials = originalSharedMaterials[i];
+        }
     }
 
     private void ApplyTint(Color tintColor)

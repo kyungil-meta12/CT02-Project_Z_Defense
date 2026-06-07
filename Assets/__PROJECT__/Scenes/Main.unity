@@ -15112,9 +15112,22 @@ MonoBehaviour:
   turretBaseLayerMask:
     serializedVersion: 2
     m_Bits: 2048
+  invalidPreviewLayerMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
   maxRayDistance: 500
   hidePreviewWhenNoBase: 1
+  showInvalidPreviewOnWorld: 1
   allowWorldClickPlacement: 1
+  validPreviewMaterial: {fileID: 0}
+  invalidPreviewMaterial: {fileID: 0}
+  validPreviewColor: {r: 0.2, g: 1, b: 0.35, a: 0.45}
+  invalidPreviewColor: {r: 1, g: 0.12, b: 0.08, a: 0.45}
+  previewLocalOffset: {x: 0, y: 0, z: 0}
+  invalidPreviewEulerAngles: {x: 0, y: -90, z: 0}
+  previewScaleMultiplier: 1
+  invalidWorldPreviewScaleMultiplier: 1.5
+  createRuntimePreviewMaterials: 1
 --- !u!4 &459482903
 Transform:
   m_ObjectHideFlags: 0
@@ -22122,7 +22135,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6576999238617064682, guid: 0d8a036a0274ca54e8215f9ebc0a4c8d, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -43585,7 +43598,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6576999238617064682, guid: 0d8a036a0274ca54e8215f9ebc0a4c8d, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -62102,7 +62115,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6576999238617064682, guid: 0d8a036a0274ca54e8215f9ebc0a4c8d, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -64949,7 +64962,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6576999238617064682, guid: 0d8a036a0274ca54e8215f9ebc0a4c8d, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

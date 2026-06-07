@@ -861,6 +861,10 @@ MonoBehaviour:
   pivotObject: {fileID: 5546561854665069273}
   showDebug: 0
   useHorizontalDistance: 1
+  requireLineOfSight: 1
+  lineOfSightBlockingMask:
+    serializedVersion: 2
+    m_Bits: 576
   showRangeGizmo: 1
   drawRangeOnlyWhenSelected: 1
   rangeGizmoColor: {r: 0, g: 1, b: 0, a: 1}

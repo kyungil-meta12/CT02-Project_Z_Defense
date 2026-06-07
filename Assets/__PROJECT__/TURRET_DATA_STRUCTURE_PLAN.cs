@@ -149,6 +149,21 @@
  *   Assets/__PROJECT__/Resources/UI/DamagePopupSettings.asset
  * - The DamagePopup prefab lives in the same Resources folder so it can be loaded without a scene reference.
  *
+ * 9. TurretShopEntrySO
+ * - Holds data for turret placement UI entries.
+ * - References a TurretDefinitionSO and optionally overrides the spawned prefab or preview prefab.
+ * - The runtime placement UI reads display name, icon, cost, turret definition, turret prefab, and preview prefab from this asset.
+ * - Turret prefab defaults to TurretDefinitionSO.basePrefab when overridePrefab is not assigned.
+ * - Preview prefab defaults to the turret prefab when previewPrefab is not assigned.
+ *
+ * Current fields:
+ * private string displayName;
+ * private Sprite icon;
+ * private TurretDefinitionSO turretDefinition;
+ * private GameObject overridePrefab;
+ * private GameObject previewPrefab;
+ * private int cost;
+ *
  * Evolution Runtime Flow
  *
  * 1. TurretDefinitionRuntimeController checks the current turret's evolutionProgressionProfile using current tier level.
@@ -175,6 +190,20 @@
  * 9. ProjectileDamageDealer refreshes damage, pierce count, logging state, legacy DamageManager/Projectile damage values, and hit detector state on spawn.
  * 10. ProjectileHitDetector applies damage to tracked targets, trigger/collision hits, or movement raycast hits.
  * 11. DamagePopupSpawner displays damage values when IDamageable implementations report damage.
+ *
+ * Turret Placement Runtime Flow
+ *
+ * 1. TurretPlacementUI builds bottom-bar turret slots from TurretShopEntrySO entries.
+ * 2. TurretPlacementSlotUI starts placement through drag or click input.
+ * 3. TurretPlacementController Raycasts against the TurretBase layer and expects to hit PlacementHitArea.
+ * 4. The hit collider must have a TurretBaseSlot in its parent hierarchy.
+ * 5. If the slot has a BuildPoint and no current turret, the preview snaps to BuildPoint and uses the valid visual state.
+ * 6. If the slot is occupied, the preview still snaps to BuildPoint but uses the invalid visual state.
+ * 7. If no TurretBase is hit, the invalid preview is projected onto a fixed placement plane by default.
+ * 8. On successful drop/click, the turret prefab is instantiated as a child of BuildPoint.
+ * 9. The installed turret localPosition is Vector3.zero and localRotation is Quaternion.identity.
+ * 10. The installed turret keeps its prefab localScale; BuildPoint and Turret Base parent transforms provide placement offset and world scale.
+ * 11. TurretBaseSlot records the installed TurretDefinitionRuntimeController or fallback GameObject as the occupied turret.
  *
  * Targeting And Firing Notes
  *
@@ -290,6 +319,29 @@
  * - displayName matches the target display name unless intentionally overridden.
  * - evolutionIcon is assigned for runtime UI buttons.
  * - evolutionEffectPrefab is assigned if an effect should play.
+ *
+ * Turret Placement Setup Checklist
+ *
+ * For every Turret Base prefab:
+ * - The root has TurretBaseSlot.
+ * - BuildPoint exists and represents the actual turret mounting position and rotation.
+ * - PlacementHitArea exists and has a Collider.
+ * - PlacementHitArea is on the TurretBase layer.
+ * - PlacementHitArea can be a trigger; TurretPlacementController uses QueryTriggerInteraction.Collide for base detection.
+ * - BuildPoint should not contain a default turret in production placement prefabs.
+ *
+ * For every placement UI entry:
+ * - TurretShopEntrySO references the intended TurretDefinitionSO.
+ * - The referenced definition has basePrefab assigned.
+ * - icon is assigned before final UI polish.
+ * - cost is assigned when the economy system is connected.
+ * - previewPrefab is assigned only when the placement preview should differ from the actual turret prefab.
+ *
+ * For TurretPlacementController:
+ * - targetCamera is assigned, or Camera.main must exist.
+ * - turretBaseLayerMask includes only the TurretBase layer unless another explicit placement layer is added.
+ * - invalid preview placement plane is preferred for general map invalid feedback when floor height is stable.
+ * - validPreviewMaterial and invalidPreviewMaterial can be left empty for runtime-generated preview materials, but final polish should use explicit materials.
  *
  * Removed / Deprecated
  *

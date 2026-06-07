@@ -276,17 +276,6 @@ public class TurretPlacementController : MonoBehaviour
             return slot;
         }
 
-        Transform root = hit.collider.transform.parent;
-        while (root != null)
-        {
-            if (root.Find("BuildPoint") != null && root.Find("PlacementHitArea") != null)
-            {
-                return root.gameObject.AddComponent<TurretBaseSlot>();
-            }
-
-            root = root.parent;
-        }
-
         return null;
     }
 

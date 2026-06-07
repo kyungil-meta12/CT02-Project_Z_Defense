@@ -149,6 +149,13 @@
  * - 메인 씬에는 터렛 진화 UI와 좀비 타겟팅/피격 흐름이 연결되어 있다.
  * - DamagePopupSettings는 데미지 팝업 프리팹, 풀 초기 크기, 폰트, 색상, 위치, 이동, 스케일, 유지 시간을 관리한다.
  * - DamagePopup.prefab과 DamagePopupSettings.asset은 Assets/__PROJECT__/Resources/UI 경로에서 Resources.Load로 사용한다.
+ * - TurretPlacementUI는 하단 터렛 슬롯 목록을 표시하고, 드래그/클릭으로 터렛 배치 흐름을 시작한다.
+ * - TurretPlacementController는 터렛 아이콘 드래그 중 TurretBase 레이어의 PlacementHitArea를 Raycast하여 설치 가능 여부를 판단한다.
+ * - TurretBaseSlot은 각 Turret Base의 BuildPoint, PlacementHitArea, 현재 설치된 터렛 점유 상태를 관리한다.
+ * - 터렛 설치는 항상 BuildPoint의 자식으로 생성하고, 설치 터렛의 localPosition/localRotation을 0으로 맞춘다.
+ * - 설치 가능 위치는 초록 프리뷰, 점유된 베이스 또는 일반 맵 위치는 빨간 프리뷰로 표시한다.
+ * - 일반 맵 위 배치 불가 프리뷰는 건물/벽 콜라이더 hit가 아니라 고정 바닥 평면 투영을 기본으로 사용한다.
+ * - TurretShopEntrySO는 배치 UI에 표시할 터렛 정의, 아이콘, 비용, 프리뷰 프리팹을 관리한다.
  *
  * ------------------------------------------------------------------------------------------
  * 레포지토리 / 에셋 관리 메모
@@ -156,8 +163,16 @@
  *
  * - 루트 프로젝트 레포는 코드, 씬, 프로젝트 레벨 래퍼/설정 에셋을 관리한다.
  * - Private Assets 레포는 외부/구매/공용 원본 에셋을 따로 관리한다.
+ * - 현재 프로젝트는 Git 레포지토리 2개를 함께 사용한다.
+ *   1) 루트 레포: D:/Git/CT02-Project_Z_Defense/CT02-Project_Z_Defense
+ *   2) Private Assets 레포: Assets/__PROJECT__/Private Assets
+ * - 루트 레포의 git status는 Private Assets 내부 수정 파일을 직접 보여주지 않을 수 있다.
+ * - Private Assets 내부 파일을 수정했을 때는 해당 폴더에서 별도로 git status를 확인해야 한다.
+ * - 커밋도 두 레포에서 각각 필요할 수 있으므로, 작업 완료 전 루트 레포와 Private Assets 레포 상태를 모두 확인한다.
  * - 최근 터렛/좀비 전투 연결 작업은 루트 프로젝트 레포 중심으로 진행되었고,
  *   Private Assets 원본은 직접 수정하지 않는 방향을 유지한다.
+ * - 외부 에셋 스크립트를 직접 수정해야 하는 경우에는 변경 범위를 작게 유지하고,
+ *   프로젝트 레벨 어댑터/래퍼로 대체 가능한지 먼저 검토한다.
  * - Resources 경로 이동 시 Unity .meta GUID를 유지해야 기존 참조가 깨지지 않는다.
  *
  * 한 줄 요약:

@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
+using TMPro;
 
 [DisallowMultipleComponent]
 public class TurretPlacementSlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler, IPointerClickHandler
@@ -8,7 +9,9 @@ public class TurretPlacementSlotUI : MonoBehaviour, IBeginDragHandler, IDragHand
     [Header("References")]
     [SerializeField] private Image iconImage;
     [SerializeField] private Text nameText;
+    [SerializeField] private TMP_Text tmpNameText;
     [SerializeField] private Text costText;
+    [SerializeField] private TMP_Text tmpCostText;
 
     private TurretPlacementController placementController;
     private TurretShopEntrySO shopEntry;
@@ -23,6 +26,17 @@ public class TurretPlacementSlotUI : MonoBehaviour, IBeginDragHandler, IDragHand
     private void Reset()
     {
         iconImage = GetComponentInChildren<Image>();
+
+        TMP_Text[] tmpTexts = GetComponentsInChildren<TMP_Text>(true);
+        if (tmpTexts.Length > 0)
+        {
+            tmpNameText = tmpTexts[0];
+        }
+
+        if (tmpTexts.Length > 1)
+        {
+            tmpCostText = tmpTexts[1];
+        }
     }
 
     public void OnBeginDrag(PointerEventData eventData)
@@ -80,8 +94,12 @@ public class TurretPlacementSlotUI : MonoBehaviour, IBeginDragHandler, IDragHand
 
         if (iconImage != null)
         {
-            iconImage.sprite = shopEntry.Icon;
-            iconImage.enabled = shopEntry.Icon != null;
+            if (shopEntry.Icon != null)
+            {
+                iconImage.sprite = shopEntry.Icon;
+            }
+
+            iconImage.enabled = iconImage.sprite != null;
         }
 
         if (nameText != null)
@@ -89,9 +107,20 @@ public class TurretPlacementSlotUI : MonoBehaviour, IBeginDragHandler, IDragHand
             nameText.text = shopEntry.DisplayName;
         }
 
+        if (tmpNameText != null)
+        {
+            tmpNameText.text = shopEntry.DisplayName;
+        }
+
+        string costLabel = shopEntry.Cost <= 0 ? string.Empty : shopEntry.Cost.ToString();
         if (costText != null)
         {
-            costText.text = shopEntry.Cost <= 0 ? string.Empty : shopEntry.Cost.ToString();
+            costText.text = costLabel;
+        }
+
+        if (tmpCostText != null)
+        {
+            tmpCostText.text = costLabel;
         }
     }
 }

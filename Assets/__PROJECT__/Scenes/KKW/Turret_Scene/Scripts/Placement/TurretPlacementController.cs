@@ -22,6 +22,9 @@ public class TurretPlacementController : MonoBehaviour
     [SerializeField] private Vector3 invalidPreviewEulerAngles = new Vector3(0.0f, -90.0f, 0.0f);
     [SerializeField, Min(0.01f)] private float previewScaleMultiplier = 1.0f;
     [SerializeField, Min(0.01f)] private float invalidWorldPreviewScaleMultiplier = 1.0f;
+    [SerializeField] private bool useInvalidPreviewPlacementPlane = true;
+    [SerializeField] private float invalidPreviewPlaneY;
+    [SerializeField, Range(0.0f, 0.45f)] private float invalidPreviewViewportPadding = 0.06f;
     [SerializeField] private bool createRuntimePreviewMaterials = true;
 
     private TurretPlacementPreview preview;
@@ -302,7 +305,28 @@ public class TurretPlacementController : MonoBehaviour
             return false;
         }
 
+        Vector3 viewportPoint = targetCamera.ScreenToViewportPoint(screenPosition);
+        if (viewportPoint.x < invalidPreviewViewportPadding ||
+            viewportPoint.x > 1.0f - invalidPreviewViewportPadding ||
+            viewportPoint.y < invalidPreviewViewportPadding ||
+            viewportPoint.y > 1.0f - invalidPreviewViewportPadding)
+        {
+            return false;
+        }
+
         Ray ray = targetCamera.ScreenPointToRay(screenPosition);
+        if (useInvalidPreviewPlacementPlane)
+        {
+            Plane placementPlane = new Plane(Vector3.up, new Vector3(0.0f, invalidPreviewPlaneY, 0.0f));
+            if (!placementPlane.Raycast(ray, out float enter))
+            {
+                return false;
+            }
+
+            position = ray.GetPoint(enter) + previewLocalOffset;
+            return true;
+        }
+
         if (!Physics.Raycast(ray, out RaycastHit hit, maxRayDistance, invalidPreviewLayerMask, QueryTriggerInteraction.Ignore))
         {
             return false;

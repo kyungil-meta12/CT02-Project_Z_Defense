@@ -15127,6 +15127,9 @@ MonoBehaviour:
   invalidPreviewEulerAngles: {x: 0, y: -90, z: 0}
   previewScaleMultiplier: 1
   invalidWorldPreviewScaleMultiplier: 1.5
+  useInvalidPreviewPlacementPlane: 1
+  invalidPreviewPlaneY: 0
+  invalidPreviewViewportPadding: 0
   createRuntimePreviewMaterials: 1
 --- !u!4 &459482903
 Transform:

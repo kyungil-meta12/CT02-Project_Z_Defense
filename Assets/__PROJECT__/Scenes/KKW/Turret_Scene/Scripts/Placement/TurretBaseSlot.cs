@@ -98,6 +98,12 @@ public class TurretBaseSlot : MonoBehaviour
         }
     }
 
+    public void SetCurrentTurret(TurretDefinitionRuntimeController turret)
+    {
+        currentTurret = turret;
+        currentTurretObject = turret == null ? null : turret.gameObject;
+    }
+
     private void AutoBindReferences()
     {
         if (buildPoint == null)

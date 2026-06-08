@@ -23,7 +23,7 @@ MonoBehaviour:
   rangePreviewPrefab: {fileID: 4039070395078972414, guid: 83648844042d34e4f84e900dfff9934c, type: 3}
   helicopterPrefab: {fileID: 1010893306578313667, guid: 5e468816736de8d40a28e6c14fd23cf9, type: 3}
   missilePrefab: {fileID: 1834646129351440, guid: 5599f31b19e20c94ca2378f95f7646b2, type: 3}
-  explosionEffectPrefab: {fileID: 1000012903210382, guid: 329d8664ccd19ea4eadb0c7e2517507e, type: 3}
+  explosionEffectPrefab: {fileID: 0}
   cooldown: 0
   placementLayerMask:
     serializedVersion: 2
@@ -51,12 +51,12 @@ MonoBehaviour:
     propellerPrefabTransform: {fileID: 0}
     localRotationAxis: {x: 1, y: 0, z: 0}
     rotationSpeedMultiplier: 1
-  missileCount: 6
+  missileCount: 9
   missileInterval: 0.15
-  missileSpreadMode: 0
+  missileSpreadMode: 2
   missileSpreadLengthRatio: 0.9
   missileSpreadWidthRatio: 0.7
-  missileRootMoveSpeed: 20
+  missileRootMoveSpeed: 120
   missileTargetHeightOffset: 0.1
   missileImpactArmDelay: 0.2
   missileImpactMinTravelDistance: 2
@@ -67,5 +67,5 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 1152
   damageBufferSize: 256
-  damageBoxHeight: 12
+  missileDamageRadius: 10
   damageTriggerInteraction: 2

@@ -14,6 +14,7 @@ public class HelicopterMissileSkillRuntime : MonoBehaviour
     private IDamageable[] castDamagedTargets;
     private int castDamagedTargetCount;
     private int activeMissileCount;
+    private bool warnedCastDamageCapacityExceeded;
 
     // 스킬 런타임 데이터를 초기화하고 연출 코루틴을 시작한다.
     public void Initialize(HelicopterMissileSkillDefinitionSO definition_, HelicopterMissileSkillLevelData levelData_, Camera targetCamera_, Vector3 areaCenter_, Quaternion areaRotation_)
@@ -25,10 +26,12 @@ public class HelicopterMissileSkillRuntime : MonoBehaviour
         areaRotation = areaRotation_;
 
         int bufferSize = Mathf.Max(1, definition.DamageBufferSize);
+        int castDamageCapacity = bufferSize * Mathf.Max(1, definition.MissileCount);
         hitBuffer = new Collider[bufferSize];
         damagedTargets = new IDamageable[bufferSize];
-        castDamagedTargets = new IDamageable[bufferSize];
+        castDamagedTargets = new IDamageable[castDamageCapacity];
         castDamagedTargetCount = 0;
+        warnedCastDamageCapacityExceeded = false;
 
         StartCoroutine(RunSkillCoroutine());
     }
@@ -81,7 +84,8 @@ public class HelicopterMissileSkillRuntime : MonoBehaviour
 
         if (helicopterInstance != null)
         {
-            Destroy(helicopterInstance);
+            PooledObjectUtility.ReturnOrDestroy(helicopterInstance);
+            helicopterInstance = null;
         }
 
         yield return WaitForMissileImpacts();
@@ -135,7 +139,7 @@ public class HelicopterMissileSkillRuntime : MonoBehaviour
         Quaternion rotation = direction.sqrMagnitude > 0.0001f ? Quaternion.LookRotation(direction.normalized, Vector3.up) : Quaternion.identity;
         rotation *= Quaternion.Euler(definition.HelicopterRotationOffsetEuler);
 
-        helicopterInstance = Instantiate(definition.HelicopterPrefab, startPosition, rotation);
+        helicopterInstance = PooledObjectUtility.Spawn(definition.HelicopterPrefab, startPosition, rotation);
         ConfigurePropellerAnimator();
     }
 
@@ -172,7 +176,13 @@ public class HelicopterMissileSkillRuntime : MonoBehaviour
         Vector3 targetPosition = ResolveMissileTargetPoint(missileIndex);
         Vector3 missileDirection = targetPosition - spawnPosition;
         Quaternion missileRotation = missileDirection.sqrMagnitude > 0.0001f ? Quaternion.LookRotation(missileDirection.normalized, Vector3.up) : Quaternion.identity;
-        GameObject missileObject = Instantiate(definition.MissilePrefab, spawnPosition, missileRotation);
+        GameObject missileObject = PooledObjectUtility.SpawnProjectile(definition.MissilePrefab, spawnPosition, missileRotation);
+        if (missileObject == null)
+        {
+            Debug.LogWarning("[헬기 스킬] 미사일 오브젝트 생성에 실패했습니다.", this);
+            return;
+        }
+
         HelicopterMissileSkillProjectile projectile = missileObject.GetComponent<HelicopterMissileSkillProjectile>();
 
         if (projectile == null)
@@ -283,15 +293,14 @@ public class HelicopterMissileSkillRuntime : MonoBehaviour
     {
         activeMissileCount = Mathf.Max(0, activeMissileCount - 1);
 
-        ApplyAreaDamage();
+        ApplyImpactDamage(impactPosition);
     }
 
-    // 직사각형 범위 안의 일반 좀비와 보스 좀비에게 데미지를 적용한다.
-    private void ApplyAreaDamage()
+    // 미사일 착탄 위치를 중심으로 원형 폭발 데미지를 적용한다.
+    private void ApplyImpactDamage(Vector3 impactPosition)
     {
-        Vector3 boxCenter = areaCenter + Vector3.up * (definition.DamageBoxHeight * 0.5f);
-        Vector3 halfExtents = new Vector3(GetVisibleAreaWidth() * 0.5f, definition.DamageBoxHeight * 0.5f, GetVisibleAreaLength() * 0.5f);
-        int hitCount = Physics.OverlapBoxNonAlloc(boxCenter, halfExtents, hitBuffer, areaRotation, definition.DamageLayerMask, definition.DamageTriggerInteraction);
+        float damageRadius = Mathf.Max(0.1f, definition.MissileDamageRadius);
+        int hitCount = Physics.OverlapSphereNonAlloc(impactPosition, damageRadius, hitBuffer, definition.DamageLayerMask, definition.DamageTriggerInteraction);
         int damagedCount = 0;
 
         for (int i = 0; i < hitCount; i++)
@@ -315,8 +324,13 @@ public class HelicopterMissileSkillRuntime : MonoBehaviour
                 continue;
             }
 
+            if (definition.ApplyDamageOncePerCast && !CanRegisterCastDamagedTarget())
+            {
+                continue;
+            }
+
             damageable.TakeDamage(levelData.Damage);
-            if (definition.ApplyDamageOncePerCast && castDamagedTargetCount < castDamagedTargets.Length)
+            if (definition.ApplyDamageOncePerCast)
             {
                 castDamagedTargets[castDamagedTargetCount] = damageable;
                 castDamagedTargetCount++;
@@ -330,6 +344,23 @@ public class HelicopterMissileSkillRuntime : MonoBehaviour
         }
 
         ClearDamagedTargets(damagedCount);
+    }
+
+    // 캐스트 전체 중복 방지 배열에 새 대상을 기록할 수 있는지 확인한다.
+    private bool CanRegisterCastDamagedTarget()
+    {
+        if (castDamagedTargetCount < castDamagedTargets.Length)
+        {
+            return true;
+        }
+
+        if (!warnedCastDamageCapacityExceeded)
+        {
+            Debug.LogWarning("[헬기 스킬] 캐스트 중복 방지 배열이 가득 차 추가 데미지를 건너뜁니다. Damage Buffer Size 또는 Missile Count 설정을 확인해주세요.", this);
+            warnedCastDamageCapacityExceeded = true;
+        }
+
+        return false;
     }
 
     // 스킬 타격 대상이 일반 좀비 또는 보스 좀비인지 확인한다.

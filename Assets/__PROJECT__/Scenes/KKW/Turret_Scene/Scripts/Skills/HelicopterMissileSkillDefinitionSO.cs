@@ -70,7 +70,8 @@ public class HelicopterMissileSkillDefinitionSO : ScriptableObject
     [Header("데미지 판정")]
     [SerializeField] private LayerMask damageLayerMask = ~0;
     [Min(1)] [SerializeField] private int damageBufferSize = 64;
-    [Min(0.1f)] [SerializeField] private float damageBoxHeight = 12f;
+    [Tooltip("미사일 한 발이 착탄한 위치를 중심으로 데미지를 적용할 반경입니다.")]
+    [Min(0.1f)] [SerializeField] private float missileDamageRadius = 3f;
     [SerializeField] private QueryTriggerInteraction damageTriggerInteraction = QueryTriggerInteraction.Collide;
 
     public string SkillId => skillId;
@@ -111,7 +112,7 @@ public class HelicopterMissileSkillDefinitionSO : ScriptableObject
     public bool ApplyDamageOncePerCast => applyDamageOncePerCast;
     public LayerMask DamageLayerMask => damageLayerMask;
     public int DamageBufferSize => damageBufferSize;
-    public float DamageBoxHeight => damageBoxHeight;
+    public float MissileDamageRadius => missileDamageRadius;
     public QueryTriggerInteraction DamageTriggerInteraction => damageTriggerInteraction;
 
     // 요청 레벨에 사용할 스킬 수치를 반환한다.

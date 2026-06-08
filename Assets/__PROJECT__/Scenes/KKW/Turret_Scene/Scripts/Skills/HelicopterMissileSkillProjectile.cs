@@ -15,9 +15,7 @@ public class HelicopterMissileSkillProjectile : MonoBehaviour
     private Action<Vector3> impactCallback;
     private bool initialized;
     private bool hasImpacted;
-    private bool usesInternalImpactTiming;
     private ParticleSystem[] particleSystems;
-    private int collisionRelayCount;
     private Vector3 spawnPosition;
 
     // 미사일 이동과 충돌 연출 데이터를 초기화한다.
@@ -35,17 +33,18 @@ public class HelicopterMissileSkillProjectile : MonoBehaviour
         impactCallback = impactCallback_;
         initialized = true;
         hasImpacted = false;
-        usesInternalImpactTiming = false;
 
         ConfigurePhysics();
         CacheParticleSystems();
         RegisterParticleCollisionRelays();
-        usesInternalImpactTiming = collisionRelayCount > 0;
+    }
 
-        if (usesInternalImpactTiming)
-        {
-            Destroy(gameObject, Mathf.Max(5f, destroyDelayAfterImpact + explosionDuration + 2f));
-        }
+    // 풀 반환 시 이전 충돌 콜백과 실행 상태를 정리한다.
+    private void OnDisable()
+    {
+        initialized = false;
+        hasImpacted = false;
+        impactCallback = null;
     }
 
     // 초기화된 미사일을 매 프레임 목표 지점으로 이동시킨다.
@@ -57,11 +56,6 @@ public class HelicopterMissileSkillProjectile : MonoBehaviour
         }
 
         elapsedTime += Time.deltaTime;
-        if (usesInternalImpactTiming)
-        {
-            return;
-        }
-
         MoveMissile();
     }
 
@@ -90,7 +84,6 @@ public class HelicopterMissileSkillProjectile : MonoBehaviour
     // 파티클 충돌 이벤트를 발사체 충돌 처리로 전달할 릴레이를 등록한다.
     private void RegisterParticleCollisionRelays()
     {
-        collisionRelayCount = 0;
         if (particleSystems == null)
         {
             return;
@@ -119,7 +112,6 @@ public class HelicopterMissileSkillProjectile : MonoBehaviour
             }
 
             relay.Initialize(this, particleSystemComp);
-            collisionRelayCount++;
         }
     }
 
@@ -155,7 +147,7 @@ public class HelicopterMissileSkillProjectile : MonoBehaviour
         return true;
     }
 
-    // 파티클 충돌 이벤트가 없는 미사일 프리팹을 목표 지점까지 이동시킨다.
+    // 파티클 충돌 설정과 무관하게 미사일 루트를 목표 지점까지 이동시킨다.
     private void MoveMissile()
     {
         Vector3 currentPosition = transform.position;
@@ -196,7 +188,7 @@ public class HelicopterMissileSkillProjectile : MonoBehaviour
         transform.position = impactPosition;
         impactCallback?.Invoke(impactPosition);
         SpawnExplosion(impactPosition);
-        Destroy(gameObject, destroyDelayAfterImpact);
+        PooledProjectileReturner.ReturnOrDestroy(gameObject, destroyDelayAfterImpact);
     }
 
     // 폭발 이펙트를 목표 지점에 생성한다.
@@ -207,11 +199,7 @@ public class HelicopterMissileSkillProjectile : MonoBehaviour
             return;
         }
 
-        GameObject explosion = Instantiate(explosionPrefab, impactPosition, Quaternion.identity);
-        if (explosionDuration > 0f)
-        {
-            Destroy(explosion, explosionDuration);
-        }
+        PooledObjectUtility.SpawnEffect(explosionPrefab, impactPosition, Quaternion.identity, explosionDuration);
     }
 
 }

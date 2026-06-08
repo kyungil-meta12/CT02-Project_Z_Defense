@@ -67276,6 +67276,22 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 4923978412736581042, guid: 20225f65d99ce6d41a96d0be409fdb47, type: 3}
+      propertyPath: prewarmEntries.Array.data[28].count
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 4923978412736581042, guid: 20225f65d99ce6d41a96d0be409fdb47, type: 3}
+      propertyPath: prewarmEntries.Array.data[29].count
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 4923978412736581042, guid: 20225f65d99ce6d41a96d0be409fdb47, type: 3}
+      propertyPath: prewarmEntries.Array.data[30].count
+      value: 18
+      objectReference: {fileID: 0}
+    - target: {fileID: 4923978412736581042, guid: 20225f65d99ce6d41a96d0be409fdb47, type: 3}
+      propertyPath: prewarmEntries.Array.data[31].count
+      value: 18
+      objectReference: {fileID: 0}
     - target: {fileID: 7671124331316852738, guid: 20225f65d99ce6d41a96d0be409fdb47, type: 3}
       propertyPath: m_Name
       value: MemoryPool

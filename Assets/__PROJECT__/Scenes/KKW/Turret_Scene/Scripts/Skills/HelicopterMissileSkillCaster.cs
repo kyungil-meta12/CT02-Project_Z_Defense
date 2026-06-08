@@ -85,7 +85,7 @@ public class HelicopterMissileSkillCaster : MonoBehaviour
 
         if (activePreview != null)
         {
-            Destroy(activePreview);
+            PooledObjectUtility.ReturnOrDestroy(activePreview);
             activePreview = null;
         }
     }
@@ -98,7 +98,12 @@ public class HelicopterMissileSkillCaster : MonoBehaviour
             return;
         }
 
-        activePreview = Instantiate(currentDefinition.RangePreviewPrefab);
+        activePreview = PooledObjectUtility.Spawn(currentDefinition.RangePreviewPrefab, Vector3.zero, Quaternion.identity);
+        if (activePreview == null)
+        {
+            return;
+        }
+
         activePreview.name = $"{currentDefinition.RangePreviewPrefab.name}_SkillPreview";
     }
 

@@ -53,6 +53,24 @@ public static class PooledObjectUtility
         return effect;
     }
 
+    // 풀에서 꺼낸 오브젝트는 반환하고, 일반 생성 오브젝트는 제거한다.
+    public static void ReturnOrDestroy(GameObject target)
+    {
+        if (target == null)
+        {
+            return;
+        }
+
+        PoolObject poolObject = target.GetComponent<PoolObject>();
+        if (poolObject != null && poolObject.OriginStack != null)
+        {
+            poolObject.ReturnToPool();
+            return;
+        }
+
+        UnityEngine.Object.Destroy(target);
+    }
+
     private static MemoryPool GetMemoryPool()
     {
         return MemoryPool.Inst;

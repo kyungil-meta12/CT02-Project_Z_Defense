@@ -79,7 +79,7 @@ public class NormalZombie : PoolObject, IDamageable
         returnInstanceCoroutineRunning = false;
 
         // 테스트용 코루틴
-        StartCoroutine(AutoDeathCoroutine());
+       // StartCoroutine(AutoDeathCoroutine());
     }
     
     IEnumerator AutoDeathCoroutine()

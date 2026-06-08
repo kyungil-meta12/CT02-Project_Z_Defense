@@ -53,16 +53,19 @@ MonoBehaviour:
     rotationSpeedMultiplier: 1
   missileCount: 6
   missileInterval: 0.15
+  missileSpreadMode: 0
+  missileSpreadLengthRatio: 0.9
+  missileSpreadWidthRatio: 0.7
   missileRootMoveSpeed: 20
   missileTargetHeightOffset: 0.1
   missileImpactArmDelay: 0.2
   missileImpactMinTravelDistance: 2
   explosionEffectDuration: 3
   missileDestroyDelayAfterImpact: 1.5
-  applyDamageOncePerCast: 0
+  applyDamageOncePerCast: 1
   damageLayerMask:
     serializedVersion: 2
     m_Bits: 1152
-  damageBufferSize: 64
+  damageBufferSize: 256
   damageBoxHeight: 12
   damageTriggerInteraction: 2

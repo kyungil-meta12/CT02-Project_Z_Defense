@@ -50,6 +50,11 @@ public class HelicopterMissileSkillDefinitionSO : ScriptableObject
     [Header("미사일")]
     [Min(1)] [SerializeField] private int missileCount = 6;
     [Min(0f)] [SerializeField] private float missileInterval = 0.15f;
+    [SerializeField] private HelicopterMissileSpreadMode missileSpreadMode = HelicopterMissileSpreadMode.Zigzag;
+    [Tooltip("표시 범위 길이 안에서 미사일 착탄점을 흩뿌릴 비율입니다. 1이면 전체 길이를 사용합니다.")]
+    [Range(0.1f, 1f)] [SerializeField] private float missileSpreadLengthRatio = 0.9f;
+    [Tooltip("표시 범위 폭 안에서 미사일 착탄점을 흩뿌릴 비율입니다. 1이면 전체 폭을 사용합니다.")]
+    [Range(0.1f, 1f)] [SerializeField] private float missileSpreadWidthRatio = 0.7f;
     [Tooltip("FX_Missile_01 루트 오브젝트를 목표 지점 쪽으로 이동시키는 속도입니다.")]
     [FormerlySerializedAs("missileSpeed")] [Min(0.1f)] [SerializeField] private float missileRootMoveSpeed = 35f;
     [SerializeField] private float missileTargetHeightOffset = 0.1f;
@@ -94,6 +99,9 @@ public class HelicopterMissileSkillDefinitionSO : ScriptableObject
     public HelicopterPropellerPrefabBinding[] PropellerBindings => propellerBindings;
     public int MissileCount => missileCount;
     public float MissileInterval => missileInterval;
+    public HelicopterMissileSpreadMode MissileSpreadMode => missileSpreadMode;
+    public float MissileSpreadLengthRatio => missileSpreadLengthRatio;
+    public float MissileSpreadWidthRatio => missileSpreadWidthRatio;
     public float MissileRootMoveSpeed => missileRootMoveSpeed;
     public float MissileTargetHeightOffset => missileTargetHeightOffset;
     public float MissileImpactArmDelay => missileImpactArmDelay;
@@ -134,6 +142,14 @@ public class HelicopterMissileSkillDefinitionSO : ScriptableObject
 
         return bestData != null ? bestData : HelicopterMissileSkillLevelData.Default;
     }
+}
+
+public enum HelicopterMissileSpreadMode
+{
+    Random,
+    EvenLine,
+    Zigzag,
+    Grid
 }
 
 [System.Serializable]

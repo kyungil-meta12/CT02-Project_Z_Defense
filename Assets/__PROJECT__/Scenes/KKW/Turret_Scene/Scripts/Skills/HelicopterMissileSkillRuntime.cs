@@ -11,7 +11,8 @@ public class HelicopterMissileSkillRuntime : MonoBehaviour
     private GameObject helicopterInstance;
     private Collider[] hitBuffer;
     private IDamageable[] damagedTargets;
-    private bool hasAppliedCastDamage;
+    private IDamageable[] castDamagedTargets;
+    private int castDamagedTargetCount;
     private int activeMissileCount;
 
     // 스킬 런타임 데이터를 초기화하고 연출 코루틴을 시작한다.
@@ -26,6 +27,8 @@ public class HelicopterMissileSkillRuntime : MonoBehaviour
         int bufferSize = Mathf.Max(1, definition.DamageBufferSize);
         hitBuffer = new Collider[bufferSize];
         damagedTargets = new IDamageable[bufferSize];
+        castDamagedTargets = new IDamageable[bufferSize];
+        castDamagedTargetCount = 0;
 
         StartCoroutine(RunSkillCoroutine());
     }
@@ -193,28 +196,92 @@ public class HelicopterMissileSkillRuntime : MonoBehaviour
     private Vector3 ResolveMissileTargetPoint(int missileIndex)
     {
         int count = Mathf.Max(1, definition.MissileCount);
-        float lengthRatio = count == 1 ? 0.5f : missileIndex / (float)(count - 1);
-        float lengthOffset = Mathf.Lerp(-0.45f, 0.45f, lengthRatio) * levelData.AreaLength;
-        float widthOffset = Random.Range(-0.35f, 0.35f) * levelData.AreaWidth;
+        float lengthOffset = 0f;
+        float widthOffset = 0f;
+        float effectiveAreaLength = GetVisibleAreaLength();
+        float effectiveAreaWidth = GetVisibleAreaWidth();
+        float lengthRange = effectiveAreaLength * Mathf.Clamp01(definition.MissileSpreadLengthRatio) * 0.5f;
+        float widthRange = effectiveAreaWidth * Mathf.Clamp01(definition.MissileSpreadWidthRatio) * 0.5f;
+
+        switch (definition.MissileSpreadMode)
+        {
+            case HelicopterMissileSpreadMode.EvenLine:
+                ResolveEvenLineMissileOffset(missileIndex, count, lengthRange, out lengthOffset);
+                break;
+            case HelicopterMissileSpreadMode.Zigzag:
+                ResolveZigzagMissileOffset(missileIndex, count, lengthRange, widthRange, out lengthOffset, out widthOffset);
+                break;
+            case HelicopterMissileSpreadMode.Grid:
+                ResolveGridMissileOffset(missileIndex, count, lengthRange, widthRange, out lengthOffset, out widthOffset);
+                break;
+            default:
+                ResolveRandomMissileOffset(lengthRange, widthRange, out lengthOffset, out widthOffset);
+                break;
+        }
+
         Vector3 localOffset = new Vector3(widthOffset, definition.MissileTargetHeightOffset, lengthOffset);
 
         return areaCenter + areaRotation * localOffset;
+    }
+
+    // 범위 표시 프리팹에 적용되는 실제 표시 폭을 반환한다.
+    private float GetVisibleAreaWidth()
+    {
+        return levelData.AreaWidth * Mathf.Abs(definition.PreviewLocalScaleMultiplier.x);
+    }
+
+    // 범위 표시 프리팹에 적용되는 실제 표시 길이를 반환한다.
+    private float GetVisibleAreaLength()
+    {
+        return levelData.AreaLength * Mathf.Abs(definition.PreviewLocalScaleMultiplier.z);
+    }
+
+    // 표시 범위 안에서 무작위 착탄 위치를 계산한다.
+    private void ResolveRandomMissileOffset(float lengthRange, float widthRange, out float lengthOffset, out float widthOffset)
+    {
+        lengthOffset = Random.Range(-lengthRange, lengthRange);
+        widthOffset = Random.Range(-widthRange, widthRange);
+    }
+
+    // 표시 범위의 길이 방향으로 균등한 착탄 위치를 계산한다.
+    private void ResolveEvenLineMissileOffset(int missileIndex, int count, float lengthRange, out float lengthOffset)
+    {
+        float ratio = count == 1 ? 0.5f : missileIndex / (float)(count - 1);
+        lengthOffset = Mathf.Lerp(-lengthRange, lengthRange, ratio);
+    }
+
+    // 표시 범위의 길이 방향으로 균등 배치하고 폭 방향은 좌우 번갈아 배치한다.
+    private void ResolveZigzagMissileOffset(int missileIndex, int count, float lengthRange, float widthRange, out float lengthOffset, out float widthOffset)
+    {
+        ResolveEvenLineMissileOffset(missileIndex, count, lengthRange, out lengthOffset);
+
+        if (count <= 1)
+        {
+            widthOffset = 0f;
+            return;
+        }
+
+        widthOffset = missileIndex % 2 == 0 ? -widthRange : widthRange;
+    }
+
+    // 표시 범위 안에서 행/열 형태의 착탄 위치를 계산한다.
+    private void ResolveGridMissileOffset(int missileIndex, int count, float lengthRange, float widthRange, out float lengthOffset, out float widthOffset)
+    {
+        int rowCount = Mathf.Max(1, Mathf.CeilToInt(Mathf.Sqrt(count)));
+        int columnCount = Mathf.Max(1, Mathf.CeilToInt(count / (float)rowCount));
+        int row = missileIndex / columnCount;
+        int column = missileIndex % columnCount;
+        float lengthRatio = rowCount == 1 ? 0.5f : row / (float)(rowCount - 1);
+        float widthRatio = columnCount == 1 ? 0.5f : column / (float)(columnCount - 1);
+
+        lengthOffset = Mathf.Lerp(-lengthRange, lengthRange, lengthRatio);
+        widthOffset = Mathf.Lerp(-widthRange, widthRange, widthRatio);
     }
 
     // 미사일 충돌 시 폭발 데미지를 적용한다.
     private void OnMissileImpact(Vector3 impactPosition)
     {
         activeMissileCount = Mathf.Max(0, activeMissileCount - 1);
-
-        if (definition.ApplyDamageOncePerCast)
-        {
-            if (hasAppliedCastDamage)
-            {
-                return;
-            }
-
-            hasAppliedCastDamage = true;
-        }
 
         ApplyAreaDamage();
     }
@@ -223,7 +290,7 @@ public class HelicopterMissileSkillRuntime : MonoBehaviour
     private void ApplyAreaDamage()
     {
         Vector3 boxCenter = areaCenter + Vector3.up * (definition.DamageBoxHeight * 0.5f);
-        Vector3 halfExtents = new Vector3(levelData.AreaWidth * 0.5f, definition.DamageBoxHeight * 0.5f, levelData.AreaLength * 0.5f);
+        Vector3 halfExtents = new Vector3(GetVisibleAreaWidth() * 0.5f, definition.DamageBoxHeight * 0.5f, GetVisibleAreaLength() * 0.5f);
         int hitCount = Physics.OverlapBoxNonAlloc(boxCenter, halfExtents, hitBuffer, areaRotation, definition.DamageLayerMask, definition.DamageTriggerInteraction);
         int damagedCount = 0;
 
@@ -238,12 +305,23 @@ public class HelicopterMissileSkillRuntime : MonoBehaviour
             }
 
             IDamageable damageable = hitCollider.GetComponentInParent<IDamageable>();
-            if (!IsValidDamageTarget(damageable) || ContainsDamagedTarget(damageable, damagedCount))
+            if (!IsValidDamageTarget(damageable) || ContainsDamagedTarget(damageable, damagedTargets, damagedCount))
+            {
+                continue;
+            }
+
+            if (definition.ApplyDamageOncePerCast && ContainsDamagedTarget(damageable, castDamagedTargets, castDamagedTargetCount))
             {
                 continue;
             }
 
             damageable.TakeDamage(levelData.Damage);
+            if (definition.ApplyDamageOncePerCast && castDamagedTargetCount < castDamagedTargets.Length)
+            {
+                castDamagedTargets[castDamagedTargetCount] = damageable;
+                castDamagedTargetCount++;
+            }
+
             if (damagedCount < damagedTargets.Length)
             {
                 damagedTargets[damagedCount] = damageable;
@@ -266,11 +344,11 @@ public class HelicopterMissileSkillRuntime : MonoBehaviour
     }
 
     // 한 번의 범위 판정에서 같은 대상이 중복 피격되는지 확인한다.
-    private bool ContainsDamagedTarget(IDamageable damageable, int damagedCount)
+    private bool ContainsDamagedTarget(IDamageable damageable, IDamageable[] targets, int targetCount)
     {
-        for (int i = 0; i < damagedCount; i++)
+        for (int i = 0; i < targetCount; i++)
         {
-            if (damagedTargets[i] == damageable)
+            if (targets[i] == damageable)
             {
                 return true;
             }

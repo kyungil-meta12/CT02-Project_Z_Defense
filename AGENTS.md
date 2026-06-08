@@ -22,6 +22,8 @@
 ## High Priority Rules
 
 - Follow `TeamCodingConvention.cs` for all code changes.
+- When writing a new method, add a brief Korean comment explaining its purpose.
+- Write debugging logs in Korean.
 - For turret, combat, projectile, placement, and damage popup work, consult `TURRET_DATA_STRUCTURE_PLAN.cs` first.
 - When design intent or responsibility boundaries are unclear, use `PROJECT_README.cs` as the source of truth.
 - Avoid direct modification of Private Assets originals when possible; prefer project-level wrappers, profiles, adapters, or duplicated prefabs under the project folder.

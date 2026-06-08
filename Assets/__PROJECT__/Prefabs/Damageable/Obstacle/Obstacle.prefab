@@ -131,6 +131,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Obstacle
   spec: {fileID: 11400000, guid: 97c7de20a7a9e514e80ff6a15ca48b15, type: 2}
   hpUI: {fileID: 7309547130089230364}
+  preFracturedPiecesPrefab: {fileID: 2069599314372682285, guid: 23e187cc224ddb3458a023ae67393f56, type: 3}
 --- !u!114 &891698404261522130
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -140,16 +141,16 @@ MonoBehaviour:
   m_GameObject: {fileID: 1242232213132576}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 16e941d03cfc53b4c925e03193f9a54b, type: 3}
+  m_Script: {fileID: 11500000, guid: e5711ac80149b2e449032315bef115b0, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: DinoFracture.Scripts::DinoFracture.RuntimeFracturedGeometry
+  m_EditorClassIdentifier: DinoFracture.Scripts::DinoFracture.PreFracturedGeometry
   InsideMaterial: {fileID: 2100000, guid: 35714f144b2aeb34d86e5cf87bfa5d17, type: 2}
   OptimizeMaterialUsage: 1
-  FractureTemplate: {fileID: 100000, guid: bb85f1155c6bfa044bd2c250028a85b8, type: 3}
+  FractureTemplate: {fileID: 0}
   PiecesParent: {fileID: 0}
   FractureType: 0
   SlicePlanes: []
-  NumFracturePieces: 5
+  NumFracturePieces: 3
   NumIterations: 2
   EvenlySizedPieces: 1
   NumGenerations: 1
@@ -162,7 +163,7 @@ MonoBehaviour:
     StartUV: {x: 0, y: 0}
     EndUV: {x: 1, y: 1}
   DistributeMass: 1
-  SeparateDisjointPieces: 0
+  SeparateDisjointPieces: 1
   VertexMergingPolicy: 0
   RandomSeed: 0
   OnFractureCompleted:
@@ -182,7 +183,10 @@ MonoBehaviour:
         m_CallState: 2
   _meshValidity: 2
   SkipMeshCleaning: 0
-  Asynchronous: 0
+  GeneratedPieces: {fileID: 0}
+  EntireMeshBounds:
+    m_Center: {x: 0, y: 0.46036658, z: 0}
+    m_Extent: {x: 2.7909503, y: 1.3810997, z: 0.6357686}
 --- !u!114 &6994702549793186919
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -195,8 +199,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4cd6f1f120f81214d9aae45b84134d78, type: 3}
   m_Name: 
   m_EditorClassIdentifier: DinoFracture.Scripts::DinoFracture.ExplodeOnFracture
-  Force: 0.2
-  Radius: 0.5
+  Force: 0.1
+  Radius: 0.2
 --- !u!1001 &8512122460503951145
 PrefabInstance:
   m_ObjectHideFlags: 0

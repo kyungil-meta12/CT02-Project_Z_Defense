@@ -1,24 +1,22 @@
-using System;
-using System.Collections;
 using DinoFracture;
 using UnityEngine;
-using Random = UnityEngine.Random;
 
 public class Obstacle : MonoBehaviour, IDamageable
 {
     public ObstacleSpec spec;
-    
     public HpUI hpUI;
-    
+
+    [SerializeField] private GameObject preFracturedPiecesPrefab;
+
     public float TotalHp { get; private set; }
     public float CurrHp { get; private set; }
     public bool IsAlive { get; private set; }
-    
-    private RuntimeFracturedGeometry fractureGeometry;
+
+    private PreFracturedGeometry fractureGeometry;
 
     private void Awake()
     {
-        fractureGeometry = GetComponent<RuntimeFracturedGeometry>();
+        fractureGeometry = GetComponent<PreFracturedGeometry>();
     }
 
     private void Start()
@@ -42,12 +40,34 @@ public class Obstacle : MonoBehaviour, IDamageable
     //파편화 
     public void Fracture()
     {
-        if (fractureGeometry == null || fractureGeometry.IsProcessingFracture)
+        if (fractureGeometry == null || fractureGeometry.IsProcessingFracture || !EnsurePreFracturedPieces())
         {
             return;
         }
 
         fractureGeometry.Fracture();
+    }
+
+    //사전 생성된 파편 오브젝트를 준비하고 PreFracturedGeometry에 연결한다
+    private bool EnsurePreFracturedPieces()
+    {
+        if (fractureGeometry.GeneratedPieces != null)
+        {
+            return true;
+        }
+
+        if (preFracturedPiecesPrefab == null)
+        {
+            Debug.LogError("[Obstacle] 사전 생성된 파편 프리팹이 할당되지 않았습니다.", this);
+            return false;
+        }
+
+        GameObject generatedPieces = Instantiate(preFracturedPiecesPrefab, transform.parent);
+        generatedPieces.name = $"{name}FracturePieces";
+        generatedPieces.SetActive(false);
+        fractureGeometry.GeneratedPieces = generatedPieces;
+
+        return true;
     }
 
     //피격

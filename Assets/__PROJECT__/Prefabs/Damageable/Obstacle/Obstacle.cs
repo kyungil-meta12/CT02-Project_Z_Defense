@@ -4,7 +4,7 @@ using DinoFracture;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
-public class Obstacle : PoolObject, IDamageable
+public class Obstacle : MonoBehaviour, IDamageable
 {
     public ObstacleSpec spec;
     
@@ -14,13 +14,22 @@ public class Obstacle : PoolObject, IDamageable
     public float CurrHp { get; private set; }
     public bool IsAlive { get; private set; }
     
-    private bool returnInstanceCoroutineRunning = false;
-    
     private RuntimeFracturedGeometry fractureGeometry;
 
     private void Awake()
     {
         fractureGeometry = GetComponent<RuntimeFracturedGeometry>();
+    }
+
+    private void Start()
+    {
+        //레벨에 맞춰서 hp 설정
+        TotalHp = spec.Hp + spec.level * spec.levelWeight;
+        CurrHp = TotalHp;
+        IsAlive = true;
+        
+        hpUI.InputTotalHp(TotalHp);
+        hpUI.InputCurrHp(TotalHp);
     }
 
     //todo 레벨업시 호출, 레벨 가중치를 hp최대치에 추가
@@ -41,47 +50,7 @@ public class Obstacle : PoolObject, IDamageable
         fractureGeometry.Fracture();
     }
 
-    public override void OnSpawn()
-    {
-        var randomHp = Random.Range(spec.MinHp, spec.MaxHp);
-        
-        //레벨에 맞춰서 hp 설정
-        TotalHp = spec.Hp + spec.level * spec.levelWeight;
-        CurrHp = TotalHp;
-        IsAlive = true;
-        
-        hpUI.InputTotalHp(TotalHp);
-        hpUI.InputCurrHp(TotalHp);
-
-        returnInstanceCoroutineRunning = false;
-    }
-    
-    public override void OnDespawn()
-    {}
-    
-    void Update()
-    {
-        UpdateDeath();
-    }
-    
-    void UpdateDeath()
-    {
-        if(IsAlive)
-        {
-            return;
-        }
-        if (!returnInstanceCoroutineRunning)
-        {
-            StartCoroutine(ReturnInstanceCoroutine());
-        }
-        IEnumerator ReturnInstanceCoroutine()
-        {
-            returnInstanceCoroutineRunning = true;
-            yield return new WaitForSeconds(3f);
-            ReturnInstance();
-        }
-    }
-
+    //피격
     public void TakeDamage(float damage)
     {
         if(!IsAlive)
@@ -99,6 +68,11 @@ public class Obstacle : PoolObject, IDamageable
             
             Fracture(); //DinoFracture 파편 효과
         }
+    }
+
+    public void Destroy()
+    {
+        Destroy(gameObject);
     }
     
     public void SetPosition(Transform t)

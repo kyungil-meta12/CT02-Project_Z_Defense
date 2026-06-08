@@ -13,9 +13,9 @@ MonoBehaviour:
   m_Name: SurvivorSpec
   m_EditorClassIdentifier: 
   level: 1
-  moveSpeed: 3.5
+  moveSpeed: 10
   moveSpeedLevelWeight: 0.05
-  repairHpPerSecond: 5
+  repairHpPerSecond: 20
   repairHpPerSecondLevelWeight: 0.5
   repairRange: 1.5
   targetSearchInterval: 0.5

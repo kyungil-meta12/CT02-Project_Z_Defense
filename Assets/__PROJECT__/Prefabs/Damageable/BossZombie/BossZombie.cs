@@ -20,6 +20,10 @@ public class BossZombie : PoolObject, IDamageable
     private float attackDamage;
     private bool returnInstanceCoroutineRunning = false;
     private static readonly int SpeedHash = Animator.StringToHash("speed");
+    private static readonly int HitStateHash = Animator.StringToHash("Hit");
+    private static readonly int AttackStateHash = Animator.StringToHash("Attack");
+    private static readonly int BackWalkStateHash = Animator.StringToHash("BackWalk");
+    private static readonly int SkillStateHash = Animator.StringToHash("Skill");
     private readonly List<Collider> colliders = new List<Collider>(4);
     [SerializeField] private float animationSpeedDampTime = 0.1f;
     [SerializeField] private float screamerSkillRadius = 10f;
@@ -45,6 +49,8 @@ public class BossZombie : PoolObject, IDamageable
         agent = GetComponent<NavMeshAgent>();
         col = GetComponent<Collider>();
         GetComponentsInChildren(false, colliders);
+
+        ConfigureRootMotionNavigation();
         
         behaviorAgent.GetVariable("Enum", out bossZombieEnum);
         behaviorAgent.GetVariable("AttackTarget", out attackTargetBV);
@@ -56,6 +62,8 @@ public class BossZombie : PoolObject, IDamageable
     public override void OnSpawn()
     {
         base.OnSpawn();
+        ConfigureRootMotionNavigation();
+
         var randomMoveAttackSpeed = Random.Range(spec.MinMoveAttackSpeed, spec.MaxMoveAttackSpeed);
         var randomAttackDamage = Random.Range(spec.MinAttackDamage, spec.MaxAttackDamage);
         var randomHp = Random.Range(spec.MinHp, spec.MaxHp);
@@ -76,6 +84,7 @@ public class BossZombie : PoolObject, IDamageable
         CurrHp = TotalHp;
         IsAlive = true;
         storeDamage = 0f;
+        destination = null;
 
         // 체력 UI 슬라이더 값 지정
         hpUI.gameObject.SetActive(true);
@@ -84,6 +93,7 @@ public class BossZombie : PoolObject, IDamageable
         
         SetCollidersEnabled(true);
         agent.enabled = true;
+        SyncAgentPositionToTransform();
         isDieBV.Value = false;
         anim.SetFloat(SpeedHash, 0f);
 
@@ -105,7 +115,112 @@ public class BossZombie : PoolObject, IDamageable
     void Update()
     {
         UpdateDeath();
+        UpdateRootMotionNavigation();
         UpdateMoveAnimationSpeed();
+    }
+
+    private void ConfigureRootMotionNavigation()
+    {
+        if (anim)
+        {
+            anim.applyRootMotion = true;
+        }
+
+        if (!agent)
+        {
+            return;
+        }
+
+        agent.updatePosition = false;
+        agent.updateRotation = false;
+    }
+
+    private void UpdateRootMotionNavigation()
+    {
+        if (!IsAlive || !agent || !agent.enabled || !agent.isOnNavMesh)
+        {
+            return;
+        }
+
+        SyncAgentPositionToTransform();
+
+        if (IsActionRootMotionState())
+        {
+            agent.isStopped = true;
+            return;
+        }
+
+        if (agent.isStopped)
+        {
+            agent.isStopped = false;
+        }
+
+        Vector3 destDir = agent.desiredVelocity;
+        destDir.y = 0f;
+
+        if (destDir.sqrMagnitude > 0.1f)
+        {
+            destDir.Normalize();
+            Quaternion targetRotation = Quaternion.LookRotation(destDir);
+            transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime * 2.5f);
+        }
+    }
+
+    private void OnAnimatorMove()
+    {
+        if (!IsAlive || !anim)
+        {
+            return;
+        }
+
+        transform.position += anim.deltaPosition;
+
+        if (IsActionRootMotionState())
+        {
+            transform.rotation *= anim.deltaRotation;
+        }
+
+        SyncAgentPositionToTransform();
+    }
+
+    private void SyncAgentPositionToTransform()
+    {
+        if (!agent || !agent.enabled || !agent.isOnNavMesh)
+        {
+            return;
+        }
+
+        agent.nextPosition = transform.position;
+    }
+
+    private bool IsActionRootMotionState()
+    {
+        if (!anim)
+        {
+            return false;
+        }
+
+        AnimatorStateInfo currentState = anim.GetCurrentAnimatorStateInfo(0);
+        if (IsActionRootMotionState(currentState.shortNameHash))
+        {
+            return true;
+        }
+
+        if (!anim.IsInTransition(0))
+        {
+            return false;
+        }
+
+        AnimatorStateInfo nextState = anim.GetNextAnimatorStateInfo(0);
+        return IsActionRootMotionState(nextState.shortNameHash);
+    }
+
+    private bool IsActionRootMotionState(int stateHash)
+    {
+        return stateHash == HitStateHash ||
+               stateHash == AttackStateHash ||
+               stateHash == BackWalkStateHash ||
+               stateHash == SkillStateHash;
     }
 
     private void UpdateMoveAnimationSpeed()
@@ -121,7 +236,13 @@ public class BossZombie : PoolObject, IDamageable
             return;
         }
 
-        if (!agent || !agent.enabled)
+        if (!agent || !agent.enabled || !agent.isOnNavMesh)
+        {
+            anim.SetFloat(SpeedHash, 0f, animationSpeedDampTime, Time.deltaTime);
+            return;
+        }
+
+        if (IsActionRootMotionState())
         {
             anim.SetFloat(SpeedHash, 0f, animationSpeedDampTime, Time.deltaTime);
             return;
@@ -398,12 +519,20 @@ public class BossZombie : PoolObject, IDamageable
         SetCollidersEnabled(true);
         transform.position = t.position;
         agent.enabled = true;
+        ConfigureRootMotionNavigation();
         agent.Warp(t.position);
+        SyncAgentPositionToTransform();
     }
     
     public void SetDestination(Transform t)
     {
         destination = t;
         agent.enabled = true;
+        ConfigureRootMotionNavigation();
+
+        if (destination && agent.isOnNavMesh)
+        {
+            agent.SetDestination(destination.position);
+        }
     }
 }

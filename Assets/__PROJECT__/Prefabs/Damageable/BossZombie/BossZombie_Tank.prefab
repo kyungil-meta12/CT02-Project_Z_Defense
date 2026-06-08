@@ -1103,6 +1103,7 @@ MonoBehaviour:
   animationSpeedDampTime: 0.15
   screamerSkillRadius: 10
   screamerSkillSpeedMultiplier: 1.5
+  logReceivedDamage: 1
   bossZombieEnum:
     GUID:
       m_Value0: 0

@@ -9,15 +9,8 @@ public class HelicopterPropellerAnimator : MonoBehaviour
     [SerializeField] private Vector3 localRotationAxis = Vector3.up;
     [SerializeField] private HelicopterPropellerRotationElement[] propellerElements;
     [SerializeField] private HelicopterPropellerPrefabBinding[] prefabBindings;
-    [SerializeField] private HelicopterPropellerSearchRule[] autoFindRules =
-    {
-        new HelicopterPropellerSearchRule("propeller", Vector3.up, 1f),
-        new HelicopterPropellerSearchRule("rotor", Vector3.up, 1f),
-        new HelicopterPropellerSearchRule("blade", Vector3.up, 1f)
-    };
 
     private bool warnedMissingPropeller;
-    private bool hasConfigured;
 
     // 시작 시 연결된 프로펠러가 없으면 자동 검색한다.
     private void Awake()
@@ -32,13 +25,11 @@ public class HelicopterPropellerAnimator : MonoBehaviour
     }
 
     // 런타임 생성 시 프로펠러 회전 설정을 주입한다.
-    public void Configure(float rotationSpeed_, Vector3 localRotationAxis_, HelicopterPropellerPrefabBinding[] prefabBindings_, HelicopterPropellerSearchRule[] autoFindRules_)
+    public void Configure(float rotationSpeed_, Vector3 localRotationAxis_, HelicopterPropellerPrefabBinding[] prefabBindings_)
     {
         rotationSpeed = Mathf.Max(0f, rotationSpeed_);
         localRotationAxis = localRotationAxis_.sqrMagnitude > 0.0001f ? localRotationAxis_.normalized : Vector3.up;
         prefabBindings = prefabBindings_;
-        autoFindRules = autoFindRules_;
-        hasConfigured = true;
         propellerElements = null;
         AutoFindPropellersIfNeeded();
     }
@@ -65,7 +56,7 @@ public class HelicopterPropellerAnimator : MonoBehaviour
         Debug.Log(builder.ToString(), this);
     }
 
-    // 직접 연결된 프리팹 Transform 또는 이름 키워드 기준으로 프로펠러 Transform을 찾는다.
+    // 직접 연결된 프리팹 Transform 또는 경로 기준으로 프로펠러 Transform을 찾는다.
     private void AutoFindPropellersIfNeeded()
     {
         if (propellerElements != null && propellerElements.Length > 0)
@@ -78,48 +69,10 @@ public class HelicopterPropellerAnimator : MonoBehaviour
             return;
         }
 
-        if (hasConfigured && (autoFindRules == null || autoFindRules.Length == 0))
+        if (!warnedMissingPropeller)
         {
-            return;
-        }
-
-        Transform[] children = GetComponentsInChildren<Transform>(true);
-        HelicopterPropellerRotationElement[] tempElements = new HelicopterPropellerRotationElement[children.Length];
-        int count = 0;
-
-        for (int i = 0; i < children.Length; i++)
-        {
-            Transform child = children[i];
-            if (child == transform)
-            {
-                continue;
-            }
-
-            HelicopterPropellerSearchRule rule = FindMatchingRule(child.name);
-            if (rule == null)
-            {
-                continue;
-            }
-
-            tempElements[count] = new HelicopterPropellerRotationElement(child, ResolveRuleAxis(rule), rule.RotationSpeedMultiplier);
-            count++;
-        }
-
-        if (count <= 0)
-        {
-            if (!warnedMissingPropeller)
-            {
-                Debug.LogWarning("[헬기 스킬] 프로펠러 Transform을 자동으로 찾지 못했습니다. SO의 키워드 또는 프리팹 Transform 이름을 확인해주세요.", this);
-                warnedMissingPropeller = true;
-            }
-
-            return;
-        }
-
-        propellerElements = new HelicopterPropellerRotationElement[count];
-        for (int i = 0; i < count; i++)
-        {
-            propellerElements[i] = tempElements[i];
+            Debug.LogWarning("[헬기 스킬] 프로펠러 바인딩이 비어 있거나 인스턴스에서 찾을 수 없습니다. SO의 Propeller Bindings를 확인해주세요.", this);
+            warnedMissingPropeller = true;
         }
     }
 
@@ -247,43 +200,6 @@ public class HelicopterPropellerAnimator : MonoBehaviour
         }
 
         return path;
-    }
-
-    // 오브젝트 이름과 일치하는 자동 검색 규칙을 찾는다.
-    private HelicopterPropellerSearchRule FindMatchingRule(string objectName)
-    {
-        if (autoFindRules == null || autoFindRules.Length == 0)
-        {
-            return null;
-        }
-
-        string lowerName = objectName.ToLowerInvariant();
-        for (int i = 0; i < autoFindRules.Length; i++)
-        {
-            HelicopterPropellerSearchRule rule = autoFindRules[i];
-            if (rule == null || string.IsNullOrEmpty(rule.NameKeyword))
-            {
-                continue;
-            }
-
-            if (lowerName.Contains(rule.NameKeyword.ToLowerInvariant()))
-            {
-                return rule;
-            }
-        }
-
-        return null;
-    }
-
-    // 자동 검색 규칙의 축이 비어 있으면 공통 축으로 대체한다.
-    private Vector3 ResolveRuleAxis(HelicopterPropellerSearchRule rule)
-    {
-        if (rule != null && rule.LocalRotationAxis.sqrMagnitude > 0.0001f)
-        {
-            return rule.LocalRotationAxis.normalized;
-        }
-
-        return ResolveRotationAxis(localRotationAxis);
     }
 
     // 연결된 프로펠러 Transform들을 각 Element 회전축 기준으로 회전시킨다.

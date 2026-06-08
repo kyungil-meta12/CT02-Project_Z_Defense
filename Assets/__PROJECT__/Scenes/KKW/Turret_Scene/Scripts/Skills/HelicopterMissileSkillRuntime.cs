@@ -150,7 +150,7 @@ public class HelicopterMissileSkillRuntime : MonoBehaviour
             animator = helicopterInstance.AddComponent<HelicopterPropellerAnimator>();
         }
 
-        animator.Configure(definition.PropellerRotationSpeed, definition.PropellerLocalRotationAxis, definition.PropellerBindings, definition.PropellerNameKeywords);
+        animator.Configure(definition.PropellerRotationSpeed, definition.PropellerLocalRotationAxis, definition.PropellerBindings);
     }
 
     // 지정된 순번의 미사일 목표점을 계산하고 미사일을 발사한다.
@@ -158,7 +158,7 @@ public class HelicopterMissileSkillRuntime : MonoBehaviour
     {
         if (definition.MissilePrefab == null)
         {
-            Debug.LogWarning("[헬기 스킬] 미사일 프리팹이 연결되지 않았습니다.", this);
+            Debug.LogWarning("[헬기 스킬] 미사일 비주얼 프리팹이 연결되지 않았습니다.", this);
             return;
         }
 
@@ -181,7 +181,6 @@ public class HelicopterMissileSkillRuntime : MonoBehaviour
         projectile.Initialize(
             targetPosition,
             definition.MissileSpeed,
-            definition.MissileSmokePrefab,
             definition.ExplosionEffectPrefab,
             definition.ExplosionEffectDuration,
             definition.SmokeDetachDuration,

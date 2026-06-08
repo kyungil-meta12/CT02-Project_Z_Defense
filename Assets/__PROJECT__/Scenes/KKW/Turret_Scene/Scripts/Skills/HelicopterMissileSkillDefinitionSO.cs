@@ -17,8 +17,8 @@ public class HelicopterMissileSkillDefinitionSO : ScriptableObject
     [Header("프리팹")]
     [SerializeField] private GameObject rangePreviewPrefab;
     [SerializeField] private GameObject helicopterPrefab;
+    [Tooltip("날아가는 미사일 비주얼 프리팹입니다. FX_Missile_01처럼 연기까지 포함된 프리팹 하나를 넣는 것을 권장합니다.")]
     [SerializeField] private GameObject missilePrefab;
-    [SerializeField] private GameObject missileSmokePrefab;
     [SerializeField] private GameObject explosionEffectPrefab;
 
     [Header("쿨타임")]
@@ -45,12 +45,6 @@ public class HelicopterMissileSkillDefinitionSO : ScriptableObject
     [Min(0f)] [SerializeField] private float propellerRotationSpeed = 1440f;
     [SerializeField] private Vector3 propellerLocalRotationAxis = Vector3.up;
     [SerializeField] private HelicopterPropellerPrefabBinding[] propellerBindings;
-    [SerializeField] private HelicopterPropellerSearchRule[] propellerNameKeywords =
-    {
-        new HelicopterPropellerSearchRule("propeller", Vector3.up, 1f),
-        new HelicopterPropellerSearchRule("rotor", Vector3.up, 1f),
-        new HelicopterPropellerSearchRule("blade", Vector3.up, 1f)
-    };
 
     [Header("미사일")]
     [Min(1)] [SerializeField] private int missileCount = 6;
@@ -73,7 +67,6 @@ public class HelicopterMissileSkillDefinitionSO : ScriptableObject
     public GameObject RangePreviewPrefab => rangePreviewPrefab;
     public GameObject HelicopterPrefab => helicopterPrefab;
     public GameObject MissilePrefab => missilePrefab;
-    public GameObject MissileSmokePrefab => missileSmokePrefab;
     public GameObject ExplosionEffectPrefab => explosionEffectPrefab;
     public float Cooldown => cooldown;
     public LayerMask PlacementLayerMask => placementLayerMask;
@@ -92,7 +85,6 @@ public class HelicopterMissileSkillDefinitionSO : ScriptableObject
     public float PropellerRotationSpeed => propellerRotationSpeed;
     public Vector3 PropellerLocalRotationAxis => propellerLocalRotationAxis;
     public HelicopterPropellerPrefabBinding[] PropellerBindings => propellerBindings;
-    public HelicopterPropellerSearchRule[] PropellerNameKeywords => propellerNameKeywords;
     public int MissileCount => missileCount;
     public float MissileInterval => missileInterval;
     public float MissileSpeed => missileSpeed;
@@ -149,31 +141,6 @@ public class HelicopterPropellerPrefabBinding
     public Transform PropellerPrefabTransform => propellerPrefabTransform;
     public Vector3 LocalRotationAxis => localRotationAxis;
     public float RotationSpeedMultiplier => rotationSpeedMultiplier;
-}
-
-[System.Serializable]
-public class HelicopterPropellerSearchRule
-{
-    [SerializeField] private string nameKeyword = "propeller";
-    [SerializeField] private Vector3 localRotationAxis = Vector3.up;
-    [SerializeField] private float rotationSpeedMultiplier = 1f;
-
-    public string NameKeyword => nameKeyword;
-    public Vector3 LocalRotationAxis => localRotationAxis;
-    public float RotationSpeedMultiplier => rotationSpeedMultiplier;
-
-    // Unity 직렬화를 위한 기본 생성자다.
-    public HelicopterPropellerSearchRule()
-    {
-    }
-
-    // 프로펠러 자동 검색 규칙을 생성한다.
-    public HelicopterPropellerSearchRule(string nameKeyword_, Vector3 localRotationAxis_, float rotationSpeedMultiplier_)
-    {
-        nameKeyword = nameKeyword_;
-        localRotationAxis = localRotationAxis_;
-        rotationSpeedMultiplier = rotationSpeedMultiplier_;
-    }
 }
 
 [System.Serializable]

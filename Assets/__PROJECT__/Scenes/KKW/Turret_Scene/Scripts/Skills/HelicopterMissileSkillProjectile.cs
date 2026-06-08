@@ -8,18 +8,16 @@ public class HelicopterMissileSkillProjectile : MonoBehaviour
     private float speed;
     private float explosionDuration;
     private float smokeDetachDuration;
-    private GameObject smokePrefab;
     private GameObject explosionPrefab;
-    private GameObject smokeInstance;
     private Action<Vector3> impactCallback;
     private bool initialized;
+    private ParticleSystem[] particleSystems;
 
     // 미사일 이동과 충돌 연출 데이터를 초기화한다.
-    public void Initialize(Vector3 targetPosition_, float speed_, GameObject smokePrefab_, GameObject explosionPrefab_, float explosionDuration_, float smokeDetachDuration_, Action<Vector3> impactCallback_)
+    public void Initialize(Vector3 targetPosition_, float speed_, GameObject explosionPrefab_, float explosionDuration_, float smokeDetachDuration_, Action<Vector3> impactCallback_)
     {
         targetPosition = targetPosition_;
         speed = Mathf.Max(0.1f, speed_);
-        smokePrefab = smokePrefab_;
         explosionPrefab = explosionPrefab_;
         explosionDuration = Mathf.Max(0f, explosionDuration_);
         smokeDetachDuration = Mathf.Max(0f, smokeDetachDuration_);
@@ -27,7 +25,7 @@ public class HelicopterMissileSkillProjectile : MonoBehaviour
         initialized = true;
 
         ConfigurePhysics();
-        SpawnSmoke();
+        PlayParticleSystems();
     }
 
     // 초기화된 미사일을 매 프레임 목표 지점으로 이동시킨다.
@@ -54,17 +52,25 @@ public class HelicopterMissileSkillProjectile : MonoBehaviour
         rigidbodyComp.detectCollisions = false;
     }
 
-    // 미사일 연기 이펙트를 미사일 하위에 생성한다.
-    private void SpawnSmoke()
+    // 미사일 비주얼 프리팹 내부 파티클을 초기 상태부터 재생한다.
+    private void PlayParticleSystems()
     {
-        if (smokePrefab == null)
+        if (particleSystems == null)
         {
-            return;
+            particleSystems = GetComponentsInChildren<ParticleSystem>(true);
         }
 
-        smokeInstance = Instantiate(smokePrefab, transform);
-        smokeInstance.transform.localPosition = Vector3.zero;
-        smokeInstance.transform.localRotation = Quaternion.identity;
+        for (int i = 0; i < particleSystems.Length; i++)
+        {
+            ParticleSystem particleSystemComp = particleSystems[i];
+            if (particleSystemComp == null)
+            {
+                continue;
+            }
+
+            particleSystemComp.Clear(true);
+            particleSystemComp.Play(true);
+        }
     }
 
     // 목표 지점까지 미사일을 이동시키고 방향을 갱신한다.
@@ -72,7 +78,18 @@ public class HelicopterMissileSkillProjectile : MonoBehaviour
     {
         Vector3 currentPosition = transform.position;
         Vector3 nextPosition = Vector3.MoveTowards(currentPosition, targetPosition, speed * Time.deltaTime);
-        Vector3 direction = nextPosition - currentPosition;
+        ApplyMovement(currentPosition, nextPosition);
+
+        if ((targetPosition - nextPosition).sqrMagnitude <= 0.0001f)
+        {
+            Impact();
+        }
+    }
+
+    // 미사일 위치와 진행 방향 회전을 적용한다.
+    private void ApplyMovement(Vector3 previousPosition, Vector3 nextPosition)
+    {
+        Vector3 direction = nextPosition - previousPosition;
 
         if (direction.sqrMagnitude > 0.0001f)
         {
@@ -80,11 +97,6 @@ public class HelicopterMissileSkillProjectile : MonoBehaviour
         }
 
         transform.position = nextPosition;
-
-        if ((targetPosition - nextPosition).sqrMagnitude <= 0.0001f)
-        {
-            Impact();
-        }
     }
 
     // 미사일 충돌 처리와 폭발 이펙트를 실행한다.
@@ -93,8 +105,7 @@ public class HelicopterMissileSkillProjectile : MonoBehaviour
         initialized = false;
         impactCallback?.Invoke(targetPosition);
         SpawnExplosion();
-        DetachSmoke();
-        Destroy(gameObject);
+        Destroy(gameObject, smokeDetachDuration);
     }
 
     // 폭발 이펙트를 목표 지점에 생성한다.
@@ -112,15 +123,4 @@ public class HelicopterMissileSkillProjectile : MonoBehaviour
         }
     }
 
-    // 연기 이펙트가 바로 끊기지 않도록 잠시 유지한다.
-    private void DetachSmoke()
-    {
-        if (smokeInstance == null)
-        {
-            return;
-        }
-
-        smokeInstance.transform.SetParent(null);
-        Destroy(smokeInstance, smokeDetachDuration);
-    }
 }

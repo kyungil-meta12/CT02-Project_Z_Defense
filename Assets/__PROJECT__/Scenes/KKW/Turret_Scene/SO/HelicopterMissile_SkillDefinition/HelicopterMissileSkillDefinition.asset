@@ -22,8 +22,7 @@ MonoBehaviour:
     areaWidth: 5
   rangePreviewPrefab: {fileID: 4039070395078972414, guid: 83648844042d34e4f84e900dfff9934c, type: 3}
   helicopterPrefab: {fileID: 1010893306578313667, guid: 5e468816736de8d40a28e6c14fd23cf9, type: 3}
-  missilePrefab: {fileID: 4435267418596009943, guid: a2d3be6a8c4300846b67434a090c5ed3, type: 3}
-  missileSmokePrefab: {fileID: 1834646129351440, guid: 5599f31b19e20c94ca2378f95f7646b2, type: 3}
+  missilePrefab: {fileID: 1834646129351440, guid: 5599f31b19e20c94ca2378f95f7646b2, type: 3}
   explosionEffectPrefab: {fileID: 1000012903210382, guid: 329d8664ccd19ea4eadb0c7e2517507e, type: 3}
   cooldown: 0
   placementLayerMask:
@@ -33,12 +32,12 @@ MonoBehaviour:
   previewHeightOffset: 0.05
   alignAreaToCameraForward: 1
   fixedAreaRotationEuler: {x: 0, y: 0, z: 0}
-  previewLocalScaleMultiplier: {x: 1, y: 1, z: 1}
+  previewLocalScaleMultiplier: {x: 2, y: 1, z: 1}
   helicopterStartViewport: {x: 0.5, y: -0.15}
   helicopterEndViewport: {x: 0.5, y: 1.15}
   helicopterAltitude: 18
-  helicopterSpeed: 20
-  helicopterRotationOffsetEuler: {x: 0, y: 0, z: 0}
+  helicopterSpeed: 60
+  helicopterRotationOffsetEuler: {x: 20, y: 0, z: 0}
   missileSpawnLocalOffset: {x: 0, y: -0.2, z: 0.8}
   autoAddPropellerAnimator: 1
   propellerRotationSpeed: 1440
@@ -52,7 +51,6 @@ MonoBehaviour:
     propellerPrefabTransform: {fileID: 0}
     localRotationAxis: {x: 1, y: 0, z: 0}
     rotationSpeedMultiplier: 1
-  propellerNameKeywords: []
   missileCount: 6
   missileInterval: 0.15
   missileSpeed: 35

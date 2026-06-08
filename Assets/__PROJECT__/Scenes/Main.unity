@@ -21853,7 +21853,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1010893306578313667, guid: 5e468816736de8d40a28e6c14fd23cf9, type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6971789171510666962, guid: 5e468816736de8d40a28e6c14fd23cf9, type: 3}
       propertyPath: m_LocalPosition.x
@@ -64248,16 +64248,6 @@ MonoBehaviour:
   localRotationAxis: {x: 0, y: 1, z: 0}
   propellerElements: []
   prefabBindings: []
-  autoFindRules:
-  - nameKeyword: propeller
-    localRotationAxis: {x: 0, y: 1, z: 0}
-    rotationSpeedMultiplier: 1
-  - nameKeyword: rotor
-    localRotationAxis: {x: 0, y: 1, z: 0}
-    rotationSpeedMultiplier: 1
-  - nameKeyword: blade
-    localRotationAxis: {x: 0, y: 1, z: 0}
-    rotationSpeedMultiplier: 1
 --- !u!1001 &1961619734
 PrefabInstance:
   m_ObjectHideFlags: 0

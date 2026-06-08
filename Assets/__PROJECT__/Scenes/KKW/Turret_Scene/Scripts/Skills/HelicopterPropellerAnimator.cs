@@ -1,0 +1,351 @@
+using System.Text;
+using UnityEngine;
+
+[DisallowMultipleComponent]
+public class HelicopterPropellerAnimator : MonoBehaviour
+{
+    [Header("Settings")]
+    [Min(0f)] [SerializeField] private float rotationSpeed = 1440f;
+    [SerializeField] private Vector3 localRotationAxis = Vector3.up;
+    [SerializeField] private HelicopterPropellerRotationElement[] propellerElements;
+    [SerializeField] private HelicopterPropellerPrefabBinding[] prefabBindings;
+    [SerializeField] private HelicopterPropellerSearchRule[] autoFindRules =
+    {
+        new HelicopterPropellerSearchRule("propeller", Vector3.up, 1f),
+        new HelicopterPropellerSearchRule("rotor", Vector3.up, 1f),
+        new HelicopterPropellerSearchRule("blade", Vector3.up, 1f)
+    };
+
+    private bool warnedMissingPropeller;
+    private bool hasConfigured;
+
+    // 시작 시 연결된 프로펠러가 없으면 자동 검색한다.
+    private void Awake()
+    {
+        AutoFindPropellersIfNeeded();
+    }
+
+    // 프로펠러 회전을 매 프레임 적용한다.
+    private void Update()
+    {
+        RotatePropellers();
+    }
+
+    // 런타임 생성 시 프로펠러 회전 설정을 주입한다.
+    public void Configure(float rotationSpeed_, Vector3 localRotationAxis_, HelicopterPropellerPrefabBinding[] prefabBindings_, HelicopterPropellerSearchRule[] autoFindRules_)
+    {
+        rotationSpeed = Mathf.Max(0f, rotationSpeed_);
+        localRotationAxis = localRotationAxis_.sqrMagnitude > 0.0001f ? localRotationAxis_.normalized : Vector3.up;
+        prefabBindings = prefabBindings_;
+        autoFindRules = autoFindRules_;
+        hasConfigured = true;
+        propellerElements = null;
+        AutoFindPropellersIfNeeded();
+    }
+
+    // 인스펙터 컨텍스트 메뉴에서 자식 Transform 경로를 콘솔에 출력한다.
+    [ContextMenu("Log Child Transform Paths")]
+    private void LogChildTransformPaths()
+    {
+        Transform[] children = GetComponentsInChildren<Transform>(true);
+        StringBuilder builder = new StringBuilder(512);
+        builder.AppendLine("[헬기 스킬] 프로펠러 경로 확인용 Transform 목록");
+
+        for (int i = 0; i < children.Length; i++)
+        {
+            Transform child = children[i];
+            if (child == transform)
+            {
+                continue;
+            }
+
+            builder.AppendLine(BuildRelativePathFromThisRoot(child));
+        }
+
+        Debug.Log(builder.ToString(), this);
+    }
+
+    // 직접 연결된 프리팹 Transform 또는 이름 키워드 기준으로 프로펠러 Transform을 찾는다.
+    private void AutoFindPropellersIfNeeded()
+    {
+        if (propellerElements != null && propellerElements.Length > 0)
+        {
+            return;
+        }
+
+        if (TryBuildElementsFromPrefabBindings())
+        {
+            return;
+        }
+
+        if (hasConfigured && (autoFindRules == null || autoFindRules.Length == 0))
+        {
+            return;
+        }
+
+        Transform[] children = GetComponentsInChildren<Transform>(true);
+        HelicopterPropellerRotationElement[] tempElements = new HelicopterPropellerRotationElement[children.Length];
+        int count = 0;
+
+        for (int i = 0; i < children.Length; i++)
+        {
+            Transform child = children[i];
+            if (child == transform)
+            {
+                continue;
+            }
+
+            HelicopterPropellerSearchRule rule = FindMatchingRule(child.name);
+            if (rule == null)
+            {
+                continue;
+            }
+
+            tempElements[count] = new HelicopterPropellerRotationElement(child, ResolveRuleAxis(rule), rule.RotationSpeedMultiplier);
+            count++;
+        }
+
+        if (count <= 0)
+        {
+            if (!warnedMissingPropeller)
+            {
+                Debug.LogWarning("[헬기 스킬] 프로펠러 Transform을 자동으로 찾지 못했습니다. SO의 키워드 또는 프리팹 Transform 이름을 확인해주세요.", this);
+                warnedMissingPropeller = true;
+            }
+
+            return;
+        }
+
+        propellerElements = new HelicopterPropellerRotationElement[count];
+        for (int i = 0; i < count; i++)
+        {
+            propellerElements[i] = tempElements[i];
+        }
+    }
+
+    // SO에서 직접 연결한 프리팹 Transform을 인스턴스 Transform으로 변환한다.
+    private bool TryBuildElementsFromPrefabBindings()
+    {
+        if (prefabBindings == null || prefabBindings.Length == 0)
+        {
+            return false;
+        }
+
+        HelicopterPropellerRotationElement[] tempElements = new HelicopterPropellerRotationElement[prefabBindings.Length];
+        int count = 0;
+
+        for (int i = 0; i < prefabBindings.Length; i++)
+        {
+            HelicopterPropellerPrefabBinding binding = prefabBindings[i];
+            if (binding == null || binding.PropellerPrefabTransform == null)
+            {
+                if (string.IsNullOrEmpty(binding?.PropellerPath))
+                {
+                    continue;
+                }
+            }
+
+            Transform instanceTransform = FindInstanceTransform(binding);
+            if (instanceTransform == null)
+            {
+                Debug.LogWarning($"[헬기 스킬] 연결된 프로펠러를 인스턴스에서 찾지 못했습니다: {GetBindingLabel(binding)}", this);
+                continue;
+            }
+
+            tempElements[count] = new HelicopterPropellerRotationElement(instanceTransform, binding.LocalRotationAxis, binding.RotationSpeedMultiplier);
+            count++;
+        }
+
+        if (count <= 0)
+        {
+            return false;
+        }
+
+        propellerElements = new HelicopterPropellerRotationElement[count];
+        for (int i = 0; i < count; i++)
+        {
+            propellerElements[i] = tempElements[i];
+        }
+
+        return true;
+    }
+
+    // SO 바인딩 정보로 생성된 헬기 인스턴스의 프로펠러 Transform을 찾는다.
+    private Transform FindInstanceTransform(HelicopterPropellerPrefabBinding binding)
+    {
+        if (!string.IsNullOrEmpty(binding.PropellerPath))
+        {
+            return transform.Find(binding.PropellerPath);
+        }
+
+        if (binding.PropellerPrefabTransform == null)
+        {
+            return null;
+        }
+
+        return FindInstanceTransformByPrefabTransform(binding.PropellerPrefabTransform);
+    }
+
+    // 프리팹 자식 Transform의 상대 경로로 생성된 헬기 인스턴스의 Transform을 찾는다.
+    private Transform FindInstanceTransformByPrefabTransform(Transform prefabTransform)
+    {
+        string path = BuildRelativePathFromPrefabRoot(prefabTransform);
+        if (string.IsNullOrEmpty(path))
+        {
+            return transform;
+        }
+
+        return transform.Find(path);
+    }
+
+    // 로그에 표시할 바인딩 식별자를 반환한다.
+    private string GetBindingLabel(HelicopterPropellerPrefabBinding binding)
+    {
+        if (binding == null)
+        {
+            return "비어 있는 바인딩";
+        }
+
+        if (!string.IsNullOrEmpty(binding.PropellerPath))
+        {
+            return binding.PropellerPath;
+        }
+
+        return binding.PropellerPrefabTransform != null ? binding.PropellerPrefabTransform.name : "비어 있는 프로펠러";
+    }
+
+    // 프리팹 루트부터 대상 Transform까지의 상대 경로를 만든다.
+    private string BuildRelativePathFromPrefabRoot(Transform targetTransform)
+    {
+        if (targetTransform.parent == null)
+        {
+            return string.Empty;
+        }
+
+        string path = targetTransform.name;
+        Transform current = targetTransform.parent;
+
+        while (current != null && current.parent != null)
+        {
+            path = $"{current.name}/{path}";
+            current = current.parent;
+        }
+
+        return path;
+    }
+
+    // 현재 컴포넌트가 붙은 루트 기준의 자식 경로를 만든다.
+    private string BuildRelativePathFromThisRoot(Transform targetTransform)
+    {
+        string path = targetTransform.name;
+        Transform current = targetTransform.parent;
+
+        while (current != null && current != transform)
+        {
+            path = $"{current.name}/{path}";
+            current = current.parent;
+        }
+
+        return path;
+    }
+
+    // 오브젝트 이름과 일치하는 자동 검색 규칙을 찾는다.
+    private HelicopterPropellerSearchRule FindMatchingRule(string objectName)
+    {
+        if (autoFindRules == null || autoFindRules.Length == 0)
+        {
+            return null;
+        }
+
+        string lowerName = objectName.ToLowerInvariant();
+        for (int i = 0; i < autoFindRules.Length; i++)
+        {
+            HelicopterPropellerSearchRule rule = autoFindRules[i];
+            if (rule == null || string.IsNullOrEmpty(rule.NameKeyword))
+            {
+                continue;
+            }
+
+            if (lowerName.Contains(rule.NameKeyword.ToLowerInvariant()))
+            {
+                return rule;
+            }
+        }
+
+        return null;
+    }
+
+    // 자동 검색 규칙의 축이 비어 있으면 공통 축으로 대체한다.
+    private Vector3 ResolveRuleAxis(HelicopterPropellerSearchRule rule)
+    {
+        if (rule != null && rule.LocalRotationAxis.sqrMagnitude > 0.0001f)
+        {
+            return rule.LocalRotationAxis.normalized;
+        }
+
+        return ResolveRotationAxis(localRotationAxis);
+    }
+
+    // 연결된 프로펠러 Transform들을 각 Element 회전축 기준으로 회전시킨다.
+    private void RotatePropellers()
+    {
+        if (propellerElements == null || propellerElements.Length == 0 || rotationSpeed <= 0f)
+        {
+            return;
+        }
+
+        for (int i = 0; i < propellerElements.Length; i++)
+        {
+            HelicopterPropellerRotationElement element = propellerElements[i];
+            if (element == null || element.Propeller == null)
+            {
+                continue;
+            }
+
+            Vector3 axis = ResolveRotationAxis(element.LocalRotationAxis);
+            float angle = rotationSpeed * element.RotationSpeedMultiplier * Time.deltaTime;
+            element.Propeller.Rotate(axis, angle, Space.Self);
+        }
+    }
+
+    // Element 축이 비어 있을 때 공통 축으로 대체한다.
+    private Vector3 ResolveRotationAxis(Vector3 elementAxis)
+    {
+        if (elementAxis.sqrMagnitude > 0.0001f)
+        {
+            return elementAxis.normalized;
+        }
+
+        if (localRotationAxis.sqrMagnitude > 0.0001f)
+        {
+            return localRotationAxis.normalized;
+        }
+
+        return Vector3.up;
+    }
+}
+
+[System.Serializable]
+public class HelicopterPropellerRotationElement
+{
+    [SerializeField] private Transform propeller;
+    [SerializeField] private Vector3 localRotationAxis = Vector3.up;
+    [SerializeField] private float rotationSpeedMultiplier = 1f;
+
+    public Transform Propeller => propeller;
+    public Vector3 LocalRotationAxis => localRotationAxis;
+    public float RotationSpeedMultiplier => rotationSpeedMultiplier;
+
+    // Unity 직렬화를 위한 기본 생성자다.
+    public HelicopterPropellerRotationElement()
+    {
+    }
+
+    // 자동 검색된 프로펠러의 기본 회전 설정을 만든다.
+    public HelicopterPropellerRotationElement(Transform propeller_, Vector3 localRotationAxis_, float rotationSpeedMultiplier_)
+    {
+        propeller = propeller_;
+        localRotationAxis = localRotationAxis_;
+        rotationSpeedMultiplier = rotationSpeedMultiplier_;
+    }
+}

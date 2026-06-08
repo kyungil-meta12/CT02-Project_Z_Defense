@@ -2688,6 +2688,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::NormalZombieAttackCollider
   zombie: {fileID: 2198761140652240216}
+  targetLayer:
+    serializedVersion: 2
+    m_Bits: 512
 --- !u!1 &3252369555726716536
 GameObject:
   m_ObjectHideFlags: 0

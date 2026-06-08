@@ -26,5 +26,4 @@ MonoBehaviour:
   HpWeight: 0.05
   MinHp: 0.9
   MaxHp: 1.1
-  NoramlItemDropPercentage: 80
-  RareItemDropPercentage: 20
+  DropCoin: 10

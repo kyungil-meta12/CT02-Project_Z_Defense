@@ -1,6 +1,7 @@
 using System.Numerics;
 using UnityEngine;
 using IncrementalLib;
+using System;
 
 /// <summary>
 /// 플레이어가 가진 아이템을 관리하는 싱글톤 모듈
@@ -8,6 +9,12 @@ using IncrementalLib;
 public class ItemManager : MonoBehaviour
 {
     public static ItemManager Inst;
+
+    // ItemIndicator에서 구독하는 이벤트
+    // string 가비지 발생을 줄이기 위해 값이 변경되었을 때만 인디케이터의 텍스트에 반영한다.
+     public event Action<string> OnCoinValueChange;
+     public event Action<string> OnFirePartValueChange;
+     public event Action<string> OnSpecialPartValueChange;
 
     // 소지한 코인 개수
     public Incremental CoinCount { get; private set; } = new(0);
@@ -32,7 +39,14 @@ public class ItemManager : MonoBehaviour
         {
             DestroyImmediate(gameObject);
         }
+
         Inst = this;
+
+        CoinCountString = CoinCount.ToString();
+        WaveCollectCoinCountString = WaveCollectCoinCount.ToString();
+        FirePartCountString = FirePartCount.ToString();
+        SpecialPartCountString = SpecialPartCount.ToString();
+
         DontDestroyOnLoad(gameObject);
     }
 
@@ -65,6 +79,7 @@ public class ItemManager : MonoBehaviour
         WaveCollectCoinCount += coinsToAdd;
         CoinCountString = CoinCount.ToString();
         WaveCollectCoinCountString = WaveCollectCoinCount.ToString();
+        OnCoinValueChange?.Invoke(CoinCountString);
     }
 
     /// <summary>
@@ -81,6 +96,7 @@ public class ItemManager : MonoBehaviour
         WaveCollectCoinCount = 0;
         CoinCountString = CoinCount.ToString();
         WaveCollectCoinCountString = WaveCollectCoinCount.ToString();
+        OnCoinValueChange?.Invoke(CoinCountString);
     }
 
     /// <summary>
@@ -91,6 +107,7 @@ public class ItemManager : MonoBehaviour
     {
         FirePartCount += partsToAdd;
         FirePartCountString = FirePartCount.ToString();
+        OnFirePartValueChange?.Invoke(FirePartCountString);
     }
 
     /// <summary>
@@ -101,6 +118,7 @@ public class ItemManager : MonoBehaviour
     {
         SpecialPartCount += partsToAdd;
         SpecialPartCountString = SpecialPartCount.ToString();
+        OnSpecialPartValueChange?.Invoke(SpecialPartCountString);
     }
 
     /// <summary>
@@ -147,6 +165,7 @@ public class ItemManager : MonoBehaviour
         }
         CoinCount -= coinsToUse;
         CoinCountString = CoinCount.ToString();
+        OnCoinValueChange?.Invoke(CoinCountString);
         return true;
     }
 
@@ -164,6 +183,7 @@ public class ItemManager : MonoBehaviour
         }
         FirePartCount -= partsToUse;
         FirePartCountString = FirePartCount.ToString();
+        OnFirePartValueChange?.Invoke(FirePartCountString);
         return true;
     }
 
@@ -181,6 +201,7 @@ public class ItemManager : MonoBehaviour
         }
         SpecialPartCount -= partsToUse;
         SpecialPartCountString = SpecialPartCount.ToString();
+        OnSpecialPartValueChange?.Invoke(SpecialPartCountString);
         return true;
     }
 }

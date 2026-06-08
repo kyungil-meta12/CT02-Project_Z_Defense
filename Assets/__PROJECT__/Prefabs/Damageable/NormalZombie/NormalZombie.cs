@@ -77,6 +77,23 @@ public class NormalZombie : PoolObject, IDamageable
 
         // 코루틴 동작 상태 초기화
         returnInstanceCoroutineRunning = false;
+
+        // 테스트용 코루틴
+       // StartCoroutine(AutoDeathCoroutine());
+    }
+    
+    IEnumerator AutoDeathCoroutine()
+    {
+        yield return new WaitForSeconds(10f);
+        TakeDamage(500f);
+    }
+
+    /// <summary>
+    /// 일반 좀비 사망 시 코인을 드랍하고, ItemManager에 코인이 추가된다.
+    /// </summary>
+    public override void OnDespawn()
+    {
+        ItemManager.Inst.AddCoinCount(spec.DropCoin);
     }
 
     private void Update()

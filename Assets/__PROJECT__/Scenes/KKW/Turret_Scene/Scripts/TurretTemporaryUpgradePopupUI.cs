@@ -49,13 +49,13 @@ public class TurretTemporaryUpgradePopupUI : MonoBehaviour
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
     private static void Bootstrap()
     {
-        if (FindObjectOfType<TurretTemporaryUpgradePopupUI>() != null)
+        if (FindFirstObjectByType<TurretTemporaryUpgradePopupUI>() != null)
         {
             return;
         }
 
-        TurretPlacementController placementController = FindObjectOfType<TurretPlacementController>();
-        Canvas canvas = FindObjectOfType<Canvas>();
+        TurretPlacementController placementController = FindFirstObjectByType<TurretPlacementController>();
+        Canvas canvas = FindFirstObjectByType<Canvas>();
         if (placementController == null || canvas == null)
         {
             return;
@@ -75,7 +75,7 @@ public class TurretTemporaryUpgradePopupUI : MonoBehaviour
 
         if (placementController == null)
         {
-            placementController = FindObjectOfType<TurretPlacementController>();
+            placementController = FindFirstObjectByType<TurretPlacementController>();
         }
 
         BuildUI();
@@ -261,7 +261,7 @@ public class TurretTemporaryUpgradePopupUI : MonoBehaviour
 
     private void BuildUI()
     {
-        Canvas canvas = FindObjectOfType<Canvas>();
+        Canvas canvas = FindFirstObjectByType<Canvas>();
         if (canvas == null)
         {
             return;

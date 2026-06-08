@@ -10,6 +10,8 @@ using UnityEditor;
 [DisallowMultipleComponent]
 public class TurretTemporaryUpgradePopupUI : MonoBehaviour
 {
+    private const int SELECTION_RAYCAST_BUFFER_SIZE = 32;
+    private const string CANVAS_NAME = "Temporary_TurretUpgradePopupCanvas";
     private const string ROOT_NAME = "Temporary_TurretUpgradePopup";
     private const string ART_FOLDER_PATH = "Assets/__PROJECT__/Scenes/KKW/Turret_Scene/Art";
 
@@ -26,11 +28,17 @@ public class TurretTemporaryUpgradePopupUI : MonoBehaviour
     [SerializeField, Min(0.1f)] private float maxHoldLevelsPerSecond = 45.0f;
     [SerializeField, Min(0.1f)] private float accelerationDuration = 4.0f;
 
+    [Header("Temporary UI")]
+    [SerializeField] private Vector2 popupAnchoredPosition = new Vector2(0.0f, 360.0f);
+    [SerializeField] private Vector2 popupSize = new Vector2(840.0f, 480.0f);
+
     private TurretPlacementController placementController;
     private TurretDefinitionRuntimeController selectedTurret;
     private TurretBaseSlot selectedSlot;
 
+    private Canvas popupCanvas;
     private GameObject popupRoot;
+    private RectTransform popupRootRect;
     private TMP_Text titleText;
     private TMP_Text levelText;
     private TMP_Text statusText;
@@ -45,6 +53,7 @@ public class TurretTemporaryUpgradePopupUI : MonoBehaviour
     private bool isHoldingLevelButton;
     private float holdElapsedTime;
     private float holdLevelAccumulator;
+    private readonly RaycastHit[] selectionHits = new RaycastHit[SELECTION_RAYCAST_BUFFER_SIZE];
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
     private static void Bootstrap()
@@ -55,8 +64,7 @@ public class TurretTemporaryUpgradePopupUI : MonoBehaviour
         }
 
         TurretPlacementController placementController = FindFirstObjectByType<TurretPlacementController>();
-        Canvas canvas = FindFirstObjectByType<Canvas>();
-        if (placementController == null || canvas == null)
+        if (placementController == null)
         {
             return;
         }
@@ -86,7 +94,7 @@ public class TurretTemporaryUpgradePopupUI : MonoBehaviour
     {
         UpdateLevelHold();
 
-        if (!WasPrimaryPointerPressed() || IsPointerOverUI())
+        if (!WasPrimaryPointerPressed() || IsPointerOverUI() || IsPointerInsidePopup())
         {
             return;
         }
@@ -184,6 +192,11 @@ public class TurretTemporaryUpgradePopupUI : MonoBehaviour
         }
     }
 
+    private void LateUpdate()
+    {
+        LockPopupTransform();
+    }
+
     private void Evolve(int availableIndex)
     {
         if (selectedTurret == null)
@@ -237,7 +250,39 @@ public class TurretTemporaryUpgradePopupUI : MonoBehaviour
         }
 
         Ray ray = targetCamera.ScreenPointToRay(pointerPosition);
-        if (!Physics.Raycast(ray, out RaycastHit hit, maxRayDistance, selectionLayerMask, QueryTriggerInteraction.Collide))
+        int hitCount = Physics.RaycastNonAlloc(ray, selectionHits, maxRayDistance, selectionLayerMask, QueryTriggerInteraction.Collide);
+        if (hitCount <= 0)
+        {
+            return false;
+        }
+
+        float nearestDistance = Mathf.Infinity;
+        for (int i = 0; i < hitCount; i++)
+        {
+            RaycastHit hit = selectionHits[i];
+            if (hit.collider == null || hit.distance >= nearestDistance)
+            {
+                continue;
+            }
+
+            if (TryGetTurretSelectionFromHit(hit, out TurretDefinitionRuntimeController hitTurret, out TurretBaseSlot hitSlot))
+            {
+                turret = hitTurret;
+                slot = hitSlot;
+                nearestDistance = hit.distance;
+            }
+        }
+
+        return turret != null;
+    }
+
+    private static bool TryGetTurretSelectionFromHit(RaycastHit hit, out TurretDefinitionRuntimeController turret, out TurretBaseSlot slot)
+    {
+        // 건물/컨테이너 콜라이더가 먼저 맞아도 실제 터렛 또는 점유 베이스 후보를 선별합니다.
+        turret = null;
+        slot = null;
+
+        if (hit.collider == null)
         {
             return false;
         }
@@ -250,20 +295,21 @@ public class TurretTemporaryUpgradePopupUI : MonoBehaviour
         }
 
         slot = hit.collider.GetComponentInParent<TurretBaseSlot>();
-        if (slot != null && slot.CurrentTurret != null)
+        if (slot == null || slot.CurrentTurret == null)
         {
-            turret = slot.CurrentTurret;
-            return true;
+            return false;
         }
 
-        return false;
+        turret = slot.CurrentTurret;
+        return turret != null;
     }
 
     private void BuildUI()
     {
-        Canvas canvas = FindFirstObjectByType<Canvas>();
+        Canvas canvas = GetOrCreatePopupCanvas();
         if (canvas == null)
         {
+            ClearRuntimeUIReferences();
             return;
         }
 
@@ -271,16 +317,20 @@ public class TurretTemporaryUpgradePopupUI : MonoBehaviour
         if (existingRoot != null)
         {
             popupRoot = existingRoot.gameObject;
-            return;
+            popupRootRect = popupRoot.GetComponent<RectTransform>();
+            LockPopupTransform();
+            if (TryBindExistingUI())
+            {
+                return;
+            }
+
+            Destroy(popupRoot);
+            ClearRuntimeUIReferences();
         }
 
         popupRoot = CreateUIObject(ROOT_NAME, canvas.transform);
-        RectTransform rootRect = popupRoot.GetComponent<RectTransform>();
-        rootRect.anchorMin = new Vector2(0.5f, 0.0f);
-        rootRect.anchorMax = new Vector2(0.5f, 0.0f);
-        rootRect.pivot = new Vector2(0.5f, 0.0f);
-        rootRect.anchoredPosition = new Vector2(0.0f, 360.0f);
-        rootRect.sizeDelta = new Vector2(840.0f, 480.0f);
+        popupRootRect = popupRoot.GetComponent<RectTransform>();
+        LockPopupTransform();
 
         Image background = popupRoot.AddComponent<Image>();
         background.color = new Color(0.04f, 0.06f, 0.08f, 0.92f);
@@ -357,6 +407,12 @@ public class TurretTemporaryUpgradePopupUI : MonoBehaviour
             return;
         }
 
+        if (!EnsureUIReady())
+        {
+            HidePopup();
+            return;
+        }
+
         TurretDefinitionSO definition = selectedTurret.CurrentTurretDefinition;
         string turretName = GetDefinitionName(definition);
         titleText.text = turretName;
@@ -396,8 +452,210 @@ public class TurretTemporaryUpgradePopupUI : MonoBehaviour
         RefreshEvolutionButtons(evolutionCount);
     }
 
+    private bool EnsureUIReady()
+    {
+        // 런타임 Canvas 재구성으로 파괴된 버튼 참조가 남아 있으면 UI를 다시 연결합니다.
+        if (IsRuntimeUIReady())
+        {
+            return true;
+        }
+
+        BuildUI();
+        return IsRuntimeUIReady();
+    }
+
+    private bool IsRuntimeUIReady()
+    {
+        // UnityEngine.Object는 파괴 후 null처럼 비교되므로 모든 필수 참조를 접근 전에 확인합니다.
+        return popupCanvas != null &&
+               popupRoot != null &&
+               popupRootRect != null &&
+               titleText != null &&
+               levelText != null &&
+               statusText != null &&
+               currentStatText != null &&
+               nextStatText != null &&
+               levelUpButton != null &&
+               levelUpButtonText != null &&
+               evolutionButtonContainer != null &&
+               evolutionButtons != null &&
+               evolutionButtonIcons != null &&
+               evolutionButtonLabels != null;
+    }
+
+    private bool TryBindExistingUI()
+    {
+        // 이미 생성된 임시 팝업 루트가 있으면 자식 UI 참조를 다시 수집합니다.
+        if (popupRoot == null)
+        {
+            return false;
+        }
+
+        popupRootRect = popupRoot.GetComponent<RectTransform>();
+        LockPopupTransform();
+
+        titleText = FindChildComponent<TMP_Text>(popupRoot.transform, "Title");
+        levelText = FindChildComponent<TMP_Text>(popupRoot.transform, "Level");
+        statusText = FindChildComponent<TMP_Text>(popupRoot.transform, "Status");
+        currentStatText = FindChildComponent<TMP_Text>(popupRoot.transform, "StatsRow/CurrentStats/Text");
+        nextStatText = FindChildComponent<TMP_Text>(popupRoot.transform, "StatsRow/NextStats/Text");
+        levelUpButton = FindChildComponent<Button>(popupRoot.transform, "ButtonRow/LevelUpButton");
+        levelUpButtonText = levelUpButton == null ? null : levelUpButton.GetComponentInChildren<TMP_Text>(true);
+        evolutionButtonContainer = FindChildComponent<RectTransform>(popupRoot.transform, "ButtonRow/EvolutionButtons");
+
+        evolutionButtons = new Button[2];
+        evolutionButtonIcons = new Image[2];
+        evolutionButtonLabels = new TMP_Text[2];
+        if (evolutionButtonContainer != null)
+        {
+            for (int i = 0; i < evolutionButtons.Length; i++)
+            {
+                Transform buttonTransform = evolutionButtonContainer.transform.Find($"EvolutionButton_{i + 1}");
+                if (buttonTransform == null)
+                {
+                    continue;
+                }
+
+                int index = i;
+                Button button = buttonTransform.GetComponent<Button>();
+                if (button != null)
+                {
+                    button.onClick.RemoveAllListeners();
+                    button.onClick.AddListener(() => Evolve(index));
+                    evolutionButtons[i] = button;
+                    evolutionButtonLabels[i] = button.GetComponentInChildren<TMP_Text>(true);
+                    evolutionButtonIcons[i] = FindChildComponent<Image>(button.transform, "Icon");
+                }
+            }
+        }
+
+        if (levelUpButton != null)
+        {
+            BindLevelHoldButton(levelUpButton.gameObject);
+        }
+
+        return IsRuntimeUIReady() && AreEvolutionButtonReferencesReady();
+    }
+
+    private bool AreEvolutionButtonReferencesReady()
+    {
+        // 진화 버튼 배열 내부의 파괴된 참조를 Refresh 단계 전에 걸러냅니다.
+        if (evolutionButtons == null || evolutionButtonIcons == null || evolutionButtonLabels == null)
+        {
+            return false;
+        }
+
+        for (int i = 0; i < evolutionButtons.Length; i++)
+        {
+            if (evolutionButtons[i] == null || evolutionButtonIcons[i] == null || evolutionButtonLabels[i] == null)
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private void ClearRuntimeUIReferences()
+    {
+        // 파괴된 Unity UI 참조를 들고 있다가 MissingReferenceException이 나는 상황을 방지합니다.
+        popupCanvas = null;
+        popupRoot = null;
+        popupRootRect = null;
+        titleText = null;
+        levelText = null;
+        statusText = null;
+        currentStatText = null;
+        nextStatText = null;
+        levelUpButton = null;
+        levelUpButtonText = null;
+        evolutionButtonContainer = null;
+        evolutionButtons = null;
+        evolutionButtonIcons = null;
+        evolutionButtonLabels = null;
+    }
+
+    private Canvas GetOrCreatePopupCanvas()
+    {
+        // 임시 팝업은 기존 게임 UI 레이아웃과 분리된 전용 Overlay Canvas에 고정합니다.
+        if (popupCanvas != null)
+        {
+            return popupCanvas;
+        }
+
+        GameObject canvasObject = GameObject.Find(CANVAS_NAME);
+        if (canvasObject == null)
+        {
+            canvasObject = new GameObject(CANVAS_NAME, typeof(RectTransform), typeof(Canvas), typeof(CanvasScaler), typeof(GraphicRaycaster));
+        }
+
+        popupCanvas = canvasObject.GetComponent<Canvas>();
+        if (popupCanvas == null)
+        {
+            popupCanvas = canvasObject.AddComponent<Canvas>();
+        }
+
+        popupCanvas.renderMode = RenderMode.ScreenSpaceOverlay;
+        popupCanvas.overrideSorting = true;
+        popupCanvas.sortingOrder = 100;
+
+        CanvasScaler canvasScaler = canvasObject.GetComponent<CanvasScaler>();
+        if (canvasScaler == null)
+        {
+            canvasScaler = canvasObject.AddComponent<CanvasScaler>();
+        }
+
+        canvasScaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+        canvasScaler.referenceResolution = new Vector2(900.0f, 2000.0f);
+        canvasScaler.matchWidthOrHeight = 1.0f;
+
+        if (canvasObject.GetComponent<GraphicRaycaster>() == null)
+        {
+            canvasObject.AddComponent<GraphicRaycaster>();
+        }
+
+        return popupCanvas;
+    }
+
+    private void LockPopupTransform()
+    {
+        // 외부 레이아웃이나 재바인딩으로 위치가 밀리지 않도록 팝업 루트 위치를 고정합니다.
+        if (popupRootRect == null)
+        {
+            return;
+        }
+
+        popupRootRect.anchorMin = new Vector2(0.5f, 0.0f);
+        popupRootRect.anchorMax = new Vector2(0.5f, 0.0f);
+        popupRootRect.pivot = new Vector2(0.5f, 0.0f);
+        popupRootRect.anchoredPosition = popupAnchoredPosition;
+        popupRootRect.sizeDelta = popupSize;
+        popupRootRect.localScale = Vector3.one;
+    }
+
+    private static T FindChildComponent<T>(Transform parent, string path) where T : Component
+    {
+        if (parent == null)
+        {
+            return null;
+        }
+
+        Transform child = parent.Find(path);
+        if (child == null)
+        {
+            return null;
+        }
+
+        return child.GetComponent<T>();
+    }
+
     private void RefreshEvolutionButtons(int evolutionCount)
     {
+        if (!AreEvolutionButtonReferencesReady())
+        {
+            return;
+        }
+
         if (evolutionButtonContainer != null)
         {
             evolutionButtonContainer.gameObject.SetActive(evolutionCount > 0);
@@ -620,6 +878,22 @@ public class TurretTemporaryUpgradePopupUI : MonoBehaviour
         }
 
         return EventSystem.current.IsPointerOverGameObject();
+    }
+
+    private bool IsPointerInsidePopup()
+    {
+        // Simulator에서 EventSystem UI 판정이 누락되어도 팝업 내부 터치는 월드 선택으로 넘기지 않습니다.
+        if (popupRootRect == null || !popupRootRect.gameObject.activeInHierarchy)
+        {
+            return false;
+        }
+
+        if (!TryGetPrimaryPointerPosition(out Vector2 pointerPosition))
+        {
+            return false;
+        }
+
+        return RectTransformUtility.RectangleContainsScreenPoint(popupRootRect, pointerPosition, null);
     }
 
     private static string GetDefinitionName(TurretDefinitionSO definition)

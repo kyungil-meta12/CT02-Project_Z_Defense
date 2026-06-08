@@ -5,38 +5,47 @@ using UnityEngine;
 public class HelicopterMissileSkillProjectile : MonoBehaviour
 {
     private Vector3 targetPosition;
-    private float speed;
+    private float rootMoveSpeed;
     private float explosionDuration;
-    private float smokeDetachDuration;
+    private float destroyDelayAfterImpact;
+    private float impactArmDelay;
+    private float impactMinTravelDistance;
+    private float elapsedTime;
     private GameObject explosionPrefab;
     private Action<Vector3> impactCallback;
     private bool initialized;
     private bool hasImpacted;
     private bool usesInternalImpactTiming;
-    private bool hasLoggedRootArrivalWait;
     private ParticleSystem[] particleSystems;
-    private ParticleSystem[] impactParticleSystems;
-    private int impactParticleSystemCount;
     private int collisionRelayCount;
+    private Vector3 spawnPosition;
 
     // 미사일 이동과 충돌 연출 데이터를 초기화한다.
-    public void Initialize(Vector3 targetPosition_, float speed_, GameObject explosionPrefab_, float explosionDuration_, float smokeDetachDuration_, Action<Vector3> impactCallback_)
+    public void Initialize(Vector3 targetPosition_, float rootMoveSpeed_, GameObject explosionPrefab_, float explosionDuration_, float destroyDelayAfterImpact_, float impactArmDelay_, float impactMinTravelDistance_, Action<Vector3> impactCallback_)
     {
+        spawnPosition = transform.position;
         targetPosition = targetPosition_;
-        speed = Mathf.Max(0.1f, speed_);
+        rootMoveSpeed = Mathf.Max(0.1f, rootMoveSpeed_);
         explosionPrefab = explosionPrefab_;
         explosionDuration = Mathf.Max(0f, explosionDuration_);
-        smokeDetachDuration = Mathf.Max(0f, smokeDetachDuration_);
+        destroyDelayAfterImpact = Mathf.Max(0f, destroyDelayAfterImpact_);
+        impactArmDelay = Mathf.Max(0f, impactArmDelay_);
+        impactMinTravelDistance = Mathf.Max(0f, impactMinTravelDistance_);
+        elapsedTime = 0f;
         impactCallback = impactCallback_;
         initialized = true;
         hasImpacted = false;
         usesInternalImpactTiming = false;
-        hasLoggedRootArrivalWait = false;
 
         ConfigurePhysics();
         CacheParticleSystems();
         RegisterParticleCollisionRelays();
-        usesInternalImpactTiming = impactParticleSystemCount > 0 || collisionRelayCount > 0;
+        usesInternalImpactTiming = collisionRelayCount > 0;
+
+        if (usesInternalImpactTiming)
+        {
+            Destroy(gameObject, Mathf.Max(5f, destroyDelayAfterImpact + explosionDuration + 2f));
+        }
     }
 
     // 초기화된 미사일을 매 프레임 목표 지점으로 이동시킨다.
@@ -47,7 +56,8 @@ public class HelicopterMissileSkillProjectile : MonoBehaviour
             return;
         }
 
-        if (TryImpactFromInternalExplosion())
+        elapsedTime += Time.deltaTime;
+        if (usesInternalImpactTiming)
         {
             return;
         }
@@ -68,66 +78,13 @@ public class HelicopterMissileSkillProjectile : MonoBehaviour
         rigidbodyComp.detectCollisions = false;
     }
 
-    // 미사일 비주얼 프리팹 내부 파티클을 캐시하고 폭발 계열 파티클을 분류한다.
+    // 미사일 비주얼 프리팹 내부 파티클을 캐시한다.
     private void CacheParticleSystems()
     {
         if (particleSystems == null)
         {
             particleSystems = GetComponentsInChildren<ParticleSystem>(true);
-            impactParticleSystems = new ParticleSystem[particleSystems.Length];
         }
-
-        impactParticleSystemCount = 0;
-        for (int i = 0; i < particleSystems.Length; i++)
-        {
-            ParticleSystem particleSystemComp = particleSystems[i];
-            if (particleSystemComp == null)
-            {
-                continue;
-            }
-
-            if (IsImpactParticleSystem(particleSystemComp))
-            {
-                impactParticleSystems[impactParticleSystemCount] = particleSystemComp;
-                impactParticleSystemCount++;
-            }
-        }
-    }
-
-    // 내부 폭발 파티클이 실제로 재생되기 시작했는지 확인한다.
-    private bool TryImpactFromInternalExplosion()
-    {
-        if (impactParticleSystems == null || impactParticleSystemCount <= 0)
-        {
-            return false;
-        }
-
-        for (int i = 0; i < impactParticleSystemCount; i++)
-        {
-            ParticleSystem particleSystemComp = impactParticleSystems[i];
-            if (particleSystemComp == null)
-            {
-                continue;
-            }
-
-            if (particleSystemComp.particleCount > 0)
-            {
-                Impact(particleSystemComp.transform.position);
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    // 이름 기준으로 FX_Missile_01 내부 폭발 계열 파티클인지 판단한다.
-    private bool IsImpactParticleSystem(ParticleSystem particleSystemComp)
-    {
-        string particleName = particleSystemComp.gameObject.name;
-        return particleName.IndexOf("explosion", StringComparison.OrdinalIgnoreCase) >= 0
-               || particleName.IndexOf("blast", StringComparison.OrdinalIgnoreCase) >= 0
-               || particleName.IndexOf("flash", StringComparison.OrdinalIgnoreCase) >= 0
-               || particleName.IndexOf("debris", StringComparison.OrdinalIgnoreCase) >= 0;
     }
 
     // 파티클 충돌 이벤트를 발사체 충돌 처리로 전달할 릴레이를 등록한다.
@@ -174,14 +131,35 @@ public class HelicopterMissileSkillProjectile : MonoBehaviour
             return;
         }
 
+        if (!CanAcceptImpact(impactPosition))
+        {
+            return;
+        }
+
         Impact(impactPosition);
     }
 
-    // 목표 지점까지 미사일을 이동시키고 방향을 갱신한다.
+    // 미사일 생성 직후 발생하는 잘못된 파티클 충돌을 무시할지 판단한다.
+    private bool CanAcceptImpact(Vector3 impactPosition)
+    {
+        if (elapsedTime < impactArmDelay)
+        {
+            return false;
+        }
+
+        if ((impactPosition - spawnPosition).sqrMagnitude < impactMinTravelDistance * impactMinTravelDistance)
+        {
+            return false;
+        }
+
+        return true;
+    }
+
+    // 파티클 충돌 이벤트가 없는 미사일 프리팹을 목표 지점까지 이동시킨다.
     private void MoveMissile()
     {
         Vector3 currentPosition = transform.position;
-        Vector3 nextPosition = Vector3.MoveTowards(currentPosition, targetPosition, speed * Time.deltaTime);
+        Vector3 nextPosition = Vector3.MoveTowards(currentPosition, targetPosition, rootMoveSpeed * Time.deltaTime);
         ApplyMovement(currentPosition, nextPosition);
 
         if ((targetPosition - nextPosition).sqrMagnitude > 0.0001f)
@@ -189,17 +167,7 @@ public class HelicopterMissileSkillProjectile : MonoBehaviour
             return;
         }
 
-        if (!usesInternalImpactTiming)
-        {
-            Impact(targetPosition);
-            return;
-        }
-
-        if (!hasLoggedRootArrivalWait)
-        {
-            hasLoggedRootArrivalWait = true;
-            Debug.LogWarning("FX_Missile_01 루트가 목표점에 도착했지만 내부 폭발/파티클 충돌 신호가 아직 감지되지 않아 데미지 처리를 대기합니다.", this);
-        }
+        Impact(targetPosition);
     }
 
     // 미사일 위치와 진행 방향 회전을 적용한다.
@@ -228,7 +196,7 @@ public class HelicopterMissileSkillProjectile : MonoBehaviour
         transform.position = impactPosition;
         impactCallback?.Invoke(impactPosition);
         SpawnExplosion(impactPosition);
-        Destroy(gameObject, smokeDetachDuration);
+        Destroy(gameObject, destroyDelayAfterImpact);
     }
 
     // 폭발 이펙트를 목표 지점에 생성한다.

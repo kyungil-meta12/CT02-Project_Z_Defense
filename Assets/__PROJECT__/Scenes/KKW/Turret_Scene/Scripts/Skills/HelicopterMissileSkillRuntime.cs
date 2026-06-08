@@ -83,13 +83,13 @@ public class HelicopterMissileSkillRuntime : MonoBehaviour
 
         yield return WaitForMissileImpacts();
 
-        Destroy(gameObject, definition.ExplosionEffectDuration + definition.SmokeDetachDuration + 0.5f);
+        Destroy(gameObject, definition.ExplosionEffectDuration + definition.MissileDestroyDelayAfterImpact + 0.5f);
     }
 
     // 모든 미사일 충돌 처리가 끝날 때까지 런타임 제거를 늦춘다.
     private IEnumerator WaitForMissileImpacts()
     {
-        float timeout = Mathf.Max(3f, definition.HelicopterAltitude / Mathf.Max(0.1f, definition.MissileSpeed) + definition.MissileCount * definition.MissileInterval + 3f);
+        float timeout = Mathf.Max(3f, definition.HelicopterAltitude / Mathf.Max(0.1f, definition.MissileRootMoveSpeed) + definition.MissileCount * definition.MissileInterval + 3f);
         float elapsedTime = 0f;
 
         while (activeMissileCount > 0 && elapsedTime < timeout)
@@ -180,10 +180,12 @@ public class HelicopterMissileSkillRuntime : MonoBehaviour
         activeMissileCount++;
         projectile.Initialize(
             targetPosition,
-            definition.MissileSpeed,
+            definition.MissileRootMoveSpeed,
             definition.ExplosionEffectPrefab,
             definition.ExplosionEffectDuration,
-            definition.SmokeDetachDuration,
+            definition.MissileDestroyDelayAfterImpact,
+            definition.MissileImpactArmDelay,
+            definition.MissileImpactMinTravelDistance,
             OnMissileImpact);
     }
 

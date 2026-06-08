@@ -1,3 +1,4 @@
+using UnityEngine.Serialization;
 using UnityEngine;
 
 [CreateAssetMenu(fileName = "HelicopterMissileSkillDefinition", menuName = "Project Z Defense/Skills/Helicopter Missile Skill")]
@@ -49,10 +50,16 @@ public class HelicopterMissileSkillDefinitionSO : ScriptableObject
     [Header("미사일")]
     [Min(1)] [SerializeField] private int missileCount = 6;
     [Min(0f)] [SerializeField] private float missileInterval = 0.15f;
-    [Min(0.1f)] [SerializeField] private float missileSpeed = 35f;
+    [Tooltip("FX_Missile_01 루트 오브젝트를 목표 지점 쪽으로 이동시키는 속도입니다.")]
+    [FormerlySerializedAs("missileSpeed")] [Min(0.1f)] [SerializeField] private float missileRootMoveSpeed = 35f;
     [SerializeField] private float missileTargetHeightOffset = 0.1f;
+    [Tooltip("미사일 생성 직후 발생하는 파티클 충돌을 무시할 최소 시간입니다.")]
+    [Min(0f)] [SerializeField] private float missileImpactArmDelay = 0.2f;
+    [Tooltip("미사일 생성 직후 발생하는 파티클 충돌을 무시할 최소 이동 거리입니다.")]
+    [Min(0f)] [SerializeField] private float missileImpactMinTravelDistance = 2f;
     [Min(0f)] [SerializeField] private float explosionEffectDuration = 3f;
-    [Min(0f)] [SerializeField] private float smokeDetachDuration = 1.5f;
+    [Tooltip("충돌 후 FX_Missile_01 루트 오브젝트를 제거하기 전까지 기다릴 시간입니다.")]
+    [FormerlySerializedAs("smokeDetachDuration")] [Min(0f)] [SerializeField] private float missileDestroyDelayAfterImpact = 1.5f;
     [SerializeField] private bool applyDamageOncePerCast = true;
 
     [Header("데미지 판정")]
@@ -87,10 +94,12 @@ public class HelicopterMissileSkillDefinitionSO : ScriptableObject
     public HelicopterPropellerPrefabBinding[] PropellerBindings => propellerBindings;
     public int MissileCount => missileCount;
     public float MissileInterval => missileInterval;
-    public float MissileSpeed => missileSpeed;
+    public float MissileRootMoveSpeed => missileRootMoveSpeed;
     public float MissileTargetHeightOffset => missileTargetHeightOffset;
+    public float MissileImpactArmDelay => missileImpactArmDelay;
+    public float MissileImpactMinTravelDistance => missileImpactMinTravelDistance;
     public float ExplosionEffectDuration => explosionEffectDuration;
-    public float SmokeDetachDuration => smokeDetachDuration;
+    public float MissileDestroyDelayAfterImpact => missileDestroyDelayAfterImpact;
     public bool ApplyDamageOncePerCast => applyDamageOncePerCast;
     public LayerMask DamageLayerMask => damageLayerMask;
     public int DamageBufferSize => damageBufferSize;

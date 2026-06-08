@@ -18,7 +18,7 @@ public class TurretPlacementUI : MonoBehaviour
 
     private void Reset()
     {
-        placementController = FindObjectOfType<TurretPlacementController>();
+        placementController = FindFirstObjectByType<TurretPlacementController>();
     }
 
     private void Start()
@@ -34,7 +34,7 @@ public class TurretPlacementUI : MonoBehaviour
     {
         if (placementController == null)
         {
-            placementController = FindObjectOfType<TurretPlacementController>();
+            placementController = FindFirstObjectByType<TurretPlacementController>();
         }
 
         ResolveTemplateSlot();

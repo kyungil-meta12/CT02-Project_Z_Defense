@@ -1,0 +1,87 @@
+using TMPro;
+using UnityEngine;
+using IncrementalLib;
+using Unity.VisualScripting;
+
+public class ItemIndicator : MonoBehaviour
+{
+    public TextMeshProUGUI coinText;
+    private Vector2 originCoinTextScale;
+    private Vector2 coinTextScale;
+    private RectTransform coinTextRt;
+
+    public TextMeshProUGUI firePartText;
+    private Vector2 originFirePartTextScale;
+    private Vector2 firePartTextScale;
+    private RectTransform firePartTextRt;
+    
+    public TextMeshProUGUI specialPartText;
+    private Vector2 originSpecialPartTextScale;
+    private Vector2 specialPartTextScale;
+    private RectTransform specialPartTextRt;
+
+    void Awake()
+    {
+        coinTextRt = coinText.GetComponent<RectTransform>();
+        originCoinTextScale = coinTextRt.localScale;
+        coinTextScale = originCoinTextScale;
+
+        firePartTextRt = firePartText.GetComponent<RectTransform>();
+        originFirePartTextScale = firePartTextRt.localScale;
+        firePartTextScale = originFirePartTextScale;
+
+        specialPartTextRt = specialPartText.GetComponent<RectTransform>();
+        originSpecialPartTextScale = specialPartTextRt.localScale;
+        specialPartTextScale = originSpecialPartTextScale;
+    }
+    void Start()
+    {
+        // ItemManager 값 변경 이벤트 구독
+        // string 가비지 발생을 줄이기 위해 값이 변경되었을 때만 인디케이터의 텍스트에 반영한다.
+        ItemManager.Inst.OnCoinValueChange += OnCoinValueChanged;
+        ItemManager.Inst.OnFirePartValueChange += OnFirePartValueChanged;
+        ItemManager.Inst.OnSpecialPartValueChange += OnSpecialPartValueChanged;
+
+        coinText.text = ItemManager.Inst.CoinCountString;
+        firePartText.text = ItemManager.Inst.FirePartCountString;
+        specialPartText.text = ItemManager.Inst.SpecialPartCountString;
+    }
+
+    // 소유한 개수가 변경되면 피드백 애니메이션을 재생한다.
+    void Update()
+    {
+        coinTextScale = Vector2.Lerp(coinTextScale, originCoinTextScale, Time.deltaTime * 10f);
+        firePartTextScale = Vector2.Lerp(firePartTextScale, originFirePartTextScale, Time.deltaTime * 10f);
+        specialPartTextScale = Vector2.Lerp(specialPartTextScale, originSpecialPartTextScale, Time.deltaTime * 10f);
+        coinTextRt.localScale = coinTextScale;
+        firePartTextRt.localScale = firePartTextScale;
+        specialPartTextRt.localScale = specialPartTextScale;
+    }
+
+    void OnDestroy()
+    {
+        ItemManager.Inst.OnCoinValueChange -= OnCoinValueChanged;
+        ItemManager.Inst.OnFirePartValueChange -= OnFirePartValueChanged;
+        ItemManager.Inst.OnSpecialPartValueChange -= OnSpecialPartValueChanged;
+    }
+
+    // ItemManager의 이벤트를 구독하여 string 가비지 발생을 줄인다.
+    public void OnCoinValueChanged(string str)
+    {
+        coinText.text = str;
+        coinTextScale = originCoinTextScale * 1.3f;
+    }
+
+    public void OnFirePartValueChanged(string str)
+    {
+        firePartText.text = str;
+        firePartTextScale = originFirePartTextScale * 1.3f;
+        
+    }
+
+    public void OnSpecialPartValueChanged(string str)
+    {
+        specialPartText.text = str;
+        specialPartTextScale = originSpecialPartTextScale * 1.3f;
+    }
+}

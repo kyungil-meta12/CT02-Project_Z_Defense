@@ -2360,6 +2360,7 @@ MonoBehaviour:
   - {fileID: 22100000, guid: c8ab4e27c8b2b2341b0a57f6fea44b8a, type: 2}
   - {fileID: 22100000, guid: 42499c0794d724f4396528ea423197b5, type: 2}
   - {fileID: 22100000, guid: 0b7c52e7343462241a8817465a95215c, type: 2}
+  logReceivedDamage: 1
   hpUI: {fileID: 8476630290883587589}
   anim: {fileID: 0}
   attackState: 0
@@ -2768,7 +2769,7 @@ SphereCollider:
   m_LayerOverridePriority: 0
   m_IsTrigger: 0
   m_ProvidesContacts: 0
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 3
   m_Radius: 0.5
   m_Center: {x: 0, y: 0, z: 0}

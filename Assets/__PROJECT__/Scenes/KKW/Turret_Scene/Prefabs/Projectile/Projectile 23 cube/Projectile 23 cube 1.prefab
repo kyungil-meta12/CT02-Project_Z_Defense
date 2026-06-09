@@ -4862,6 +4862,7 @@ GameObject:
   - component: {fileID: 54081376527705164}
   - component: {fileID: 135208624359317352}
   - component: {fileID: -5629483965363645479}
+  - component: {fileID: 4279628497810833645}
   m_Layer: 12
   m_Name: Projectile 23 cube 1
   m_TagString: Untagged
@@ -5055,6 +5056,24 @@ MonoBehaviour:
   m_ShadowLayerMask: 1
   m_RenderingLayers: 1
   m_ShadowRenderingLayers: 1
+--- !u!114 &4279628497810833645
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1343504842343394}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f0d3f29b46ce4e07a466893a87603d0e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ProjectileDamageDealer
+  damage: 1
+  pierceCount: 0
+  damageLayerMask:
+    serializedVersion: 2
+    m_Bits: 1152
+  logDamage: 0
 --- !u!1 &2944823160851903472
 GameObject:
   m_ObjectHideFlags: 0

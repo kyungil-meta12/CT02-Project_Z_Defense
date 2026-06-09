@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 1440200201298083702}
   - component: {fileID: 1345051934921270582}
   - component: {fileID: 1407900849536826276}
+  - component: {fileID: -5713792591897666907}
   m_Layer: 12
   m_Name: Dragon punch projectile 3
   m_TagString: Untagged
@@ -111,6 +112,24 @@ SphereCollider:
   serializedVersion: 3
   m_Radius: 0.1
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &-5713792591897666907
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1328495139333439498}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f0d3f29b46ce4e07a466893a87603d0e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ProjectileDamageDealer
+  damage: 1
+  pierceCount: 0
+  damageLayerMask:
+    serializedVersion: 2
+    m_Bits: 1152
+  logDamage: 0
 --- !u!1 &2490675830849593096
 GameObject:
   m_ObjectHideFlags: 0

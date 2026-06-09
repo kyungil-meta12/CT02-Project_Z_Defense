@@ -14,6 +14,7 @@ GameObject:
   - component: {fileID: 54962462914559852}
   - component: {fileID: 135452002061114160}
   - component: {fileID: -2132164522118065009}
+  - component: {fileID: -6136757390266040829}
   m_Layer: 12
   m_Name: Projectile 25 orange explosion 2
   m_TagString: Untagged
@@ -207,6 +208,24 @@ MonoBehaviour:
   m_ShadowLayerMask: 1
   m_RenderingLayers: 1
   m_ShadowRenderingLayers: 1
+--- !u!114 &-6136757390266040829
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1079946990457772}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f0d3f29b46ce4e07a466893a87603d0e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ProjectileDamageDealer
+  damage: 1
+  pierceCount: 0
+  damageLayerMask:
+    serializedVersion: 2
+    m_Bits: 1152
+  logDamage: 0
 --- !u!1 &1666296132266488
 GameObject:
   m_ObjectHideFlags: 0

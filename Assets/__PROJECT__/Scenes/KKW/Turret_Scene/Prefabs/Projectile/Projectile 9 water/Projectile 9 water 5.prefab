@@ -4871,6 +4871,7 @@ GameObject:
   - component: {fileID: 54320897707685700}
   - component: {fileID: 135810886318251054}
   - component: {fileID: 5054719647630619742}
+  - component: {fileID: 3434299448876926515}
   m_Layer: 12
   m_Name: Projectile 9 water 5
   m_TagString: Untagged
@@ -5064,6 +5065,24 @@ MonoBehaviour:
   m_ShadowLayerMask: 1
   m_RenderingLayers: 1
   m_ShadowRenderingLayers: 1
+--- !u!114 &3434299448876926515
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1300573103503756}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f0d3f29b46ce4e07a466893a87603d0e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ProjectileDamageDealer
+  damage: 1
+  pierceCount: 0
+  damageLayerMask:
+    serializedVersion: 2
+    m_Bits: 1152
+  logDamage: 0
 --- !u!1 &1570842655542680
 GameObject:
   m_ObjectHideFlags: 0

@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 114236376692012392}
   - component: {fileID: 54118435474382250}
   - component: {fileID: 136065480267024780}
+  - component: {fileID: -8487635001839120130}
   m_Layer: 12
   m_Name: Projectile 11 orange arrow 3
   m_TagString: Untagged
@@ -112,6 +113,24 @@ CapsuleCollider:
   m_Height: 0.5
   m_Direction: 2
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &-8487635001839120130
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1976014488594992}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f0d3f29b46ce4e07a466893a87603d0e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ProjectileDamageDealer
+  damage: 1
+  pierceCount: 0
+  damageLayerMask:
+    serializedVersion: 2
+    m_Bits: 1152
+  logDamage: 0
 --- !u!1 &3084019246286838076
 GameObject:
   m_ObjectHideFlags: 0

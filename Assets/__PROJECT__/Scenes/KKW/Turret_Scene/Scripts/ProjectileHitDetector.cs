@@ -127,7 +127,7 @@ public class ProjectileHitDetector : MonoBehaviour
             movement / movementDistance,
             movementHits,
             movementDistance + 0.1f,
-            Physics.DefaultRaycastLayers,
+            GetHitDetectionLayerMask(),
             QueryTriggerInteraction.Collide);
 
         bool hasEnvironmentHit = false;
@@ -244,6 +244,16 @@ public class ProjectileHitDetector : MonoBehaviour
     private bool IsEnvironmentImpactLayer(int layer)
     {
         return (environmentImpactLayerMask.value & (1 << layer)) != 0;
+    }
+
+    private int GetHitDetectionLayerMask()
+    {
+        if (damageDealer == null)
+        {
+            return environmentImpactLayerMask.value;
+        }
+
+        return damageDealer.DamageLayerMask.value | environmentImpactLayerMask.value;
     }
 
     private bool TryHandleEnvironmentImpact(RaycastHit hit)

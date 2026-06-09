@@ -794,7 +794,12 @@ MonoBehaviour:
   canRotateHeadSeparately: 1
   rotateSpeed: 500
   turretAngleAttack: 8
+  closeRangePredictionDistance: 2
+  closeRangeFireDistance: 2
+  closeRangeTurretAngleAttack: 60
   fireTick: 0.3
+  targetSearchInterval: 0.1
+  aimPointLerpSpeed: 18
   showDebug: 0
 --- !u!114 &7573435724512310478
 MonoBehaviour:
@@ -830,16 +835,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   radius: 100
   targetTag: Enemy
-  targetLayer:
-    serializedVersion: 2
-    m_Bits: 128
   pivotObject: {fileID: 2421319688518584734}
   showDebug: 0
   useHorizontalDistance: 1
   requireLineOfSight: 1
   lineOfSightBlockingMask:
     serializedVersion: 2
-    m_Bits: 576
+    m_Bits: 64
   showRangeGizmo: 1
   drawRangeOnlyWhenSelected: 1
   rangeGizmoColor: {r: 0, g: 1, b: 0, a: 1}

@@ -59,7 +59,10 @@ public class ItemManager : MonoBehaviour
     void OnDestroy()
     {
         Inst = null;
-        GameManager.Inst.OnWaveIncrease -= OnWaveIncrease;
+        if (GameManager.Inst)
+        {
+            GameManager.Inst.OnWaveIncrease -= OnWaveIncrease;
+        }
     }
 
     // 웨이브 증가 이벤트

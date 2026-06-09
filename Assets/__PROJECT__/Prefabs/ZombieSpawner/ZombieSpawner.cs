@@ -27,7 +27,10 @@ public class ZombieSpawner : MonoBehaviour
 
     void OnDestroy()
     {
-        GameManager.Inst.OnWaveIncrease -= OnWaveIncrease;
+        if(GameManager.Inst)
+        {
+            GameManager.Inst.OnWaveIncrease -= OnWaveIncrease;
+        }
     }
 
     // 웨이브 증가 이벤트

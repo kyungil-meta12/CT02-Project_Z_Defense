@@ -33901,7 +33901,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 993447951}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d684c4661daa140448f0bccb5abb8a0f, type: 3}
   m_Name: 
@@ -33909,7 +33909,9 @@ MonoBehaviour:
   minOrthographicSize: 15
   maxOrthographicSize: 60
   zoomSensitivity: 20
-  dragSensitivity: 0.05
+  dragSensitivity: 0.1
+  distanceX: 20
+  distanceZ: 20
 --- !u!1001 &995098662
 PrefabInstance:
   m_ObjectHideFlags: 0

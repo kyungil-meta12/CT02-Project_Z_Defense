@@ -3,6 +3,8 @@ using UnityEngine.EventSystems;
 
 public class CameraController : MonoBehaviour
 {
+    public static CameraController Inst;
+
     public float minOrthographicSize;
     public float maxOrthographicSize;
 
@@ -20,12 +22,33 @@ public class CameraController : MonoBehaviour
     private Vector3 currPosDest;
     private Vector3 originPos;
 
+    private float shakeForce; // 현재 흔들림 힘
+    private float shakeTime; // 흔들림 간격 시간
+    private float shakeTimeDest = 0.016f; // 목표 흔들림 간격 시간
+    private Vector3 shakeOffset = new(); // 흔들림 오프셋
+
     #if UNITY_EDITOR
     private Vector3 lastMousePosition;
     private bool isDragging = false; // 에디터용 드래그 상태 추적
     #else
     private int activeDragFingerId = -1; // 모바일용 드래그 손가락 ID 추적
     #endif
+
+    void Awake()
+    {
+        if(Inst && Inst != this)
+        {
+            DestroyImmediate(gameObject);
+        }
+        Inst = this;
+        Inst = this;
+        DontDestroyOnLoad(gameObject);
+    }
+
+    void OnDestroy()
+    {
+        Inst = null;
+    }
 
     void Start()
     {
@@ -40,8 +63,37 @@ public class CameraController : MonoBehaviour
 
     void Update()
     {
+        UpdateShake();
         UpdateDrag();
         UpdateZoom();
+
+        // 업데이트 후에 최종 적용
+        cam.transform.position = currPos + shakeOffset;
+        cam.orthographicSize = currSize;
+    }
+
+    void UpdateShake()
+    {
+        shakeTime += Time.deltaTime;
+
+        if(shakeTime >= shakeTimeDest)
+        {
+            shakeTime -= shakeTimeDest;
+
+            float randomX = 0f;
+            float randomZ = 0f;
+
+            if(shakeForce > 0.0001f)
+            {
+                randomX = Random.Range(-shakeForce, shakeForce);
+                randomZ = Random.Range(-shakeForce, shakeForce);
+            }
+           
+            shakeOffset.x = randomX;
+            shakeOffset.z = randomZ;
+        }
+
+        shakeForce = Mathf.Lerp(shakeForce, 0f, Time.deltaTime * 5f);
     }
 
     void UpdateDrag()
@@ -115,7 +167,6 @@ public class CameraController : MonoBehaviour
         currPosDest.x = Mathf.Clamp(currPosDest.x, originPos.x - distanceX / zoomVal, originPos.x + distanceX / zoomVal);
         currPosDest.z = Mathf.Clamp(currPosDest.z, originPos.z - distanceZ / zoomVal, originPos.z + distanceZ / zoomVal);
         currPos = Vector3.Lerp(currPos, currPosDest, Time.deltaTime * 10f);
-        cam.transform.position = currPos;
     }
 
     void UpdateZoom()
@@ -154,6 +205,14 @@ public class CameraController : MonoBehaviour
         currSizeDest -= zoomDelta * zoomSensitivity;
         currSizeDest = Mathf.Clamp(currSizeDest, minOrthographicSize, maxOrthographicSize);
         currSize = Mathf.Lerp(currSize, currSizeDest, Time.deltaTime * 10f);
-        cam.orthographicSize = currSize;
+    }
+
+    /// <summary>
+    /// 카메라에 흔들림을 추가한다.
+    /// </summary>
+    /// <param name="shakeStrength"></param>
+    public void AddShake(float shakeStrength)
+    {
+        shakeForce += shakeStrength;
     }
 }

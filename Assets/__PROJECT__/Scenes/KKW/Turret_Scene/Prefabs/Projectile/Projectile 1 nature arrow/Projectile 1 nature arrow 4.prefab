@@ -4861,6 +4861,7 @@ GameObject:
   - component: {fileID: 114602481117139958}
   - component: {fileID: 135783597193828132}
   - component: {fileID: 7386120333985396610}
+  - component: {fileID: 8531422191752874561}
   m_Layer: 12
   m_Name: Projectile 1 nature arrow 4
   m_TagString: Untagged
@@ -4960,6 +4961,24 @@ Rigidbody:
   m_Interpolate: 1
   m_Constraints: 0
   m_CollisionDetection: 0
+--- !u!114 &8531422191752874561
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1261555563981962}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f0d3f29b46ce4e07a466893a87603d0e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ProjectileDamageDealer
+  damage: 1
+  pierceCount: 0
+  damageLayerMask:
+    serializedVersion: 2
+    m_Bits: 1152
+  logDamage: 0
 --- !u!1 &1304599075670652
 GameObject:
   m_ObjectHideFlags: 0

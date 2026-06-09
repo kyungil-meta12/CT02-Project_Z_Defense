@@ -9721,6 +9721,7 @@ GameObject:
   - component: {fileID: 135350336402146296}
   - component: {fileID: 54933371835274920}
   - component: {fileID: -3366802462601303872}
+  - component: {fileID: -1964174847073984514}
   m_Layer: 12
   m_Name: Projectile 27 heart 1
   m_TagString: Untagged
@@ -9914,6 +9915,24 @@ MonoBehaviour:
   m_ShadowLayerMask: 1
   m_RenderingLayers: 1
   m_ShadowRenderingLayers: 1
+--- !u!114 &-1964174847073984514
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1487245307642514}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f0d3f29b46ce4e07a466893a87603d0e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ProjectileDamageDealer
+  damage: 1
+  pierceCount: 0
+  damageLayerMask:
+    serializedVersion: 2
+    m_Bits: 1152
+  logDamage: 0
 --- !u!1 &1760865931655842
 GameObject:
   m_ObjectHideFlags: 0

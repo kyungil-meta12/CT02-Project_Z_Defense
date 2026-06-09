@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 114194830351093922}
   - component: {fileID: 54389543268620354}
   - component: {fileID: 136001570826098454}
+  - component: {fileID: -5708118554647066328}
   m_Layer: 12
   m_Name: Projectile 8 dagger 2
   m_TagString: Untagged
@@ -112,6 +113,24 @@ CapsuleCollider:
   m_Height: 1
   m_Direction: 2
   m_Center: {x: 0, y: 0, z: -0.5}
+--- !u!114 &-5708118554647066328
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1764308443362498}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f0d3f29b46ce4e07a466893a87603d0e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ProjectileDamageDealer
+  damage: 1
+  pierceCount: 0
+  damageLayerMask:
+    serializedVersion: 2
+    m_Bits: 1152
+  logDamage: 0
 --- !u!1 &7010881213671187739
 GameObject:
   m_ObjectHideFlags: 0

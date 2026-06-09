@@ -14823,6 +14823,7 @@ GameObject:
   - component: {fileID: 114459640776338082}
   - component: {fileID: 54078151922935178}
   - component: {fileID: 135537387491394736}
+  - component: {fileID: 41217011794629556}
   m_Layer: 12
   m_Name: Projectile 18 nova orange 4
   m_TagString: Untagged
@@ -14921,6 +14922,24 @@ SphereCollider:
   serializedVersion: 3
   m_Radius: 0.2
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &41217011794629556
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1531814124222292}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f0d3f29b46ce4e07a466893a87603d0e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ProjectileDamageDealer
+  damage: 1
+  pierceCount: 0
+  damageLayerMask:
+    serializedVersion: 2
+    m_Bits: 1152
+  logDamage: 0
 --- !u!1 &1548625300088820
 GameObject:
   m_ObjectHideFlags: 0

@@ -975,7 +975,7 @@ Animator:
   m_ApplyRootMotion: 1
   m_LinearVelocityBlending: 0
   m_StabilizeFeet: 0
-  m_AnimatePhysics: 0
+  m_AnimatePhysics: 1
   m_WarningMessage: 
   m_HasTransformHierarchy: 1
   m_AllowConstantClipSamplingOptimization: 1
@@ -2636,11 +2636,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1847657382218322912, guid: 38f8e62c8151e14438f8e5b0fb9484a7, type: 3}
       propertyPath: m_AnchorMax.y
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 2539923636683628352, guid: 38f8e62c8151e14438f8e5b0fb9484a7, type: 3}
       propertyPath: m_Name
       value: HpUI
+      objectReference: {fileID: 0}
+    - target: {fileID: 2539923636683628352, guid: 38f8e62c8151e14438f8e5b0fb9484a7, type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4775573691278992367, guid: 38f8e62c8151e14438f8e5b0fb9484a7, type: 3}
       propertyPath: m_PresetInfoIsWorld

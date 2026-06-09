@@ -51,10 +51,10 @@ MonoBehaviour:
     propellerPrefabTransform: {fileID: 0}
     localRotationAxis: {x: 1, y: 0, z: 0}
     rotationSpeedMultiplier: 1
-  missileCount: 9
+  missileCount: 6
   missileInterval: 0.15
   missileSpreadMode: 2
-  missileSpreadLengthRatio: 0.9
+  missileSpreadLengthRatio: 0.1
   missileSpreadWidthRatio: 0.7
   missileRootMoveSpeed: 120
   missileTargetHeightOffset: 0.1

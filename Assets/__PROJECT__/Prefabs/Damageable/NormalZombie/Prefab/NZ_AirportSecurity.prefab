@@ -2239,7 +2239,7 @@ GameObject:
   - component: {fileID: 7326208106863662701}
   - component: {fileID: 3854332720377832996}
   - component: {fileID: 2198761140652240216}
-  - component: {fileID: 4726929608158223230}
+  - component: {fileID: -888220476763322617}
   - component: {fileID: 3351056619506243608}
   - component: {fileID: 910046681025484354}
   m_Layer: 7
@@ -2367,7 +2367,7 @@ MonoBehaviour:
   agent: {fileID: 0}
   attackTarget: {fileID: 0}
   attackTargetContactPoint: {x: 0, y: 0, z: 0}
---- !u!54 &4726929608158223230
+--- !u!54 &-888220476763322617
 Rigidbody:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -2377,7 +2377,7 @@ Rigidbody:
   serializedVersion: 5
   m_Mass: 1
   m_LinearDamping: 0
-  m_AngularDamping: 0
+  m_AngularDamping: 0.05
   m_CenterOfMass: {x: 0, y: 0, z: 0}
   m_InertiaTensor: {x: 1, y: 1, z: 1}
   m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
@@ -2392,7 +2392,7 @@ Rigidbody:
   m_UseGravity: 1
   m_IsKinematic: 0
   m_Interpolate: 0
-  m_Constraints: 80
+  m_Constraints: 0
   m_CollisionDetection: 0
 --- !u!136 &3351056619506243608
 CapsuleCollider:

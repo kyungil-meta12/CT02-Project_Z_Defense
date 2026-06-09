@@ -85,6 +85,7 @@ public class Obstacle : MonoBehaviour, IDamageable
             return;
         }
 
+        CameraController.Inst.AddShake(0.8f);
         fractureGeometry.Fracture();
     }
 

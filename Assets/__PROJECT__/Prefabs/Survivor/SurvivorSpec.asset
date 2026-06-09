@@ -15,7 +15,7 @@ MonoBehaviour:
   level: 1
   moveSpeed: 10
   moveSpeedLevelWeight: 0.05
-  repairHpPerSecond: 20
+  repairHpPerSecond: 100
   repairHpPerSecondLevelWeight: 0.5
   repairRange: 1.5
   targetSearchInterval: 0.5

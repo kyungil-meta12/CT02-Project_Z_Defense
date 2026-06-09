@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3bdc0c7b9357a70449f6f4bff47f2e82, type: 3}
   m_Name: Sentry Pulse_VFX Progression SO
   m_EditorClassIdentifier: Assembly-CSharp::TurretVFXProgressionSO
-  defaultProfile: {fileID: 11400000, guid: 1c870e551809ba648a511bf438b7dff3, type: 2}
+  defaultProfile: {fileID: 11400000, guid: c572ffe9f4dd76246913df958e390c37, type: 2}
   levelEntries:
   - requiredLevel: 0
-    vfxProfile: {fileID: 11400000, guid: 1c870e551809ba648a511bf438b7dff3, type: 2}
+    vfxProfile: {fileID: 11400000, guid: c572ffe9f4dd76246913df958e390c37, type: 2}

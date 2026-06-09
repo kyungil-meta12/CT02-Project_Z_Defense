@@ -4,16 +4,22 @@ using UnityEngine;
 [DisallowMultipleComponent]
 public class ProjectileHitDetector : MonoBehaviour
 {
+    private const int GROUND_LAYER_MASK = 1 << 3;
+
+    [SerializeField] private LayerMask environmentImpactLayerMask = GROUND_LAYER_MASK;
+
     private readonly List<Collider> projectileColliders = new List<Collider>(4);
     private readonly RaycastHit[] movementHits = new RaycastHit[16];
 
     private ProjectileDamageDealer damageDealer;
+    private Hovl.HS_ProjectileMover projectileMover;
     private Collider targetCollider;
     private Vector3 previousPosition;
 
     private void Awake()
     {
         CacheProjectileColliders();
+        CacheProjectileMover();
         ConfigureProjectileColliders();
     }
 
@@ -23,6 +29,7 @@ public class ProjectileHitDetector : MonoBehaviour
         previousPosition = transform.position;
         enabled = true;
 
+        CacheProjectileMover();
         SetTarget(target);
         ConfigureProjectileColliders();
     }
@@ -107,11 +114,6 @@ public class ProjectileHitDetector : MonoBehaviour
 
     private void TryApplyDamageAlongMovement()
     {
-        if (!CanApplyMoreDamage())
-        {
-            return;
-        }
-
         Vector3 currentPosition = transform.position;
         Vector3 movement = currentPosition - previousPosition;
         float movementDistance = movement.magnitude;
@@ -128,30 +130,61 @@ public class ProjectileHitDetector : MonoBehaviour
             Physics.DefaultRaycastLayers,
             QueryTriggerInteraction.Collide);
 
+        bool hasEnvironmentHit = false;
+        RaycastHit nearestEnvironmentHit = default;
+        float nearestEnvironmentDistance = float.MaxValue;
+
         for (int i = 0; i < hitCount; i++)
         {
             Collider hitCollider = movementHits[i].collider;
-            movementHits[i] = default;
 
             if (hitCollider == null || hitCollider.transform.IsChildOf(transform))
             {
                 continue;
             }
 
-            if (TryApplyDamage(hitCollider))
+            if (IsEnvironmentImpactLayer(hitCollider.gameObject.layer) && movementHits[i].distance < nearestEnvironmentDistance)
             {
-                if (HandleDamageApplied())
+                hasEnvironmentHit = true;
+                nearestEnvironmentHit = movementHits[i];
+                nearestEnvironmentDistance = movementHits[i].distance;
+            }
+        }
+
+        if (CanApplyMoreDamage())
+        {
+            for (int i = 0; i < hitCount; i++)
+            {
+                Collider hitCollider = movementHits[i].collider;
+
+                if (hitCollider == null ||
+                    hitCollider.transform.IsChildOf(transform) ||
+                    movementHits[i].distance > nearestEnvironmentDistance + 0.0001f)
                 {
+                    continue;
+                }
+
+                if (TryApplyDamage(hitCollider) && HandleDamageApplied())
+                {
+                    ClearMovementHits(hitCount);
                     return;
                 }
             }
         }
+
+        if (hasEnvironmentHit)
+        {
+            TryHandleEnvironmentImpact(nearestEnvironmentHit);
+        }
+
+        ClearMovementHits(hitCount);
     }
 
     private void TryApplyDamageAndReturn(Collider hitCollider)
     {
         if (!TryApplyDamage(hitCollider))
         {
+            TryHandleEnvironmentImpact(hitCollider);
             return;
         }
 
@@ -198,5 +231,69 @@ public class ProjectileHitDetector : MonoBehaviour
     {
         projectileColliders.Clear();
         GetComponentsInChildren(true, projectileColliders);
+    }
+
+    private void CacheProjectileMover()
+    {
+        if (projectileMover == null)
+        {
+            projectileMover = GetComponent<Hovl.HS_ProjectileMover>();
+        }
+    }
+
+    private bool IsEnvironmentImpactLayer(int layer)
+    {
+        return (environmentImpactLayerMask.value & (1 << layer)) != 0;
+    }
+
+    private bool TryHandleEnvironmentImpact(RaycastHit hit)
+    {
+        if (hit.collider == null || !IsEnvironmentImpactLayer(hit.collider.gameObject.layer))
+        {
+            return false;
+        }
+
+        CacheProjectileMover();
+        if (projectileMover == null)
+        {
+            PooledProjectileReturner.ReturnOrDestroy(gameObject);
+            return true;
+        }
+
+        projectileMover.HandleExternalHit(hit.point, hit.normal);
+        return true;
+    }
+
+    private bool TryHandleEnvironmentImpact(Collider hitCollider)
+    {
+        if (hitCollider == null || !IsEnvironmentImpactLayer(hitCollider.gameObject.layer))
+        {
+            return false;
+        }
+
+        Vector3 hitPoint = hitCollider.ClosestPoint(transform.position);
+        Vector3 hitNormal = transform.position - hitPoint;
+        if (hitNormal.sqrMagnitude <= 0.0001f)
+        {
+            hitNormal = -transform.forward;
+        }
+
+        CacheProjectileMover();
+        if (projectileMover == null)
+        {
+            PooledProjectileReturner.ReturnOrDestroy(gameObject);
+            return true;
+        }
+
+        projectileMover.HandleExternalHit(hitPoint, hitNormal.normalized);
+        return true;
+    }
+
+    private void ClearMovementHits(int hitCount)
+    {
+        for (int i = 0; i < hitCount; i++)
+        {
+            movementHits[i] = default;
+        }
     }
 }

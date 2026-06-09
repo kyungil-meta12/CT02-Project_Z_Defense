@@ -16,6 +16,7 @@ public class Obstacle : MonoBehaviour, IDamageable
     public Survivor ReservedRepairer { get; private set; }
 
     private PreFracturedGeometry fractureGeometry;
+    private bool hasNotifiedFracture;
 
     private void Awake()
     {
@@ -60,6 +61,7 @@ public class Obstacle : MonoBehaviour, IDamageable
         CurrHp = TotalHp;
         IsAlive = true;
         ReservedRepairer = null;
+        hasNotifiedFracture = false;
         
         hpUI.InputTotalHp(TotalHp);
         hpUI.InputCurrHp(TotalHp);
@@ -86,6 +88,23 @@ public class Obstacle : MonoBehaviour, IDamageable
         }
 
         fractureGeometry.Fracture();
+        NotifyFractureEvent();
+    }
+
+    // 방어선 붕괴 처리를 위해 파편화 발생을 게임 매니저에 알린다
+    private void NotifyFractureEvent()
+    {
+        if (hasNotifiedFracture)
+        {
+            return;
+        }
+
+        hasNotifiedFracture = true;
+
+        if (GameManager.Inst != null)
+        {
+            GameManager.Inst.NotifyObstacleFractured(this);
+        }
     }
 
     //사전 생성된 파편 오브젝트를 준비하고 PreFracturedGeometry에 연결한다

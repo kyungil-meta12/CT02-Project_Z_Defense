@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 4418311021728136}
   - component: {fileID: 198415471719698134}
   - component: {fileID: 199500045511874794}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: SparksLight
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -4871,7 +4871,7 @@ GameObject:
   - component: {fileID: 54289311587510892}
   - component: {fileID: 135160217757687602}
   - component: {fileID: 4574816703082437840}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: Projectile 5 red 3
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -5075,7 +5075,7 @@ GameObject:
   - component: {fileID: 4612426551603798}
   - component: {fileID: 198959666223819020}
   - component: {fileID: 199910608741135838}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: SemicirclesDark
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -9926,7 +9926,7 @@ GameObject:
   - component: {fileID: 4337381236613006}
   - component: {fileID: 198550019022794002}
   - component: {fileID: 199082237920681430}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: SemicirclesLight
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -14774,7 +14774,7 @@ GameObject:
   - component: {fileID: 4204678820934940}
   - component: {fileID: 198026845042648310}
   - component: {fileID: 199956316012036242}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: SparksDark
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -19629,7 +19629,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 7191177389609633196}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: Visuals
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -19666,7 +19666,7 @@ GameObject:
   - component: {fileID: 1929175787650335865}
   - component: {fileID: 5769725395232142350}
   - component: {fileID: 5680315535958704205}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: Projectile
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -24592,9 +24592,25 @@ PrefabInstance:
       propertyPath: parentObject
       value: 
       objectReference: {fileID: 7191177389609633196}
+    - target: {fileID: 1510173324015106, guid: 7f11cfb7c95c8df45beb2209791430c4, type: 3}
+      propertyPath: m_Layer
+      value: 12
+      objectReference: {fileID: 0}
+    - target: {fileID: 1665325567083952, guid: 7f11cfb7c95c8df45beb2209791430c4, type: 3}
+      propertyPath: m_Layer
+      value: 12
+      objectReference: {fileID: 0}
+    - target: {fileID: 1765860509613878, guid: 7f11cfb7c95c8df45beb2209791430c4, type: 3}
+      propertyPath: m_Layer
+      value: 12
+      objectReference: {fileID: 0}
     - target: {fileID: 1795330392712688, guid: 7f11cfb7c95c8df45beb2209791430c4, type: 3}
       propertyPath: m_Name
       value: Flash 5 red
+      objectReference: {fileID: 0}
+    - target: {fileID: 1795330392712688, guid: 7f11cfb7c95c8df45beb2209791430c4, type: 3}
+      propertyPath: m_Layer
+      value: 12
       objectReference: {fileID: 0}
     - target: {fileID: 4672344190987996, guid: 7f11cfb7c95c8df45beb2209791430c4, type: 3}
       propertyPath: m_RootOrder
@@ -24679,9 +24695,29 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 7191177389609633196}
     m_Modifications:
+    - target: {fileID: 1031348193690348, guid: 33cfc2755a55b7e4c86c9d7018efbaaa, type: 3}
+      propertyPath: m_Layer
+      value: 12
+      objectReference: {fileID: 0}
+    - target: {fileID: 1069238066155946, guid: 33cfc2755a55b7e4c86c9d7018efbaaa, type: 3}
+      propertyPath: m_Layer
+      value: 12
+      objectReference: {fileID: 0}
     - target: {fileID: 1120835270511274, guid: 33cfc2755a55b7e4c86c9d7018efbaaa, type: 3}
       propertyPath: m_Name
       value: Hit 5 red
+      objectReference: {fileID: 0}
+    - target: {fileID: 1120835270511274, guid: 33cfc2755a55b7e4c86c9d7018efbaaa, type: 3}
+      propertyPath: m_Layer
+      value: 12
+      objectReference: {fileID: 0}
+    - target: {fileID: 1687085223856288, guid: 33cfc2755a55b7e4c86c9d7018efbaaa, type: 3}
+      propertyPath: m_Layer
+      value: 12
+      objectReference: {fileID: 0}
+    - target: {fileID: 1879833098151502, guid: 33cfc2755a55b7e4c86c9d7018efbaaa, type: 3}
+      propertyPath: m_Layer
+      value: 12
       objectReference: {fileID: 0}
     - target: {fileID: 4598895280422352, guid: 33cfc2755a55b7e4c86c9d7018efbaaa, type: 3}
       propertyPath: m_RootOrder

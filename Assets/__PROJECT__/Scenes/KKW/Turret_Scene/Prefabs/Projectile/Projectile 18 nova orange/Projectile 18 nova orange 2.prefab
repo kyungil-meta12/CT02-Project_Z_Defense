@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 4813750126601536}
   - component: {fileID: 198059696973432114}
   - component: {fileID: 199147082256883192}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: Lightning
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -4926,7 +4926,7 @@ GameObject:
   - component: {fileID: 4288798131609954}
   - component: {fileID: 198382008552040118}
   - component: {fileID: 199724920795497730}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: Shine
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -9842,7 +9842,7 @@ GameObject:
   - component: {fileID: 198356835336850064}
   - component: {fileID: 199548262001964682}
   - component: {fileID: 108555376458191456}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: Glow
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -14823,7 +14823,7 @@ GameObject:
   - component: {fileID: 114459640776338082}
   - component: {fileID: 54078151922935178}
   - component: {fileID: 135537387491394736}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: Projectile 18 nova orange 2
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -14932,7 +14932,7 @@ GameObject:
   - component: {fileID: 4738946355987080}
   - component: {fileID: 198149117270932434}
   - component: {fileID: 199240653785539914}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: Wind
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -19847,7 +19847,7 @@ GameObject:
   - component: {fileID: 6639472976310831970}
   - component: {fileID: 9184812989507553881}
   - component: {fileID: 5948996779601858341}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: Projectile
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -24764,7 +24764,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1554428113396202893}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: Visuals
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -24801,9 +24801,21 @@ PrefabInstance:
       propertyPath: parentObject
       value: 
       objectReference: {fileID: 1554428113396202893}
+    - target: {fileID: 1346367437512558, guid: df8bef245b1373047a1e1320f5ed6ac2, type: 3}
+      propertyPath: m_Layer
+      value: 12
+      objectReference: {fileID: 0}
+    - target: {fileID: 1701179488118890, guid: df8bef245b1373047a1e1320f5ed6ac2, type: 3}
+      propertyPath: m_Layer
+      value: 12
+      objectReference: {fileID: 0}
     - target: {fileID: 1920765516895132, guid: df8bef245b1373047a1e1320f5ed6ac2, type: 3}
       propertyPath: m_Name
       value: Flash 18 nova orange
+      objectReference: {fileID: 0}
+    - target: {fileID: 1920765516895132, guid: df8bef245b1373047a1e1320f5ed6ac2, type: 3}
+      propertyPath: m_Layer
+      value: 12
       objectReference: {fileID: 0}
     - target: {fileID: 4909131364603256, guid: df8bef245b1373047a1e1320f5ed6ac2, type: 3}
       propertyPath: m_RootOrder
@@ -24884,9 +24896,45 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1554428113396202893}
     m_Modifications:
+    - target: {fileID: 1123149987224170, guid: 5740ae2e014a8b14886dad7e67951070, type: 3}
+      propertyPath: m_Layer
+      value: 12
+      objectReference: {fileID: 0}
+    - target: {fileID: 1156098351843164, guid: 5740ae2e014a8b14886dad7e67951070, type: 3}
+      propertyPath: m_Layer
+      value: 12
+      objectReference: {fileID: 0}
+    - target: {fileID: 1160440219782238, guid: 5740ae2e014a8b14886dad7e67951070, type: 3}
+      propertyPath: m_Layer
+      value: 12
+      objectReference: {fileID: 0}
     - target: {fileID: 1299586717950946, guid: 5740ae2e014a8b14886dad7e67951070, type: 3}
       propertyPath: m_Name
       value: Hit 18 nova orange
+      objectReference: {fileID: 0}
+    - target: {fileID: 1299586717950946, guid: 5740ae2e014a8b14886dad7e67951070, type: 3}
+      propertyPath: m_Layer
+      value: 12
+      objectReference: {fileID: 0}
+    - target: {fileID: 1344552049766864, guid: 5740ae2e014a8b14886dad7e67951070, type: 3}
+      propertyPath: m_Layer
+      value: 12
+      objectReference: {fileID: 0}
+    - target: {fileID: 1439540247514262, guid: 5740ae2e014a8b14886dad7e67951070, type: 3}
+      propertyPath: m_Layer
+      value: 12
+      objectReference: {fileID: 0}
+    - target: {fileID: 1621726948036488, guid: 5740ae2e014a8b14886dad7e67951070, type: 3}
+      propertyPath: m_Layer
+      value: 12
+      objectReference: {fileID: 0}
+    - target: {fileID: 1838956708580440, guid: 5740ae2e014a8b14886dad7e67951070, type: 3}
+      propertyPath: m_Layer
+      value: 12
+      objectReference: {fileID: 0}
+    - target: {fileID: 1850260935280494, guid: 5740ae2e014a8b14886dad7e67951070, type: 3}
+      propertyPath: m_Layer
+      value: 12
       objectReference: {fileID: 0}
     - target: {fileID: 4401843173228036, guid: 5740ae2e014a8b14886dad7e67951070, type: 3}
       propertyPath: m_RootOrder

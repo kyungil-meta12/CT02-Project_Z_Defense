@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 4869391961339478}
   - component: {fileID: 198433115122331948}
   - component: {fileID: 199659563733507752}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: SubTriangles
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -4862,7 +4862,7 @@ GameObject:
   - component: {fileID: 54081376527705164}
   - component: {fileID: 135208624359317352}
   - component: {fileID: -5629483965363645479}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: Projectile 23 cube 2
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -5066,7 +5066,7 @@ GameObject:
   - component: {fileID: 1887846358500981641}
   - component: {fileID: 2060801987700335661}
   - component: {fileID: 3504127255334320066}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: Projectile
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -9979,7 +9979,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 7526035900863965636}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: Visuals
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -10013,9 +10013,21 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 7526035900863965636}
     m_Modifications:
+    - target: {fileID: 1048877942444212, guid: d629efdae70f475409893aa79aeafd1e, type: 3}
+      propertyPath: m_Layer
+      value: 12
+      objectReference: {fileID: 0}
+    - target: {fileID: 1641732374511974, guid: d629efdae70f475409893aa79aeafd1e, type: 3}
+      propertyPath: m_Layer
+      value: 12
+      objectReference: {fileID: 0}
     - target: {fileID: 1902990887318610, guid: d629efdae70f475409893aa79aeafd1e, type: 3}
       propertyPath: m_Name
       value: Flash 23 cube
+      objectReference: {fileID: 0}
+    - target: {fileID: 1902990887318610, guid: d629efdae70f475409893aa79aeafd1e, type: 3}
+      propertyPath: m_Layer
+      value: 12
       objectReference: {fileID: 0}
     - target: {fileID: 4671481552515780, guid: d629efdae70f475409893aa79aeafd1e, type: 3}
       propertyPath: m_RootOrder
@@ -10099,6 +10111,18 @@ PrefabInstance:
     - target: {fileID: 1148406988041044, guid: 1ae2b1c728484264bbdc53ecaee73c6a, type: 3}
       propertyPath: m_Name
       value: Hit 23 cube
+      objectReference: {fileID: 0}
+    - target: {fileID: 1148406988041044, guid: 1ae2b1c728484264bbdc53ecaee73c6a, type: 3}
+      propertyPath: m_Layer
+      value: 12
+      objectReference: {fileID: 0}
+    - target: {fileID: 1691868717723806, guid: 1ae2b1c728484264bbdc53ecaee73c6a, type: 3}
+      propertyPath: m_Layer
+      value: 12
+      objectReference: {fileID: 0}
+    - target: {fileID: 1840720709301702, guid: 1ae2b1c728484264bbdc53ecaee73c6a, type: 3}
+      propertyPath: m_Layer
+      value: 12
       objectReference: {fileID: 0}
     - target: {fileID: 4052716703733502, guid: 1ae2b1c728484264bbdc53ecaee73c6a, type: 3}
       propertyPath: m_RootOrder

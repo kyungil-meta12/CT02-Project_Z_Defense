@@ -14,7 +14,7 @@ GameObject:
   - component: {fileID: 54026867493614958}
   - component: {fileID: 135840973497244662}
   - component: {fileID: 6411799243536502805}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: Projectile 26 blue diamond 3
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -218,7 +218,7 @@ GameObject:
   - component: {fileID: 4915149813840288}
   - component: {fileID: 198359807666768676}
   - component: {fileID: 199869365633251996}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: Glow
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -5075,7 +5075,7 @@ GameObject:
   - component: {fileID: 4379394965000066}
   - component: {fileID: 198987202803310668}
   - component: {fileID: 199574509586546038}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: Wind
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -9922,7 +9922,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 5292873515772242166}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: Visuals
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -9959,7 +9959,7 @@ GameObject:
   - component: {fileID: 8347065184046778331}
   - component: {fileID: 5060558864241915764}
   - component: {fileID: 6546876760916911205}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: Projectile
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -14863,9 +14863,29 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 5292873515772242166}
     m_Modifications:
+    - target: {fileID: 1222988306458680, guid: 1977fc844cb969a44866c4dcd32996d1, type: 3}
+      propertyPath: m_Layer
+      value: 12
+      objectReference: {fileID: 0}
     - target: {fileID: 1320316104850776, guid: 1977fc844cb969a44866c4dcd32996d1, type: 3}
       propertyPath: m_Name
       value: Hit 26 blue crystal
+      objectReference: {fileID: 0}
+    - target: {fileID: 1320316104850776, guid: 1977fc844cb969a44866c4dcd32996d1, type: 3}
+      propertyPath: m_Layer
+      value: 12
+      objectReference: {fileID: 0}
+    - target: {fileID: 1706827775943762, guid: 1977fc844cb969a44866c4dcd32996d1, type: 3}
+      propertyPath: m_Layer
+      value: 12
+      objectReference: {fileID: 0}
+    - target: {fileID: 1773154029045858, guid: 1977fc844cb969a44866c4dcd32996d1, type: 3}
+      propertyPath: m_Layer
+      value: 12
+      objectReference: {fileID: 0}
+    - target: {fileID: 1835719078703386, guid: 1977fc844cb969a44866c4dcd32996d1, type: 3}
+      propertyPath: m_Layer
+      value: 12
       objectReference: {fileID: 0}
     - target: {fileID: 4967202525023960, guid: 1977fc844cb969a44866c4dcd32996d1, type: 3}
       propertyPath: m_RootOrder
@@ -14963,9 +14983,25 @@ PrefabInstance:
       propertyPath: parentObject
       value: 
       objectReference: {fileID: 5292873515772242166}
+    - target: {fileID: 1177324839641600, guid: 25f0a817a944f794d8af1e1ea326f16c, type: 3}
+      propertyPath: m_Layer
+      value: 12
+      objectReference: {fileID: 0}
     - target: {fileID: 1447684947834178, guid: 25f0a817a944f794d8af1e1ea326f16c, type: 3}
       propertyPath: m_Name
       value: Flash 26 blue crystal
+      objectReference: {fileID: 0}
+    - target: {fileID: 1447684947834178, guid: 25f0a817a944f794d8af1e1ea326f16c, type: 3}
+      propertyPath: m_Layer
+      value: 12
+      objectReference: {fileID: 0}
+    - target: {fileID: 1644878634013732, guid: 25f0a817a944f794d8af1e1ea326f16c, type: 3}
+      propertyPath: m_Layer
+      value: 12
+      objectReference: {fileID: 0}
+    - target: {fileID: 1910144095522608, guid: 25f0a817a944f794d8af1e1ea326f16c, type: 3}
+      propertyPath: m_Layer
+      value: 12
       objectReference: {fileID: 0}
     - target: {fileID: 4773884476773142, guid: 25f0a817a944f794d8af1e1ea326f16c, type: 3}
       propertyPath: m_RootOrder

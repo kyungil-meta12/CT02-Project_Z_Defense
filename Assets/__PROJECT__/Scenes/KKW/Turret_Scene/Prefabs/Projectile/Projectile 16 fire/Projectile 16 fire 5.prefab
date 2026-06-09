@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 4119478665583912}
   - component: {fileID: 198106405273273764}
   - component: {fileID: 199709842906661732}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: SubSmoke
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -4861,7 +4861,7 @@ GameObject:
   - component: {fileID: 114752226285970980}
   - component: {fileID: 54905710770579714}
   - component: {fileID: 135206474481286692}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: Projectile 16 fire 5
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -4971,7 +4971,7 @@ GameObject:
   - component: {fileID: 4992872268926716}
   - component: {fileID: 198347469227822328}
   - component: {fileID: 199228899523012876}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: SubSparks
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -9817,7 +9817,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2607686436613172566}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: Visuals
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -9854,7 +9854,7 @@ GameObject:
   - component: {fileID: 6308456141328654549}
   - component: {fileID: 192425388666632839}
   - component: {fileID: 3394717498785949866}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: Projectile
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -14757,9 +14757,21 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 2607686436613172566}
     m_Modifications:
+    - target: {fileID: 1202066147566558, guid: f326479f7cef0794d95f29731f4bbdb3, type: 3}
+      propertyPath: m_Layer
+      value: 12
+      objectReference: {fileID: 0}
+    - target: {fileID: 1547346516148372, guid: f326479f7cef0794d95f29731f4bbdb3, type: 3}
+      propertyPath: m_Layer
+      value: 12
+      objectReference: {fileID: 0}
     - target: {fileID: 1673707391571236, guid: f326479f7cef0794d95f29731f4bbdb3, type: 3}
       propertyPath: m_Name
       value: Flash 16 fire
+      objectReference: {fileID: 0}
+    - target: {fileID: 1673707391571236, guid: f326479f7cef0794d95f29731f4bbdb3, type: 3}
+      propertyPath: m_Layer
+      value: 12
       objectReference: {fileID: 0}
     - target: {fileID: 4314873927490050, guid: f326479f7cef0794d95f29731f4bbdb3, type: 3}
       propertyPath: m_RootOrder
@@ -14844,9 +14856,29 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 2607686436613172566}
     m_Modifications:
+    - target: {fileID: 1140345026741510, guid: cd5def2bb4f6b4e4ab15ba0b6f35b29d, type: 3}
+      propertyPath: m_Layer
+      value: 12
+      objectReference: {fileID: 0}
+    - target: {fileID: 1312976861001918, guid: cd5def2bb4f6b4e4ab15ba0b6f35b29d, type: 3}
+      propertyPath: m_Layer
+      value: 12
+      objectReference: {fileID: 0}
+    - target: {fileID: 1368592503350870, guid: cd5def2bb4f6b4e4ab15ba0b6f35b29d, type: 3}
+      propertyPath: m_Layer
+      value: 12
+      objectReference: {fileID: 0}
     - target: {fileID: 1373873258365392, guid: cd5def2bb4f6b4e4ab15ba0b6f35b29d, type: 3}
       propertyPath: m_Name
       value: Hit 16 fire
+      objectReference: {fileID: 0}
+    - target: {fileID: 1373873258365392, guid: cd5def2bb4f6b4e4ab15ba0b6f35b29d, type: 3}
+      propertyPath: m_Layer
+      value: 12
+      objectReference: {fileID: 0}
+    - target: {fileID: 1529721393113776, guid: cd5def2bb4f6b4e4ab15ba0b6f35b29d, type: 3}
+      propertyPath: m_Layer
+      value: 12
       objectReference: {fileID: 0}
     - target: {fileID: 4728023650850512, guid: cd5def2bb4f6b4e4ab15ba0b6f35b29d, type: 3}
       propertyPath: m_RootOrder

@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 114236376692012392}
   - component: {fileID: 54118435474382250}
   - component: {fileID: 136065480267024780}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: Projectile 11 orange arrow 1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -121,7 +121,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4186081034876390651}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: Visuals
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -157,7 +157,7 @@ GameObject:
   - component: {fileID: 8786998779830092356}
   - component: {fileID: 7457689028364305797}
   - component: {fileID: 5798664721285059838}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: Projectile
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -5061,9 +5061,33 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 4186081034876390651}
     m_Modifications:
+    - target: {fileID: 1330634432268220, guid: 01638115f50284b4fb616d584a6fabff, type: 3}
+      propertyPath: m_Layer
+      value: 12
+      objectReference: {fileID: 0}
+    - target: {fileID: 1423696544668800, guid: 01638115f50284b4fb616d584a6fabff, type: 3}
+      propertyPath: m_Layer
+      value: 12
+      objectReference: {fileID: 0}
+    - target: {fileID: 1493845264857058, guid: 01638115f50284b4fb616d584a6fabff, type: 3}
+      propertyPath: m_Layer
+      value: 12
+      objectReference: {fileID: 0}
+    - target: {fileID: 1510058531124638, guid: 01638115f50284b4fb616d584a6fabff, type: 3}
+      propertyPath: m_Layer
+      value: 12
+      objectReference: {fileID: 0}
+    - target: {fileID: 1690031518500130, guid: 01638115f50284b4fb616d584a6fabff, type: 3}
+      propertyPath: m_Layer
+      value: 12
+      objectReference: {fileID: 0}
     - target: {fileID: 1746675453279186, guid: 01638115f50284b4fb616d584a6fabff, type: 3}
       propertyPath: m_Name
       value: Hit 11 orange arrow
+      objectReference: {fileID: 0}
+    - target: {fileID: 1746675453279186, guid: 01638115f50284b4fb616d584a6fabff, type: 3}
+      propertyPath: m_Layer
+      value: 12
       objectReference: {fileID: 0}
     - target: {fileID: 4294284296639278, guid: 01638115f50284b4fb616d584a6fabff, type: 3}
       propertyPath: m_RootOrder
@@ -5188,6 +5212,14 @@ PrefabInstance:
     - target: {fileID: 1198096198593678, guid: d2bf40a98ef3560439f0badec6115db3, type: 3}
       propertyPath: m_Name
       value: Flash 11 orange arrow
+      objectReference: {fileID: 0}
+    - target: {fileID: 1198096198593678, guid: d2bf40a98ef3560439f0badec6115db3, type: 3}
+      propertyPath: m_Layer
+      value: 12
+      objectReference: {fileID: 0}
+    - target: {fileID: 1560102645080502, guid: d2bf40a98ef3560439f0badec6115db3, type: 3}
+      propertyPath: m_Layer
+      value: 12
       objectReference: {fileID: 0}
     - target: {fileID: 4593384002465906, guid: d2bf40a98ef3560439f0badec6115db3, type: 3}
       propertyPath: m_RootOrder

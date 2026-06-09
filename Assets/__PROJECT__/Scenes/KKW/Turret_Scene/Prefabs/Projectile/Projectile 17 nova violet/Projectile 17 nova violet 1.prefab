@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 114152726968815478}
   - component: {fileID: 54218369727422460}
   - component: {fileID: 135535602245615578}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: Projectile 17 nova violet 1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -122,7 +122,7 @@ GameObject:
   - component: {fileID: 198517130586790854}
   - component: {fileID: 199599457033925654}
   - component: {fileID: 108560659361369872}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: Glow
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -5102,7 +5102,7 @@ GameObject:
   - component: {fileID: 4748734700917404}
   - component: {fileID: 198760565863653164}
   - component: {fileID: 199054958900069702}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: Lightning
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -10017,7 +10017,7 @@ GameObject:
   - component: {fileID: 4019018889288010}
   - component: {fileID: 198749281551158958}
   - component: {fileID: 199999995336655884}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: Wind
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -14932,7 +14932,7 @@ GameObject:
   - component: {fileID: 4964022661953272}
   - component: {fileID: 198376874017825004}
   - component: {fileID: 199525629912382970}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: Darkness
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -19847,7 +19847,7 @@ GameObject:
   - component: {fileID: 8581590890952169917}
   - component: {fileID: 8807618872620494486}
   - component: {fileID: 7148964032443545155}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: Projectile
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -24764,7 +24764,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4424809904435046509}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: Visuals
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -24801,9 +24801,21 @@ PrefabInstance:
       propertyPath: parentObject
       value: 
       objectReference: {fileID: 4424809904435046509}
+    - target: {fileID: 1369166762427234, guid: 6c45d61ea68f82b4eb2c7f1ff7fdcb81, type: 3}
+      propertyPath: m_Layer
+      value: 12
+      objectReference: {fileID: 0}
     - target: {fileID: 1716391117806116, guid: 6c45d61ea68f82b4eb2c7f1ff7fdcb81, type: 3}
       propertyPath: m_Name
       value: Flash 17 nova violet
+      objectReference: {fileID: 0}
+    - target: {fileID: 1716391117806116, guid: 6c45d61ea68f82b4eb2c7f1ff7fdcb81, type: 3}
+      propertyPath: m_Layer
+      value: 12
+      objectReference: {fileID: 0}
+    - target: {fileID: 1941368634923132, guid: 6c45d61ea68f82b4eb2c7f1ff7fdcb81, type: 3}
+      propertyPath: m_Layer
+      value: 12
       objectReference: {fileID: 0}
     - target: {fileID: 4893495851109726, guid: 6c45d61ea68f82b4eb2c7f1ff7fdcb81, type: 3}
       propertyPath: m_RootOrder
@@ -24884,9 +24896,45 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 4424809904435046509}
     m_Modifications:
+    - target: {fileID: 1009328927692070, guid: d7d554880214e644bbbbfc89aa884b26, type: 3}
+      propertyPath: m_Layer
+      value: 12
+      objectReference: {fileID: 0}
+    - target: {fileID: 1047559015829234, guid: d7d554880214e644bbbbfc89aa884b26, type: 3}
+      propertyPath: m_Layer
+      value: 12
+      objectReference: {fileID: 0}
+    - target: {fileID: 1218084421852556, guid: d7d554880214e644bbbbfc89aa884b26, type: 3}
+      propertyPath: m_Layer
+      value: 12
+      objectReference: {fileID: 0}
+    - target: {fileID: 1307996288561154, guid: d7d554880214e644bbbbfc89aa884b26, type: 3}
+      propertyPath: m_Layer
+      value: 12
+      objectReference: {fileID: 0}
     - target: {fileID: 1348390491135638, guid: d7d554880214e644bbbbfc89aa884b26, type: 3}
       propertyPath: m_Name
       value: Hit 17 nova violet
+      objectReference: {fileID: 0}
+    - target: {fileID: 1348390491135638, guid: d7d554880214e644bbbbfc89aa884b26, type: 3}
+      propertyPath: m_Layer
+      value: 12
+      objectReference: {fileID: 0}
+    - target: {fileID: 1558480855430066, guid: d7d554880214e644bbbbfc89aa884b26, type: 3}
+      propertyPath: m_Layer
+      value: 12
+      objectReference: {fileID: 0}
+    - target: {fileID: 1805060218182946, guid: d7d554880214e644bbbbfc89aa884b26, type: 3}
+      propertyPath: m_Layer
+      value: 12
+      objectReference: {fileID: 0}
+    - target: {fileID: 1846355353874842, guid: d7d554880214e644bbbbfc89aa884b26, type: 3}
+      propertyPath: m_Layer
+      value: 12
+      objectReference: {fileID: 0}
+    - target: {fileID: 1864572386389854, guid: d7d554880214e644bbbbfc89aa884b26, type: 3}
+      propertyPath: m_Layer
+      value: 12
       objectReference: {fileID: 0}
     - target: {fileID: 4916111256539100, guid: d7d554880214e644bbbbfc89aa884b26, type: 3}
       propertyPath: m_RootOrder

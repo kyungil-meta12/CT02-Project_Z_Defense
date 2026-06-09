@@ -6,6 +6,7 @@ TagManager:
   tags:
   - Folder
   - Enemy
+  - FX
   layers:
   - Default
   - TransparentFX
@@ -19,7 +20,7 @@ TagManager:
   - Obstacle
   - ZombieAttackCollider
   - TurretBase
-  - 
+  - Projectile
   - 
   - 
   - 

@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 4587943912328828}
   - component: {fileID: 198840703474818392}
   - component: {fileID: 199652021892514146}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: Smoke
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -4861,7 +4861,7 @@ GameObject:
   - component: {fileID: 4928152590134744}
   - component: {fileID: 198598355560077112}
   - component: {fileID: 199934617267810200}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: Hearts
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -9721,7 +9721,7 @@ GameObject:
   - component: {fileID: 135350336402146296}
   - component: {fileID: 54933371835274920}
   - component: {fileID: -3366802462601303872}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: Projectile 27 heart 3
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -9925,7 +9925,7 @@ GameObject:
   - component: {fileID: 4847197780967490}
   - component: {fileID: 198104141697905822}
   - component: {fileID: 199915741868203060}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: Trail
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -14832,7 +14832,7 @@ GameObject:
   - component: {fileID: 4356259679726644}
   - component: {fileID: 198082910738639804}
   - component: {fileID: 199327357237797786}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: Flares
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -19687,7 +19687,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 8151641161338988764}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: Visuals
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -19724,7 +19724,7 @@ GameObject:
   - component: {fileID: 8888634075840201958}
   - component: {fileID: 673733914052715432}
   - component: {fileID: 8171081942405426437}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: Projectile
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -24637,6 +24637,14 @@ PrefabInstance:
       propertyPath: m_Name
       value: Flash 27 heart
       objectReference: {fileID: 0}
+    - target: {fileID: 1292704331029830, guid: 28538e5931854494fbe4d98d2d4cd548, type: 3}
+      propertyPath: m_Layer
+      value: 12
+      objectReference: {fileID: 0}
+    - target: {fileID: 1780935773646252, guid: 28538e5931854494fbe4d98d2d4cd548, type: 3}
+      propertyPath: m_Layer
+      value: 12
+      objectReference: {fileID: 0}
     - target: {fileID: 4151184333525638, guid: 28538e5931854494fbe4d98d2d4cd548, type: 3}
       propertyPath: m_RootOrder
       value: 1
@@ -24715,6 +24723,22 @@ PrefabInstance:
     - target: {fileID: 1402743518298044, guid: 6220b0bbd4630c24a9d0fd570b53d326, type: 3}
       propertyPath: m_Name
       value: Hit 27 heart
+      objectReference: {fileID: 0}
+    - target: {fileID: 1402743518298044, guid: 6220b0bbd4630c24a9d0fd570b53d326, type: 3}
+      propertyPath: m_Layer
+      value: 12
+      objectReference: {fileID: 0}
+    - target: {fileID: 1705490917624808, guid: 6220b0bbd4630c24a9d0fd570b53d326, type: 3}
+      propertyPath: m_Layer
+      value: 12
+      objectReference: {fileID: 0}
+    - target: {fileID: 1762598391032262, guid: 6220b0bbd4630c24a9d0fd570b53d326, type: 3}
+      propertyPath: m_Layer
+      value: 12
+      objectReference: {fileID: 0}
+    - target: {fileID: 1988874860356774, guid: 6220b0bbd4630c24a9d0fd570b53d326, type: 3}
+      propertyPath: m_Layer
+      value: 12
       objectReference: {fileID: 0}
     - target: {fileID: 4575013415971414, guid: 6220b0bbd4630c24a9d0fd570b53d326, type: 3}
       propertyPath: m_RootOrder

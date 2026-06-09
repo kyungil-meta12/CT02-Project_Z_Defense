@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 4979078473652990}
   - component: {fileID: 198343067639323108}
   - component: {fileID: 199632313697423724}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: Sparks
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -4871,7 +4871,7 @@ GameObject:
   - component: {fileID: 54320897707685700}
   - component: {fileID: 135810886318251054}
   - component: {fileID: 5054719647630619742}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: Projectile 9 water 3
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -5075,7 +5075,7 @@ GameObject:
   - component: {fileID: 4158040155400464}
   - component: {fileID: 198789236737275484}
   - component: {fileID: 199918811470479684}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: Core
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -9979,7 +9979,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4493954269154289571}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: Visuals
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -10016,7 +10016,7 @@ GameObject:
   - component: {fileID: 249074211042081758}
   - component: {fileID: 1364875578497136268}
   - component: {fileID: 6242150705109652159}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: Projectile
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -14921,9 +14921,21 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 4493954269154289571}
     m_Modifications:
+    - target: {fileID: 1034618280489476, guid: 40f5e004d2504a04db181f5453658776, type: 3}
+      propertyPath: m_Layer
+      value: 12
+      objectReference: {fileID: 0}
+    - target: {fileID: 1132397472865310, guid: 40f5e004d2504a04db181f5453658776, type: 3}
+      propertyPath: m_Layer
+      value: 12
+      objectReference: {fileID: 0}
     - target: {fileID: 1367524815892938, guid: 40f5e004d2504a04db181f5453658776, type: 3}
       propertyPath: m_Name
       value: Flash 9 water
+      objectReference: {fileID: 0}
+    - target: {fileID: 1367524815892938, guid: 40f5e004d2504a04db181f5453658776, type: 3}
+      propertyPath: m_Layer
+      value: 12
       objectReference: {fileID: 0}
     - target: {fileID: 4102067350402900, guid: 40f5e004d2504a04db181f5453658776, type: 3}
       propertyPath: m_RootOrder
@@ -15011,6 +15023,26 @@ PrefabInstance:
     - target: {fileID: 1089465354904564, guid: f0855940e22dbcd4aad5ca152a089348, type: 3}
       propertyPath: m_Name
       value: Hit 9 water
+      objectReference: {fileID: 0}
+    - target: {fileID: 1089465354904564, guid: f0855940e22dbcd4aad5ca152a089348, type: 3}
+      propertyPath: m_Layer
+      value: 12
+      objectReference: {fileID: 0}
+    - target: {fileID: 1137030045659484, guid: f0855940e22dbcd4aad5ca152a089348, type: 3}
+      propertyPath: m_Layer
+      value: 12
+      objectReference: {fileID: 0}
+    - target: {fileID: 1189636927441844, guid: f0855940e22dbcd4aad5ca152a089348, type: 3}
+      propertyPath: m_Layer
+      value: 12
+      objectReference: {fileID: 0}
+    - target: {fileID: 1296523804789734, guid: f0855940e22dbcd4aad5ca152a089348, type: 3}
+      propertyPath: m_Layer
+      value: 12
+      objectReference: {fileID: 0}
+    - target: {fileID: 1374442796159350, guid: f0855940e22dbcd4aad5ca152a089348, type: 3}
+      propertyPath: m_Layer
+      value: 12
       objectReference: {fileID: 0}
     - target: {fileID: 4010063425568638, guid: f0855940e22dbcd4aad5ca152a089348, type: 3}
       propertyPath: m_RootOrder

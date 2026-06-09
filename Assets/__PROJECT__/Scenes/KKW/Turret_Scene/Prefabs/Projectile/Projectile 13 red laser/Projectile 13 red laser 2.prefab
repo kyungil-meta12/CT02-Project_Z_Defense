@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 114601719037430498}
   - component: {fileID: 54658278324102420}
   - component: {fileID: 135023661636864026}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: Projectile 13 red laser 2
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -121,7 +121,7 @@ GameObject:
   - component: {fileID: 6417887291023042917}
   - component: {fileID: 8546131417762228090}
   - component: {fileID: 7032575311690793899}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: LaserModel
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -5025,7 +5025,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 5231404497091318347}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: Visuals
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -5061,7 +5061,7 @@ GameObject:
   - component: {fileID: 931912756211866218}
   - component: {fileID: 8987036721000387561}
   - component: {fileID: 3460902433212366477}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: Projectile
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -9969,9 +9969,21 @@ PrefabInstance:
       propertyPath: parentObject
       value: 
       objectReference: {fileID: 5231404497091318347}
+    - target: {fileID: 1197215022438856, guid: 284aa8115675f03488377d544e50cbf5, type: 3}
+      propertyPath: m_Layer
+      value: 12
+      objectReference: {fileID: 0}
     - target: {fileID: 1262955698068164, guid: 284aa8115675f03488377d544e50cbf5, type: 3}
       propertyPath: m_Name
       value: Flash 13 red laser
+      objectReference: {fileID: 0}
+    - target: {fileID: 1262955698068164, guid: 284aa8115675f03488377d544e50cbf5, type: 3}
+      propertyPath: m_Layer
+      value: 12
+      objectReference: {fileID: 0}
+    - target: {fileID: 1407001074136254, guid: 284aa8115675f03488377d544e50cbf5, type: 3}
+      propertyPath: m_Layer
+      value: 12
       objectReference: {fileID: 0}
     - target: {fileID: 4607375239017376, guid: 284aa8115675f03488377d544e50cbf5, type: 3}
       propertyPath: m_RootOrder
@@ -10052,9 +10064,33 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 5231404497091318347}
     m_Modifications:
+    - target: {fileID: 1232552918196878, guid: cfe0c511fa8d1cf4abf31f2f48dfe4f9, type: 3}
+      propertyPath: m_Layer
+      value: 12
+      objectReference: {fileID: 0}
+    - target: {fileID: 1245903589182048, guid: cfe0c511fa8d1cf4abf31f2f48dfe4f9, type: 3}
+      propertyPath: m_Layer
+      value: 12
+      objectReference: {fileID: 0}
+    - target: {fileID: 1268354914551280, guid: cfe0c511fa8d1cf4abf31f2f48dfe4f9, type: 3}
+      propertyPath: m_Layer
+      value: 12
+      objectReference: {fileID: 0}
     - target: {fileID: 1344461201369764, guid: cfe0c511fa8d1cf4abf31f2f48dfe4f9, type: 3}
       propertyPath: m_Name
       value: Hit 13 red laser
+      objectReference: {fileID: 0}
+    - target: {fileID: 1344461201369764, guid: cfe0c511fa8d1cf4abf31f2f48dfe4f9, type: 3}
+      propertyPath: m_Layer
+      value: 12
+      objectReference: {fileID: 0}
+    - target: {fileID: 1763592520788664, guid: cfe0c511fa8d1cf4abf31f2f48dfe4f9, type: 3}
+      propertyPath: m_Layer
+      value: 12
+      objectReference: {fileID: 0}
+    - target: {fileID: 1973583092543712, guid: cfe0c511fa8d1cf4abf31f2f48dfe4f9, type: 3}
+      propertyPath: m_Layer
+      value: 12
       objectReference: {fileID: 0}
     - target: {fileID: 4362478417301640, guid: cfe0c511fa8d1cf4abf31f2f48dfe4f9, type: 3}
       propertyPath: m_RootOrder

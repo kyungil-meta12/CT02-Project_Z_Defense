@@ -14,7 +14,7 @@ GameObject:
   - component: {fileID: 54529894203811444}
   - component: {fileID: 135445653742605116}
   - component: {fileID: 9012120282846690442}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: Projectile 15 pink crystal 3
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -217,7 +217,7 @@ GameObject:
   - component: {fileID: 3576290713683039381}
   - component: {fileID: 785706116047781576}
   - component: {fileID: 411774290612152598}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: Projectile
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -5122,7 +5122,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 7835857171074611735}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: Visuals
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -5155,9 +5155,21 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 7835857171074611735}
     m_Modifications:
+    - target: {fileID: 1154835845545272, guid: dfb11343e1f738848a39590c5e36c883, type: 3}
+      propertyPath: m_Layer
+      value: 12
+      objectReference: {fileID: 0}
+    - target: {fileID: 1192949008819104, guid: dfb11343e1f738848a39590c5e36c883, type: 3}
+      propertyPath: m_Layer
+      value: 12
+      objectReference: {fileID: 0}
     - target: {fileID: 1276646090914482, guid: dfb11343e1f738848a39590c5e36c883, type: 3}
       propertyPath: m_Name
       value: Flash 15 pink crystal
+      objectReference: {fileID: 0}
+    - target: {fileID: 1276646090914482, guid: dfb11343e1f738848a39590c5e36c883, type: 3}
+      propertyPath: m_Layer
+      value: 12
       objectReference: {fileID: 0}
     - target: {fileID: 4938491501112140, guid: dfb11343e1f738848a39590c5e36c883, type: 3}
       propertyPath: m_RootOrder
@@ -5242,9 +5254,25 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 7835857171074611735}
     m_Modifications:
+    - target: {fileID: 1062650438903244, guid: b8fcbd19392966d45a5617d1f1e49a9a, type: 3}
+      propertyPath: m_Layer
+      value: 12
+      objectReference: {fileID: 0}
+    - target: {fileID: 1153004766974576, guid: b8fcbd19392966d45a5617d1f1e49a9a, type: 3}
+      propertyPath: m_Layer
+      value: 12
+      objectReference: {fileID: 0}
     - target: {fileID: 1255908471818228, guid: b8fcbd19392966d45a5617d1f1e49a9a, type: 3}
       propertyPath: m_Name
       value: Hit 15 pink crystal
+      objectReference: {fileID: 0}
+    - target: {fileID: 1255908471818228, guid: b8fcbd19392966d45a5617d1f1e49a9a, type: 3}
+      propertyPath: m_Layer
+      value: 12
+      objectReference: {fileID: 0}
+    - target: {fileID: 1410865392545952, guid: b8fcbd19392966d45a5617d1f1e49a9a, type: 3}
+      propertyPath: m_Layer
+      value: 12
       objectReference: {fileID: 0}
     - target: {fileID: 4148433134587914, guid: b8fcbd19392966d45a5617d1f1e49a9a, type: 3}
       propertyPath: m_RootOrder

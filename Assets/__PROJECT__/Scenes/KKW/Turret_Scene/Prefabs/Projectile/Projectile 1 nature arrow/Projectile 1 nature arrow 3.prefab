@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 4617574666699530}
   - component: {fileID: 198892729897997728}
   - component: {fileID: 199138449149840834}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: SubSparks
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -4861,7 +4861,7 @@ GameObject:
   - component: {fileID: 114602481117139958}
   - component: {fileID: 135783597193828132}
   - component: {fileID: 7386120333985396610}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: Projectile 1 nature arrow 3
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -4971,7 +4971,7 @@ GameObject:
   - component: {fileID: 4181983501846708}
   - component: {fileID: 198054767724686588}
   - component: {fileID: 199443242785925410}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: Waves
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -9877,7 +9877,7 @@ GameObject:
   - component: {fileID: 4022559578858668}
   - component: {fileID: 198545261294117716}
   - component: {fileID: 199030743555694118}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: Glow
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -14723,7 +14723,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 5534315730513751052}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: Visuals
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -14760,7 +14760,7 @@ GameObject:
   - component: {fileID: 7894639927872234526}
   - component: {fileID: 46879559391873094}
   - component: {fileID: 7671649885551080936}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: Projectile
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -19664,9 +19664,29 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 5534315730513751052}
     m_Modifications:
+    - target: {fileID: 1317670928139788, guid: 21710859533a00746ad2bdd323061a2d, type: 3}
+      propertyPath: m_Layer
+      value: 12
+      objectReference: {fileID: 0}
     - target: {fileID: 1438542530079480, guid: 21710859533a00746ad2bdd323061a2d, type: 3}
       propertyPath: m_Name
       value: Hit 1 nature arrow
+      objectReference: {fileID: 0}
+    - target: {fileID: 1438542530079480, guid: 21710859533a00746ad2bdd323061a2d, type: 3}
+      propertyPath: m_Layer
+      value: 12
+      objectReference: {fileID: 0}
+    - target: {fileID: 1684035191824872, guid: 21710859533a00746ad2bdd323061a2d, type: 3}
+      propertyPath: m_Layer
+      value: 12
+      objectReference: {fileID: 0}
+    - target: {fileID: 1690129209160846, guid: 21710859533a00746ad2bdd323061a2d, type: 3}
+      propertyPath: m_Layer
+      value: 12
+      objectReference: {fileID: 0}
+    - target: {fileID: 1979857201442578, guid: 21710859533a00746ad2bdd323061a2d, type: 3}
+      propertyPath: m_Layer
+      value: 12
       objectReference: {fileID: 0}
     - target: {fileID: 4606321112054336, guid: 21710859533a00746ad2bdd323061a2d, type: 3}
       propertyPath: m_RootOrder
@@ -19780,9 +19800,21 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 5534315730513751052}
     m_Modifications:
+    - target: {fileID: 1333807725826004, guid: a311f5de96916bf44bcb1dae61840939, type: 3}
+      propertyPath: m_Layer
+      value: 12
+      objectReference: {fileID: 0}
     - target: {fileID: 1437680763721510, guid: a311f5de96916bf44bcb1dae61840939, type: 3}
       propertyPath: m_Name
       value: Flash 1 nature arrow
+      objectReference: {fileID: 0}
+    - target: {fileID: 1437680763721510, guid: a311f5de96916bf44bcb1dae61840939, type: 3}
+      propertyPath: m_Layer
+      value: 12
+      objectReference: {fileID: 0}
+    - target: {fileID: 1804264875605044, guid: a311f5de96916bf44bcb1dae61840939, type: 3}
+      propertyPath: m_Layer
+      value: 12
       objectReference: {fileID: 0}
     - target: {fileID: 4738459400914358, guid: a311f5de96916bf44bcb1dae61840939, type: 3}
       propertyPath: m_RootOrder

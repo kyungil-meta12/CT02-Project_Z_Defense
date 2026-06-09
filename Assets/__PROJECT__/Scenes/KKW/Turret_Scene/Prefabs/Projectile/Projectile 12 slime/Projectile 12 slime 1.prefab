@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 4416643958488934}
   - component: {fileID: 198138707551317364}
   - component: {fileID: 199515075448832936}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: SlimeSparks
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -4859,7 +4859,7 @@ GameObject:
   - component: {fileID: 4840705629965154}
   - component: {fileID: 198167618388903994}
   - component: {fileID: 199139856653202790}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: Smoke
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -9708,7 +9708,7 @@ GameObject:
   - component: {fileID: 114687760533183930}
   - component: {fileID: 54448294708211836}
   - component: {fileID: 135550499526485136}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: Projectile 12 slime 1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -9816,7 +9816,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 5095794902365350806}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: Visuals
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -9853,7 +9853,7 @@ GameObject:
   - component: {fileID: 398189876865354664}
   - component: {fileID: 6810909535306792379}
   - component: {fileID: 5278947776535822211}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: Projectile
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -14758,9 +14758,21 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 5095794902365350806}
     m_Modifications:
+    - target: {fileID: 1180580551104260, guid: ab764946428361d499eb0f88769e33b7, type: 3}
+      propertyPath: m_Layer
+      value: 12
+      objectReference: {fileID: 0}
     - target: {fileID: 1612276239566916, guid: ab764946428361d499eb0f88769e33b7, type: 3}
       propertyPath: m_Name
       value: Hit 12 slime
+      objectReference: {fileID: 0}
+    - target: {fileID: 1612276239566916, guid: ab764946428361d499eb0f88769e33b7, type: 3}
+      propertyPath: m_Layer
+      value: 12
+      objectReference: {fileID: 0}
+    - target: {fileID: 1917764307762936, guid: ab764946428361d499eb0f88769e33b7, type: 3}
+      propertyPath: m_Layer
+      value: 12
       objectReference: {fileID: 0}
     - target: {fileID: 4740159755759136, guid: ab764946428361d499eb0f88769e33b7, type: 3}
       propertyPath: m_RootOrder
@@ -14865,6 +14877,14 @@ PrefabInstance:
     - target: {fileID: 1156591902748042, guid: 55b36a9461ee12b4b9ed1546b95e8ba4, type: 3}
       propertyPath: m_Name
       value: Flash 12 slime
+      objectReference: {fileID: 0}
+    - target: {fileID: 1156591902748042, guid: 55b36a9461ee12b4b9ed1546b95e8ba4, type: 3}
+      propertyPath: m_Layer
+      value: 12
+      objectReference: {fileID: 0}
+    - target: {fileID: 1277484380861608, guid: 55b36a9461ee12b4b9ed1546b95e8ba4, type: 3}
+      propertyPath: m_Layer
+      value: 12
       objectReference: {fileID: 0}
     - target: {fileID: 4807372430468172, guid: 55b36a9461ee12b4b9ed1546b95e8ba4, type: 3}
       propertyPath: m_RootOrder

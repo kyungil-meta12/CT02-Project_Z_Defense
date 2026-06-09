@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 4028683595068548}
   - component: {fileID: 198150377662665326}
   - component: {fileID: 199387716868261392}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: Core
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -4920,7 +4920,7 @@ GameObject:
   - component: {fileID: 54954342096587612}
   - component: {fileID: 135165777929722146}
   - component: {fileID: 4309203169967911385}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: Projectile 10 blue laser 5
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -5123,7 +5123,7 @@ GameObject:
   - component: {fileID: 8928621266350030438}
   - component: {fileID: 7861384372665035395}
   - component: {fileID: 4826123747401886285}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: Projectile
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -10031,7 +10031,7 @@ GameObject:
   - component: {fileID: 6579661179510675940}
   - component: {fileID: 392981561217770758}
   - component: {fileID: 8212306734092941525}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: LaserModel
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -14935,7 +14935,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1053845960268226552}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: Visuals
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -14968,9 +14968,21 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1053845960268226552}
     m_Modifications:
+    - target: {fileID: 1390717341296784, guid: 4f2f9845677ab3f49be1179d6bd15b78, type: 3}
+      propertyPath: m_Layer
+      value: 12
+      objectReference: {fileID: 0}
     - target: {fileID: 1556169196827650, guid: 4f2f9845677ab3f49be1179d6bd15b78, type: 3}
       propertyPath: m_Name
       value: Flash 10 blue laser
+      objectReference: {fileID: 0}
+    - target: {fileID: 1556169196827650, guid: 4f2f9845677ab3f49be1179d6bd15b78, type: 3}
+      propertyPath: m_Layer
+      value: 12
+      objectReference: {fileID: 0}
+    - target: {fileID: 1681202290998840, guid: 4f2f9845677ab3f49be1179d6bd15b78, type: 3}
+      propertyPath: m_Layer
+      value: 12
       objectReference: {fileID: 0}
     - target: {fileID: 4925040483562736, guid: 4f2f9845677ab3f49be1179d6bd15b78, type: 3}
       propertyPath: m_RootOrder
@@ -15055,9 +15067,25 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1053845960268226552}
     m_Modifications:
+    - target: {fileID: 1400942659480690, guid: 890aba7398207db48978724168fac5a7, type: 3}
+      propertyPath: m_Layer
+      value: 12
+      objectReference: {fileID: 0}
+    - target: {fileID: 1479342476826024, guid: 890aba7398207db48978724168fac5a7, type: 3}
+      propertyPath: m_Layer
+      value: 12
+      objectReference: {fileID: 0}
     - target: {fileID: 1795992203533318, guid: 890aba7398207db48978724168fac5a7, type: 3}
       propertyPath: m_Name
       value: Hit 10 blue laser
+      objectReference: {fileID: 0}
+    - target: {fileID: 1795992203533318, guid: 890aba7398207db48978724168fac5a7, type: 3}
+      propertyPath: m_Layer
+      value: 12
+      objectReference: {fileID: 0}
+    - target: {fileID: 1798305462694108, guid: 890aba7398207db48978724168fac5a7, type: 3}
+      propertyPath: m_Layer
+      value: 12
       objectReference: {fileID: 0}
     - target: {fileID: 4375260158437666, guid: 890aba7398207db48978724168fac5a7, type: 3}
       propertyPath: m_RootOrder

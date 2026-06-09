@@ -14,7 +14,7 @@ GameObject:
   - component: {fileID: 54656780710307248}
   - component: {fileID: 135893600698140846}
   - component: {fileID: 3211336699327284259}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: Projectile 14 blue rapid 5
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -218,7 +218,7 @@ GameObject:
   - component: {fileID: 4651312433719434}
   - component: {fileID: 198535202477826224}
   - component: {fileID: 199507863963710848}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: SubRombs
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -5066,7 +5066,7 @@ GameObject:
   - component: {fileID: 676232957845551377}
   - component: {fileID: 4893293694818963665}
   - component: {fileID: 1665548011798136788}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: Projectile
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -9998,7 +9998,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1815089661323758428}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: Visuals
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -10035,6 +10035,22 @@ PrefabInstance:
     - target: {fileID: 1231636063597364, guid: 3aa0fab185f378240b831342bde74b26, type: 3}
       propertyPath: m_Name
       value: Hit 14 blue rapid
+      objectReference: {fileID: 0}
+    - target: {fileID: 1231636063597364, guid: 3aa0fab185f378240b831342bde74b26, type: 3}
+      propertyPath: m_Layer
+      value: 12
+      objectReference: {fileID: 0}
+    - target: {fileID: 1549887343498594, guid: 3aa0fab185f378240b831342bde74b26, type: 3}
+      propertyPath: m_Layer
+      value: 12
+      objectReference: {fileID: 0}
+    - target: {fileID: 1620321297861760, guid: 3aa0fab185f378240b831342bde74b26, type: 3}
+      propertyPath: m_Layer
+      value: 12
+      objectReference: {fileID: 0}
+    - target: {fileID: 1782230104421394, guid: 3aa0fab185f378240b831342bde74b26, type: 3}
+      propertyPath: m_Layer
+      value: 12
       objectReference: {fileID: 0}
     - target: {fileID: 4291194123301980, guid: 3aa0fab185f378240b831342bde74b26, type: 3}
       propertyPath: m_RootOrder
@@ -10143,6 +10159,18 @@ PrefabInstance:
     - target: {fileID: 1059172723860074, guid: 058c6c6f7bee2fc45a91fbdb528a9035, type: 3}
       propertyPath: m_Name
       value: Flash 14 blue rapid
+      objectReference: {fileID: 0}
+    - target: {fileID: 1059172723860074, guid: 058c6c6f7bee2fc45a91fbdb528a9035, type: 3}
+      propertyPath: m_Layer
+      value: 12
+      objectReference: {fileID: 0}
+    - target: {fileID: 1354190342352214, guid: 058c6c6f7bee2fc45a91fbdb528a9035, type: 3}
+      propertyPath: m_Layer
+      value: 12
+      objectReference: {fileID: 0}
+    - target: {fileID: 1971493842536664, guid: 058c6c6f7bee2fc45a91fbdb528a9035, type: 3}
+      propertyPath: m_Layer
+      value: 12
       objectReference: {fileID: 0}
     - target: {fileID: 4296626487239860, guid: 058c6c6f7bee2fc45a91fbdb528a9035, type: 3}
       propertyPath: m_RootOrder

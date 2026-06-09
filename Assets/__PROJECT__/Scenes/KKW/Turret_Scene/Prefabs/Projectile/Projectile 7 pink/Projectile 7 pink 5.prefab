@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 4027987637637852}
   - component: {fileID: 198655005314859470}
   - component: {fileID: 199743327070401782}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: Core
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -4918,7 +4918,7 @@ GameObject:
   - component: {fileID: 4399222994734564}
   - component: {fileID: 198410589948394436}
   - component: {fileID: 199772766391086018}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: Waves
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -9824,7 +9824,7 @@ GameObject:
   - component: {fileID: 4779957597998864}
   - component: {fileID: 198163848131447852}
   - component: {fileID: 199147209565792032}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: Trails
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -14733,7 +14733,7 @@ GameObject:
   - component: {fileID: 54009887670358988}
   - component: {fileID: 135120235583084208}
   - component: {fileID: 6360226732137252787}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: Projectile 7 pink 5
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -14936,7 +14936,7 @@ GameObject:
   - component: {fileID: 3645473721461276004}
   - component: {fileID: 8771965710057558510}
   - component: {fileID: 7630296001685308108}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: Projectile
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -19843,7 +19843,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 5094751771988027494}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: Visuals
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -19883,6 +19883,18 @@ PrefabInstance:
     - target: {fileID: 1016717492136352, guid: d9a16b144bb6373498d4374fb5d0d3b2, type: 3}
       propertyPath: m_Name
       value: Flash 7 pink
+      objectReference: {fileID: 0}
+    - target: {fileID: 1016717492136352, guid: d9a16b144bb6373498d4374fb5d0d3b2, type: 3}
+      propertyPath: m_Layer
+      value: 12
+      objectReference: {fileID: 0}
+    - target: {fileID: 1096974178655828, guid: d9a16b144bb6373498d4374fb5d0d3b2, type: 3}
+      propertyPath: m_Layer
+      value: 12
+      objectReference: {fileID: 0}
+    - target: {fileID: 1575063292261200, guid: d9a16b144bb6373498d4374fb5d0d3b2, type: 3}
+      propertyPath: m_Layer
+      value: 12
       objectReference: {fileID: 0}
     - target: {fileID: 4879660305101318, guid: d9a16b144bb6373498d4374fb5d0d3b2, type: 3}
       propertyPath: m_RootOrder
@@ -19963,9 +19975,45 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 5094751771988027494}
     m_Modifications:
+    - target: {fileID: 1019275045840846, guid: aab2daf1fd2b23f4a9bdbbb38fc95704, type: 3}
+      propertyPath: m_Layer
+      value: 12
+      objectReference: {fileID: 0}
     - target: {fileID: 1029544359644514, guid: aab2daf1fd2b23f4a9bdbbb38fc95704, type: 3}
       propertyPath: m_Name
       value: Hit 7 pink
+      objectReference: {fileID: 0}
+    - target: {fileID: 1029544359644514, guid: aab2daf1fd2b23f4a9bdbbb38fc95704, type: 3}
+      propertyPath: m_Layer
+      value: 12
+      objectReference: {fileID: 0}
+    - target: {fileID: 1041241730870588, guid: aab2daf1fd2b23f4a9bdbbb38fc95704, type: 3}
+      propertyPath: m_Layer
+      value: 12
+      objectReference: {fileID: 0}
+    - target: {fileID: 1504249840394218, guid: aab2daf1fd2b23f4a9bdbbb38fc95704, type: 3}
+      propertyPath: m_Layer
+      value: 12
+      objectReference: {fileID: 0}
+    - target: {fileID: 1542829713646850, guid: aab2daf1fd2b23f4a9bdbbb38fc95704, type: 3}
+      propertyPath: m_Layer
+      value: 12
+      objectReference: {fileID: 0}
+    - target: {fileID: 1728468936342696, guid: aab2daf1fd2b23f4a9bdbbb38fc95704, type: 3}
+      propertyPath: m_Layer
+      value: 12
+      objectReference: {fileID: 0}
+    - target: {fileID: 1803698310899242, guid: aab2daf1fd2b23f4a9bdbbb38fc95704, type: 3}
+      propertyPath: m_Layer
+      value: 12
+      objectReference: {fileID: 0}
+    - target: {fileID: 1966000426964976, guid: aab2daf1fd2b23f4a9bdbbb38fc95704, type: 3}
+      propertyPath: m_Layer
+      value: 12
+      objectReference: {fileID: 0}
+    - target: {fileID: 1976966715615546, guid: aab2daf1fd2b23f4a9bdbbb38fc95704, type: 3}
+      propertyPath: m_Layer
+      value: 12
       objectReference: {fileID: 0}
     - target: {fileID: 4055754874283034, guid: aab2daf1fd2b23f4a9bdbbb38fc95704, type: 3}
       propertyPath: m_RootOrder

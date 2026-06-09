@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 114194830351093922}
   - component: {fileID: 54389543268620354}
   - component: {fileID: 136001570826098454}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: Projectile 8 dagger 3
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -123,7 +123,7 @@ GameObject:
   - component: {fileID: 5709523972617754611}
   - component: {fileID: 4375275088806551410}
   - component: {fileID: 4292328773328660489}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: Projectile
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -5028,7 +5028,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 9072424402056439260}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: Visuals
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -5063,6 +5063,18 @@ PrefabInstance:
     - target: {fileID: 1105495686751570, guid: 4328596502e67c1468c5794bdd5067b4, type: 3}
       propertyPath: m_Name
       value: Hit 8 dagger
+      objectReference: {fileID: 0}
+    - target: {fileID: 1105495686751570, guid: 4328596502e67c1468c5794bdd5067b4, type: 3}
+      propertyPath: m_Layer
+      value: 12
+      objectReference: {fileID: 0}
+    - target: {fileID: 1384180581942296, guid: 4328596502e67c1468c5794bdd5067b4, type: 3}
+      propertyPath: m_Layer
+      value: 12
+      objectReference: {fileID: 0}
+    - target: {fileID: 1866894162478788, guid: 4328596502e67c1468c5794bdd5067b4, type: 3}
+      propertyPath: m_Layer
+      value: 12
       objectReference: {fileID: 0}
     - target: {fileID: 4410693834191448, guid: 4328596502e67c1468c5794bdd5067b4, type: 3}
       propertyPath: m_RootOrder

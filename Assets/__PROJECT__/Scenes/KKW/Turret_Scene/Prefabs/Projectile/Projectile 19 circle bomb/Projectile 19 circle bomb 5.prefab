@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 4285344081020720}
   - component: {fileID: 198120128188515918}
   - component: {fileID: 199279693831646888}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: Shine
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -4926,7 +4926,7 @@ GameObject:
   - component: {fileID: 4120275987610568}
   - component: {fileID: 198958341968094954}
   - component: {fileID: 199706687516541296}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: Smoke
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -9842,7 +9842,7 @@ GameObject:
   - component: {fileID: 114380542718814574}
   - component: {fileID: 54447856582251616}
   - component: {fileID: 135543802754298092}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: Projectile 19 circle bomb 5
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -9952,7 +9952,7 @@ GameObject:
   - component: {fileID: 198879230386076586}
   - component: {fileID: 199965051223748704}
   - component: {fileID: 108144015466640738}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: Glow
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -14932,7 +14932,7 @@ GameObject:
   - component: {fileID: 3428649121221623260}
   - component: {fileID: 3276634695066007563}
   - component: {fileID: 1522802510294051829}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: Projectile
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -19848,7 +19848,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4175072068579966724}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: Visuals
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -19881,9 +19881,21 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 4175072068579966724}
     m_Modifications:
+    - target: {fileID: 1114486494187474, guid: bb82163de313d09469f964543a10922a, type: 3}
+      propertyPath: m_Layer
+      value: 12
+      objectReference: {fileID: 0}
     - target: {fileID: 1117273264044518, guid: bb82163de313d09469f964543a10922a, type: 3}
       propertyPath: m_Name
       value: Hit 19 circle bomb
+      objectReference: {fileID: 0}
+    - target: {fileID: 1117273264044518, guid: bb82163de313d09469f964543a10922a, type: 3}
+      propertyPath: m_Layer
+      value: 12
+      objectReference: {fileID: 0}
+    - target: {fileID: 1813568878343784, guid: bb82163de313d09469f964543a10922a, type: 3}
+      propertyPath: m_Layer
+      value: 12
       objectReference: {fileID: 0}
     - target: {fileID: 4599921773681012, guid: bb82163de313d09469f964543a10922a, type: 3}
       propertyPath: m_RootOrder
@@ -19981,9 +19993,21 @@ PrefabInstance:
       propertyPath: parentObject
       value: 
       objectReference: {fileID: 4175072068579966724}
+    - target: {fileID: 1337342218456934, guid: 2ad5c1a0f3dfb2a479c897ce5c0c6d82, type: 3}
+      propertyPath: m_Layer
+      value: 12
+      objectReference: {fileID: 0}
     - target: {fileID: 1505840697445172, guid: 2ad5c1a0f3dfb2a479c897ce5c0c6d82, type: 3}
       propertyPath: m_Name
       value: Flash 19 circle bomb
+      objectReference: {fileID: 0}
+    - target: {fileID: 1505840697445172, guid: 2ad5c1a0f3dfb2a479c897ce5c0c6d82, type: 3}
+      propertyPath: m_Layer
+      value: 12
+      objectReference: {fileID: 0}
+    - target: {fileID: 1880117563822560, guid: 2ad5c1a0f3dfb2a479c897ce5c0c6d82, type: 3}
+      propertyPath: m_Layer
+      value: 12
       objectReference: {fileID: 0}
     - target: {fileID: 4288205370413200, guid: 2ad5c1a0f3dfb2a479c897ce5c0c6d82, type: 3}
       propertyPath: m_RootOrder

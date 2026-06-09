@@ -14,7 +14,7 @@ GameObject:
   - component: {fileID: 54270896838228670}
   - component: {fileID: 135636005794287632}
   - component: {fileID: -4634688337344893322}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: Projectile 20 pink arrow 5
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -217,7 +217,7 @@ GameObject:
   - component: {fileID: 1321318756757800050}
   - component: {fileID: 2505168964091978354}
   - component: {fileID: 9177307992991235314}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: Projectile
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -5122,7 +5122,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1105435699337599425}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: Visuals
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -5157,6 +5157,18 @@ PrefabInstance:
     - target: {fileID: 1140696612886092, guid: 5b560e6b1f3f4494b8bf4b354497697e, type: 3}
       propertyPath: m_Name
       value: Hit 20 pink arrow
+      objectReference: {fileID: 0}
+    - target: {fileID: 1140696612886092, guid: 5b560e6b1f3f4494b8bf4b354497697e, type: 3}
+      propertyPath: m_Layer
+      value: 12
+      objectReference: {fileID: 0}
+    - target: {fileID: 1339245220440480, guid: 5b560e6b1f3f4494b8bf4b354497697e, type: 3}
+      propertyPath: m_Layer
+      value: 12
+      objectReference: {fileID: 0}
+    - target: {fileID: 1516006222608230, guid: 5b560e6b1f3f4494b8bf4b354497697e, type: 3}
+      propertyPath: m_Layer
+      value: 12
       objectReference: {fileID: 0}
     - target: {fileID: 4444353244236890, guid: 5b560e6b1f3f4494b8bf4b354497697e, type: 3}
       propertyPath: m_RootOrder

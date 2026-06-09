@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 4920862555473792}
   - component: {fileID: 198253395183028752}
   - component: {fileID: 199121495299923210}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: SubStars
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -4863,7 +4863,7 @@ GameObject:
   - component: {fileID: 54015688971125552}
   - component: {fileID: 135372134608504994}
   - component: {fileID: -8982369085904526011}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: Projectile 22 cute star 1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -5067,7 +5067,7 @@ GameObject:
   - component: {fileID: 4943425964895198}
   - component: {fileID: 198672018410886540}
   - component: {fileID: 199276916704681358}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: SubStars2
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -9915,7 +9915,7 @@ GameObject:
   - component: {fileID: 6559813717615754516}
   - component: {fileID: 6273829308807279930}
   - component: {fileID: 3918648203283205634}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: Projectile
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -14829,7 +14829,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 7084841902540048599}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: Visuals
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -14866,6 +14866,18 @@ PrefabInstance:
     - target: {fileID: 1117997381529862, guid: 0254f8e683e300c4eb1b598011e9b7c8, type: 3}
       propertyPath: m_Name
       value: Flash 22 cute star
+      objectReference: {fileID: 0}
+    - target: {fileID: 1117997381529862, guid: 0254f8e683e300c4eb1b598011e9b7c8, type: 3}
+      propertyPath: m_Layer
+      value: 12
+      objectReference: {fileID: 0}
+    - target: {fileID: 1123711422727928, guid: 0254f8e683e300c4eb1b598011e9b7c8, type: 3}
+      propertyPath: m_Layer
+      value: 12
+      objectReference: {fileID: 0}
+    - target: {fileID: 1486804550258684, guid: 0254f8e683e300c4eb1b598011e9b7c8, type: 3}
+      propertyPath: m_Layer
+      value: 12
       objectReference: {fileID: 0}
     - target: {fileID: 4441973397687670, guid: 0254f8e683e300c4eb1b598011e9b7c8, type: 3}
       propertyPath: m_RootOrder
@@ -14950,9 +14962,21 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 7084841902540048599}
     m_Modifications:
+    - target: {fileID: 1183035045048640, guid: a1c8123c6777d6f45948a5e4b821a569, type: 3}
+      propertyPath: m_Layer
+      value: 12
+      objectReference: {fileID: 0}
     - target: {fileID: 1296333435415890, guid: a1c8123c6777d6f45948a5e4b821a569, type: 3}
       propertyPath: m_Name
       value: Hit 22 cute star
+      objectReference: {fileID: 0}
+    - target: {fileID: 1296333435415890, guid: a1c8123c6777d6f45948a5e4b821a569, type: 3}
+      propertyPath: m_Layer
+      value: 12
+      objectReference: {fileID: 0}
+    - target: {fileID: 1712657531561854, guid: a1c8123c6777d6f45948a5e4b821a569, type: 3}
+      propertyPath: m_Layer
+      value: 12
       objectReference: {fileID: 0}
     - target: {fileID: 4042544295511280, guid: a1c8123c6777d6f45948a5e4b821a569, type: 3}
       propertyPath: m_RootOrder

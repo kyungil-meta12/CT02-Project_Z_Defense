@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 1440200201298083702}
   - component: {fileID: 1345051934921270582}
   - component: {fileID: 1407900849536826276}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: Dragon punch projectile 5
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -122,7 +122,7 @@ GameObject:
   - component: {fileID: 2487273865164027802}
   - component: {fileID: 2329788649167725990}
   - component: {fileID: 2328461241259748704}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: Glow
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -5041,7 +5041,7 @@ GameObject:
   - component: {fileID: 2493793485054112510}
   - component: {fileID: 2330399235219662386}
   - component: {fileID: 2330167196995859242}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: Aura
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -9965,7 +9965,7 @@ GameObject:
   - component: {fileID: 2493488521377184860}
   - component: {fileID: 2330513777718970604}
   - component: {fileID: 2330312594688972452}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: SubSparks
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -14822,7 +14822,7 @@ GameObject:
   - component: {fileID: 2493515264597185914}
   - component: {fileID: 2317899454924067728}
   - component: {fileID: 2328647521342889418}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: Aura2
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -19748,7 +19748,7 @@ GameObject:
   - component: {fileID: 2493353626615805776}
   - component: {fileID: 2329570093857784454}
   - component: {fileID: 2330304730631321650}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: RayWaves
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -24605,7 +24605,7 @@ GameObject:
   - component: {fileID: 2487634012928750648}
   - component: {fileID: 2330334742760774020}
   - component: {fileID: 2328453878098859410}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: SubSmoke
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -29453,7 +29453,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 6149264958674559423}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: Visuals
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -29489,7 +29489,7 @@ GameObject:
   - component: {fileID: 5970295649733067711}
   - component: {fileID: 8353671708810006344}
   - component: {fileID: 5838315900866004805}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: Projectile
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -34448,6 +34448,30 @@ PrefabInstance:
     - target: {fileID: 6400084191083594748, guid: ccc22a316744f104eb233bd6122a3ec3, type: 3}
       propertyPath: m_Name
       value: Dragon punch flash
+      objectReference: {fileID: 0}
+    - target: {fileID: 6400084191083594748, guid: ccc22a316744f104eb233bd6122a3ec3, type: 3}
+      propertyPath: m_Layer
+      value: 12
+      objectReference: {fileID: 0}
+    - target: {fileID: 6400812758891292160, guid: ccc22a316744f104eb233bd6122a3ec3, type: 3}
+      propertyPath: m_Layer
+      value: 12
+      objectReference: {fileID: 0}
+    - target: {fileID: 6400832991473199464, guid: ccc22a316744f104eb233bd6122a3ec3, type: 3}
+      propertyPath: m_Layer
+      value: 12
+      objectReference: {fileID: 0}
+    - target: {fileID: 6400889203639692728, guid: ccc22a316744f104eb233bd6122a3ec3, type: 3}
+      propertyPath: m_Layer
+      value: 12
+      objectReference: {fileID: 0}
+    - target: {fileID: 6401103235714223932, guid: ccc22a316744f104eb233bd6122a3ec3, type: 3}
+      propertyPath: m_Layer
+      value: 12
+      objectReference: {fileID: 0}
+    - target: {fileID: 6401619835701507968, guid: ccc22a316744f104eb233bd6122a3ec3, type: 3}
+      propertyPath: m_Layer
+      value: 12
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

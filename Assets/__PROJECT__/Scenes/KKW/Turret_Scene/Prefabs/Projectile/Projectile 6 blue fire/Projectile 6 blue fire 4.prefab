@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 4709227338271210}
   - component: {fileID: 198093601366079736}
   - component: {fileID: 199263659433773832}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: SubSparks
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -4860,7 +4860,7 @@ GameObject:
   - component: {fileID: 114128377773054572}
   - component: {fileID: 54853225561086176}
   - component: {fileID: 135686789400026036}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: Projectile 6 blue fire 4
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -4970,7 +4970,7 @@ GameObject:
   - component: {fileID: 4892294182177612}
   - component: {fileID: 198876463404640818}
   - component: {fileID: 199238353495653050}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: SubSmoke
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -9819,7 +9819,7 @@ GameObject:
   - component: {fileID: 2411975419104702536}
   - component: {fileID: 2954278835426739699}
   - component: {fileID: 2375145135896983116}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: Projectile
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -14723,7 +14723,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1879710893100368291}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: Visuals
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -14757,9 +14757,25 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1879710893100368291}
     m_Modifications:
+    - target: {fileID: 1256604627637146, guid: 8a1ac1dbe39224143972fa1a908b0abf, type: 3}
+      propertyPath: m_Layer
+      value: 12
+      objectReference: {fileID: 0}
+    - target: {fileID: 1328321026051670, guid: 8a1ac1dbe39224143972fa1a908b0abf, type: 3}
+      propertyPath: m_Layer
+      value: 12
+      objectReference: {fileID: 0}
+    - target: {fileID: 1886532899249584, guid: 8a1ac1dbe39224143972fa1a908b0abf, type: 3}
+      propertyPath: m_Layer
+      value: 12
+      objectReference: {fileID: 0}
     - target: {fileID: 1998750652454270, guid: 8a1ac1dbe39224143972fa1a908b0abf, type: 3}
       propertyPath: m_Name
       value: Hit 6 blue fire
+      objectReference: {fileID: 0}
+    - target: {fileID: 1998750652454270, guid: 8a1ac1dbe39224143972fa1a908b0abf, type: 3}
+      propertyPath: m_Layer
+      value: 12
       objectReference: {fileID: 0}
     - target: {fileID: 4896662560079536, guid: 8a1ac1dbe39224143972fa1a908b0abf, type: 3}
       propertyPath: m_RootOrder
@@ -14865,9 +14881,17 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1879710893100368291}
     m_Modifications:
+    - target: {fileID: 1662000573688380, guid: adca1c5f787b050449984aedac0cbdc5, type: 3}
+      propertyPath: m_Layer
+      value: 12
+      objectReference: {fileID: 0}
     - target: {fileID: 1960835308829046, guid: adca1c5f787b050449984aedac0cbdc5, type: 3}
       propertyPath: m_Name
       value: Flash 6 blue fire
+      objectReference: {fileID: 0}
+    - target: {fileID: 1960835308829046, guid: adca1c5f787b050449984aedac0cbdc5, type: 3}
+      propertyPath: m_Layer
+      value: 12
       objectReference: {fileID: 0}
     - target: {fileID: 4254118381499304, guid: adca1c5f787b050449984aedac0cbdc5, type: 3}
       propertyPath: m_RootOrder

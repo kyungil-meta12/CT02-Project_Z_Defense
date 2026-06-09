@@ -14,7 +14,7 @@ GameObject:
   - component: {fileID: 54034537497690522}
   - component: {fileID: 135187156854092900}
   - component: {fileID: 8432769198127785339}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: Projectile 2 electro 4
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -218,7 +218,7 @@ GameObject:
   - component: {fileID: 4366912051360190}
   - component: {fileID: 198692940710500382}
   - component: {fileID: 199205060469912400}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: Electricy
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -5066,7 +5066,7 @@ GameObject:
   - component: {fileID: 4996690099686658}
   - component: {fileID: 198559730701285930}
   - component: {fileID: 199307829787777340}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: Sparks
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -9914,7 +9914,7 @@ GameObject:
   - component: {fileID: 4106549369329498}
   - component: {fileID: 198194833413760700}
   - component: {fileID: 199193693930752760}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: ElectroCore
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -14820,7 +14820,7 @@ GameObject:
   - component: {fileID: 9092961409486411248}
   - component: {fileID: 2159918835888009805}
   - component: {fileID: 4002964034440223680}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: Projectile
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -19727,7 +19727,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 6860635817496387934}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: Visuals
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -19768,6 +19768,14 @@ PrefabInstance:
     - target: {fileID: 1347307786625236, guid: 5b0ac738fb141244d96b28bbd07be221, type: 3}
       propertyPath: m_Name
       value: Flash 2 electro
+      objectReference: {fileID: 0}
+    - target: {fileID: 1347307786625236, guid: 5b0ac738fb141244d96b28bbd07be221, type: 3}
+      propertyPath: m_Layer
+      value: 12
+      objectReference: {fileID: 0}
+    - target: {fileID: 1948024058836292, guid: 5b0ac738fb141244d96b28bbd07be221, type: 3}
+      propertyPath: m_Layer
+      value: 12
       objectReference: {fileID: 0}
     - target: {fileID: 4589329045704854, guid: 5b0ac738fb141244d96b28bbd07be221, type: 3}
       propertyPath: m_RootOrder
@@ -19836,9 +19844,33 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 6860635817496387934}
     m_Modifications:
+    - target: {fileID: 1058502082302386, guid: 6f8068e2c99ffb04b932ec74e5773db5, type: 3}
+      propertyPath: m_Layer
+      value: 12
+      objectReference: {fileID: 0}
     - target: {fileID: 1065618375357958, guid: 6f8068e2c99ffb04b932ec74e5773db5, type: 3}
       propertyPath: m_Name
       value: Hit 2 electro
+      objectReference: {fileID: 0}
+    - target: {fileID: 1065618375357958, guid: 6f8068e2c99ffb04b932ec74e5773db5, type: 3}
+      propertyPath: m_Layer
+      value: 12
+      objectReference: {fileID: 0}
+    - target: {fileID: 1372824591581926, guid: 6f8068e2c99ffb04b932ec74e5773db5, type: 3}
+      propertyPath: m_Layer
+      value: 12
+      objectReference: {fileID: 0}
+    - target: {fileID: 1726471534680540, guid: 6f8068e2c99ffb04b932ec74e5773db5, type: 3}
+      propertyPath: m_Layer
+      value: 12
+      objectReference: {fileID: 0}
+    - target: {fileID: 1727946108138052, guid: 6f8068e2c99ffb04b932ec74e5773db5, type: 3}
+      propertyPath: m_Layer
+      value: 12
+      objectReference: {fileID: 0}
+    - target: {fileID: 1832502433403484, guid: 6f8068e2c99ffb04b932ec74e5773db5, type: 3}
+      propertyPath: m_Layer
+      value: 12
       objectReference: {fileID: 0}
     - target: {fileID: 4524114485197644, guid: 6f8068e2c99ffb04b932ec74e5773db5, type: 3}
       propertyPath: m_RootOrder

@@ -14,7 +14,7 @@ GameObject:
   - component: {fileID: 54934405680233552}
   - component: {fileID: 135364644469035946}
   - component: {fileID: -2721219885064280908}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: Projectile 21 red arrow 4
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -218,7 +218,7 @@ GameObject:
   - component: {fileID: 4898191602666726}
   - component: {fileID: 198069135479939308}
   - component: {fileID: 199180784667957070}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: SubEnergy
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -5073,7 +5073,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 7451458099400668944}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: Visuals
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -5109,7 +5109,7 @@ GameObject:
   - component: {fileID: 8606528212528082246}
   - component: {fileID: 8688125984069837451}
   - component: {fileID: 8606188886196500359}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: Projectile
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -10012,9 +10012,29 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 7451458099400668944}
     m_Modifications:
+    - target: {fileID: 1005265700081186, guid: 2036e77062e38794c8337908e546c288, type: 3}
+      propertyPath: m_Layer
+      value: 12
+      objectReference: {fileID: 0}
     - target: {fileID: 1448707677214384, guid: 2036e77062e38794c8337908e546c288, type: 3}
       propertyPath: m_Name
       value: Hit 21 red arrow
+      objectReference: {fileID: 0}
+    - target: {fileID: 1448707677214384, guid: 2036e77062e38794c8337908e546c288, type: 3}
+      propertyPath: m_Layer
+      value: 12
+      objectReference: {fileID: 0}
+    - target: {fileID: 1531403593223330, guid: 2036e77062e38794c8337908e546c288, type: 3}
+      propertyPath: m_Layer
+      value: 12
+      objectReference: {fileID: 0}
+    - target: {fileID: 1574867172224180, guid: 2036e77062e38794c8337908e546c288, type: 3}
+      propertyPath: m_Layer
+      value: 12
+      objectReference: {fileID: 0}
+    - target: {fileID: 1652568723096516, guid: 2036e77062e38794c8337908e546c288, type: 3}
+      propertyPath: m_Layer
+      value: 12
       objectReference: {fileID: 0}
     - target: {fileID: 4810319003502962, guid: 2036e77062e38794c8337908e546c288, type: 3}
       propertyPath: m_RootOrder

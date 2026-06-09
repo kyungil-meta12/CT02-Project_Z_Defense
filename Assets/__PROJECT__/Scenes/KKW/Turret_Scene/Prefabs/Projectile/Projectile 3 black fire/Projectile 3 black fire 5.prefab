@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 4032396095020486}
   - component: {fileID: 198141485587256510}
   - component: {fileID: 199229295184012456}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: Smoke
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -4862,7 +4862,7 @@ GameObject:
   - component: {fileID: 54437851353860038}
   - component: {fileID: 135048560497256726}
   - component: {fileID: 9058970426844580900}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: Projectile 3 black fire 5
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -5066,7 +5066,7 @@ GameObject:
   - component: {fileID: 4188172798495772}
   - component: {fileID: 198856659907629688}
   - component: {fileID: 199500892221993244}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: Circles
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -9934,7 +9934,7 @@ GameObject:
   - component: {fileID: 4715873012433674}
   - component: {fileID: 198147676333123090}
   - component: {fileID: 199657416626372474}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: Glow
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -14782,7 +14782,7 @@ GameObject:
   - component: {fileID: 4882233501783193339}
   - component: {fileID: 2305262076326726814}
   - component: {fileID: 5748225380086284330}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: Projectile
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -19705,7 +19705,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 941952336988949950}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: Visuals
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -19739,9 +19739,37 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 941952336988949950}
     m_Modifications:
+    - target: {fileID: 1188430696624562, guid: 800cddb992d3f5e4eb2348b90447f4a7, type: 3}
+      propertyPath: m_Layer
+      value: 12
+      objectReference: {fileID: 0}
     - target: {fileID: 1220213892471706, guid: 800cddb992d3f5e4eb2348b90447f4a7, type: 3}
       propertyPath: m_Name
       value: Hit 3 black fire
+      objectReference: {fileID: 0}
+    - target: {fileID: 1220213892471706, guid: 800cddb992d3f5e4eb2348b90447f4a7, type: 3}
+      propertyPath: m_Layer
+      value: 12
+      objectReference: {fileID: 0}
+    - target: {fileID: 1428030676702202, guid: 800cddb992d3f5e4eb2348b90447f4a7, type: 3}
+      propertyPath: m_Layer
+      value: 12
+      objectReference: {fileID: 0}
+    - target: {fileID: 1500060728430398, guid: 800cddb992d3f5e4eb2348b90447f4a7, type: 3}
+      propertyPath: m_Layer
+      value: 12
+      objectReference: {fileID: 0}
+    - target: {fileID: 1666447430290226, guid: 800cddb992d3f5e4eb2348b90447f4a7, type: 3}
+      propertyPath: m_Layer
+      value: 12
+      objectReference: {fileID: 0}
+    - target: {fileID: 1822706356427538, guid: 800cddb992d3f5e4eb2348b90447f4a7, type: 3}
+      propertyPath: m_Layer
+      value: 12
+      objectReference: {fileID: 0}
+    - target: {fileID: 1953543915485948, guid: 800cddb992d3f5e4eb2348b90447f4a7, type: 3}
+      propertyPath: m_Layer
+      value: 12
       objectReference: {fileID: 0}
     - target: {fileID: 4444151239728830, guid: 800cddb992d3f5e4eb2348b90447f4a7, type: 3}
       propertyPath: m_RootOrder
@@ -19875,9 +19903,21 @@ PrefabInstance:
       propertyPath: parentObject
       value: 
       objectReference: {fileID: 941952336988949950}
+    - target: {fileID: 1433177547856322, guid: f82a1a892a042c1438f8f4704a37e11b, type: 3}
+      propertyPath: m_Layer
+      value: 12
+      objectReference: {fileID: 0}
+    - target: {fileID: 1684872380598846, guid: f82a1a892a042c1438f8f4704a37e11b, type: 3}
+      propertyPath: m_Layer
+      value: 12
+      objectReference: {fileID: 0}
     - target: {fileID: 1766868900565162, guid: f82a1a892a042c1438f8f4704a37e11b, type: 3}
       propertyPath: m_Name
       value: Flash 3 black fire
+      objectReference: {fileID: 0}
+    - target: {fileID: 1766868900565162, guid: f82a1a892a042c1438f8f4704a37e11b, type: 3}
+      propertyPath: m_Layer
+      value: 12
       objectReference: {fileID: 0}
     - target: {fileID: 4276011579606848, guid: f82a1a892a042c1438f8f4704a37e11b, type: 3}
       propertyPath: m_RootOrder

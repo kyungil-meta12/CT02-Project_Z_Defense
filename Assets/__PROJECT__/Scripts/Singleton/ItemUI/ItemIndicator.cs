@@ -47,6 +47,16 @@ public class ItemIndicator : MonoBehaviour
         specialPartText.text = ItemManager.Inst.SpecialPartCountString;
     }
 
+    void OnDestroy()
+    {
+        if(ItemManager.Inst)
+        {
+            ItemManager.Inst.OnCoinValueChange -= OnCoinValueChanged;
+            ItemManager.Inst.OnFirePartValueChange -= OnFirePartValueChanged;
+            ItemManager.Inst.OnSpecialPartValueChange -= OnSpecialPartValueChanged;
+        }
+    }
+
     // 소유한 개수가 변경되면 피드백 애니메이션을 재생한다.
     void Update()
     {
@@ -56,13 +66,6 @@ public class ItemIndicator : MonoBehaviour
         coinTextRt.localScale = coinTextScale;
         firePartTextRt.localScale = firePartTextScale;
         specialPartTextRt.localScale = specialPartTextScale;
-    }
-
-    void OnDestroy()
-    {
-        ItemManager.Inst.OnCoinValueChange -= OnCoinValueChanged;
-        ItemManager.Inst.OnFirePartValueChange -= OnFirePartValueChanged;
-        ItemManager.Inst.OnSpecialPartValueChange -= OnSpecialPartValueChanged;
     }
 
     // ItemManager의 이벤트를 구독하여 string 가비지 발생을 줄인다.

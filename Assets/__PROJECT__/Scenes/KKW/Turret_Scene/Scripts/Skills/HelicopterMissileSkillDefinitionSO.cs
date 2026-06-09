@@ -4,6 +4,10 @@ using UnityEngine;
 [CreateAssetMenu(fileName = "HelicopterMissileSkillDefinition", menuName = "Project Z Defense/Skills/Helicopter Missile Skill")]
 public class HelicopterMissileSkillDefinitionSO : ScriptableObject
 {
+    private const int GROUND_LAYER_MASK = 1 << 3;
+    private const int ZOMBIE_LAYER_MASK = 1 << 7;
+    private const int ZOMBIE_ATTACK_COLLIDER_LAYER_MASK = 1 << 10;
+
     [Header("기본 정보")]
     [SerializeField] private string skillId = "helicopter_missile";
     [SerializeField] private string displayName = "Helicopter Missile";
@@ -26,12 +30,15 @@ public class HelicopterMissileSkillDefinitionSO : ScriptableObject
     [Min(0f)] [SerializeField] private float cooldown = 20f;
 
     [Header("범위 지정")]
-    [SerializeField] private LayerMask placementLayerMask = ~0;
+    [SerializeField] private LayerMask placementLayerMask = GROUND_LAYER_MASK;
     [SerializeField] private float fallbackGroundY = 0f;
     [SerializeField] private float previewHeightOffset = 0.05f;
     [SerializeField] private bool alignAreaToCameraForward = true;
     [SerializeField] private Vector3 fixedAreaRotationEuler;
+    [Tooltip("범위 표시 프리팹의 시각 크기만 보정합니다. 미사일 착탄 분포와 데미지 범위에는 영향을 주지 않습니다.")]
     [SerializeField] private Vector3 previewLocalScaleMultiplier = Vector3.one;
+    [SerializeField] private Color validPreviewColor = new Color(0.09f, 0.19f, 0.56f, 0.5f);
+    [SerializeField] private Color invalidPreviewColor = new Color(1f, 0.12f, 0.08f, 0.45f);
 
     [Header("헬리콥터 이동")]
     [SerializeField] private Vector2 helicopterStartViewport = new Vector2(0.5f, -0.15f);
@@ -50,7 +57,7 @@ public class HelicopterMissileSkillDefinitionSO : ScriptableObject
     [Header("미사일")]
     [Min(1)] [SerializeField] private int missileCount = 6;
     [Min(0f)] [SerializeField] private float missileInterval = 0.15f;
-    [SerializeField] private HelicopterMissileSpreadMode missileSpreadMode = HelicopterMissileSpreadMode.Zigzag;
+    [SerializeField] private HelicopterMissileSpreadMode missileSpreadMode = HelicopterMissileSpreadMode.zigzag;
     [Tooltip("표시 범위 길이 안에서 미사일 착탄점을 흩뿌릴 비율입니다. 1이면 전체 길이를 사용합니다.")]
     [Range(0.1f, 1f)] [SerializeField] private float missileSpreadLengthRatio = 0.9f;
     [Tooltip("표시 범위 폭 안에서 미사일 착탄점을 흩뿌릴 비율입니다. 1이면 전체 폭을 사용합니다.")]
@@ -68,7 +75,7 @@ public class HelicopterMissileSkillDefinitionSO : ScriptableObject
     [SerializeField] private bool applyDamageOncePerCast = true;
 
     [Header("데미지 판정")]
-    [SerializeField] private LayerMask damageLayerMask = ~0;
+    [SerializeField] private LayerMask damageLayerMask = ZOMBIE_LAYER_MASK | ZOMBIE_ATTACK_COLLIDER_LAYER_MASK;
     [Min(1)] [SerializeField] private int damageBufferSize = 64;
     [Tooltip("미사일 한 발이 착탄한 위치를 중심으로 데미지를 적용할 반경입니다.")]
     [Min(0.1f)] [SerializeField] private float missileDamageRadius = 3f;
@@ -88,6 +95,8 @@ public class HelicopterMissileSkillDefinitionSO : ScriptableObject
     public bool AlignAreaToCameraForward => alignAreaToCameraForward;
     public Vector3 FixedAreaRotationEuler => fixedAreaRotationEuler;
     public Vector3 PreviewLocalScaleMultiplier => previewLocalScaleMultiplier;
+    public Color ValidPreviewColor => validPreviewColor;
+    public Color InvalidPreviewColor => invalidPreviewColor;
     public Vector2 HelicopterStartViewport => helicopterStartViewport;
     public Vector2 HelicopterEndViewport => helicopterEndViewport;
     public float HelicopterAltitude => helicopterAltitude;
@@ -147,10 +156,10 @@ public class HelicopterMissileSkillDefinitionSO : ScriptableObject
 
 public enum HelicopterMissileSpreadMode
 {
-    Random,
-    EvenLine,
-    Zigzag,
-    Grid
+    random,
+    evenLine,
+    zigzag,
+    grid
 }
 
 [System.Serializable]
@@ -172,14 +181,14 @@ public class HelicopterPropellerPrefabBinding
 [System.Serializable]
 public class HelicopterMissileSkillLevelData
 {
-    private static readonly HelicopterMissileSkillLevelData defaultData = new HelicopterMissileSkillLevelData();
+    private static readonly HelicopterMissileSkillLevelData DefaultData = new HelicopterMissileSkillLevelData();
 
     [Min(1)] [SerializeField] private int level = 1;
     [Min(0f)] [SerializeField] private float damage = 100f;
     [Min(0.1f)] [SerializeField] private float areaLength = 18f;
     [Min(0.1f)] [SerializeField] private float areaWidth = 5f;
 
-    public static HelicopterMissileSkillLevelData Default => defaultData;
+    public static HelicopterMissileSkillLevelData Default => DefaultData;
     public int Level => level;
     public float Damage => damage;
     public float AreaLength => areaLength;

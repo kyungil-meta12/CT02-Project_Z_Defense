@@ -16,8 +16,8 @@ public class HelicopterMissileSkillSlotUI : MonoBehaviour, IBeginDragHandler, ID
     [Header("Runtime")]
     [Min(1)] [SerializeField] private int skillLevel = 1;
 
-    private float cooldownRemaining;
     private float cooldownTextRefreshTimer;
+    private int lastCooldownTextValue = -1;
     private bool isDragging;
 
     // 기본 UI 참조를 자동 연결한다.
@@ -57,8 +57,7 @@ public class HelicopterMissileSkillSlotUI : MonoBehaviour, IBeginDragHandler, ID
             return;
         }
 
-        isDragging = true;
-        skillCaster.BeginPlacement(skillDefinition, skillLevel, eventData.position);
+        isDragging = skillCaster.BeginPlacement(skillDefinition, skillLevel, eventData.position);
     }
 
     // 드래그 중 범위 프리뷰를 이동한다.
@@ -81,11 +80,7 @@ public class HelicopterMissileSkillSlotUI : MonoBehaviour, IBeginDragHandler, ID
         }
 
         isDragging = false;
-        bool castSuccess = skillCaster.TryCast(eventData.position);
-        if (castSuccess)
-        {
-            StartCooldown();
-        }
+        skillCaster.TryCast(eventData.position);
     }
 
     // 클릭 입력으로 범위 지정 시작 또는 발동을 처리한다.
@@ -98,12 +93,7 @@ public class HelicopterMissileSkillSlotUI : MonoBehaviour, IBeginDragHandler, ID
 
         if (skillCaster.IsPlacing)
         {
-            bool castSuccess = skillCaster.TryCast(eventData.position);
-            if (castSuccess)
-            {
-                StartCooldown();
-            }
-
+            skillCaster.TryCast(eventData.position);
             return;
         }
 
@@ -115,7 +105,7 @@ public class HelicopterMissileSkillSlotUI : MonoBehaviour, IBeginDragHandler, ID
         skillCaster.BeginPlacement(skillDefinition, skillLevel, eventData.position);
     }
 
-    // 쿨타임과 필수 참조를 확인해 범위 지정 가능 여부를 판단한다.
+    // 필수 참조와 캐스터 사용 가능 상태를 확인한다.
     private bool CanBeginPlacement()
     {
         if (skillDefinition == null || skillCaster == null)
@@ -124,7 +114,7 @@ public class HelicopterMissileSkillSlotUI : MonoBehaviour, IBeginDragHandler, ID
             return false;
         }
 
-        if (cooldownRemaining > 0f)
+        if (!skillCaster.CanUseSkill())
         {
             return false;
         }
@@ -144,26 +134,18 @@ public class HelicopterMissileSkillSlotUI : MonoBehaviour, IBeginDragHandler, ID
         iconImage.enabled = true;
     }
 
-    // 쿨타임을 시작한다.
-    private void StartCooldown()
-    {
-        cooldownRemaining = skillDefinition != null ? skillDefinition.Cooldown : 0f;
-        cooldownTextRefreshTimer = 0f;
-        RefreshCooldownUI(true);
-    }
-
     // 쿨타임 시간을 감소시키고 UI를 갱신한다.
     private void UpdateCooldown()
     {
-        if (cooldownRemaining <= 0f)
+        if (skillCaster == null)
         {
+            RefreshCooldownUI(false);
             return;
         }
 
-        cooldownRemaining = Mathf.Max(0f, cooldownRemaining - Time.deltaTime);
         cooldownTextRefreshTimer -= Time.deltaTime;
 
-        if (cooldownTextRefreshTimer <= 0f || cooldownRemaining <= 0f)
+        if (cooldownTextRefreshTimer <= 0f || skillCaster.CooldownRemaining <= 0f)
         {
             cooldownTextRefreshTimer = 0.1f;
             RefreshCooldownUI(false);
@@ -173,8 +155,8 @@ public class HelicopterMissileSkillSlotUI : MonoBehaviour, IBeginDragHandler, ID
     // 쿨타임 오버레이와 텍스트를 현재 상태에 맞춘다.
     private void RefreshCooldownUI(bool force)
     {
-        float cooldown = skillDefinition != null ? skillDefinition.Cooldown : 0f;
-        float ratio = cooldown > 0f ? cooldownRemaining / cooldown : 0f;
+        float cooldownRemaining = skillCaster != null ? skillCaster.CooldownRemaining : 0f;
+        float ratio = skillCaster != null ? skillCaster.CooldownRatio : 0f;
 
         if (cooldownFillImage != null)
         {
@@ -184,7 +166,12 @@ public class HelicopterMissileSkillSlotUI : MonoBehaviour, IBeginDragHandler, ID
 
         if (cooldownText != null && (force || cooldownTextRefreshTimer <= 0.1f))
         {
-            cooldownText.text = cooldownRemaining > 0f ? Mathf.CeilToInt(cooldownRemaining).ToString() : string.Empty;
+            int cooldownTextValue = cooldownRemaining > 0f ? Mathf.CeilToInt(cooldownRemaining) : 0;
+            if (force || cooldownTextValue != lastCooldownTextValue)
+            {
+                cooldownText.text = cooldownTextValue > 0 ? cooldownTextValue.ToString() : string.Empty;
+                lastCooldownTextValue = cooldownTextValue;
+            }
         }
     }
 }

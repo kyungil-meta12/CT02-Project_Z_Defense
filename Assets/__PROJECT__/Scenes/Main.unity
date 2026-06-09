@@ -7573,6 +7573,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::HelicopterMissileSkillCaster
   targetCamera: {fileID: 993447955}
   runtimeContainer: {fileID: 275944838}
+  prewarmRuntimeCount: 1
 --- !u!4 &201788290
 Transform:
   m_ObjectHideFlags: 0
@@ -33759,6 +33760,7 @@ GameObject:
   - component: {fileID: 993447953}
   - component: {fileID: 993447952}
   - component: {fileID: 993447957}
+  - component: {fileID: 993447958}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -33813,8 +33815,8 @@ Camera:
     y: 0
     width: 1
     height: 1
-  near clip plane: 0.3
-  far clip plane: 1000
+  near clip plane: 0.01
+  far clip plane: 2000
   field of view: 60
   orthographic: 1
   orthographic size: 58.1
@@ -33892,6 +33894,22 @@ MonoBehaviour:
     m_VarianceClampScale: 0.9
     m_ContrastAdaptiveSharpening: 0
   m_Version: 2
+--- !u!114 &993447958
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 993447951}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d684c4661daa140448f0bccb5abb8a0f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CameraZoomController
+  minOrthographicSize: 15
+  maxOrthographicSize: 60
+  zoomSensitivity: 20
+  dragSensitivity: 0.05
 --- !u!1001 &995098662
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -48509,8 +48527,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 310.2, y: 830.9}
-  m_SizeDelta: {x: -664.213, y: -1705.6981}
+  m_AnchoredPosition: {x: 298, y: 830.9}
+  m_SizeDelta: {x: -628.1392, y: -1705.6981}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1461096662
 MonoBehaviour:

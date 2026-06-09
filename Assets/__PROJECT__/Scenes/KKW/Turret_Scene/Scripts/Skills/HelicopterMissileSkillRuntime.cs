@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using UnityEngine;
 
@@ -15,25 +16,42 @@ public class HelicopterMissileSkillRuntime : MonoBehaviour
     private int castDamagedTargetCount;
     private int activeMissileCount;
     private bool warnedCastDamageCapacityExceeded;
+    private bool allMissilesImpacted;
+    private Coroutine runningCoroutine;
+    private Action<HelicopterMissileSkillRuntime> returnCallback;
 
     // 스킬 런타임 데이터를 초기화하고 연출 코루틴을 시작한다.
-    public void Initialize(HelicopterMissileSkillDefinitionSO definition_, HelicopterMissileSkillLevelData levelData_, Camera targetCamera_, Vector3 areaCenter_, Quaternion areaRotation_)
+    public void Initialize(HelicopterMissileSkillDefinitionSO definition_, HelicopterMissileSkillLevelData levelData_, Camera targetCamera_, Vector3 areaCenter_, Quaternion areaRotation_, Action<HelicopterMissileSkillRuntime> returnCallback_)
     {
+        StopRunningCoroutine();
+
         definition = definition_;
         levelData = levelData_;
         targetCamera = targetCamera_;
         areaCenter = areaCenter_;
         areaRotation = areaRotation_;
+        returnCallback = returnCallback_;
+
+        if (definition == null || levelData == null)
+        {
+            runningCoroutine = StartCoroutine(RunSkillCoroutine());
+            return;
+        }
 
         int bufferSize = Mathf.Max(1, definition.DamageBufferSize);
         int castDamageCapacity = bufferSize * Mathf.Max(1, definition.MissileCount);
-        hitBuffer = new Collider[bufferSize];
-        damagedTargets = new IDamageable[bufferSize];
-        castDamagedTargets = new IDamageable[castDamageCapacity];
-        castDamagedTargetCount = 0;
-        warnedCastDamageCapacityExceeded = false;
+        EnsureBuffers(bufferSize, castDamageCapacity);
+        ResetCastState();
 
-        StartCoroutine(RunSkillCoroutine());
+        runningCoroutine = StartCoroutine(RunSkillCoroutine());
+    }
+
+    // 비활성화될 때 진행 중인 코루틴과 참조 상태를 정리한다.
+    private void OnDisable()
+    {
+        StopRunningCoroutine();
+        ReturnActiveHelicopter();
+        ResetReferences();
     }
 
     // 헬기를 이동시키면서 미사일을 순차 발사한다.
@@ -41,7 +59,8 @@ public class HelicopterMissileSkillRuntime : MonoBehaviour
     {
         if (definition == null || levelData == null)
         {
-            Destroy(gameObject);
+            runningCoroutine = null;
+            ReturnToPool();
             yield break;
         }
 
@@ -79,17 +98,24 @@ public class HelicopterMissileSkillRuntime : MonoBehaviour
         {
             FireMissile(firedMissileCount);
             firedMissileCount++;
-            yield return new WaitForSeconds(definition.MissileInterval);
+            yield return WaitForMissileInterval();
         }
 
         if (helicopterInstance != null)
         {
-            PooledObjectUtility.ReturnOrDestroy(helicopterInstance);
-            helicopterInstance = null;
+            ReturnActiveHelicopter();
         }
 
         yield return WaitForMissileImpacts();
 
+        runningCoroutine = null;
+        if (this.allMissilesImpacted)
+        {
+            ReturnToPool();
+            yield break;
+        }
+
+        Debug.LogWarning("[헬기 스킬] 일부 미사일 충돌 완료를 확인하지 못해 런타임을 풀에 반환하지 않고 제거합니다.", this);
         Destroy(gameObject, definition.ExplosionEffectDuration + definition.MissileDestroyDelayAfterImpact + 0.5f);
     }
 
@@ -100,6 +126,21 @@ public class HelicopterMissileSkillRuntime : MonoBehaviour
         float elapsedTime = 0f;
 
         while (activeMissileCount > 0 && elapsedTime < timeout)
+        {
+            elapsedTime += Time.deltaTime;
+            yield return null;
+        }
+
+        allMissilesImpacted = activeMissileCount <= 0;
+    }
+
+    // WaitForSeconds 할당 없이 미사일 발사 간격만큼 대기한다.
+    private IEnumerator WaitForMissileInterval()
+    {
+        float interval = Mathf.Max(0f, definition.MissileInterval);
+        float elapsedTime = 0f;
+
+        while (elapsedTime < interval)
         {
             elapsedTime += Time.deltaTime;
             yield return null;
@@ -208,20 +249,20 @@ public class HelicopterMissileSkillRuntime : MonoBehaviour
         int count = Mathf.Max(1, definition.MissileCount);
         float lengthOffset = 0f;
         float widthOffset = 0f;
-        float effectiveAreaLength = GetVisibleAreaLength();
-        float effectiveAreaWidth = GetVisibleAreaWidth();
+        float effectiveAreaLength = GetMissileSpreadAreaLength();
+        float effectiveAreaWidth = GetMissileSpreadAreaWidth();
         float lengthRange = effectiveAreaLength * Mathf.Clamp01(definition.MissileSpreadLengthRatio) * 0.5f;
         float widthRange = effectiveAreaWidth * Mathf.Clamp01(definition.MissileSpreadWidthRatio) * 0.5f;
 
         switch (definition.MissileSpreadMode)
         {
-            case HelicopterMissileSpreadMode.EvenLine:
+            case HelicopterMissileSpreadMode.evenLine:
                 ResolveEvenLineMissileOffset(missileIndex, count, lengthRange, out lengthOffset);
                 break;
-            case HelicopterMissileSpreadMode.Zigzag:
+            case HelicopterMissileSpreadMode.zigzag:
                 ResolveZigzagMissileOffset(missileIndex, count, lengthRange, widthRange, out lengthOffset, out widthOffset);
                 break;
-            case HelicopterMissileSpreadMode.Grid:
+            case HelicopterMissileSpreadMode.grid:
                 ResolveGridMissileOffset(missileIndex, count, lengthRange, widthRange, out lengthOffset, out widthOffset);
                 break;
             default:
@@ -234,23 +275,23 @@ public class HelicopterMissileSkillRuntime : MonoBehaviour
         return areaCenter + areaRotation * localOffset;
     }
 
-    // 범위 표시 프리팹에 적용되는 실제 표시 폭을 반환한다.
-    private float GetVisibleAreaWidth()
+    // 미사일 착탄 분포에 사용할 전투 범위 폭을 반환한다.
+    private float GetMissileSpreadAreaWidth()
     {
-        return levelData.AreaWidth * Mathf.Abs(definition.PreviewLocalScaleMultiplier.x);
+        return levelData.AreaWidth;
     }
 
-    // 범위 표시 프리팹에 적용되는 실제 표시 길이를 반환한다.
-    private float GetVisibleAreaLength()
+    // 미사일 착탄 분포에 사용할 전투 범위 길이를 반환한다.
+    private float GetMissileSpreadAreaLength()
     {
-        return levelData.AreaLength * Mathf.Abs(definition.PreviewLocalScaleMultiplier.z);
+        return levelData.AreaLength;
     }
 
     // 표시 범위 안에서 무작위 착탄 위치를 계산한다.
     private void ResolveRandomMissileOffset(float lengthRange, float widthRange, out float lengthOffset, out float widthOffset)
     {
-        lengthOffset = Random.Range(-lengthRange, lengthRange);
-        widthOffset = Random.Range(-widthRange, widthRange);
+        lengthOffset = UnityEngine.Random.Range(-lengthRange, lengthRange);
+        widthOffset = UnityEngine.Random.Range(-widthRange, widthRange);
     }
 
     // 표시 범위의 길이 방향으로 균등한 착탄 위치를 계산한다.
@@ -363,15 +404,10 @@ public class HelicopterMissileSkillRuntime : MonoBehaviour
         return false;
     }
 
-    // 스킬 타격 대상이 일반 좀비 또는 보스 좀비인지 확인한다.
+    // 스킬 타격 대상이 데미지를 받을 수 있는 생존 대상인지 확인한다.
     private bool IsValidDamageTarget(IDamageable damageable)
     {
-        if (damageable == null || !damageable.IsAlive)
-        {
-            return false;
-        }
-
-        return damageable is NormalZombie || damageable is BossZombie;
+        return damageable != null && damageable.IsAlive;
     }
 
     // 한 번의 범위 판정에서 같은 대상이 중복 피격되는지 확인한다.
@@ -395,5 +431,119 @@ public class HelicopterMissileSkillRuntime : MonoBehaviour
         {
             damagedTargets[i] = null;
         }
+    }
+
+    // 필요한 크기보다 작을 때만 판정 버퍼를 다시 만든다.
+    private void EnsureBuffers(int bufferSize, int castDamageCapacity)
+    {
+        if (hitBuffer == null || hitBuffer.Length < bufferSize)
+        {
+            hitBuffer = new Collider[bufferSize];
+        }
+
+        if (damagedTargets == null || damagedTargets.Length < bufferSize)
+        {
+            damagedTargets = new IDamageable[bufferSize];
+        }
+
+        if (castDamagedTargets == null || castDamagedTargets.Length < castDamageCapacity)
+        {
+            castDamagedTargets = new IDamageable[castDamageCapacity];
+        }
+    }
+
+    // 새 시전을 시작하기 전에 이전 시전 상태를 초기화한다.
+    private void ResetCastState()
+    {
+        ClearHitBuffer();
+        ClearDamagedTargets(damagedTargets != null ? damagedTargets.Length : 0);
+        ClearCastDamagedTargets();
+        castDamagedTargetCount = 0;
+        activeMissileCount = 0;
+        warnedCastDamageCapacityExceeded = false;
+        allMissilesImpacted = false;
+    }
+
+    // OverlapSphereNonAlloc 재사용 버퍼의 남은 참조를 비운다.
+    private void ClearHitBuffer()
+    {
+        if (hitBuffer == null)
+        {
+            return;
+        }
+
+        for (int i = 0; i < hitBuffer.Length; i++)
+        {
+            hitBuffer[i] = null;
+        }
+    }
+
+    // 캐스트 전체 중복 방지 대상 참조를 비운다.
+    private void ClearCastDamagedTargets()
+    {
+        if (castDamagedTargets == null)
+        {
+            return;
+        }
+
+        for (int i = 0; i < castDamagedTargetCount && i < castDamagedTargets.Length; i++)
+        {
+            castDamagedTargets[i] = null;
+        }
+    }
+
+    // 진행 중인 스킬 코루틴을 중단한다.
+    private void StopRunningCoroutine()
+    {
+        if (runningCoroutine == null)
+        {
+            return;
+        }
+
+        StopCoroutine(runningCoroutine);
+        runningCoroutine = null;
+    }
+
+    // 풀 반환 시 다음 시전에 영향을 줄 수 있는 런타임 참조를 정리한다.
+    private void ResetReferences()
+    {
+        definition = null;
+        levelData = null;
+        targetCamera = null;
+        helicopterInstance = null;
+        returnCallback = null;
+        castDamagedTargetCount = 0;
+        activeMissileCount = 0;
+        warnedCastDamageCapacityExceeded = false;
+        allMissilesImpacted = false;
+    }
+
+    // 남아 있는 헬기 연출 오브젝트를 풀 또는 제거 경로로 정리한다.
+    private void ReturnActiveHelicopter()
+    {
+        if (helicopterInstance == null)
+        {
+            return;
+        }
+
+        PooledObjectUtility.ReturnOrDestroy(helicopterInstance);
+        helicopterInstance = null;
+    }
+
+    // 스킬 런타임을 소유자 풀로 반환한다.
+    private void ReturnToPool()
+    {
+        ClearHitBuffer();
+        ClearDamagedTargets(damagedTargets != null ? damagedTargets.Length : 0);
+        ClearCastDamagedTargets();
+
+        Action<HelicopterMissileSkillRuntime> callback = returnCallback;
+        if (callback != null)
+        {
+            callback(this);
+            return;
+        }
+
+        gameObject.SetActive(false);
     }
 }

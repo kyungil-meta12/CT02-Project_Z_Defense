@@ -29,8 +29,15 @@ public class HelicopterPropellerAnimator : MonoBehaviour
     {
         rotationSpeed = Mathf.Max(0f, rotationSpeed_);
         localRotationAxis = localRotationAxis_.sqrMagnitude > 0.0001f ? localRotationAxis_.normalized : Vector3.up;
+
+        if (prefabBindings == prefabBindings_ && HasValidPropellerElements())
+        {
+            return;
+        }
+
         prefabBindings = prefabBindings_;
-        propellerElements = null;
+        warnedMissingPropeller = false;
+        ClearPropellerElements();
         AutoFindPropellersIfNeeded();
     }
 
@@ -59,7 +66,7 @@ public class HelicopterPropellerAnimator : MonoBehaviour
     // 직접 연결된 프리팹 Transform 또는 경로 기준으로 프로펠러 Transform을 찾는다.
     private void AutoFindPropellersIfNeeded()
     {
-        if (propellerElements != null && propellerElements.Length > 0)
+        if (HasValidPropellerElements())
         {
             return;
         }
@@ -84,7 +91,7 @@ public class HelicopterPropellerAnimator : MonoBehaviour
             return false;
         }
 
-        HelicopterPropellerRotationElement[] tempElements = new HelicopterPropellerRotationElement[prefabBindings.Length];
+        EnsurePropellerElementCapacity(prefabBindings.Length);
         int count = 0;
 
         for (int i = 0; i < prefabBindings.Length; i++)
@@ -105,22 +112,109 @@ public class HelicopterPropellerAnimator : MonoBehaviour
                 continue;
             }
 
-            tempElements[count] = new HelicopterPropellerRotationElement(instanceTransform, binding.LocalRotationAxis, binding.RotationSpeedMultiplier);
+            propellerElements[count].Configure(instanceTransform, binding.LocalRotationAxis, binding.RotationSpeedMultiplier);
             count++;
         }
 
         if (count <= 0)
         {
+            ClearPropellerElements();
             return false;
         }
 
-        propellerElements = new HelicopterPropellerRotationElement[count];
-        for (int i = 0; i < count; i++)
+        ClearUnusedPropellerElements(count);
+        return true;
+    }
+
+    // 프로펠러 요소 캐시가 현재 재사용 가능한지 확인한다.
+    private bool HasValidPropellerElements()
+    {
+        if (propellerElements == null || propellerElements.Length == 0)
         {
-            propellerElements[i] = tempElements[i];
+            return false;
         }
 
-        return true;
+        for (int i = 0; i < propellerElements.Length; i++)
+        {
+            HelicopterPropellerRotationElement element = propellerElements[i];
+            if (element != null && element.Propeller != null)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    // 필요한 수만큼 프로펠러 요소 캐시를 준비한다.
+    private void EnsurePropellerElementCapacity(int capacity)
+    {
+        if (propellerElements != null && propellerElements.Length >= capacity)
+        {
+            for (int i = 0; i < capacity; i++)
+            {
+                if (propellerElements[i] == null)
+                {
+                    propellerElements[i] = new HelicopterPropellerRotationElement();
+                }
+            }
+
+            return;
+        }
+
+        HelicopterPropellerRotationElement[] newElements = new HelicopterPropellerRotationElement[capacity];
+        if (propellerElements != null)
+        {
+            int copyCount = Mathf.Min(propellerElements.Length, newElements.Length);
+            for (int i = 0; i < copyCount; i++)
+            {
+                newElements[i] = propellerElements[i];
+            }
+        }
+
+        for (int i = 0; i < newElements.Length; i++)
+        {
+            if (newElements[i] == null)
+            {
+                newElements[i] = new HelicopterPropellerRotationElement();
+            }
+        }
+
+        propellerElements = newElements;
+    }
+
+    // 사용하지 않는 프로펠러 요소를 비워 회전 대상에서 제외한다.
+    private void ClearUnusedPropellerElements(int usedCount)
+    {
+        if (propellerElements == null)
+        {
+            return;
+        }
+
+        for (int i = usedCount; i < propellerElements.Length; i++)
+        {
+            if (propellerElements[i] != null)
+            {
+                propellerElements[i].Clear();
+            }
+        }
+    }
+
+    // 프로펠러 요소 캐시의 참조만 비운다.
+    private void ClearPropellerElements()
+    {
+        if (propellerElements == null)
+        {
+            return;
+        }
+
+        for (int i = 0; i < propellerElements.Length; i++)
+        {
+            if (propellerElements[i] != null)
+            {
+                propellerElements[i].Clear();
+            }
+        }
     }
 
     // SO 바인딩 정보로 생성된 헬기 인스턴스의 프로펠러 Transform을 찾는다.
@@ -260,8 +354,22 @@ public class HelicopterPropellerRotationElement
     // 자동 검색된 프로펠러의 기본 회전 설정을 만든다.
     public HelicopterPropellerRotationElement(Transform propeller_, Vector3 localRotationAxis_, float rotationSpeedMultiplier_)
     {
+        Configure(propeller_, localRotationAxis_, rotationSpeedMultiplier_);
+    }
+
+    // 프로펠러 회전 대상을 재사용 가능한 요소에 설정한다.
+    public void Configure(Transform propeller_, Vector3 localRotationAxis_, float rotationSpeedMultiplier_)
+    {
         propeller = propeller_;
         localRotationAxis = localRotationAxis_;
         rotationSpeedMultiplier = rotationSpeedMultiplier_;
+    }
+
+    // 풀 재사용 또는 바인딩 재구성 시 이전 Transform 참조를 비운다.
+    public void Clear()
+    {
+        propeller = null;
+        localRotationAxis = Vector3.up;
+        rotationSpeedMultiplier = 1f;
     }
 }

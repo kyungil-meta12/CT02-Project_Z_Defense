@@ -27,12 +27,14 @@ MonoBehaviour:
   cooldown: 0
   placementLayerMask:
     serializedVersion: 2
-    m_Bits: 4294967295
+    m_Bits: 8
   fallbackGroundY: 0
   previewHeightOffset: 0.05
   alignAreaToCameraForward: 1
   fixedAreaRotationEuler: {x: 0, y: 0, z: 0}
   previewLocalScaleMultiplier: {x: 2, y: 1, z: 1}
+  validPreviewColor: {r: 0.09, g: 0.19, b: 0.56, a: 0.5}
+  invalidPreviewColor: {r: 1, g: 0.12, b: 0.08, a: 0.45}
   helicopterStartViewport: {x: 0.5, y: -0.15}
   helicopterEndViewport: {x: 0.5, y: 1.15}
   helicopterAltitude: 18
@@ -54,7 +56,7 @@ MonoBehaviour:
   missileCount: 6
   missileInterval: 0.15
   missileSpreadMode: 2
-  missileSpreadLengthRatio: 0.1
+  missileSpreadLengthRatio: 0.7
   missileSpreadWidthRatio: 0.7
   missileRootMoveSpeed: 120
   missileTargetHeightOffset: 0.1
@@ -67,5 +69,5 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 1152
   damageBufferSize: 256
-  missileDamageRadius: 10
+  missileDamageRadius: 12
   damageTriggerInteraction: 2

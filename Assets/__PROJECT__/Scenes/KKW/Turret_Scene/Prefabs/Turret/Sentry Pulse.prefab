@@ -402,6 +402,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   radius: 100
   targetTag: Enemy
+  targetLayer:
+    serializedVersion: 2
+    m_Bits: 128
   pivotObject: {fileID: 5228063298774287399}
   showDebug: 0
   useHorizontalDistance: 1

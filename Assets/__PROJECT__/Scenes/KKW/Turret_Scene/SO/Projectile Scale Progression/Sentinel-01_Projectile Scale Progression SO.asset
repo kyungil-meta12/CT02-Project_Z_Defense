@@ -15,8 +15,8 @@ MonoBehaviour:
   defaultScale: 1
   levelEntries:
   - requiredLevel: 0
-    projectileScale: 1
+    projectileScale: 3
   - requiredLevel: 30
-    projectileScale: 1.5
+    projectileScale: 3
   - requiredLevel: 60
-    projectileScale: 2
+    projectileScale: 3

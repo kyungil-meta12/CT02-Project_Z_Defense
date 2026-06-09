@@ -183,6 +183,9 @@ public class HelicopterMissileSkillProjectile : MonoBehaviour
             return;
         }
 
+        // 카메라에 흔들림 추가
+        CameraController.Inst.AddShake(0.8f);
+
         hasImpacted = true;
         initialized = false;
         transform.position = impactPosition;

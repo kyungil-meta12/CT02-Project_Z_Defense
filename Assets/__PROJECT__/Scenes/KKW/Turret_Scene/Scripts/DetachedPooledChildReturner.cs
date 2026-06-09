@@ -41,7 +41,19 @@ public class DetachedPooledChildReturner : MonoBehaviour
 
     private IEnumerator ReturnRoutine(float delay)
     {
-        yield return new WaitForSeconds(delay);
+        if (delay <= 0.0f)
+        {
+            yield return null;
+        }
+        else
+        {
+            float elapsedTime = 0.0f;
+            while (elapsedTime < delay)
+            {
+                elapsedTime += Time.deltaTime;
+                yield return null;
+            }
+        }
 
         returnRoutine = null;
         ReturnNow();

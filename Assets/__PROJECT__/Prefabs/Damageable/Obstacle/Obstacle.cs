@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using DinoFracture;
 using UnityEngine;
 
@@ -51,6 +52,8 @@ public class Obstacle : MonoBehaviour, IDamageable
         {
             GameManager.Inst.RegisterObstacle(this);
         }
+
+        EnsurePreFracturedPieces(); //파편 미리 생성하여 최적화
 
         //레벨에 맞춰서 hp 설정
         TotalHp = spec.Hp + spec.level * spec.levelWeight;
@@ -130,7 +133,7 @@ public class Obstacle : MonoBehaviour, IDamageable
 
             IsAlive = false; // 생존 상태 비활성화
             ReservedRepairer = null;
-            
+
             Fracture(); //DinoFracture 파편 효과
         }
     }
@@ -187,13 +190,13 @@ public class Obstacle : MonoBehaviour, IDamageable
     {
         if (spec == null)
         {
-            Debug.LogError("[Obstacle] 장애물 스펙이 할당되지 않았습니다.", this);
+            //Debug.LogError("[Obstacle] 장애물 스펙이 할당되지 않았습니다.", this);
             return false;
         }
 
         if (hpUI == null)
         {
-            Debug.LogError("[Obstacle] HP UI가 할당되지 않았습니다.", this);
+            //Debug.LogError("[Obstacle] HP UI가 할당되지 않았습니다.", this);
             return false;
         }
 

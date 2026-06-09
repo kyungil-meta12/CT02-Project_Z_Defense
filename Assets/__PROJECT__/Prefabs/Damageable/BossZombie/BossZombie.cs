@@ -90,6 +90,7 @@ public class BossZombie : PoolObject, IDamageable
         hpUI.gameObject.SetActive(true);
         hpUI.InputTotalHp(TotalHp);
         hpUI.InputCurrHp(TotalHp);
+        hpUI.gameObject.SetActive(false);
         
         SetCollidersEnabled(true);
         agent.enabled = true;
@@ -418,6 +419,7 @@ public class BossZombie : PoolObject, IDamageable
         CurrHp -= appliedDamage;
         StoreDamage(appliedDamage);
         CurrHp = Mathf.Clamp(CurrHp, 0f, TotalHp);
+        hpUI.gameObject.SetActive(true);
         hpUI.InputCurrHp(CurrHp);
 
         if (logReceivedDamage)

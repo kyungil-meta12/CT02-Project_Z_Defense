@@ -74,6 +74,7 @@ public class NormalZombie : PoolObject, IDamageable
         hpUI.gameObject.SetActive(true);
         hpUI.InputTotalHp(TotalHp);
         hpUI.InputCurrHp(TotalHp);
+        hpUI.gameObject.SetActive(false);
 
         // 코루틴 동작 상태 초기화
         returnInstanceCoroutineRunning = false;
@@ -234,6 +235,7 @@ public class NormalZombie : PoolObject, IDamageable
         float appliedDamage = Mathf.Max(0f, damage);
         CurrHp -= appliedDamage;
         CurrHp = Mathf.Clamp(CurrHp, 0f, TotalHp);
+        hpUI.gameObject.SetActive(true);
         hpUI.InputCurrHp(CurrHp);
 
         if (logReceivedDamage)

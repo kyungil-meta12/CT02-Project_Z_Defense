@@ -293,6 +293,7 @@ public class Survivor : MonoBehaviour
 
         if (!repairTarget.IsDamaged)
         {
+            repairTarget.hpUI.gameObject.SetActive(false);
             ClearRepairTarget();
             ChangeState(SurvivorState.Idle);
         }

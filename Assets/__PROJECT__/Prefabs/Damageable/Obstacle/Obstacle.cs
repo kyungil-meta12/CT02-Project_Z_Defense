@@ -63,8 +63,10 @@ public class Obstacle : MonoBehaviour, IDamageable
         ReservedRepairer = null;
         hasNotifiedFracture = false;
         
+        hpUI.gameObject.SetActive(true);
         hpUI.InputTotalHp(TotalHp);
         hpUI.InputCurrHp(TotalHp);
+        hpUI.gameObject.SetActive(false);
     }
 
     //todo 레벨업시 호출, 레벨 가중치를 hp최대치에 추가
@@ -140,6 +142,7 @@ public class Obstacle : MonoBehaviour, IDamageable
         CurrHp = Mathf.Clamp(CurrHp, 0f, TotalHp);
         if (hpUI != null)
         {
+            hpUI.gameObject.SetActive(true);
             hpUI.InputCurrHp(CurrHp);
         }
 

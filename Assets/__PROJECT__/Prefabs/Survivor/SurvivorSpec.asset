@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: SurvivorSpec
   m_EditorClassIdentifier: 
   level: 1
-  moveSpeed: 1
+  moveSpeed: 3
   moveSpeedLevelWeight: 0.05
   repairHpPerSecond: 100
   repairHpPerSecondLevelWeight: 0.5

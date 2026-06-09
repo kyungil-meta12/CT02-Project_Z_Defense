@@ -97,7 +97,13 @@ public class PooledProjectileReturner : MonoBehaviour
 
     private IEnumerator ReturnAfterRoutine(float delay)
     {
-        yield return new WaitForSeconds(delay);
+        float elapsedTime = 0.0f;
+        while (elapsedTime < delay)
+        {
+            elapsedTime += Time.deltaTime;
+            yield return null;
+        }
+
         returnRoutine = null;
         ReturnNow();
     }

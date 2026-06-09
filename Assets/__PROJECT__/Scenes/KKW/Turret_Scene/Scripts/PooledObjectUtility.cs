@@ -12,7 +12,7 @@ public static class PooledObjectUtility
         MemoryPool memoryPool = GetMemoryPool();
         if (memoryPool == null)
         {
-            Debug.LogWarning($"[PooledObjectUtility] MemoryPool is missing. Instantiating {prefab.name} without pooling.");
+            Debug.LogWarning("[PooledObjectUtility] MemoryPool이 없어 풀링 없이 생성합니다. 대상: " + prefab.name);
             return UnityEngine.Object.Instantiate(prefab, position, rotation);
         }
 

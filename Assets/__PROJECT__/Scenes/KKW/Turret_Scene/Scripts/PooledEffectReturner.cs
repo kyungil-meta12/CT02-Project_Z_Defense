@@ -42,7 +42,13 @@ public class PooledEffectReturner : MonoBehaviour
 
     private IEnumerator ReturnAfterRoutine(float duration)
     {
-        yield return new WaitForSeconds(duration);
+        float elapsedTime = 0.0f;
+        while (elapsedTime < duration)
+        {
+            elapsedTime += Time.deltaTime;
+            yield return null;
+        }
+
         returnRoutine = null;
         ReturnNow();
     }

@@ -6,6 +6,8 @@ public class NormalZombieAttackCollider : MonoBehaviour
     public LayerMask targetLayer;
     private CapsuleCollider attackCollider;
     private float checkTime;
+    private Collider[] hitColliders = new Collider[1];
+    
     void Awake()
     {
         attackCollider = GetComponent<CapsuleCollider>();
@@ -20,12 +22,12 @@ public class NormalZombieAttackCollider : MonoBehaviour
             checkTime -= 0.2f;
 
             GetCapsulePoints(attackCollider, out var pointA, out var pointB);
-            var hitColliders = Physics.OverlapCapsule(pointA, pointB, attackCollider.radius, targetLayer);
+            var collidedCount = Physics.OverlapCapsuleNonAlloc(pointA, pointB, attackCollider.radius, hitColliders, targetLayer);
 
             // 공격 상태에서 충돌한 Obstacle이 없을 경우 공격 상태 비활성화
             if(zombie.attackState)
             {
-                if(hitColliders.Length == 0)
+                if(collidedCount == 0)
                 {
                     zombie.attackState = false;
                     zombie.attackTarget = null;
@@ -37,23 +39,26 @@ public class NormalZombieAttackCollider : MonoBehaviour
             // 1개 이상의 Obstacle이 감지되면 그 오브젝트를 공격 타겟으로 설정하고 공격 상태로 전환한다.
             else
             {
-                foreach(var hit in hitColliders)
+                if(collidedCount == 0)
                 {
-                    bool isOverlapping = Physics.ComputePenetration(
-                        attackCollider, attackCollider.transform.position, attackCollider.transform.rotation,
-                        hit, hit.transform.position, hit.transform.rotation,
-                        out var direction, out var distance
-                    );
+                    return;
+                }
 
-                    if (isOverlapping && distance >= zombie.spec.AttackDistance)
-                    {
-                        zombie.attackState = true;
-                        zombie.attackTarget = hit.gameObject;
-                        zombie.attackTargetContactPoint = transform.position + (-direction * distance); // 장애물과 충돌한 위치를 바라본다
-                        zombie.anim.SetBool("IsAttackState", true);
-                        zombie.agent.isStopped = true;
-                        break;
-                    }
+                var hit = hitColliders[0];
+
+                bool isOverlapping = Physics.ComputePenetration(
+                    attackCollider, attackCollider.transform.position, attackCollider.transform.rotation,
+                    hit, hit.transform.position, hit.transform.rotation,
+                    out var direction, out var distance
+                );
+
+                if (isOverlapping && distance >= zombie.spec.AttackDistance)
+                {
+                    zombie.attackState = true;
+                    zombie.attackTarget = hit.gameObject;
+                    zombie.attackTargetContactPoint = transform.position + (-direction * distance); // 장애물과 충돌한 위치를 바라본다
+                    zombie.anim.SetBool("IsAttackState", true);
+                    zombie.agent.isStopped = true;
                 }
             }
         }

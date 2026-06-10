@@ -70,6 +70,8 @@ public class Survivor : MonoBehaviour
     private bool hasVaultParameter;
     private bool loggedMissingVaultParameter;
 
+    public int ActiveDefenseLineIndex => activeDefenseLineIndex;
+
     // 필요한 컴포넌트와 애니메이터 파라미터를 초기화한다
     private void Awake()
     {
@@ -568,14 +570,13 @@ public class Survivor : MonoBehaviour
                 continue;
             }
 
-            VaultableObstacle vaultableObstacle = hitCollider.GetComponentInParent<VaultableObstacle>();
             Obstacle obstacle = hitCollider.GetComponentInParent<Obstacle>();
-            if (vaultableObstacle == null && obstacle == null)
+            if (obstacle == null)
             {
                 continue;
             }
 
-            Vector3 landingPosition = GetVaultLandingPosition(vaultableObstacle, vaultHits[i].point, direction);
+            Vector3 landingPosition = GetVaultLandingPosition(obstacle, direction);
             StartVault(landingPosition);
             return true;
         }
@@ -584,12 +585,9 @@ public class Survivor : MonoBehaviour
     }
 
     // 장애물 넘기 착지 위치를 계산한다
-    private Vector3 GetVaultLandingPosition(VaultableObstacle vaultableObstacle, Vector3 hitPoint, Vector3 direction)
+    private Vector3 GetVaultLandingPosition(Obstacle obstacle, Vector3 direction)
     {
-        Vector3 landingPosition = vaultableObstacle != null
-            ? vaultableObstacle.GetLandingPosition(transform.position, direction, vaultForwardOffset, vaultVerticalOffset)
-            : hitPoint + direction * Mathf.Max(0.1f, vaultForwardOffset);
-
+        Vector3 landingPosition = obstacle.GetVaultLandingPosition(transform.position, direction, vaultForwardOffset, vaultVerticalOffset);
         landingPosition.y = transform.position.y + vaultVerticalOffset;
 
         if (NavMesh.SamplePosition(landingPosition, out NavMeshHit navMeshHit, 1.0f, NavMesh.AllAreas))

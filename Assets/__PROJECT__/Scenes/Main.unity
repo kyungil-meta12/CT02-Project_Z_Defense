@@ -1701,10 +1701,7 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: 1242232213132576, guid: 93623804a1860b2409814746410da6bd, type: 3}
-      insertIndex: 4
-      addedObject: {fileID: 1886834403}
+    m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 93623804a1860b2409814746410da6bd, type: 3}
 --- !u!4 &40642010 stripped
 Transform:
@@ -1716,7 +1713,7 @@ MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 5835674188501093774, guid: 93623804a1860b2409814746410da6bd, type: 3}
   m_PrefabInstance: {fileID: 40642009}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1886834397}
+  m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6af0d671d437d8f42b241c4febfece96, type: 3}
@@ -22927,11 +22924,6 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 415068, guid: 7a80163190090ac4cad7a420833959c0, type: 3}
   m_PrefabInstance: {fileID: 654749236}
   m_PrefabAsset: {fileID: 0}
---- !u!1 &654814676 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 1242232213132576, guid: 93623804a1860b2409814746410da6bd, type: 3}
-  m_PrefabInstance: {fileID: 1050017930}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &656251607
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -24535,11 +24527,6 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 417630, guid: 58ab9f492c9995042a40f27638b2a20f, type: 3}
   m_PrefabInstance: {fileID: 716721562}
   m_PrefabAsset: {fileID: 0}
---- !u!1 &718308039 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 1242232213132576, guid: 93623804a1860b2409814746410da6bd, type: 3}
-  m_PrefabInstance: {fileID: 2078664208}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &719887880
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -25401,11 +25388,6 @@ PrefabInstance:
 Transform:
   m_CorrespondingSourceObject: {fileID: 415068, guid: 7a80163190090ac4cad7a420833959c0, type: 3}
   m_PrefabInstance: {fileID: 739049662}
-  m_PrefabAsset: {fileID: 0}
---- !u!1 &740943486 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 1242232213132576, guid: 93623804a1860b2409814746410da6bd, type: 3}
-  m_PrefabInstance: {fileID: 1412402022}
   m_PrefabAsset: {fileID: 0}
 --- !u!1001 &744715772
 PrefabInstance:
@@ -34052,10 +34034,7 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: 1242232213132576, guid: 93623804a1860b2409814746410da6bd, type: 3}
-      insertIndex: 4
-      addedObject: {fileID: 1228885316}
+    m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 93623804a1860b2409814746410da6bd, type: 3}
 --- !u!4 &995387775 stripped
 Transform:
@@ -34067,7 +34046,7 @@ MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 5835674188501093774, guid: 93623804a1860b2409814746410da6bd, type: 3}
   m_PrefabInstance: {fileID: 995387774}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1228885310}
+  m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6af0d671d437d8f42b241c4febfece96, type: 3}
@@ -34185,11 +34164,6 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 995410587}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
---- !u!1 &996305553 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 1242232213132576, guid: 93623804a1860b2409814746410da6bd, type: 3}
-  m_PrefabInstance: {fileID: 1458411234}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &997403568
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -35848,10 +35822,7 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: 1242232213132576, guid: 93623804a1860b2409814746410da6bd, type: 3}
-      insertIndex: 4
-      addedObject: {fileID: 1050017938}
+    m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 93623804a1860b2409814746410da6bd, type: 3}
 --- !u!4 &1050017931 stripped
 Transform:
@@ -35863,24 +35834,12 @@ MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 5835674188501093774, guid: 93623804a1860b2409814746410da6bd, type: 3}
   m_PrefabInstance: {fileID: 1050017930}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 654814676}
+  m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6af0d671d437d8f42b241c4febfece96, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Obstacle
---- !u!114 &1050017938
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 654814676}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8f69bb2d895840948b7789b8e4025592, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::VaultableObstacle
 --- !u!1001 &1053019317
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -41224,23 +41183,6 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 436650, guid: 463f90f8336ba91428d2ee5666a153ac, type: 3}
   m_PrefabInstance: {fileID: 1227434903}
   m_PrefabAsset: {fileID: 0}
---- !u!1 &1228885310 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 1242232213132576, guid: 93623804a1860b2409814746410da6bd, type: 3}
-  m_PrefabInstance: {fileID: 995387774}
-  m_PrefabAsset: {fileID: 0}
---- !u!114 &1228885316
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1228885310}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8f69bb2d895840948b7789b8e4025592, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::VaultableObstacle
 --- !u!1001 &1229650557
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -46910,11 +46852,6 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 415068, guid: 7a80163190090ac4cad7a420833959c0, type: 3}
   m_PrefabInstance: {fileID: 1406007778}
   m_PrefabAsset: {fileID: 0}
---- !u!1 &1407488487 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 4908843969338282300, guid: 45b01daa187860441962548cfe519c52, type: 3}
-  m_PrefabInstance: {fileID: 3639040420835652718}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &1410582244
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -47052,10 +46989,7 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: 1242232213132576, guid: 93623804a1860b2409814746410da6bd, type: 3}
-      insertIndex: 4
-      addedObject: {fileID: 1412402030}
+    m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 93623804a1860b2409814746410da6bd, type: 3}
 --- !u!4 &1412402023 stripped
 Transform:
@@ -47067,24 +47001,12 @@ MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 5835674188501093774, guid: 93623804a1860b2409814746410da6bd, type: 3}
   m_PrefabInstance: {fileID: 1412402022}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 740943486}
+  m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6af0d671d437d8f42b241c4febfece96, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Obstacle
---- !u!114 &1412402030
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 740943486}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8f69bb2d895840948b7789b8e4025592, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::VaultableObstacle
 --- !u!1001 &1412481757
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -48422,10 +48344,7 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: 1242232213132576, guid: 93623804a1860b2409814746410da6bd, type: 3}
-      insertIndex: 4
-      addedObject: {fileID: 1458411242}
+    m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 93623804a1860b2409814746410da6bd, type: 3}
 --- !u!4 &1458411235 stripped
 Transform:
@@ -48437,24 +48356,12 @@ MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 5835674188501093774, guid: 93623804a1860b2409814746410da6bd, type: 3}
   m_PrefabInstance: {fileID: 1458411234}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 996305553}
+  m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6af0d671d437d8f42b241c4febfece96, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Obstacle
---- !u!114 &1458411242
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 996305553}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8f69bb2d895840948b7789b8e4025592, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::VaultableObstacle
 --- !u!1001 &1458869412
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -56369,24 +56276,12 @@ MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 118107752576475216, guid: 45b01daa187860441962548cfe519c52, type: 3}
   m_PrefabInstance: {fileID: 3639040420835652718}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1407488487}
+  m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6af0d671d437d8f42b241c4febfece96, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Obstacle
---- !u!114 &1721790023
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1407488487}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8f69bb2d895840948b7789b8e4025592, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::VaultableObstacle
 --- !u!1 &1722187010
 GameObject:
   m_ObjectHideFlags: 0
@@ -62173,23 +62068,6 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 453570, guid: 98fabd1ae34417d42964e0e7785dbd4a, type: 3}
   m_PrefabInstance: {fileID: 1886676554}
   m_PrefabAsset: {fileID: 0}
---- !u!1 &1886834397 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 1242232213132576, guid: 93623804a1860b2409814746410da6bd, type: 3}
-  m_PrefabInstance: {fileID: 40642009}
-  m_PrefabAsset: {fileID: 0}
---- !u!114 &1886834403
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1886834397}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8f69bb2d895840948b7789b8e4025592, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::VaultableObstacle
 --- !u!1001 &1887037415
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -67716,10 +67594,7 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: 1242232213132576, guid: 93623804a1860b2409814746410da6bd, type: 3}
-      insertIndex: 4
-      addedObject: {fileID: 2078664216}
+    m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 93623804a1860b2409814746410da6bd, type: 3}
 --- !u!4 &2078664209 stripped
 Transform:
@@ -67731,24 +67606,12 @@ MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 5835674188501093774, guid: 93623804a1860b2409814746410da6bd, type: 3}
   m_PrefabInstance: {fileID: 2078664208}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 718308039}
+  m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6af0d671d437d8f42b241c4febfece96, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Obstacle
---- !u!114 &2078664216
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 718308039}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8f69bb2d895840948b7789b8e4025592, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::VaultableObstacle
 --- !u!1001 &2080007435
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -69962,10 +69825,7 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: 4908843969338282300, guid: 45b01daa187860441962548cfe519c52, type: 3}
-      insertIndex: 4
-      addedObject: {fileID: 1721790023}
+    m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 45b01daa187860441962548cfe519c52, type: 3}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:

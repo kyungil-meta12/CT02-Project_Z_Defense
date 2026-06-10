@@ -205,6 +205,11 @@ public class GameManager : MonoBehaviour
                 continue;
             }
 
+            if (IsRepairBlockedByRetreatedLine(survivor, current))
+            {
+                continue;
+            }
+
             float sqrDistance = (current.transform.position - requesterPosition).sqrMagnitude;
             if (sqrDistance < closestSqrDistance)
             {
@@ -214,6 +219,18 @@ public class GameManager : MonoBehaviour
         }
 
         return obstacle != null && obstacle.TryReserveRepair(survivor);
+    }
+
+    // 후퇴한 생존자가 이전 방어선을 수리 대상으로 잡지 않도록 확인한다
+    private bool IsRepairBlockedByRetreatedLine(Survivor survivor, Obstacle obstacle)
+    {
+        if (survivor == null || obstacle == null || survivor.ActiveDefenseLineIndex < 0)
+        {
+            return false;
+        }
+
+        int obstacleDefenseLineIndex = FindDefenseLineIndex(obstacle);
+        return obstacleDefenseLineIndex >= 0 && obstacleDefenseLineIndex <= survivor.ActiveDefenseLineIndex;
     }
 
     // 기본 방어선 항목이 부족하면 1차부터 3차까지 채운다

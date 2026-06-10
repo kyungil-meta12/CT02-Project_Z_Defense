@@ -8,26 +8,35 @@
 
 ## Required Project Context
 
-- Before starting project work, read the following documents and apply their rules to the current task:
+- Before starting project work, read the minimal common context and then only the task-specific Docs listed in `Assets/__PROJECT__/Docs/README.md`.
 
-1. `Assets/__PROJECT__/TeamCodingConvention.cs`
-   - Code style, Unity conventions, MemoryPool/PoolObject rules, and performance/GC guidelines.
+Always read:
 
-2. `Assets/__PROJECT__/PROJECT_README.cs`
-   - Game concept, system architecture, role boundaries, shared APIs, and current implementation status.
+1. `Assets/__PROJECT__/Docs/README.md`
+   - Docs index, fast-start reading order, and task-specific document map.
 
-3. `Assets/__PROJECT__/TURRET_DATA_STRUCTURE_PLAN.cs`
-   - Turret ScriptableObject structure, evolution/level model, placement flow, combat flow, and pooling rules.
+2. `Assets/__PROJECT__/Docs/TEAM_CODING_CONVENTION.md`
+   - Code style, Unity conventions, MemoryPool/PoolObject rules, logging, and performance/GC guidelines.
+
+3. `Assets/__PROJECT__/Docs/PROJECT_STRUCTURE.md`
+   - Project folder map, runtime areas, asset ownership, and where new work should be placed.
+
+Task-specific examples:
+
+- Survivor, obstacle, zombie spawn, and defense-line work: read `GAMEPLAY_RUNTIME_FLOW.md` and `SCENE_SETUP.md`.
+- Turret, combat, projectile, placement, and damage popup work: read `TURRET_SYSTEM.md` and `COMMON_SYSTEMS.md`.
+- Architecture or responsibility-boundary decisions: read `PROJECT_OVERVIEW.md`.
 
 ## High Priority Rules
 
-- Follow `TeamCodingConvention.cs` for all code changes.
+- Follow `Assets/__PROJECT__/Docs/TEAM_CODING_CONVENTION.md` for all code changes.
 - When writing a new method, add a brief Korean comment explaining its purpose.
 - Write debugging logs in Korean.
 - When generating code, consider optimizations appropriate for an idle mobile game.
 - After generating code, simulate and inspect possible edge cases before finishing.
-- For turret, combat, projectile, placement, and damage popup work, consult `TURRET_DATA_STRUCTURE_PLAN.cs` first.
-- When design intent or responsibility boundaries are unclear, use `PROJECT_README.cs` as the source of truth.
+- For turret, combat, projectile, placement, and damage popup work, consult `Assets/__PROJECT__/Docs/TURRET_SYSTEM.md` first.
+- For survivor, obstacle, zombie spawn, defense-line, scene setup, and shared runtime system work, consult the relevant document under `Assets/__PROJECT__/Docs` first.
+- When design intent or responsibility boundaries are unclear, use `Assets/__PROJECT__/Docs/PROJECT_OVERVIEW.md` as the source of truth.
 - Avoid direct modification of Private Assets originals when possible; prefer project-level wrappers, profiles, adapters, or duplicated prefabs under the project folder.
 
 ## Working Procedure
@@ -37,6 +46,7 @@
 - Preserve unrelated local changes. Do not revert scene, prefab, asset, or script changes unless explicitly requested.
 - If a task touches Unity YAML assets, preserve existing `guid`, `fileID`, component order, and prefab references unless the change requires otherwise.
 - When adding serialized fields to scripts that are already attached to prefabs, update the relevant prefab or asset values when practical.
+- After completing code changes, check whether related `Assets/__PROJECT__/Docs` documents need updates and apply or report any required documentation changes.
 - Prefer small, focused changes that can be compiled and play-mode tested independently.
 
 ## Unity Code Rules
@@ -64,4 +74,5 @@
   dotnet build Assembly-CSharp.csproj --no-restore
   ```
 - Report whether the build passed, and separate new issues from pre-existing warnings.
+- Report whether related Docs changes were checked after code changes.
 - If Unity Editor-only validation is required but cannot be run from the terminal, state the remaining play-mode checks explicitly.

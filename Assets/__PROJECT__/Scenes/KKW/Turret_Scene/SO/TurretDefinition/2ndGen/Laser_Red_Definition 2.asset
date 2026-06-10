@@ -1,4 +1,4 @@
-%YAML 1.1
+﻿%YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
 --- !u!114 &11400000
 MonoBehaviour:
@@ -12,12 +12,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 28db854c229931b498137181f212c559, type: 3}
   m_Name: Laser_Red_Definition 2
   m_EditorClassIdentifier: Assembly-CSharp::TurretDefinitionSO
-  turretId: laser_red
-  displayName: Laser_Red
-  basePrefab: {fileID: 0}
-  baseStatProfile: {fileID: 0}
+  turretId: laser_red_2
+  displayName: Laser_Red_2
+  basePrefab: {fileID: 193478052415773152, guid: 5b6c5fdc31bd3594ba17f2859630a8af, type: 3}
+  baseStatProfile: {fileID: 11400000, guid: 239ec344242d0e548a1c7122716ed5f0, type: 2}
   maxLevel: 0
-  statGrowthProfile: {fileID: 0}
-  vfxProgressionProfile: {fileID: 0}
-  projectileScaleProgressionProfile: {fileID: 0}
+  statGrowthProfile: {fileID: 11400000, guid: ebf48ec86c2b6bc4fadd4f393410476b, type: 2}
+  vfxProgressionProfile: {fileID: 11400000, guid: be36fadb234f7d647a2e152b84ccbba4, type: 2}
+  projectileScaleProgressionProfile: {fileID: 11400000, guid: 3d0d7af37106f194d95e5584a80a2f80, type: 2}
   evolutionProgressionProfile: {fileID: 0}

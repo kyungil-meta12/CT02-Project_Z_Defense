@@ -1,4 +1,4 @@
-%YAML 1.1
+﻿%YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
 --- !u!114 &11400000
 MonoBehaviour:
@@ -12,12 +12,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 28db854c229931b498137181f212c559, type: 3}
   m_Name: Machinegun_Blue_Definition 1
   m_EditorClassIdentifier: Assembly-CSharp::TurretDefinitionSO
-  turretId: machinegun_blue
-  displayName: Machinegun_Blue
-  basePrefab: {fileID: 0}
-  baseStatProfile: {fileID: 0}
+  turretId: machinegun_blue_1
+  displayName: Machinegun_Blue_1
+  basePrefab: {fileID: 1712571671052764375, guid: 32223aec5cf6a934f935a3cd1b5d79cf, type: 3}
+  baseStatProfile: {fileID: 11400000, guid: 3b4d027c19a3b9e438fbe5d9cccb11f0, type: 2}
   maxLevel: 0
-  statGrowthProfile: {fileID: 0}
-  vfxProgressionProfile: {fileID: 0}
-  projectileScaleProgressionProfile: {fileID: 0}
+  statGrowthProfile: {fileID: 11400000, guid: 8ed91e69db41f944bbcb2a78a5ab4676, type: 2}
+  vfxProgressionProfile: {fileID: 11400000, guid: 8190fbb34390db54f8b7bb9b8fb1eeea, type: 2}
+  projectileScaleProgressionProfile: {fileID: 11400000, guid: b750f273c3dc3fb4ab3fce6d9fe885f7, type: 2}
   evolutionProgressionProfile: {fileID: 0}

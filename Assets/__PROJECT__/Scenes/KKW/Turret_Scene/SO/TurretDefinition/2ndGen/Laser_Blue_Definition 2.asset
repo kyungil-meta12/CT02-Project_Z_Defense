@@ -1,4 +1,4 @@
-%YAML 1.1
+﻿%YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
 --- !u!114 &11400000
 MonoBehaviour:
@@ -12,12 +12,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 28db854c229931b498137181f212c559, type: 3}
   m_Name: Laser_Blue_Definition 2
   m_EditorClassIdentifier: Assembly-CSharp::TurretDefinitionSO
-  turretId: laser_blue
-  displayName: Laser_Blue
-  basePrefab: {fileID: 0}
-  baseStatProfile: {fileID: 0}
+  turretId: laser_blue_2
+  displayName: Laser_Blue_2
+  basePrefab: {fileID: 4327976553658195071, guid: 484773cbfa529ec41a91f51c36bfd9e5, type: 3}
+  baseStatProfile: {fileID: 11400000, guid: 9432bcee7da77ee409ed33d8ed87b7d0, type: 2}
   maxLevel: 0
-  statGrowthProfile: {fileID: 0}
-  vfxProgressionProfile: {fileID: 0}
-  projectileScaleProgressionProfile: {fileID: 0}
+  statGrowthProfile: {fileID: 11400000, guid: c06fabf7f7edc97489c94588ff575dbd, type: 2}
+  vfxProgressionProfile: {fileID: 11400000, guid: 68a9c0ab1e394e441a41483f55bee13f, type: 2}
+  projectileScaleProgressionProfile: {fileID: 11400000, guid: d8336bfba01554b4d9d2a2a1c2078c11, type: 2}
   evolutionProgressionProfile: {fileID: 0}

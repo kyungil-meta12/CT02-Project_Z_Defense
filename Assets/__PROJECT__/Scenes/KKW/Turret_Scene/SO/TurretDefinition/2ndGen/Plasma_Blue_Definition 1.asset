@@ -1,4 +1,4 @@
-%YAML 1.1
+﻿%YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
 --- !u!114 &11400000
 MonoBehaviour:
@@ -12,12 +12,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 28db854c229931b498137181f212c559, type: 3}
   m_Name: Plasma_Blue_Definition 1
   m_EditorClassIdentifier: Assembly-CSharp::TurretDefinitionSO
-  turretId: plasma_blue
-  displayName: Plasma_Blue
-  basePrefab: {fileID: 0}
-  baseStatProfile: {fileID: 0}
+  turretId: plasma_blue_1
+  displayName: Plasma_Blue_1
+  basePrefab: {fileID: 2191832962838636082, guid: d88345a26a102394ca4e1415a04fcca0, type: 3}
+  baseStatProfile: {fileID: 11400000, guid: c43417a34721fb74d8c0a98e87f64976, type: 2}
   maxLevel: 0
-  statGrowthProfile: {fileID: 0}
-  vfxProgressionProfile: {fileID: 0}
-  projectileScaleProgressionProfile: {fileID: 0}
+  statGrowthProfile: {fileID: 11400000, guid: 392a3696bbc6f7042b961c07daf3c284, type: 2}
+  vfxProgressionProfile: {fileID: 11400000, guid: 972ded34dfa789148837b800dd87e482, type: 2}
+  projectileScaleProgressionProfile: {fileID: 11400000, guid: bd996abfa1d26c94da14810012ffb997, type: 2}
   evolutionProgressionProfile: {fileID: 0}

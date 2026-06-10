@@ -1,4 +1,4 @@
-%YAML 1.1
+﻿%YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
 --- !u!114 &11400000
 MonoBehaviour:
@@ -12,12 +12,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 28db854c229931b498137181f212c559, type: 3}
   m_Name: Lethal_Green_Definition 3
   m_EditorClassIdentifier: Assembly-CSharp::TurretDefinitionSO
-  turretId: lethal_green
-  displayName: Lethal_Green
-  basePrefab: {fileID: 0}
-  baseStatProfile: {fileID: 0}
+  turretId: lethal_green_3
+  displayName: Lethal_Green_3
+  basePrefab: {fileID: 2289782970443283046, guid: b5039249dfc882f449777681e7d22a7e, type: 3}
+  baseStatProfile: {fileID: 11400000, guid: bb648034f6ec5d24493dfa8d1e04af9e, type: 2}
   maxLevel: 0
-  statGrowthProfile: {fileID: 0}
-  vfxProgressionProfile: {fileID: 0}
-  projectileScaleProgressionProfile: {fileID: 0}
+  statGrowthProfile: {fileID: 11400000, guid: e31673ec758010c40a4904d4c33979c7, type: 2}
+  vfxProgressionProfile: {fileID: 11400000, guid: f4f1a415cfb900746b80091de1c44539, type: 2}
+  projectileScaleProgressionProfile: {fileID: 11400000, guid: c6ff8d62a312ea742abfac11e7562505, type: 2}
   evolutionProgressionProfile: {fileID: 0}

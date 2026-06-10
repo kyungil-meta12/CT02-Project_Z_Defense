@@ -4,6 +4,9 @@ using UnityEngine;
 
 public class Obstacle : MonoBehaviour, IDamageable
 {
+    private const float MIN_VAULT_MIRROR_DISTANCE = 0.1f;
+    private const float VAULT_CENTER_EPSILON = 0.001f;
+
     public ObstacleSpec spec;
     public HpUI hpUI;
 
@@ -13,6 +16,7 @@ public class Obstacle : MonoBehaviour, IDamageable
     public float CurrHp { get; private set; }
     public bool IsAlive { get; private set; }
     public bool IsDamaged => IsAlive && CurrHp < TotalHp;
+    public bool HasFractured => hasNotifiedFracture;
     public Survivor ReservedRepairer { get; private set; }
 
     private PreFracturedGeometry fractureGeometry;
@@ -99,6 +103,7 @@ public class Obstacle : MonoBehaviour, IDamageable
     {
         if (hasNotifiedFracture)
         {
+            //Debug.Log($"[Obstacle] {name} 이미 파괴 알림 전송됨");
             return;
         }
 
@@ -106,7 +111,12 @@ public class Obstacle : MonoBehaviour, IDamageable
 
         if (GameManager.Inst != null)
         {
+            //Debug.Log($"[Obstacle] {name} 파괴됨! GameManager에 알림 전송");
             GameManager.Inst.NotifyObstacleFractured(this);
+        }
+        else
+        {
+            Debug.LogError($"[Obstacle] {name} 파괴되었지만 GameManager가 없습니다!");
         }
     }
 
@@ -206,6 +216,25 @@ public class Obstacle : MonoBehaviour, IDamageable
         {
             hpUI.InputCurrHp(CurrHp);
         }
+    }
+
+    // 장애물 넘기 시 생존자가 착지할 반대편 위치를 계산한다
+    public Vector3 GetVaultLandingPosition(Vector3 survivorPosition, Vector3 moveDirection, float fallbackForwardOffset, float fallbackVerticalOffset)
+    {
+        float obstacleX = transform.position.x;
+        float mirroredXOffset = obstacleX - survivorPosition.x;
+
+        if (Mathf.Abs(mirroredXOffset) <= VAULT_CENTER_EPSILON)
+        {
+            float directionX = Mathf.Abs(moveDirection.x) > VAULT_CENTER_EPSILON ? moveDirection.x : transform.right.x;
+            mirroredXOffset = Mathf.Sign(directionX == 0f ? 1f : directionX) * Mathf.Max(MIN_VAULT_MIRROR_DISTANCE, fallbackForwardOffset);
+        }
+
+        Vector3 landingPosition = survivorPosition;
+        landingPosition.x = obstacleX + mirroredXOffset;
+        landingPosition.y += fallbackVerticalOffset;
+
+        return landingPosition;
     }
 
     // 장애물 실행에 필요한 참조가 준비됐는지 확인한다

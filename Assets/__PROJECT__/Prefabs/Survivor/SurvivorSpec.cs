@@ -15,7 +15,7 @@ public class SurvivorSpec : ScriptableObject
     public float repairHpPerSecondLevelWeight = 0.5f;
 
     [Header("수리 행동")]
-    public float repairRange = 1.5f;
+    public float repairRange = 2f;
     public float targetSearchInterval = 0.5f;
     public float rotationSpeed = 8f;
 

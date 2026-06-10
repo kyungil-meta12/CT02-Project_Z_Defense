@@ -424,7 +424,7 @@ public class BossZombie : PoolObject, IDamageable
 
         if (logReceivedDamage)
         {
-            Debug.Log($"[BossZombie] Damage:{appliedDamage:0.###}, HP:{CurrHp:0.###}/{TotalHp:0.###}", this);
+            //Debug.Log($"[BossZombie] Damage:{appliedDamage:0.###}, HP:{CurrHp:0.###}/{TotalHp:0.###}", this);
         }
 
         DamagePopupSpawner.SpawnDamage(transform, appliedDamage);
@@ -458,13 +458,13 @@ public class BossZombie : PoolObject, IDamageable
         IDamageable iDmg = attackTargetBV.Value.GetComponentInParent<IDamageable>();
         if (iDmg == null)
         {
-            Debug.LogError("[BossZombie] 공격 대상이 IDamageable을 상속하지 않음");
+            Debug.LogError($"[BossZombie] {attackTargetBV.Value.gameObject.name}이 IDamageable을 상속하지 않음");
             return false;
         }
 
         if (!iDmg.IsAlive)
         {
-            print("[BossZombie] 살아있지 않은 오브젝트임");
+            print($"[BossZombie] {attackTargetBV.Value.gameObject.name}이 살아있지 않은 오브젝트임");
             return false;
         }
 

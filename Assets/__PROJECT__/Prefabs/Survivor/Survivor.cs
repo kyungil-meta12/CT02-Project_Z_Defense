@@ -70,6 +70,8 @@ public class Survivor : MonoBehaviour
     private bool hasVaultParameter;
     private bool loggedMissingVaultParameter;
 
+    public int ActiveDefenseLineIndex => activeDefenseLineIndex;
+
     // 필요한 컴포넌트와 애니메이터 파라미터를 초기화한다
     private void Awake()
     {
@@ -550,6 +552,15 @@ public class Survivor : MonoBehaviour
         }
 
         direction.Normalize();
+
+        // 목적지 방향 계산 (대피 중인지 복귀 중인지 확인용)
+        Vector3 toTarget = Vector3.zero;
+        if (defenseMoveTarget != null)
+        {
+            toTarget = defenseMoveTarget.position - transform.position;
+            toTarget.y = 0f;
+        }
+
         Vector3 origin = transform.position + Vector3.up * 0.5f;
         int hitCount = Physics.SphereCastNonAlloc(
             origin,
@@ -568,14 +579,33 @@ public class Survivor : MonoBehaviour
                 continue;
             }
 
-            VaultableObstacle vaultableObstacle = hitCollider.GetComponentInParent<VaultableObstacle>();
             Obstacle obstacle = hitCollider.GetComponentInParent<Obstacle>();
-            if (vaultableObstacle == null && obstacle == null)
+            if (obstacle == null)
             {
                 continue;
             }
 
-            Vector3 landingPosition = GetVaultLandingPosition(vaultableObstacle, vaultHits[i].point, direction);
+            // 장애물 방향 계산
+            Vector3 toObstacle = obstacle.transform.position - transform.position;
+            toObstacle.y = 0f;
+
+            // 대피 중인 경우: 목적지 방향과 장애물 방향의 내적으로 판단
+            // 내적이 양수면 같은 방향(뒤쪽 장애물), 음수면 반대 방향(앞쪽 장애물)
+            if (state == SurvivorState.Retreating && toTarget.sqrMagnitude > 0.001f)
+            {
+                float dot = Vector3.Dot(toTarget.normalized, toObstacle.normalized);
+                //Debug.Log($"[Survivor] {name} 대피 중 vault 감지 - 장애물: {obstacle.name}, 내적: {dot:F2}");
+
+                // 내적이 0보다 작으면 앞쪽 장애물이므로 넘지 않음
+                if (dot < 0f)
+                {
+                    //Debug.Log($"[Survivor] {name} 대피 중 앞쪽 장애물 {obstacle.name}은 넘지 않음");
+                    continue;
+                }
+            }
+
+            Vector3 landingPosition = GetVaultLandingPosition(obstacle, direction);
+            //Debug.Log($"[Survivor] {name} vault 시작 - 상태: {state}, 장애물: {obstacle.name}");
             StartVault(landingPosition);
             return true;
         }
@@ -584,12 +614,9 @@ public class Survivor : MonoBehaviour
     }
 
     // 장애물 넘기 착지 위치를 계산한다
-    private Vector3 GetVaultLandingPosition(VaultableObstacle vaultableObstacle, Vector3 hitPoint, Vector3 direction)
+    private Vector3 GetVaultLandingPosition(Obstacle obstacle, Vector3 direction)
     {
-        Vector3 landingPosition = vaultableObstacle != null
-            ? vaultableObstacle.GetLandingPosition(transform.position, direction, vaultForwardOffset, vaultVerticalOffset)
-            : hitPoint + direction * Mathf.Max(0.1f, vaultForwardOffset);
-
+        Vector3 landingPosition = obstacle.GetVaultLandingPosition(transform.position, direction, vaultForwardOffset, vaultVerticalOffset);
         landingPosition.y = transform.position.y + vaultVerticalOffset;
 
         if (NavMesh.SamplePosition(landingPosition, out NavMeshHit navMeshHit, 1.0f, NavMesh.AllAreas))

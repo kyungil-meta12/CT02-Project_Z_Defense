@@ -210,12 +210,12 @@ public class NormalZombie : PoolObject, IDamageable
                 }
                 else
                 {
-                    print("[NormalZombie] 살아있지 않은 오브젝트임");
+                    print($"[NormalZombie] {attackTarget.gameObject.name}이 살아있지 않은 오브젝트임");
                 }
             }
             else
             {
-                Debug.LogError("[NormalZombie] 공격 대상이 IDamageable을 상속하지 않음");
+                Debug.LogError($"[NormalZombie] {attackTarget.gameObject.name}이 IDamageable을 상속하지 않음");
             }
         }
     }
@@ -240,7 +240,7 @@ public class NormalZombie : PoolObject, IDamageable
 
         if (logReceivedDamage)
         {
-            Debug.Log($"[NormalZombie] Damage:{appliedDamage:0.###}, HP:{CurrHp:0.###}/{TotalHp:0.###}", this);
+            //Debug.Log($"[NormalZombie] Damage:{appliedDamage:0.###}, HP:{CurrHp:0.###}/{TotalHp:0.###}", this);
         }
 
         DamagePopupSpawner.SpawnDamage(transform, appliedDamage);

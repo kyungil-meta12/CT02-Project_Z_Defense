@@ -274,6 +274,7 @@ public class ProjectileHitDetector : MonoBehaviour
         return true;
     }
 
+    // 환경 충돌 처리를 시도하고 충돌 VFX를 재생한다
     private bool TryHandleEnvironmentImpact(Collider hitCollider)
     {
         if (hitCollider == null || !IsEnvironmentImpactLayer(hitCollider.gameObject.layer))
@@ -281,7 +282,7 @@ public class ProjectileHitDetector : MonoBehaviour
             return false;
         }
 
-        Vector3 hitPoint = hitCollider.ClosestPoint(transform.position);
+        Vector3 hitPoint = GetClosestPointOnCollider(hitCollider, transform.position);
         Vector3 hitNormal = transform.position - hitPoint;
         if (hitNormal.sqrMagnitude <= 0.0001f)
         {
@@ -295,8 +296,30 @@ public class ProjectileHitDetector : MonoBehaviour
             return true;
         }
 
+        if (!gameObject.activeInHierarchy)
+        {
+            return true;
+        }
+
         projectileMover.HandleExternalHit(hitPoint, hitNormal.normalized);
         return true;
+    }
+
+    // 콜라이더 타입에 따라 안전하게 가장 가까운 점을 반환한다
+    private static Vector3 GetClosestPointOnCollider(Collider collider, Vector3 position)
+    {
+        if (collider is BoxCollider || collider is SphereCollider || collider is CapsuleCollider)
+        {
+            return collider.ClosestPoint(position);
+        }
+
+        MeshCollider meshCollider = collider as MeshCollider;
+        if (meshCollider != null && meshCollider.convex)
+        {
+            return collider.ClosestPoint(position);
+        }
+
+        return collider.bounds.ClosestPoint(position);
     }
 
     private void ClearMovementHits(int hitCount)

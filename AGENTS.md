@@ -8,27 +8,92 @@
 
 ## Required Project Context
 
-- Before starting project work, read the following documents and apply their rules to the current task:
+- Before starting project work, read the minimal common context and then only the task-specific Docs listed in `Assets/__PROJECT__/Docs/README.md`.
 
-1. `Assets/__PROJECT__/TeamCodingConvention.cs`
-   - Code style, Unity conventions, MemoryPool/PoolObject rules, and performance/GC guidelines.
+Always read:
 
-2. `Assets/__PROJECT__/PROJECT_README.cs`
-   - Game concept, system architecture, role boundaries, shared APIs, and current implementation status.
+1. `Assets/__PROJECT__/Docs/README.md`
+   - Docs index, fast-start reading order, and task-specific document map.
 
-3. `Assets/__PROJECT__/TURRET_DATA_STRUCTURE_PLAN.cs`
-   - Turret ScriptableObject structure, evolution/level model, placement flow, combat flow, and pooling rules.
+2. `Assets/__PROJECT__/Docs/TEAM_CODING_CONVENTION.md`
+   - Code style, Unity conventions, MemoryPool/PoolObject rules, logging, and performance/GC guidelines.
+
+3. `Assets/__PROJECT__/Docs/PROJECT_STRUCTURE.md`
+   - Project folder map, runtime areas, asset ownership, and where new work should be placed.
+
+Task-specific examples:
+
+- Survivor, obstacle, zombie spawn, and defense-line work: read `GAMEPLAY_RUNTIME_FLOW.md` and `SCENE_SETUP.md`.
+- Turret, combat, projectile, placement, and damage popup work: read `TURRET_SYSTEM.md` and `COMMON_SYSTEMS.md`.
+- Architecture or responsibility-boundary decisions: read `PROJECT_OVERVIEW.md`.
 
 ## High Priority Rules
 
-- Follow `TeamCodingConvention.cs` for all code changes.
-- When writing a new method, add a brief Korean comment explaining its purpose.
+- Follow `Assets/__PROJECT__/Docs/TEAM_CODING_CONVENTION.md` for all code changes.
+- Follow the documentation rules in the "Code Documentation Rules" section below for all classes and methods.
 - Write debugging logs in Korean.
 - When generating code, consider optimizations appropriate for an idle mobile game.
 - After generating code, simulate and inspect possible edge cases before finishing.
-- For turret, combat, projectile, placement, and damage popup work, consult `TURRET_DATA_STRUCTURE_PLAN.cs` first.
-- When design intent or responsibility boundaries are unclear, use `PROJECT_README.cs` as the source of truth.
+- For turret, combat, projectile, placement, and damage popup work, consult `Assets/__PROJECT__/Docs/TURRET_SYSTEM.md` first.
+- For survivor, obstacle, zombie spawn, defense-line, scene setup, and shared runtime system work, consult the relevant document under `Assets/__PROJECT__/Docs` first.
+- When design intent or responsibility boundaries are unclear, use `Assets/__PROJECT__/Docs/PROJECT_OVERVIEW.md` as the source of truth.
 - Avoid direct modification of Private Assets originals when possible; prefer project-level wrappers, profiles, adapters, or duplicated prefabs under the project folder.
+
+## Code Documentation Rules
+
+### Class Documentation
+- When creating a new class, add a summary comment above the class declaration explaining its purpose and responsibility.
+- Use C# XML documentation format (`/// <summary>`) for public classes.
+- Use Korean single-line comment (`//`) for internal or utility classes.
+
+### Method Documentation
+- Every method must have a Korean comment directly above its declaration explaining its purpose.
+- This rule applies to ALL methods without exception:
+  - Unity lifecycle methods (`Awake`, `Start`, `Update`, `OnEnable`, `OnDisable`, etc.)
+  - Public methods
+  - Private helper methods
+  - Static helper methods
+  - Coroutines
+  - Event handlers
+- Write the comment in a single line starting with `//` followed by a clear action-oriented statement.
+- Place the comment immediately before the method signature with no blank lines in between.
+
+Example:
+```csharp
+// 게임 시작 시 필요한 컴포넌트를 초기화한다
+private void Awake()
+{
+    // ...
+}
+
+// 포인터 위치에 해당하는 슬롯을 레이캐스트로 찾는다
+private ObstacleBuildSlot FindSlot(Vector2 screenPosition, out RaycastHit hit)
+{
+    // ...
+}
+```
+
+### Script Writing Procedure
+Before writing a new script:
+1. Read `AGENTS.md` and relevant task-specific Docs.
+2. Create a mental or written checklist of required rules for the task:
+   - Memory pool usage if object spawning is involved
+   - Hot-path optimization requirements
+   - Interface implementations needed
+   - Edge cases to consider
+3. Write class summary comment.
+4. Write each method with its Korean purpose comment BEFORE writing the method body.
+5. After completing the script, verify no method is missing its comment.
+
+### Comment Verification Checklist
+After writing or modifying a script, verify:
+- [ ] Class has summary comment
+- [ ] Every method (including Unity lifecycle, private, static) has a Korean purpose comment
+- [ ] Runtime logs are written in Korean
+- [ ] No GC allocation, `Find*`, or LINQ in hot paths
+- [ ] Edge cases considered (null, disabled, destroyed, duplicate registration, etc.)
+- [ ] Related Docs updated if needed
+- [ ] Build passes with `dotnet build Assembly-CSharp.csproj --no-restore`
 
 ## Working Procedure
 
@@ -37,6 +102,7 @@
 - Preserve unrelated local changes. Do not revert scene, prefab, asset, or script changes unless explicitly requested.
 - If a task touches Unity YAML assets, preserve existing `guid`, `fileID`, component order, and prefab references unless the change requires otherwise.
 - When adding serialized fields to scripts that are already attached to prefabs, update the relevant prefab or asset values when practical.
+- After completing code changes, check whether related `Assets/__PROJECT__/Docs` documents need updates and apply or report any required documentation changes.
 - Prefer small, focused changes that can be compiled and play-mode tested independently.
 
 ## Unity Code Rules
@@ -59,9 +125,12 @@
 
 ## Verification
 
+After script changes, complete the "Comment Verification Checklist" in the "Code Documentation Rules" section.
+
 - Run a compile check when script changes are made, preferably:
   ```powershell
   dotnet build Assembly-CSharp.csproj --no-restore
   ```
 - Report whether the build passed, and separate new issues from pre-existing warnings.
+- Report whether related Docs changes were checked after code changes.
 - If Unity Editor-only validation is required but cannot be run from the terminal, state the remaining play-mode checks explicitly.

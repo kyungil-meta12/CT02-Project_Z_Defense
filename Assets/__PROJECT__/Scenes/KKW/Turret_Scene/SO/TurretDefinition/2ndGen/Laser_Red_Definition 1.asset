@@ -1,0 +1,23 @@
+﻿%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 28db854c229931b498137181f212c559, type: 3}
+  m_Name: Laser_Red_Definition 1
+  m_EditorClassIdentifier: Assembly-CSharp::TurretDefinitionSO
+  turretId: laser_red_1
+  displayName: Laser_Red_1
+  basePrefab: {fileID: 6071025949131464778, guid: 40e131c3e8da7a143983e2535cfd498a, type: 3}
+  baseStatProfile: {fileID: 11400000, guid: 2d97c4b5633644a4fbe9eb0bf38d4365, type: 2}
+  maxLevel: 0
+  statGrowthProfile: {fileID: 11400000, guid: 4f3d3c4adad14e446bfdd1ee7250b874, type: 2}
+  vfxProgressionProfile: {fileID: 11400000, guid: fbdd193193f19fa49bc07c58e0c410e5, type: 2}
+  projectileScaleProgressionProfile: {fileID: 11400000, guid: 05b1934135577f3459c20f148fd2a373, type: 2}
+  evolutionProgressionProfile: {fileID: 0}

@@ -1,0 +1,23 @@
+﻿%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 28db854c229931b498137181f212c559, type: 3}
+  m_Name: Lethal_Red_Definition 2
+  m_EditorClassIdentifier: Assembly-CSharp::TurretDefinitionSO
+  turretId: lethal_red_2
+  displayName: Lethal_Red_2
+  basePrefab: {fileID: 7677440515555601419, guid: 2adbcc4892e2fd84f82b1a04909ad829, type: 3}
+  baseStatProfile: {fileID: 11400000, guid: 4050e8812d7bc404587e63a2290971e3, type: 2}
+  maxLevel: 0
+  statGrowthProfile: {fileID: 11400000, guid: 5f7515d14fce0e24c9af4bfbf2a3ade0, type: 2}
+  vfxProgressionProfile: {fileID: 11400000, guid: ab872fe79a85d574cb21a394ef3b5259, type: 2}
+  projectileScaleProgressionProfile: {fileID: 11400000, guid: 832f6da9a714e0b4abe54a105559cb86, type: 2}
+  evolutionProgressionProfile: {fileID: 0}

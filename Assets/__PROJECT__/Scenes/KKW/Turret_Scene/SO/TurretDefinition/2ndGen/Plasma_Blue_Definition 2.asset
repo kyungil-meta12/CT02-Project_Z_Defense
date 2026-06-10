@@ -1,0 +1,23 @@
+﻿%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 28db854c229931b498137181f212c559, type: 3}
+  m_Name: Plasma_Blue_Definition 2
+  m_EditorClassIdentifier: Assembly-CSharp::TurretDefinitionSO
+  turretId: plasma_blue_2
+  displayName: Plasma_Blue_2
+  basePrefab: {fileID: 4157471123310495977, guid: d141286c10718dc499b2807e41a25a9e, type: 3}
+  baseStatProfile: {fileID: 11400000, guid: 3c47bbdebf2781546a99f587f3ccb19c, type: 2}
+  maxLevel: 0
+  statGrowthProfile: {fileID: 11400000, guid: cb1a4dcc07c81a74398390c930163911, type: 2}
+  vfxProgressionProfile: {fileID: 11400000, guid: d96066d2a7cbba640b34bfcf949d2d05, type: 2}
+  projectileScaleProgressionProfile: {fileID: 11400000, guid: 033cf34e516308643a583d6ef4e48a35, type: 2}
+  evolutionProgressionProfile: {fileID: 0}

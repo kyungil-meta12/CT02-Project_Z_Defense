@@ -12,10 +12,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 28db854c229931b498137181f212c559, type: 3}
   m_Name: Sentry Pulse_Definition
   m_EditorClassIdentifier: Assembly-CSharp::TurretDefinitionSO
-  turretId: sentry Pulse
+  turretId: sentry pulse
   displayName: Sentry Pulse
   basePrefab: {fileID: 5304553910520936683, guid: f574943089594464fb73719d3c491d3d, type: 3}
   baseStatProfile: {fileID: 11400000, guid: 260cf9b038e0ee74dad52648c40b8168, type: 2}
+  maxLevel: 0
   statGrowthProfile: {fileID: 11400000, guid: ce52f19ac45612d4c8c778f9b464fab5, type: 2}
   vfxProgressionProfile: {fileID: 11400000, guid: dd9947c4a6d900846a5d66068386b4ee, type: 2}
   projectileScaleProgressionProfile: {fileID: 11400000, guid: 0e09e6a53921bdc46ad0c2c77ae02ec8, type: 2}

@@ -1,0 +1,23 @@
+﻿%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 28db854c229931b498137181f212c559, type: 3}
+  m_Name: Machinegun_Blue_Definition 2
+  m_EditorClassIdentifier: Assembly-CSharp::TurretDefinitionSO
+  turretId: machinegun_blue_2
+  displayName: Machinegun_Blue_2
+  basePrefab: {fileID: 2035311395039557571, guid: 1137cec9ccf5e1d4e88161471e3b826f, type: 3}
+  baseStatProfile: {fileID: 11400000, guid: 8d7ab82bb0dad914d82f9ee11c15e5e4, type: 2}
+  maxLevel: 0
+  statGrowthProfile: {fileID: 11400000, guid: fa9811be4a3d11f40afae5dd8147a4f8, type: 2}
+  vfxProgressionProfile: {fileID: 11400000, guid: 21386ac9e9221cb46b43291f55fdb49c, type: 2}
+  projectileScaleProgressionProfile: {fileID: 11400000, guid: 959c2dbf898297142944c2205799a845, type: 2}
+  evolutionProgressionProfile: {fileID: 0}

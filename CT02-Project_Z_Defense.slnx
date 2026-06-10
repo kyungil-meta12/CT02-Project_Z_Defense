@@ -16,5 +16,6 @@
   <Project Path="Lofelt.NiceVibrations.Demo.csproj" />
   <Project Path="Lofelt.NiceVibrations.Editor.csproj" />
   <Project Path="ACTk.Examples.Genuine.Editor.csproj" />
+  <Project Path="SRPMaterialConverter.csproj" />
   <Project Path="Assembly-CSharp-Editor-firstpass.csproj" />
 </Solution>

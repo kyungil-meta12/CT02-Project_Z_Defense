@@ -5,6 +5,7 @@ using Unity.VisualScripting;
 
 public class ItemIndicator : MonoBehaviour
 {
+    public UIAnimationValue animValue;
     public TextMeshProUGUI coinText;
     private Vector2 originCoinTextScale;
     private Vector2 coinTextScale;
@@ -60,9 +61,9 @@ public class ItemIndicator : MonoBehaviour
     // 소유한 개수가 변경되면 피드백 애니메이션을 재생한다.
     void Update()
     {
-        coinTextScale = Vector2.Lerp(coinTextScale, originCoinTextScale, Time.deltaTime * 10f);
-        firePartTextScale = Vector2.Lerp(firePartTextScale, originFirePartTextScale, Time.deltaTime * 10f);
-        specialPartTextScale = Vector2.Lerp(specialPartTextScale, originSpecialPartTextScale, Time.deltaTime * 10f);
+        coinTextScale = Vector2.Lerp(coinTextScale, originCoinTextScale, Time.deltaTime * animValue.ScaleReturnLerpSpeed);
+        firePartTextScale = Vector2.Lerp(firePartTextScale, originFirePartTextScale, Time.deltaTime * animValue.ScaleReturnLerpSpeed);
+        specialPartTextScale = Vector2.Lerp(specialPartTextScale, originSpecialPartTextScale, Time.deltaTime * animValue.ScaleReturnLerpSpeed);
         coinTextRt.localScale = coinTextScale;
         firePartTextRt.localScale = firePartTextScale;
         specialPartTextRt.localScale = specialPartTextScale;
@@ -72,19 +73,19 @@ public class ItemIndicator : MonoBehaviour
     public void OnCoinValueChanged(string str)
     {
         coinText.text = str;
-        coinTextScale = originCoinTextScale * 1.3f;
+        coinTextScale = originCoinTextScale * animValue.OnValueChangeScale;
     }
 
     public void OnFirePartValueChanged(string str)
     {
         firePartText.text = str;
-        firePartTextScale = originFirePartTextScale * 1.3f;
+        firePartTextScale = originFirePartTextScale * animValue.OnValueChangeScale;
         
     }
 
     public void OnSpecialPartValueChanged(string str)
     {
         specialPartText.text = str;
-        specialPartTextScale = originSpecialPartTextScale * 1.3f;
+        specialPartTextScale = originSpecialPartTextScale * animValue.OnValueChangeScale;
     }
 }

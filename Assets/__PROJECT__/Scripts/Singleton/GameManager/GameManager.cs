@@ -225,7 +225,11 @@ public class GameManager : MonoBehaviour
             return;
         }
 
-        if (defenseLines[defenseLineIndex].isBreached && IsDefenseLineFullyBuilt(defenseLineIndex))
+        bool isBreached = defenseLines[defenseLineIndex].isBreached;
+        bool isFullyBuilt = IsDefenseLineFullyBuilt(defenseLineIndex);
+        //Debug.Log($"[GameManager] 장애물 배치됨 - 방어선 {defenseLineIndex}, 붕괴 상태: {isBreached}, 완전 건설: {isFullyBuilt}");
+
+        if (isBreached && isFullyBuilt)
         {
             NotifyDefenseLineRestored(defenseLineIndex);
         }
@@ -236,13 +240,20 @@ public class GameManager : MonoBehaviour
     {
         if (obstacle == null)
         {
+            Debug.LogWarning("[GameManager] NotifyObstacleFractured: obstacle이 null입니다.");
             return;
         }
 
+        //Debug.Log($"[GameManager] {obstacle.name} 파괴 알림 받음");
+
         ObstacleBuildSlot slot = FindDefenseLineSlot(obstacle);
         int defenseLineIndex = slot != null ? slot.DefenseLineIndex : FindDefenseLineIndex(obstacle);
+
+        //Debug.Log($"[GameManager] 파괴된 장애물의 방어선 인덱스: {defenseLineIndex}, 슬롯 발견: {slot != null}");
+
         if (defenseLineIndex < 0)
         {
+            Debug.LogWarning($"[GameManager] {obstacle.name}의 방어선을 찾을 수 없습니다!");
             return;
         }
 
@@ -254,9 +265,11 @@ public class GameManager : MonoBehaviour
         DefenseLineEntry defenseLine = defenseLines[defenseLineIndex];
         if (defenseLine.isBreached)
         {
+            //Debug.Log($"[GameManager] 방어선 {defenseLineIndex}는 이미 붕괴 상태입니다.");
             return;
         }
 
+        //Debug.Log($"[GameManager] 방어선 {defenseLineIndex} 붕괴! 생존자 대피 명령 전달");
         defenseLine.isBreached = true;
         CommandSurvivorsToRetreat(defenseLineIndex, defenseLine.retreatPoint);
     }
@@ -279,14 +292,17 @@ public class GameManager : MonoBehaviour
 
         if (!defenseLine.isBreached)
         {
+            //Debug.Log($"[GameManager] 방어선 {defenseLineIndex}는 이미 복구 상태입니다.");
             return;
         }
 
         if (!IsDefenseLineFullyBuilt(defenseLineIndex))
         {
+            //Debug.Log($"[GameManager] 방어선 {defenseLineIndex}가 완전히 건설되지 않아 복구할 수 없습니다.");
             return;
         }
 
+        //Debug.Log($"[GameManager] 방어선 {defenseLineIndex} 복구됨! 생존자 복귀 명령 전달");
         defenseLine.isBreached = false;
         CommandSurvivorsToRestoredPoint(defenseLineIndex, defenseLine.restoredPoint);
     }
@@ -368,12 +384,19 @@ public class GameManager : MonoBehaviour
                 continue;
             }
 
-            if (slot.CurrentObstacle != null)
+            Obstacle currentObs = slot.CurrentObstacle;
+            if (currentObs != null)
             {
                 occupiedSlotCount++;
+                //Debug.Log($"[GameManager] 방어선 {defenseLineIndex} 슬롯 {slot.SlotIndex}: {currentObs.name} (Enabled: {currentObs.enabled}, Alive: {currentObs.IsAlive})");
+            }
+            else
+            {
+                //Debug.Log($"[GameManager] 방어선 {defenseLineIndex} 슬롯 {slot.SlotIndex}: 비어있음");
             }
         }
 
+        //Debug.Log($"[GameManager] 방어선 {defenseLineIndex} 완성 체크 - 점유: {occupiedSlotCount}/{expectedSlotCount}");
         return occupiedSlotCount >= expectedSlotCount;
     }
 
@@ -484,6 +507,8 @@ public class GameManager : MonoBehaviour
             return null;
         }
 
+        Transform obstacleTransform = obstacle.transform;
+
         for (int i = 0; i < defenseLines.Count; i++)
         {
             DefenseLineEntry defenseLine = defenseLines[i];
@@ -501,8 +526,11 @@ public class GameManager : MonoBehaviour
                     continue;
                 }
 
-                if (slot.CurrentObstacle == obstacle)
+                // CurrentObstacle 프로퍼티는 파괴된 장애물을 null로 반환할 수 있으므로
+                // BuildPoint 하위에 있는지 Transform으로 직접 확인한다
+                if (slot.BuildPoint != null && obstacleTransform.IsChildOf(slot.BuildPoint))
                 {
+                    //Debug.Log($"[GameManager] {obstacle.name}의 슬롯을 Transform 계층으로 찾음 - 방어선 {i}, 슬롯 {slot.SlotIndex}");
                     return slot;
                 }
             }
@@ -556,6 +584,9 @@ public class GameManager : MonoBehaviour
             return;
         }
 
+        //Debug.Log($"[GameManager] 등록된 생존자 수: {survivors.Count}");
+
+        int retreatedCount = 0;
         for (int i = survivors.Count - 1; i >= 0; i--)
         {
             Survivor survivor = survivors[i];
@@ -565,8 +596,12 @@ public class GameManager : MonoBehaviour
                 continue;
             }
 
+            //Debug.Log($"[GameManager] {survivor.name}에게 방어선 {defenseLineIndex} 대피 명령 전달");
             survivor.StartDefenseLineRetreat(defenseLineIndex, retreatPoint);
+            retreatedCount++;
         }
+
+        //Debug.Log($"[GameManager] {retreatedCount}명의 생존자에게 방어선 {defenseLineIndex} 대피 명령 전달 완료");
     }
 
     // 등록된 생존자에게 방어선 복귀 명령을 전달한다
@@ -578,6 +613,7 @@ public class GameManager : MonoBehaviour
             return;
         }
 
+        int survivorCount = 0;
         for (int i = survivors.Count - 1; i >= 0; i--)
         {
             Survivor survivor = survivors[i];
@@ -588,6 +624,9 @@ public class GameManager : MonoBehaviour
             }
 
             survivor.StartDefenseLineReturn(defenseLineIndex, restoredPoint);
+            survivorCount++;
         }
+
+        //Debug.Log($"[GameManager] {survivorCount}명의 생존자에게 방어선 {defenseLineIndex} 복귀 명령 전달");
     }
 }

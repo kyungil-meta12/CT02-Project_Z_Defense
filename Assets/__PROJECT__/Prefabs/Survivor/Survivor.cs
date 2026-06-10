@@ -552,6 +552,15 @@ public class Survivor : MonoBehaviour
         }
 
         direction.Normalize();
+
+        // 목적지 방향 계산 (대피 중인지 복귀 중인지 확인용)
+        Vector3 toTarget = Vector3.zero;
+        if (defenseMoveTarget != null)
+        {
+            toTarget = defenseMoveTarget.position - transform.position;
+            toTarget.y = 0f;
+        }
+
         Vector3 origin = transform.position + Vector3.up * 0.5f;
         int hitCount = Physics.SphereCastNonAlloc(
             origin,
@@ -576,7 +585,27 @@ public class Survivor : MonoBehaviour
                 continue;
             }
 
+            // 장애물 방향 계산
+            Vector3 toObstacle = obstacle.transform.position - transform.position;
+            toObstacle.y = 0f;
+
+            // 대피 중인 경우: 목적지 방향과 장애물 방향의 내적으로 판단
+            // 내적이 양수면 같은 방향(뒤쪽 장애물), 음수면 반대 방향(앞쪽 장애물)
+            if (state == SurvivorState.Retreating && toTarget.sqrMagnitude > 0.001f)
+            {
+                float dot = Vector3.Dot(toTarget.normalized, toObstacle.normalized);
+                //Debug.Log($"[Survivor] {name} 대피 중 vault 감지 - 장애물: {obstacle.name}, 내적: {dot:F2}");
+
+                // 내적이 0보다 작으면 앞쪽 장애물이므로 넘지 않음
+                if (dot < 0f)
+                {
+                    //Debug.Log($"[Survivor] {name} 대피 중 앞쪽 장애물 {obstacle.name}은 넘지 않음");
+                    continue;
+                }
+            }
+
             Vector3 landingPosition = GetVaultLandingPosition(obstacle, direction);
+            //Debug.Log($"[Survivor] {name} vault 시작 - 상태: {state}, 장애물: {obstacle.name}");
             StartVault(landingPosition);
             return true;
         }

@@ -103,6 +103,7 @@ public class Obstacle : MonoBehaviour, IDamageable
     {
         if (hasNotifiedFracture)
         {
+            //Debug.Log($"[Obstacle] {name} 이미 파괴 알림 전송됨");
             return;
         }
 
@@ -110,7 +111,12 @@ public class Obstacle : MonoBehaviour, IDamageable
 
         if (GameManager.Inst != null)
         {
+            //Debug.Log($"[Obstacle] {name} 파괴됨! GameManager에 알림 전송");
             GameManager.Inst.NotifyObstacleFractured(this);
+        }
+        else
+        {
+            Debug.LogError($"[Obstacle] {name} 파괴되었지만 GameManager가 없습니다!");
         }
     }
 

@@ -6,8 +6,9 @@
  * - The current runtime test flow starts from Sentinel-01.
  * - Turrets use tier level for their own stat/VFX/projectile scale progression.
  * - Total level is tracked separately for display and future reward/economy systems.
- * - Evolution, final turret level caps, projectile scale progression, and runtime evolution UI are currently implemented.
+ * - Evolution, projectile scale progression, and runtime evolution UI are currently implemented.
  * - Projectile damage delivery, zombie death-state filtering, and world-space damage popups are currently connected.
+ * - Second generation turret Definition assets are now prepared and linked to their stat, growth, VFX progression, projectile scale, and base prefab assets.
  *
  * Current Evolution Tree
  *
@@ -22,28 +23,64 @@
  * 2. Sentry Pulse
  * - First evolution branch from Sentinel-01.
  * - Tier level starts again from 1 after evolution.
- * - At tier level 200, it evolves into:
+ * - Current asset required level is 100.
+ * - It evolves into:
  *   Sentry Pulse -> Pulse Repeater
  *
  * 3. Vector MG
  * - First evolution branch from Sentinel-01.
  * - Tier level starts again from 1 after evolution.
- * - At tier level 200, it evolves into:
+ * - Current asset required level is 100.
+ * - It evolves into:
  *   Vector MG -> Vulcan Node
  *
  * 4. Pulse Repeater
- * - Final turret on the Sentry Pulse branch.
+ * - Former first-generation branch end on the Sentry Pulse branch.
  * - Formerly named Mass Driver.
  * - Fast firing final turret.
- * - Max tier level: 300.
- * - No further evolution currently.
- * - Future plan: max-level final turrets may be sold for special currency.
+ * - Current Definition maxLevel is 0.
+ * - A Pulse Repeater evolution progression asset exists for second-generation entry, but the Definition is not connected to it yet.
+ * - Planned second-generation choices:
+ *   Pulse Repeater -> Machinegun_Blue_1
+ *   Pulse Repeater -> Machinegun_Red_1
+ *   Pulse Repeater -> Laser_Blue_1
+ *   Pulse Repeater -> Laser_Red_1
  *
  * 5. Vulcan Node
- * - Final turret on the Vector MG branch.
- * - No further evolution currently.
- * - Max tier level: 300.
- * - Future plan: max-level final turrets may be sold for special currency.
+ * - Former first-generation branch end on the Vector MG branch.
+ * - Current Definition maxLevel is 0.
+ * - A Vulcan Node evolution progression asset exists for second-generation entry, but the Definition is not connected to it yet.
+ * - Planned second-generation choices:
+ *   Vulcan Node -> Lethal_Green_1
+ *   Vulcan Node -> Lethal_Red_1
+ *   Vulcan Node -> Plasma_Blue_1
+ *   Vulcan Node -> Plasma_Yellow_1
+ *
+ * 6. Second Generation Turrets
+ * - Every second-generation turret currently has three Definition assets:
+ *   _1, _2, _3.
+ * - Current prepared families:
+ *   Machinegun_Blue
+ *   Machinegun_Red
+ *   Laser_Blue
+ *   Laser_Red
+ *   Lethal_Green
+ *   Lethal_Red
+ *   Plasma_Blue
+ *   Plasma_Yellow
+ * - Each second-generation Definition has basePrefab, baseStatProfile, statGrowthProfile, vfxProgressionProfile, and projectileScaleProgressionProfile assigned.
+ * - Second-generation evolutionProgressionProfile references are not connected to Definitions yet.
+ * - Laser and Machinegun internal evolution assets exist under TurretEvolutionProgressionSO/2ndGen.
+ * - Lethal and Plasma internal evolution assets currently exist under TurretEvolutionProgressionSO root and need to be moved or treated consistently.
+ * - Lethal and Plasma internal evolution assets currently need targetDefinition/displayName cleanup before being connected.
+ *
+ * 7. Third Generation Turrets
+ * - Third generation is planned but not implemented.
+ * - Current visual plan candidates:
+ *   Poison Turret
+ *   CuteStarTurret
+ *   ElectroTurret
+ *   FlameThrower/LameThrower name still needs confirmation.
  *
  * Runtime Level Model
  *
@@ -64,9 +101,11 @@
  * Max Tier Level
  * - Stored in TurretDefinitionSO.maxLevel.
  * - 0 means unlimited.
- * - A positive value clamps level-up at that tier level.
- * - Pulse Repeater currently uses maxLevel = 300.
- * - TurretEvolutionRuntimeUI shows "Max Level" when this cap is reached and no evolution is available.
+ * - A positive value clamps level-up at that tier level and should be used only for a true final turret that has no further evolution.
+ * - Evolution stop points should be controlled through TurretEvolutionProgressionSO.requiredLevel, not TurretDefinitionSO.maxLevel.
+ * - If a turret has an evolutionProgressionProfile, the next required evolution level acts as a temporary level cap until the player chooses an evolution.
+ * - Example: Sentinel-01 has maxLevel 0, but stops at level 100 because Sentinel-01_Evolution Progression SO has requiredLevel 100.
+ * - Pulse Repeater and Vulcan Node currently use maxLevel 0 so they can later connect to second-generation evolution choices.
  *
  * Current Implemented Structure
  *
@@ -92,6 +131,8 @@
  *   vector_mg
  *   pulse_repeater
  *   vulcan_node
+ *   machinegun_blue_1
+ *   plasma_yellow_3
  * - Do not use display names as ids.
  *
  * 2. TurretStatProfileSO
@@ -131,6 +172,8 @@
  * - If the current tier level reaches an available evolution level, normal level-up is blocked until evolution is chosen.
  * - If no evolution is available and TurretDefinitionSO.maxLevel is 0, level-up can continue.
  * - If no evolution is available and maxLevel is reached, level-up is blocked.
+ * - The displayName field should usually match the target Definition displayName because it is used as the evolution button label.
+ * - Leave displayName different only when intentionally showing a branch name or special route name.
  *
  * TurretEvolutionEntry fields:
  * public int requiredLevel;
@@ -190,6 +233,17 @@
  * 9. ProjectileDamageDealer refreshes damage, pierce count, logging state, legacy DamageManager/Projectile damage values, and hit detector state on spawn.
  * 10. ProjectileHitDetector applies damage to tracked targets, trigger/collision hits, or movement raycast hits.
  * 11. DamagePopupSpawner displays damage values when IDamageable implementations report damage.
+ *
+ * Second Generation VFX Mapping
+ *
+ * - Laser_Blue_1~3 -> VFX_BlueLaser
+ * - Laser_Red_1~3 -> VFX_RedLaser
+ * - Machinegun_Blue_1~3 -> VFX_Blue Fire
+ * - Machinegun_Red_1~3 -> VFX_Black Fire
+ * - Lethal_Red_1~3 -> VFX_Orange Explosion
+ * - Lethal_Green_1~3 -> VFX_Green Explosion
+ * - Plasma_Blue_1~3 -> VFX_Nova Violet
+ * - Plasma_Yellow_1~3 -> VFX_Nova Orange
  *
  * Turret Placement Runtime Flow
  *
@@ -284,7 +338,8 @@
  *   Damage 30, Range 80, Fire Interval 0.5, Projectile Speed 40.
  * - Tier level 300:
  *   Damage 50, Range 100, Fire Interval 0.1, Projectile Speed 50.
- * - Max tier level: 300.
+ * - Current maxLevel: 0.
+ * - Second-generation entry Evolution SO exists but is not connected to the Definition yet.
  *
  * Vector MG
  * - Tier level 1:
@@ -298,7 +353,19 @@
  *   Damage 100, Range 100, Fire Interval 1.2, Projectile Speed 35.
  * - Tier level 300:
  *   Damage 150, Range 130, Fire Interval 0.8, Projectile Speed 50.
- * - Max tier level: 300.
+ * - Current maxLevel: 0.
+ * - Second-generation entry Evolution SO exists but is not connected to the Definition yet.
+ *
+ * Second Generation Data Status
+ *
+ * - 24 second-generation Definition assets exist.
+ * - Definition base prefab/stat/growth/VFX/scale references are assigned.
+ * - Current stat and growth values are placeholder-like and need balancing later.
+ * - Evolution SO assets for second-generation internal progression exist, but not all are correct or connected.
+ * - Known cleanup required:
+ *   Lethal_Green1/2, Lethal_Red1/2, Plasma_Blue1/2, and Plasma_Yellow1/2 Evolution SO assets currently point to Machinegun_Red_3 and must be corrected before connection.
+ *   Second-generation Evolution SO naming should be normalized to include underscores, for example Machinegun_Red_1_Evolution Progression SO.
+ *   displayName values should be normalized to target Definition displayName format, for example Machinegun_Red_2.
  *
  * Branch Setup Checklist
  *
@@ -311,7 +378,8 @@
  * - vfxProgressionProfile is assigned.
  * - projectileScaleProgressionProfile is assigned.
  * - evolutionProgressionProfile is assigned only if the turret can evolve.
- * - maxLevel is 0 unless the turret is intended to stop leveling.
+ * - maxLevel is 0 unless the turret is intended to stop leveling forever.
+ * - If the turret should stop only to wait for an evolution choice, use EvolutionProgressionSO.requiredLevel instead of maxLevel.
  *
  * For every evolution entry:
  * - requiredLevel uses tier level.
@@ -319,6 +387,8 @@
  * - displayName matches the target display name unless intentionally overridden.
  * - evolutionIcon is assigned for runtime UI buttons.
  * - evolutionEffectPrefab is assigned if an effect should play.
+ * - Do not point targetDefinition back to the same Definition unless intentionally testing a reset loop.
+ * - After creating an EvolutionProgressionSO, remember to assign it to the source turret Definition.
  *
  * Turret Placement Setup Checklist
  *

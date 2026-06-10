@@ -59,6 +59,8 @@
  * [준영] 게임 코어 / 시스템 담당
  * - 웨이브 진행, 적 스폰 규칙, 타겟팅 정책, 데미지 규칙, 체력/사망/보상 흐름을 담당한다.
  * - 터렛 스탯, 업그레이드 규칙, ScriptableObject 데이터 구조, 전체 게임 상태를 담당한다.
+ * - 터렛 진화 요구 레벨은 TurretEvolutionProgressionSO.requiredLevel에서 관리하고,
+ *   TurretDefinitionSO.maxLevel은 더 이상 진화하지 않는 최종 터렛의 하드 캡에만 사용한다.
  * - 예상 모듈:
  *   WaveManager, EnemySpawner, TargetingSystem, DamageSystem, Health,
  *   TowerStatData, EnemyStatData, UpgradeData, GameStateManager.
@@ -69,6 +71,7 @@
  * - 터렛 배치 연출, 조준/발사 연출, 발사체 VFX, 머즐 플래시, 히트 이펙트,
  *   발사 사운드, 반동/총열 애니메이션, 터렛 연출 테스트 씬을 담당한다.
  * - 터렛 연출에 필요한 VFX 데이터 구성을 담당한다.
+ * - 터렛별 TurretVFXProfileSO, TurretVFXProgressionSO, projectile prefab, muzzle/fire effect 연결을 담당한다.
  * - 예상 모듈:
  *   TurretVFXProfile, TurretFireVFXController, ProjectileVFXAdapter,
  *   MuzzleFlashController, HitEffectController, turret range/debug gizmos,
@@ -143,7 +146,22 @@
  * ------------------------------------------------------------------------------------------
  *
  * - Sentinel-01에서 Sentry Pulse 또는 Vector MG로 분기하는 진화 테스트 흐름이 구현되어 있다.
- * - Sentry Pulse는 Pulse Repeater, Vector MG는 Vulcan Node로 이어지는 최종 진화 분기를 가진다.
+ * - Sentry Pulse는 Pulse Repeater, Vector MG는 Vulcan Node로 이어지는 1세대 진화 분기를 가진다.
+ * - Pulse Repeater와 Vulcan Node는 2세대 진입 터렛으로 전환될 예정이며, 현재 maxLevel은 0으로 유지한다.
+ * - Pulse Repeater와 Vulcan Node의 2세대 진입 EvolutionProgressionSO는 존재하지만 아직 Definition에는 연결하지 않았다.
+ * - 2세대 터렛 Definition 24개가 생성되어 있고 base prefab, stat, stat growth, VFX progression, projectile scale progression 참조가 연결되어 있다.
+ * - 2세대 터렛 라인업:
+ *   Machinegun_Blue_1~3, Machinegun_Red_1~3,
+ *   Laser_Blue_1~3, Laser_Red_1~3,
+ *   Lethal_Green_1~3, Lethal_Red_1~3,
+ *   Plasma_Blue_1~3, Plasma_Yellow_1~3.
+ * - 2세대 VFX 매핑:
+ *   Laser_Blue -> Blue Laser, Laser_Red -> Red Laser,
+ *   Machinegun_Blue -> Blue Fire, Machinegun_Red -> Black Fire,
+ *   Lethal_Red -> Orange Explosion, Lethal_Green -> Green Explosion,
+ *   Plasma_Blue -> Nova Violet, Plasma_Yellow -> Nova Orange.
+ * - 2세대 내부 진화 SO는 일부 생성되어 있으나 Definition에는 아직 연결하지 않았다.
+ * - Lethal/Plasma 내부 진화 SO 중 일부는 Machinegun_Red_3을 잘못 참조하고 있어 다음 작업에서 수정해야 한다.
  * - TurretEvolutionRuntimeUI는 런타임에서 레벨업, 진화 선택, Max Level 표시를 담당한다.
  * - 터렛 스탯, VFX 프로필, 발사체 크기, 진화 규칙은 ScriptableObject 기반 데이터로 분리되어 있다.
  * - 메인 씬에는 터렛 진화 UI와 좀비 타겟팅/피격 흐름이 연결되어 있다.

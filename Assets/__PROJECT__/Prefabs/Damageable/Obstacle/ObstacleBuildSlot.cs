@@ -139,7 +139,17 @@ public class ObstacleBuildSlot : MonoBehaviour
     // 지정 빌드 항목을 현재 슬롯에 설치할 수 있는지 확인한다
     public bool CanPlaceEntry(ObstacleBuildEntrySO buildEntry)
     {
-        return buildEntry != null && buildEntry.ObstaclePrefab != null && buildEntry.SlotType == slotType && CanPlace;
+        if (buildEntry == null || buildEntry.ObstaclePrefab == null || buildEntry.SlotType != slotType || !CanPlace)
+        {
+            return false;
+        }
+
+        if (ItemManager.Inst == null)
+        {
+            return false;
+        }
+
+        return ItemManager.Inst.CanUseCoin(buildEntry.Cost);
     }
 
     // 빌드 항목의 프리팹을 슬롯 위치에 생성하고 점유 상태로 등록한다
@@ -149,6 +159,23 @@ public class ObstacleBuildSlot : MonoBehaviour
 
         if (!CanPlaceEntry(buildEntry))
         {
+            if (buildEntry != null && ItemManager.Inst != null)
+            {
+                Obstacle currentObs = CurrentObstacle;
+                //Debug.Log($"[ObstacleBuildSlot] 배치 불가 - 필요 코인: {buildEntry.Cost}, 보유 코인: {ItemManager.Inst.CoinCount}, 슬롯 타입: {slotType}, 빌드 타입: {buildEntry.SlotType}, CanPlace: {CanPlace}, BuildPoint null: {buildPoint == null}, CurrentObstacle: {(currentObs != null ? currentObs.name : "null")}, CurrentObstacle IsAlive: {(currentObs != null ? currentObs.IsAlive.ToString() : "N/A")}");
+            }
+            return false;
+        }
+
+        if (ItemManager.Inst == null)
+        {
+            Debug.LogError("[ObstacleBuildSlot] ItemManager가 없어 장애물을 배치할 수 없습니다.", this);
+            return false;
+        }
+
+        if (!ItemManager.Inst.TryUseCoin(buildEntry.Cost))
+        {
+            //Debug.Log($"[ObstacleBuildSlot] 코인 부족 - 필요: {buildEntry.Cost}, 보유: {ItemManager.Inst.CoinCount}", this);
             return false;
         }
 
@@ -161,11 +188,16 @@ public class ObstacleBuildSlot : MonoBehaviour
         {
             Debug.LogError("[ObstacleBuildSlot] 설치한 프리팹에 Obstacle 컴포넌트가 없습니다.", this);
             Destroy(obstacleObject);
+
+            // 코인을 환불한다
+            ItemManager.Inst.AddCoinCount(buildEntry.Cost);
             return false;
         }
 
         currentObstacle = placedObstacle;
         currentObstacleObject = obstacleObject;
+
+        //Debug.Log($"[ObstacleBuildSlot] 배치 성공 - {buildEntry.DisplayName}, 남은 코인: {ItemManager.Inst.CoinCount}");
 
         if (GameManager.Inst != null)
         {
@@ -258,10 +290,10 @@ public class ObstacleBuildSlot : MonoBehaviour
         currentObstacleObject = null;
     }
 
-    // 파편화가 진행된 장애물은 슬롯 점유 대상으로 취급하지 않는다
+    // 파편화가 진행된 장애물과 비활성화된 프리뷰는 슬롯 점유 대상으로 취급하지 않는다
     private static bool IsValidSlotObstacle(Obstacle obstacle)
     {
-        return obstacle != null && !obstacle.HasFractured;
+        return obstacle != null && obstacle.enabled && !obstacle.HasFractured;
     }
 
     // 슬롯 하위의 BuildPoint와 PlacementHitArea 참조를 자동으로 찾는다

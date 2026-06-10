@@ -75,7 +75,7 @@ public class ProjectileDamageDealer : MonoBehaviour
 
         if (logDamage)
         {
-            Debug.Log($"[ProjectileDamageDealer] 데미지:{damage:0.###}, 대상 체력:{damageable.CurrHp:0.###}/{damageable.TotalHp:0.###}", this);
+            //Debug.Log($"[ProjectileDamageDealer] 데미지:{damage:0.###}, 대상 체력:{damageable.CurrHp:0.###}/{damageable.TotalHp:0.###}", this);
         }
 
         return true;

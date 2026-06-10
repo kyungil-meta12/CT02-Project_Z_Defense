@@ -30,7 +30,7 @@ Task-specific examples:
 ## High Priority Rules
 
 - Follow `Assets/__PROJECT__/Docs/TEAM_CODING_CONVENTION.md` for all code changes.
-- When writing a new method, add a brief Korean comment explaining its purpose.
+- Follow the documentation rules in the "Code Documentation Rules" section below for all classes and methods.
 - Write debugging logs in Korean.
 - When generating code, consider optimizations appropriate for an idle mobile game.
 - After generating code, simulate and inspect possible edge cases before finishing.
@@ -38,6 +38,62 @@ Task-specific examples:
 - For survivor, obstacle, zombie spawn, defense-line, scene setup, and shared runtime system work, consult the relevant document under `Assets/__PROJECT__/Docs` first.
 - When design intent or responsibility boundaries are unclear, use `Assets/__PROJECT__/Docs/PROJECT_OVERVIEW.md` as the source of truth.
 - Avoid direct modification of Private Assets originals when possible; prefer project-level wrappers, profiles, adapters, or duplicated prefabs under the project folder.
+
+## Code Documentation Rules
+
+### Class Documentation
+- When creating a new class, add a summary comment above the class declaration explaining its purpose and responsibility.
+- Use C# XML documentation format (`/// <summary>`) for public classes.
+- Use Korean single-line comment (`//`) for internal or utility classes.
+
+### Method Documentation
+- Every method must have a Korean comment directly above its declaration explaining its purpose.
+- This rule applies to ALL methods without exception:
+  - Unity lifecycle methods (`Awake`, `Start`, `Update`, `OnEnable`, `OnDisable`, etc.)
+  - Public methods
+  - Private helper methods
+  - Static helper methods
+  - Coroutines
+  - Event handlers
+- Write the comment in a single line starting with `//` followed by a clear action-oriented statement.
+- Place the comment immediately before the method signature with no blank lines in between.
+
+Example:
+```csharp
+// 게임 시작 시 필요한 컴포넌트를 초기화한다
+private void Awake()
+{
+    // ...
+}
+
+// 포인터 위치에 해당하는 슬롯을 레이캐스트로 찾는다
+private ObstacleBuildSlot FindSlot(Vector2 screenPosition, out RaycastHit hit)
+{
+    // ...
+}
+```
+
+### Script Writing Procedure
+Before writing a new script:
+1. Read `AGENTS.md` and relevant task-specific Docs.
+2. Create a mental or written checklist of required rules for the task:
+   - Memory pool usage if object spawning is involved
+   - Hot-path optimization requirements
+   - Interface implementations needed
+   - Edge cases to consider
+3. Write class summary comment.
+4. Write each method with its Korean purpose comment BEFORE writing the method body.
+5. After completing the script, verify no method is missing its comment.
+
+### Comment Verification Checklist
+After writing or modifying a script, verify:
+- [ ] Class has summary comment
+- [ ] Every method (including Unity lifecycle, private, static) has a Korean purpose comment
+- [ ] Runtime logs are written in Korean
+- [ ] No GC allocation, `Find*`, or LINQ in hot paths
+- [ ] Edge cases considered (null, disabled, destroyed, duplicate registration, etc.)
+- [ ] Related Docs updated if needed
+- [ ] Build passes with `dotnet build Assembly-CSharp.csproj --no-restore`
 
 ## Working Procedure
 
@@ -68,6 +124,8 @@ Task-specific examples:
 - For fracture, VFX, projectile, and popup work, verify prefab references, read/write mesh requirements, pooling fallback, and runtime allocation spikes.
 
 ## Verification
+
+After script changes, complete the "Comment Verification Checklist" in the "Code Documentation Rules" section.
 
 - Run a compile check when script changes are made, preferably:
   ```powershell

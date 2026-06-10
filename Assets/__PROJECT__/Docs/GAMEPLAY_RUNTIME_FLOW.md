@@ -62,10 +62,12 @@ Important policy:
 2. `ObstaclePlacementSlotUI` starts placement by drag or click.
 3. `ObstaclePlacementController` raycasts against `ObstacleBuildSlot` hit areas.
 4. Preview snaps to the slot `BuildPoint`.
-5. Placement is valid only when the slot is empty and the entry type matches the slot type.
-6. `ObstacleBuildSlot.TryPlace` instantiates the obstacle under `BuildPoint`.
-7. The placed obstacle is assigned to the slot and `GameManager.NotifyObstaclePlaced` is called.
-8. If the line was breached and all required slots are occupied again, `GameManager.NotifyDefenseLineRestored` restores that defense line.
+5. Placement is valid only when the slot is empty, the entry type matches the slot type, and `ItemManager` has enough coins to cover the entry's `Cost`.
+6. `ObstacleBuildSlot.CanPlaceEntry` checks slot availability, type match, and coin availability through `ItemManager.CanUseCoin`.
+7. `ObstacleBuildSlot.TryPlace` deducts the cost using `ItemManager.TryUseCoin` before instantiating the obstacle under `BuildPoint`.
+8. If the obstacle prefab is invalid and placement fails, the deducted coins are refunded.
+9. The placed obstacle is assigned to the slot and `GameManager.NotifyObstaclePlaced` is called.
+10. If the line was breached and all required slots are occupied again, `GameManager.NotifyDefenseLineRestored` restores that defense line.
 
 `ObstaclePlacementUI` remains available as an optional runtime rebuild helper, but manual scene buttons are the default setup.
 
@@ -74,6 +76,12 @@ Slot type policy:
 - 1st and 2nd defense lines use `Obstacle` slots.
 - 3rd defense line uses one `Gate` slot.
 - Obstacle entries cannot be installed into gate slots, and gate entries cannot be installed into obstacle slots.
+
+Cost policy:
+
+- Each `ObstacleBuildEntrySO` defines a `Cost` value.
+- `ItemManager.TryUseCoin` deducts coins only if sufficient coins are available.
+- If placement fails after coin deduction (invalid prefab), coins are refunded via `ItemManager.AddCoinCount`.
 
 ## Survivor Flow
 

@@ -76,7 +76,7 @@ public class DamagePopupSpawner : MonoBehaviour
 
         GameObject memoryPoolObject = new GameObject("MemoryPool");
         memoryPoolObject.transform.SetParent(GetOrCreateRuntimeSystemsContainer());
-        Debug.LogWarning("[DamagePopupSpawner] MemoryPool was missing. A runtime MemoryPool was created automatically.");
+        //Debug.LogWarning("[DamagePopupSpawner] MemoryPool was missing. A runtime MemoryPool was created automatically.");
         return memoryPoolObject.AddComponent<MemoryPool>();
     }
 

@@ -95,12 +95,13 @@ public class TurretDefinitionRuntimeController : MonoBehaviour
         RefreshReferences();
     }
 
+    // 인스펙터 값 변경 시 레벨을 정규화하고 자동 적용 설정을 확인한다
     private void OnValidate()
     {
         level = Mathf.Max(1, level);
         totalLevel = Mathf.Max(1, totalLevel, level);
 
-        if (Application.isPlaying && applyOnInspectorChange)
+        if (Application.isPlaying && applyOnInspectorChange && turretDefinition != null)
         {
             Apply();
         }
@@ -142,11 +143,11 @@ public class TurretDefinitionRuntimeController : MonoBehaviour
 
         if (logRuntimeStat)
         {
-            Debug.Log(
-                $"[TurretDefinitionRuntimeController] {turretDefinition.displayName} Tier Lv.{level} Total Lv.{totalLevel} " +
-                $"Damage:{runtimeStat.damage:0.###}, Range:{runtimeStat.range:0.###}, FireInterval:{runtimeStat.fireInterval:0.###}, " +
-                $"ProjectileSpeed:{runtimeStat.projectileSpeed:0.###}, ProjectileCount:{runtimeStat.projectileCount}, PierceCount:{runtimeStat.pierceCount}",
-                this);
+            //Debug.Log(
+            //    $"[TurretDefinitionRuntimeController] {turretDefinition.displayName} Tier Lv.{level} Total Lv.{totalLevel} " +
+            //    $"Damage:{runtimeStat.damage:0.###}, Range:{runtimeStat.range:0.###}, FireInterval:{runtimeStat.fireInterval:0.###}, " +
+            //    $"ProjectileSpeed:{runtimeStat.projectileSpeed:0.###}, ProjectileCount:{runtimeStat.projectileCount}, PierceCount:{runtimeStat.pierceCount}",
+            //    this);
         }
     }
 

@@ -26346,7 +26346,7 @@ Transform:
 --- !u!1 &736357148
 GameObject:
   m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 1242232213132576, guid: 93623804a1860b2409814746410da6bd, type: 3}
+  m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
@@ -51284,7 +51284,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5eda28d0f19457a47a7b3aff7ab1ac6a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ItemIndicator
-  animValue: {fileID: 0}
+  animValue: {fileID: 11400000, guid: c3ba4b848c875a546a08bb4d8caa5102, type: 2}
   coinText: {fileID: 348751474}
   firePartText: {fileID: 314262803}
   specialPartText: {fileID: 725391191}

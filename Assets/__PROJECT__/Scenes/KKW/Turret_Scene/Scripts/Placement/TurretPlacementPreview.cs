@@ -59,6 +59,20 @@ public class TurretPlacementPreview
         previewObject.transform.localScale = originalLocalScale * Mathf.Max(0.01f, scaleMultiplier);
     }
 
+    // 장애물 배치용 로컬 회전을 지원하는 오버로드
+    public void SnapTo(Transform buildPoint, Vector3 localOffset, Quaternion localRotation, float scaleMultiplier)
+    {
+        if (previewObject == null || buildPoint == null)
+        {
+            return;
+        }
+
+        previewObject.transform.SetParent(buildPoint, false);
+        previewObject.transform.localPosition = localOffset;
+        previewObject.transform.localRotation = localRotation;
+        previewObject.transform.localScale = originalLocalScale * Mathf.Max(0.01f, scaleMultiplier);
+    }
+
     public void SetPose(Vector3 position, Quaternion rotation, float scaleMultiplier)
     {
         if (previewObject == null)

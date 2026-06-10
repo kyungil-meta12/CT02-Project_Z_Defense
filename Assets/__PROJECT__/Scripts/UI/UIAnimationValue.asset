@@ -14,3 +14,5 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::UIAnimationValue
   OnValueChangeScale: 1.5
   ScaleReturnLerpSpeed: 10
+  PopOutSpeed: 8
+  PopInDelay: 2

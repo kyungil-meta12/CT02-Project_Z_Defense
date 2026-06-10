@@ -1,3 +1,4 @@
+using System.Collections;
 using TMPro;
 using UnityEngine;
 
@@ -5,6 +6,7 @@ public class WaveIndicator : MonoBehaviour
 {
     public UIAnimationValue animValue;
     public TextMeshProUGUI text;
+    public WavePopup wavePopup;
     private Vector2 originScale;
     private Vector2 currScale;
     private RectTransform rt;
@@ -21,6 +23,7 @@ public class WaveIndicator : MonoBehaviour
     {
         // 게임 매니저 웨이브 증가 이벤트 구독
         GameManager.Inst.OnWaveIncrease += OnWaveChange;
+        EnablePopup();
     }
 
     void OnDestroy()
@@ -45,5 +48,20 @@ public class WaveIndicator : MonoBehaviour
     {
         text.text = val.ToString();
         currScale = originScale * animValue.OnValueChangeScale;
+        EnablePopup();
+    }
+
+    // 팝업 활성화
+    void EnablePopup()
+    {
+        StartCoroutine(PopupCoroutine());
+    }
+
+    // 0.5초 후에 팝업이 활성화 된다.
+    IEnumerator PopupCoroutine()
+    {
+        yield return new WaitForSeconds(0.5f);
+        wavePopup.gameObject.SetActive(true);
+        wavePopup.Init(GameManager.Inst.Wave);
     }
 }

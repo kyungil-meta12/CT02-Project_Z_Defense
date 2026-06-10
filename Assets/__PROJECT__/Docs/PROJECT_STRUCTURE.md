@@ -23,6 +23,7 @@ This document is the shortest map for finding where project code, scenes, prefab
 | Game state and defense lines | `Scripts/Singleton/GameManager/GameManager.cs` | Wave kill count, obstacle/survivor registration, defense-line breach/restore, repair target selection. |
 | Zombies | `Prefabs/Damageable/NormalZombie`, `Prefabs/Damageable/BossZombie` | Movement, attack, damage, death, pool return, boss behavior. |
 | Obstacles and repair | `Prefabs/Damageable/Obstacle`, `Prefabs/Survivor` | Obstacle HP/fracture/repair reservation, survivor retreat/return/repair/vault. |
+| Obstacle placement | `Prefabs/Damageable/Obstacle/ObstacleBuild*`, `Prefabs/Damageable/Obstacle/ObstaclePlacement*` | Fixed defense-line obstacle/gate slot placement and rebuild UI. |
 | Spawning | `Prefabs/ZombieSpawner` | Wave-scaled zombie spawning and boss final spawn. |
 | Turrets | `Scenes/KKW/Turret_Scene` | Turret definitions, stats, evolution, placement, projectile damage, VFX profile data. |
 | Common feedback | `Scripts/DamagePopup*`, `Resources/UI` | World-space damage number spawning and pooling. |
@@ -34,6 +35,7 @@ This document is the shortest map for finding where project code, scenes, prefab
 | --- | --- |
 | Core gameplay rule shared by systems | `Assets/__PROJECT__/Scripts` |
 | A prefab-specific behavior | Near the prefab under `Assets/__PROJECT__/Prefabs/...` |
+| Obstacle/gate placement and defense-line slot behavior | `Assets/__PROJECT__/Prefabs/Damageable/Obstacle` |
 | Turret, projectile, placement, skill, or turret SO work | `Assets/__PROJECT__/Scenes/KKW/Turret_Scene/...` until the turret module is moved to a shared folder |
 | Runtime-loaded UI settings or prefabs | `Assets/__PROJECT__/Resources/UI` only when `Resources.Load` is required |
 | Documentation | `Assets/__PROJECT__/Docs` |

@@ -16,6 +16,7 @@ public class Obstacle : MonoBehaviour, IDamageable
     public float CurrHp { get; private set; }
     public bool IsAlive { get; private set; }
     public bool IsDamaged => IsAlive && CurrHp < TotalHp;
+    public bool HasFractured => hasNotifiedFracture;
     public Survivor ReservedRepairer { get; private set; }
 
     private PreFracturedGeometry fractureGeometry;

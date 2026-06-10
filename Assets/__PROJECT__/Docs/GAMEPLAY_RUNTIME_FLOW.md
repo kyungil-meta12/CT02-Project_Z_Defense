@@ -40,17 +40,40 @@ Damage rules:
 
 ## Obstacle And Defense Line Flow
 
-1. `Obstacle` registers with `GameManager` on enable/start and unregisters on disable.
-2. `Obstacle.TakeDamage` clamps HP and hides HP UI on death.
-3. When HP reaches zero, `Obstacle` marks `IsAlive = false`, clears repair reservation, and calls `Fracture`.
-4. `Fracture` triggers DinoFracture and notifies `GameManager.NotifyObstacleFractured` once.
-5. `GameManager` finds which defense-line entry contains that obstacle.
-6. The defense line is marked breached and all registered survivors receive `StartDefenseLineRetreat`.
+1. `ObstacleBuildSlot` registers with `GameManager` as a defense-line slot.
+2. `Obstacle` registers with `GameManager` on enable/start and syncs with its parent `ObstacleBuildSlot` when one exists.
+3. `Obstacle.TakeDamage` clamps HP and hides HP UI on death.
+4. When HP reaches zero, `Obstacle` marks `IsAlive = false`, clears repair reservation, and calls `Fracture`.
+5. `Fracture` triggers DinoFracture and notifies `GameManager.NotifyObstacleFractured` once.
+6. `GameManager` finds the `ObstacleBuildSlot` occupied by that obstacle.
+7. The slot is cleared, the defense line is marked breached, and all registered survivors receive `StartDefenseLineRetreat`.
 
 Important policy:
 
 - Broken obstacles are not repair targets because `Obstacle.IsDamaged` requires `IsAlive`.
+- Fractured obstacles and fracture pieces are not treated as slot occupants.
 - A breached defense line is a state on `GameManager.DefenseLineEntry`; restoration must call `NotifyDefenseLineRestored`.
+- Defense lines are managed by slots, not a direct obstacle list.
+- Current required slot counts are 1st line `3`, 2nd line `3`, 3rd line `1` gate slot.
+
+## Obstacle Placement Flow
+
+1. Scene-placed `ObstaclePlacementSlotUI` buttons reference an `ObstacleBuildEntrySO` and `ObstaclePlacementController` directly.
+2. `ObstaclePlacementSlotUI` starts placement by drag or click.
+3. `ObstaclePlacementController` raycasts against `ObstacleBuildSlot` hit areas.
+4. Preview snaps to the slot `BuildPoint`.
+5. Placement is valid only when the slot is empty and the entry type matches the slot type.
+6. `ObstacleBuildSlot.TryPlace` instantiates the obstacle under `BuildPoint`.
+7. The placed obstacle is assigned to the slot and `GameManager.NotifyObstaclePlaced` is called.
+8. If the line was breached and all required slots are occupied again, `GameManager.NotifyDefenseLineRestored` restores that defense line.
+
+`ObstaclePlacementUI` remains available as an optional runtime rebuild helper, but manual scene buttons are the default setup.
+
+Slot type policy:
+
+- 1st and 2nd defense lines use `Obstacle` slots.
+- 3rd defense line uses one `Gate` slot.
+- Obstacle entries cannot be installed into gate slots, and gate entries cannot be installed into obstacle slots.
 
 ## Survivor Flow
 
@@ -74,6 +97,7 @@ Runtime behavior:
 Repair target policy:
 
 - Only damaged, alive, unreserved obstacles can be reserved.
+- Only obstacles currently occupying registered defense-line slots are considered.
 - If a survivor has retreated behind a defense line, obstacles at or before that active defense-line index are blocked as repair targets.
 - Repair target movement does not trigger vaulting. Vaulting is only for defense-line retreat/return movement.
 

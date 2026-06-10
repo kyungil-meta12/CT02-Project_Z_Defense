@@ -24,6 +24,7 @@ Before editing `Main.unity`:
 | `MemoryPool` | Prefer scene or prefab instance. Runtime fallback exists in some systems but should not be relied on for final setup. |
 | `DamagePopupSpawner` | Optional scene instance. Can create itself at runtime, but final scene should use configured Resources assets. |
 | `ZombieSpawner` | Requires `ZombieSpawnData`, spawn positions, normal zombie prefabs, boss zombie prefabs. |
+| `ObstaclePlacementController` | Required for runtime obstacle/gate placement UI. |
 | Camera | `CameraController` where camera shake is expected by obstacle fracture. |
 
 ## Defense Line Setup
@@ -31,16 +32,71 @@ Before editing `Main.unity`:
 `GameManager` defense line entries should contain:
 
 - `lineName`
-- `obstacles`
+- `obstacleSlots`
 - `retreatPoint`
 - `restoredPoint`
 
 Rules:
 
-- Obstacle lists define which defense line is breached when an obstacle fractures.
+- Obstacle slot lists define which defense line is breached when an obstacle fractures.
 - Retreat and restored points must be on reachable NavMesh or near valid NavMesh sampling positions.
 - Defense-line index order matters. Lower index means earlier/front line.
 - A survivor that retreated behind line `N` must not repair obstacles with index `<= N` until return completes.
+- Required slot counts are 1st line `3`, 2nd line `3`, 3rd line `1`.
+- The 3rd line slot should use `Gate` slot type.
+
+## Obstacle Build Slot Setup
+
+Each fixed obstacle/gate point should have:
+
+- `ObstacleBuildSlot`
+- `BuildPoint`
+- `PlacementHitArea`
+- Collider on `PlacementHitArea`
+- `defenseLineIndex`
+- `slotIndex`
+- `slotType`
+
+Recommended hierarchy:
+
+```text
+ObstacleBuildSlot_0_0
+- BuildPoint
+- PlacementHitArea
+```
+
+Slot layout:
+
+| Defense Line | Slot Count | Slot Type |
+| --- | --- | --- |
+| 1st line, index `0` | 3 | `Obstacle` |
+| 2nd line, index `1` | 3 | `Obstacle` |
+| 3rd line, index `2` | 1 | `Gate` |
+
+Rules:
+
+- `ObstaclePlacementController.obstacleSlotLayerMask` must include the `PlacementHitArea` layer.
+- `BuildPoint` should hold the installed obstacle or gate as a child.
+- Existing scene obstacles should be moved under the correct `BuildPoint` or assigned through the slot's runtime reference.
+- `GameManager` should reference all seven slots through defense-line `obstacleSlots`.
+
+## Obstacle Placement UI Setup
+
+Manual scene buttons are the default setup.
+
+Each obstacle or gate placement button should have:
+
+- `ObstaclePlacementSlotUI`
+- `placementController`
+- `buildEntry`
+- icon/name/cost UI references when visible labels are required
+
+Rules:
+
+- Use one button for the obstacle build entry and one button for the gate build entry.
+- `ObstaclePlacementUI.rebuildOnStart` should stay disabled unless runtime-generated buttons are intentionally needed.
+- Runtime rebuild is optional and should not be required for manually placed buttons.
+- If a preview appears rotated, adjust the `ObstacleBuildEntrySO.placementLocalEulerAngles` value; preview and actual placement use the same rotation.
 
 ## Obstacle Setup
 
@@ -57,6 +113,7 @@ Notes:
 
 - `Obstacle` also provides vault landing position for survivor defense-line movement.
 - Broken obstacles are not repaired by `Repair`; a separate rebuild flow is needed if destroyed defense lines should come back.
+- Runtime obstacle/gate rebuilding should use `ObstaclePlacementController` and `ObstacleBuildSlot`.
 - HP UI may be hidden at runtime after initialization.
 
 ## Survivor Setup
@@ -130,7 +187,9 @@ Rules:
 ## Play-Mode Checks After Scene Changes
 
 - Start a wave and verify kill count advances.
+- Verify all seven defense-line slots are registered in `GameManager`.
 - Damage an obstacle and verify HP UI, fracture, and defense-line retreat.
+- Rebuild the missing obstacle/gate through placement UI and verify the defense line restores only after required slots are occupied.
 - Verify survivors do not select breached previous lines as repair targets after retreat.
 - Restore a line and verify survivors return and clear active defense-line index.
 - Place a turret on a valid base and verify occupied/invalid preview states.

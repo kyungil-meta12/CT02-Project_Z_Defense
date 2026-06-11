@@ -68,7 +68,6 @@ public class NormalZombie : PoolObject, IDamageable
         IsAlive = true;
         attackState = false;
         attackTarget = null;
-        SetCollidersEnabled(true);
 
         // 체력 UI 슬라이더 값 지정
         hpUI.gameObject.SetActive(true);
@@ -264,28 +263,9 @@ public class NormalZombie : PoolObject, IDamageable
         hpUI.gameObject.SetActive(false); // hp UI 비활성화
         attackState = false; // 공격 상태 초기화
         attackTarget = null; // 공격 대상 초기화
-        SetCollidersEnabled(false); // 사망 후 터렛 타겟/발사체 충돌 대상에서 제외
         agent.enabled = false; // 에이전트 비활성화
         anim.SetBool("IsAttackState", false);
         anim.SetTrigger("DeadTrigger"); // 죽는 애니메이션으로 변경
-    }
-
-    /// <summary>
-    /// 풀링 재사용과 사망 상태에 맞춰 전체 콜라이더 활성 상태를 변경한다
-    /// </summary>
-    /// <param name="isEnabled"></param>
-    private void SetCollidersEnabled(bool isEnabled)
-    {
-        for (int i = 0; i < colliders.Count; i++)
-        {
-            Collider colliderComp = colliders[i];
-            if (colliderComp == null)
-            {
-                continue;
-            }
-
-            colliderComp.enabled = isEnabled;
-        }
     }
 
     /// <summary>
@@ -294,7 +274,6 @@ public class NormalZombie : PoolObject, IDamageable
     /// <param name="t"></param>
     public void SetPosition(Transform t)
     {
-        SetCollidersEnabled(true);
         transform.position = t.position;
         agent.enabled = true;
         agent.Warp(t.position);

@@ -19,7 +19,6 @@ public class NormalZombie : PoolObject, IDamageable
 
     private Transform destination; // 현재 추적하는 타겟
     private float attackDamage; // 타워에 가할 대미지
-    private readonly List<Collider> colliders = new List<Collider>(4);
 
     // IDamageable value
     public float CurrHp { get; private set; } // 현재 체력
@@ -34,7 +33,6 @@ public class NormalZombie : PoolObject, IDamageable
         agent = GetComponent<NavMeshAgent>();
         agent.updatePosition = false;
         agent.updateRotation = false;
-        GetComponentsInChildren(false, colliders);
     }
 
     public override void OnSpawn()

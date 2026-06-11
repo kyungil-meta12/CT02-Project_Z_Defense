@@ -15,6 +15,7 @@ public class BossZombie : PoolObject, IDamageable
     public Animator anim;
     public NavMeshAgent agent;
     public Collider col;
+    private Rigidbody rb;
     
     private Transform destination;
     private float attackDamage;
@@ -48,6 +49,7 @@ public class BossZombie : PoolObject, IDamageable
         anim = GetComponent<Animator>();
         agent = GetComponent<NavMeshAgent>();
         col = GetComponent<Collider>();
+        rb = GetComponent<Rigidbody>();
         GetComponentsInChildren(false, colliders);
 
         ConfigureRootMotionNavigation();
@@ -499,7 +501,7 @@ public class BossZombie : PoolObject, IDamageable
     }
 
     /// <summary>
-    /// 풀링 재사용과 사망 상태에 맞춰 전체 콜라이더 활성 상태를 변경한다
+    /// 풀링 재사용과 사망 상태에 맞춰 전체 콜라이더와 리지드바디 활성 상태를 변경한다
     /// </summary>
     /// <param name="isEnabled"></param>
     private void SetCollidersEnabled(bool isEnabled)
@@ -513,6 +515,11 @@ public class BossZombie : PoolObject, IDamageable
             }
 
             colliderComp.enabled = isEnabled;
+        }
+        if (rb)
+        {
+            rb.isKinematic = !isEnabled;
+            rb.detectCollisions = isEnabled;
         }
     }
     

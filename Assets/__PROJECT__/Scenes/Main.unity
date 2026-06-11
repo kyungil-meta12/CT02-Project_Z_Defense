@@ -13857,7 +13857,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a31bf4fb40e7453baa7ecd5dc1dd1f4e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ObstacleBuildSlot
-  defenseLineIndex: 2
+  defenseLineIndex: 3
   slotIndex: 0
   slotType: 1
   buildPoint: {fileID: 337505482}
@@ -38719,7 +38719,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a31bf4fb40e7453baa7ecd5dc1dd1f4e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ObstacleBuildSlot
-  defenseLineIndex: 1
+  defenseLineIndex: 2
   slotIndex: 1
   slotType: 0
   buildPoint: {fileID: 1026350261}
@@ -51968,7 +51968,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a31bf4fb40e7453baa7ecd5dc1dd1f4e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ObstacleBuildSlot
-  defenseLineIndex: 1
+  defenseLineIndex: 2
   slotIndex: 0
   slotType: 0
   buildPoint: {fileID: 1400508323}
@@ -70574,7 +70574,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a31bf4fb40e7453baa7ecd5dc1dd1f4e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ObstacleBuildSlot
-  defenseLineIndex: 1
+  defenseLineIndex: 2
   slotIndex: 2
   slotType: 0
   buildPoint: {fileID: 1927614164}

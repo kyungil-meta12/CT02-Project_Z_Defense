@@ -41,6 +41,8 @@ public class ZombieSpawner : MonoBehaviour
         currMaxSpawnCount = spawnData.DefaultSpawnCount + wave * spawnData.SpawnCountWeight;
         // 게임 매니저로 목표 킬 카운트 전달
         GameManager.Inst.InputDestKillCount(currMaxSpawnCount);
+        // 현재 스폰 카운트 초기화
+        currSpawnCount = 0;
         // 웨이브 대기 코루틴 시작 // 웨이브가 증가한 순간부터 5초간 스폰하지 않음
         StartCoroutine(WaveWaitCoroutine());
     }

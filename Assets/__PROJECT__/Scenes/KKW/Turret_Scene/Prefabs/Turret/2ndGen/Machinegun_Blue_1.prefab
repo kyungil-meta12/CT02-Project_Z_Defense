@@ -1,5 +1,52 @@
-%YAML 1.1
+﻿%YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
+--- !u!1 &1508276356256712195
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2941786305415981612}
+  m_Layer: 0
+  m_Name: FireNozzle
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &2941786305415981612
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1508276356256712195}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0.8, z: 1.35}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 2587096070416034287}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &3366583492984179433
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1963311566274616733}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f89ead4bf227d574e9d1fafefd001433, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ProjectZima.PolygonModularTurretsPack.Gun
+  muzzleObject: {fileID: 1508276356256712195}
+  burstFireCount: 1
+  useMuzzleForwardDirection: 1
+  extraCollisionIgnoreRoots: []
 --- !u!1 &1712571671052764375
 GameObject:
   m_ObjectHideFlags: 0
@@ -12,6 +59,12 @@ GameObject:
   - component: {fileID: 3107569391609319880}
   - component: {fileID: 920065473126655234}
   - component: {fileID: 8727599207538095650}
+  - component: {fileID: 8933337278834887998}
+  - component: {fileID: 6370020605881483926}
+  - component: {fileID: -2529298163569723032}
+  - component: {fileID: -5625561512092012975}
+  - component: {fileID: 1122984216526145048}
+  - component: {fileID: 5194312317892003488}
   m_Layer: 0
   m_Name: Machinegun_Blue_1
   m_TagString: Untagged
@@ -26,13 +79,14 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1712571671052764375}
+  serializedVersion: 2
   m_LocalRotation: {x: 0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 2587096070416034287}
   m_Father: {fileID: 0}
-  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!33 &3107569391609319880
 MeshFilter:
@@ -41,7 +95,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1712571671052764375}
-  m_Mesh: {fileID: -6594370153681518271, guid: a7c4553127a85264da03adf77434f1c3, type: 3}
+  m_Mesh: {fileID: -6594370153681518271, guid: 82c3340f35551d244b5a054bd0f3ed0f, type: 3}
 --- !u!23 &920065473126655234
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -53,14 +107,21 @@ MeshRenderer:
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 2
+  m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
+  m_ForceMeshLod: -1
+  m_MeshLodSelectionBias: 0
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 8cb6072e49e9d254a97f778d74604fb1, type: 2}
+  - {fileID: 2100000, guid: 6f4d31d99e5843a48a0a8f763f82d611, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -78,9 +139,12 @@ MeshRenderer:
   m_AutoUVMaxDistance: 0.5
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
+  m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_MaskInteraction: 0
+  m_AdditionalVertexStreams: {fileID: 0}
 --- !u!65 &8727599207538095650
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -89,11 +153,169 @@ BoxCollider:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1712571671052764375}
   m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
   m_IsTrigger: 0
+  m_ProvidesContacts: 0
   m_Enabled: 1
-  serializedVersion: 2
+  serializedVersion: 3
   m_Size: {x: 1.5633, y: 0.0837376, z: 1.4867866}
   m_Center: {x: 0, y: 0.0418688, z: 0}
+--- !u!114 &8933337278834887998
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1712571671052764375}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: be3681d4c0e9f644d851459332a10c61, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ProjectZima.PolygonModularTurretsPack.Turret
+  rotatorMesh: {fileID: 1963311566274616733}
+  headMesh: {fileID: 1963311566274616733}
+  projectilePrefab: {fileID: 0}
+  canRotateXRotator: 1
+  canRotateHeadSeparately: 1
+  rotateSpeed: 10
+  turretAngleAttack: 5
+  closeRangePredictionDistance: 2
+  closeRangeFireDistance: 2
+  closeRangeTurretAngleAttack: 60
+  fireTick: 0.1
+  targetSearchInterval: 0.1
+  aimPointLerpSpeed: 18
+  showDebug: 0
+--- !u!114 &6370020605881483926
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1712571671052764375}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a31afd3a38f12d846bcc57f9abf2944d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ProjectZima.PolygonModularTurretsPack.TargetFinder
+  radius: 10
+  targetTag: Enemy
+  targetLayer:
+    serializedVersion: 2
+    m_Bits: 128
+  pivotObject: {fileID: 1963311566274616733}
+  showDebug: 0
+  useHorizontalDistance: 1
+  requireLineOfSight: 1
+  lineOfSightBlockingMask:
+    serializedVersion: 2
+    m_Bits: 576
+  showRangeGizmo: 1
+  drawRangeOnlyWhenSelected: 1
+  rangeGizmoColor: {r: 0, g: 1, b: 0, a: 1}
+--- !u!114 &-2529298163569723032
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1712571671052764375}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b41aab23c1c36d94aa4af80b1de3076a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ProjectZima.PolygonModularTurretsPack.SimpleFire
+  gunPrefabs:
+  - {fileID: 1963311566274616733}
+  firingSound: {fileID: 0}
+  muzzleVFX: {fileID: 0}
+  muzzleVFXDuration: 2
+--- !u!114 &-5625561512092012975
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1712571671052764375}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 17296b2ce492c0d469b41f99c4838a6b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TurretStatProfileApplier
+  statProfile: {fileID: 0}
+  targetTurret: {fileID: 8933337278834887998}
+  targetFinder: {fileID: 6370020605881483926}
+  targetGuns:
+  - {fileID: 3366583492984179433}
+  applyOnStart: 1
+  applyOnInspectorChange: 1
+--- !u!114 &1122984216526145048
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1712571671052764375}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a87f91c13a2143e4aa6e691bd2b48bc7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TurretDefinitionRuntimeController
+  turretDefinition: {fileID: 11400000, guid: 1273db7c65a849d47afd23d6d50afdb5, type: 2}
+  level: 1
+  totalLevel: 1
+  applyOnStart: 1
+  applyOnInspectorChange: 1
+  applyStatsToTurret: 1
+  applyVFXToTurret: 1
+  logRuntimeStat: 1
+  logProjectileDamage: 1
+  statProfileApplier: {fileID: -5625561512092012975}
+  targetTurret: {fileID: 8933337278834887998}
+  targetFiringEvent: {fileID: -2529298163569723032}
+  currentTurretName: 
+  availableEvolutionNames: 
+--- !u!114 &5194312317892003488
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1712571671052764375}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ed41be34f6e64ef4b85a90d903ac51bb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TurretEvolutionRuntimeUI
+  runtimeController: {fileID: 1122984216526145048}
+  levelUpButton: {fileID: 0}
+  levelText: {fileID: 0}
+  tmpLevelText: {fileID: 0}
+  evolutionStatusText: {fileID: 0}
+  tmpEvolutionStatusText: {fileID: 0}
+  evolutionButtons:
+  - button: {fileID: 0}
+    iconImage: {fileID: 0}
+    labelText: {fileID: 0}
+    tmpLabelText: {fileID: 0}
+    sprite: {fileID: 0}
+  - button: {fileID: 0}
+    iconImage: {fileID: 0}
+    labelText: {fileID: 0}
+    tmpLabelText: {fileID: 0}
+    sprite: {fileID: 0}
+  replacePrefabOnEvolution: 1
+  clickLevelAmount: 1
+  holdStartDelay: 0.5
+  minHoldLevelsPerSecond: 4
+  maxHoldLevelsPerSecond: 45
+  accelerationDuration: 4
 --- !u!1 &1963311566274616733
 GameObject:
   m_ObjectHideFlags: 0
@@ -106,6 +328,7 @@ GameObject:
   - component: {fileID: 1847654808644889788}
   - component: {fileID: 8688719319498034445}
   - component: {fileID: 5553550846102710560}
+  - component: {fileID: 3366583492984179433}
   m_Layer: 0
   m_Name: top_machinegun_blue_1
   m_TagString: Untagged
@@ -120,12 +343,14 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1963311566274616733}
+  serializedVersion: 2
   m_LocalRotation: {x: 0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: -0, y: 0.042047016, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
-  m_Children: []
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 2941786305415981612}
   m_Father: {fileID: 2058028966334111341}
-  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!33 &1847654808644889788
 MeshFilter:
@@ -134,7 +359,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1963311566274616733}
-  m_Mesh: {fileID: 7198625820996589435, guid: a7c4553127a85264da03adf77434f1c3, type: 3}
+  m_Mesh: {fileID: 7198625820996589435, guid: 82c3340f35551d244b5a054bd0f3ed0f, type: 3}
 --- !u!23 &8688719319498034445
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -146,14 +371,21 @@ MeshRenderer:
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 2
+  m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
+  m_ForceMeshLod: -1
+  m_MeshLodSelectionBias: 0
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 8cb6072e49e9d254a97f778d74604fb1, type: 2}
+  - {fileID: 2100000, guid: 6f4d31d99e5843a48a0a8f763f82d611, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -171,9 +403,12 @@ MeshRenderer:
   m_AutoUVMaxDistance: 0.5
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
+  m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_MaskInteraction: 0
+  m_AdditionalVertexStreams: {fileID: 0}
 --- !u!65 &5553550846102710560
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -182,8 +417,17 @@ BoxCollider:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1963311566274616733}
   m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
   m_IsTrigger: 0
+  m_ProvidesContacts: 0
   m_Enabled: 1
-  serializedVersion: 2
+  serializedVersion: 3
   m_Size: {x: 1.305, y: 1.0861762, z: 1.9803702}
   m_Center: {x: 0, y: 0.5430881, z: 0.36962074}
+

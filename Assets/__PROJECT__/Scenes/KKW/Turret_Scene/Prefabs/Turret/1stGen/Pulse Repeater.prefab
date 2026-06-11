@@ -477,15 +477,15 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: -8679921383154817045, guid: 9938bcc1092190d41a5036cc7c05e5a0, type: 3}
       propertyPath: m_LocalScale.x
-      value: 2
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 9938bcc1092190d41a5036cc7c05e5a0, type: 3}
       propertyPath: m_LocalScale.y
-      value: 2
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 9938bcc1092190d41a5036cc7c05e5a0, type: 3}
       propertyPath: m_LocalScale.z
-      value: 2
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 9938bcc1092190d41a5036cc7c05e5a0, type: 3}
       propertyPath: m_LocalPosition.x
@@ -589,7 +589,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   rotatorMesh: {fileID: 1650173574520368034}
   headMesh: {fileID: 7020210988266707945}
-  projectilePrefab: {fileID: 892610844511324541, guid: fda12500ec34bd14fa2f36994647b6b7, type: 3}
+  projectilePrefab: {fileID: 1294834399362254, guid: 3a737c5e33310dc4f914fd3b9069f65e, type: 3}
   canRotateXRotator: 0
   canRotateHeadSeparately: 1
   rotateSpeed: 500
@@ -597,7 +597,7 @@ MonoBehaviour:
   closeRangePredictionDistance: 2
   closeRangeFireDistance: 2
   closeRangeTurretAngleAttack: 60
-  fireTick: 0.1
+  fireTick: 0.5
   targetSearchInterval: 0.1
   aimPointLerpSpeed: 18
   showDebug: 0
@@ -613,7 +613,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a31afd3a38f12d846bcc57f9abf2944d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  radius: 100
+  radius: 80
   targetTag: Enemy
   targetLayer:
     serializedVersion: 2

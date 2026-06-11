@@ -213,7 +213,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   muzzleObject: {fileID: 7546084286541153103}
-  burstFireCount: 2
+  burstFireCount: 1
   useMuzzleForwardDirection: 1
   extraCollisionIgnoreRoots:
   - {fileID: 0}
@@ -682,15 +682,15 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: -8679921383154817045, guid: 9938bcc1092190d41a5036cc7c05e5a0, type: 3}
       propertyPath: m_LocalScale.x
-      value: 2
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 9938bcc1092190d41a5036cc7c05e5a0, type: 3}
       propertyPath: m_LocalScale.y
-      value: 2
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 9938bcc1092190d41a5036cc7c05e5a0, type: 3}
       propertyPath: m_LocalScale.z
-      value: 2
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 9938bcc1092190d41a5036cc7c05e5a0, type: 3}
       propertyPath: m_LocalPosition.x
@@ -789,7 +789,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   rotatorMesh: {fileID: 360714063466100698}
   headMesh: {fileID: 2421319688518584734}
-  projectilePrefab: {fileID: 2252647579398112424, guid: 8540a86c62311aa40be0d774e03fcb3f, type: 3}
+  projectilePrefab: {fileID: 1294834399362254, guid: 3a737c5e33310dc4f914fd3b9069f65e, type: 3}
   canRotateXRotator: 0
   canRotateHeadSeparately: 1
   rotateSpeed: 500
@@ -797,7 +797,7 @@ MonoBehaviour:
   closeRangePredictionDistance: 2
   closeRangeFireDistance: 2
   closeRangeTurretAngleAttack: 60
-  fireTick: 0.3
+  fireTick: 1.2
   targetSearchInterval: 0.1
   aimPointLerpSpeed: 18
   showDebug: 0
@@ -1016,7 +1016,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   muzzleObject: {fileID: 4521432513739505510}
-  burstFireCount: 2
+  burstFireCount: 1
   useMuzzleForwardDirection: 1
   extraCollisionIgnoreRoots:
   - {fileID: 0}
@@ -1212,7 +1212,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   muzzleObject: {fileID: 2262112595115523464}
-  burstFireCount: 2
+  burstFireCount: 1
   useMuzzleForwardDirection: 1
   extraCollisionIgnoreRoots:
   - {fileID: 0}
@@ -1351,7 +1351,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   muzzleObject: {fileID: 6413619884355258905}
-  burstFireCount: 2
+  burstFireCount: 1
   useMuzzleForwardDirection: 1
   extraCollisionIgnoreRoots:
   - {fileID: 0}

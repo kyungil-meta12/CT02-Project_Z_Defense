@@ -1,4 +1,4 @@
-﻿%YAML 1.1
+%YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
 --- !u!1 &693915603943997146
 GameObject:
@@ -114,6 +114,22 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 0.6518568, y: 0.65154654, z: 1.8854523}
   m_Center: {x: 0, y: 0.32577327, z: 0.6341703}
+--- !u!114 &6167026663575987228
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 693915603943997146}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f89ead4bf227d574e9d1fafefd001433, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ProjectZima.PolygonModularTurretsPack.Gun
+  muzzleObject: {fileID: 3187702071406850582}
+  burstFireCount: 1
+  useMuzzleForwardDirection: 1
+  extraCollisionIgnoreRoots: []
 --- !u!1 &3187702071406850582
 GameObject:
   m_ObjectHideFlags: 0
@@ -145,22 +161,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 2991444924093727593}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &6167026663575987228
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 693915603943997146}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f89ead4bf227d574e9d1fafefd001433, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::ProjectZima.PolygonModularTurretsPack.Gun
-  muzzleObject: {fileID: 3187702071406850582}
-  burstFireCount: 1
-  useMuzzleForwardDirection: 1
-  extraCollisionIgnoreRoots: []
 --- !u!1 &3876178304499062177
 GameObject:
   m_ObjectHideFlags: 0
@@ -297,7 +297,7 @@ MonoBehaviour:
   projectilePrefab: {fileID: 0}
   canRotateXRotator: 1
   canRotateHeadSeparately: 1
-  rotateSpeed: 10
+  rotateSpeed: 500
   turretAngleAttack: 5
   closeRangePredictionDistance: 2
   closeRangeFireDistance: 2
@@ -430,4 +430,3 @@ MonoBehaviour:
   minHoldLevelsPerSecond: 4
   maxHoldLevelsPerSecond: 45
   accelerationDuration: 4
-

@@ -87,6 +87,9 @@ public class BossZombie : PoolObject, IDamageable
         IsAlive = true;
         storeDamage = 0f;
         destination = null;
+        hitCountBV.Value = 0;
+        curAttackCountBV.Value = 0;
+        attackTargetBV.Value = null;
 
         // 체력 UI 슬라이더 값 지정
         hpUI.gameObject.SetActive(true);

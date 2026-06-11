@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::TurretDefinitionSO
   turretId: laser_red_2
   displayName: Laser_Red_2
-  basePrefab: {fileID: 193478052415773152, guid: 5b6c5fdc31bd3594ba17f2859630a8af, type: 3}
+  basePrefab: {fileID: 4520028066621129780, guid: 5b6c5fdc31bd3594ba17f2859630a8af, type: 3}
   baseStatProfile: {fileID: 11400000, guid: 239ec344242d0e548a1c7122716ed5f0, type: 2}
   maxLevel: 0
   statGrowthProfile: {fileID: 11400000, guid: ebf48ec86c2b6bc4fadd4f393410476b, type: 2}

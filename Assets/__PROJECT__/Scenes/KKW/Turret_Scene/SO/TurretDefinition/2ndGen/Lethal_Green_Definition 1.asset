@@ -1,4 +1,4 @@
-%YAML 1.1
+﻿%YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
 --- !u!114 &11400000
 MonoBehaviour:
@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::TurretDefinitionSO
   turretId: lethal_green_1
   displayName: Lethal_Green_1
-  basePrefab: {fileID: 2788441958147011017, guid: 25330f4b0283ef64c8f7a365aa4456df, type: 3}
+  basePrefab: {fileID: 7365071274755673582, guid: 25330f4b0283ef64c8f7a365aa4456df, type: 3}
   baseStatProfile: {fileID: 11400000, guid: 60f8713b883c93e4f8aee50bd7eb871a, type: 2}
   maxLevel: 0
   statGrowthProfile: {fileID: 11400000, guid: fa2d4e383ac6648439b5ccbc48f1a1e3, type: 2}

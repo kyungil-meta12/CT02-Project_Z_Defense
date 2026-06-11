@@ -1,6 +1,9 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+/// <summary>
+/// 빠르게 이동하는 투사체의 충돌 누락을 보정하고 데미지 적용 후 HOVL 피격 처리 경로로 연결한다.
+/// </summary>
 [DisallowMultipleComponent]
 public class ProjectileHitDetector : MonoBehaviour
 {
@@ -16,6 +19,7 @@ public class ProjectileHitDetector : MonoBehaviour
     private Collider targetCollider;
     private Vector3 previousPosition;
 
+    // 투사체 콜라이더와 HOVL 이동 컴포넌트를 캐싱하고 보정 충돌 설정을 적용한다
     private void Awake()
     {
         CacheProjectileColliders();
@@ -23,6 +27,7 @@ public class ProjectileHitDetector : MonoBehaviour
         ConfigureProjectileColliders();
     }
 
+    // 투사체가 발사될 때 데미지 처리기와 추적 대상을 초기화한다
     public void Init(ProjectileDamageDealer damageDealer_, GameObject target)
     {
         damageDealer = damageDealer_;
@@ -34,6 +39,7 @@ public class ProjectileHitDetector : MonoBehaviour
         ConfigureProjectileColliders();
     }
 
+    // 현재 투사체가 보정 판정할 추적 대상 콜라이더를 갱신한다
     public void SetTarget(GameObject target)
     {
         targetCollider = null;
@@ -46,6 +52,7 @@ public class ProjectileHitDetector : MonoBehaviour
         targetCollider = target.GetComponentInChildren<Collider>();
     }
 
+    // 물리 틱마다 추적 대상과 이동 경로를 보정 판정한다
     private void FixedUpdate()
     {
         if (!TryApplyDamageToTrackedTarget())
@@ -56,11 +63,13 @@ public class ProjectileHitDetector : MonoBehaviour
         previousPosition = transform.position;
     }
 
+    // 트리거 충돌 시 데미지 또는 환경 충돌 처리를 시도한다
     private void OnTriggerEnter(Collider other)
     {
         TryApplyDamageAndReturn(other);
     }
 
+    // 물리 충돌 시 데미지 또는 환경 충돌 처리를 시도한다
     private void OnCollisionEnter(Collision collision)
     {
         if (collision == null || collision.collider == null)
@@ -71,6 +80,7 @@ public class ProjectileHitDetector : MonoBehaviour
         TryApplyDamageAndReturn(collision.collider);
     }
 
+    // 추적 대상 콜라이더에 도달했는지 확인하고 데미지를 적용한다
     private bool TryApplyDamageToTrackedTarget()
     {
         if (targetCollider == null || !CanApplyMoreDamage())
@@ -85,12 +95,13 @@ public class ProjectileHitDetector : MonoBehaviour
 
         if (TryApplyDamage(targetCollider))
         {
-            return HandleDamageApplied();
+            return HandleDamageApplied(targetCollider);
         }
 
         return false;
     }
 
+    // 이전 위치와 현재 위치 사이에서 대상 콜라이더에 도달했는지 계산한다
     private bool HasReachedTargetCollider()
     {
         Bounds targetBounds = targetCollider.bounds;
@@ -112,6 +123,7 @@ public class ProjectileHitDetector : MonoBehaviour
         return targetBounds.IntersectRay(movementRay, out float hitDistance) && hitDistance <= movementDistance + 0.1f;
     }
 
+    // 이전 위치에서 현재 위치까지 레이캐스트해 빠른 투사체의 충돌 누락을 보정한다
     private void TryApplyDamageAlongMovement()
     {
         Vector3 currentPosition = transform.position;
@@ -164,7 +176,7 @@ public class ProjectileHitDetector : MonoBehaviour
                     continue;
                 }
 
-                if (TryApplyDamage(hitCollider) && HandleDamageApplied())
+                if (TryApplyDamage(hitCollider) && HandleDamageApplied(movementHits[i]))
                 {
                     ClearMovementHits(hitCount);
                     return;
@@ -180,6 +192,7 @@ public class ProjectileHitDetector : MonoBehaviour
         ClearMovementHits(hitCount);
     }
 
+    // 단일 콜라이더 충돌에서 데미지 적용 후 필요한 경우 투사체를 종료한다
     private void TryApplyDamageAndReturn(Collider hitCollider)
     {
         if (!TryApplyDamage(hitCollider))
@@ -188,20 +201,23 @@ public class ProjectileHitDetector : MonoBehaviour
             return;
         }
 
-        HandleDamageApplied();
+        HandleDamageApplied(hitCollider);
     }
 
+    // 데미지 처리기를 통해 대상 콜라이더에 데미지를 적용한다
     private bool TryApplyDamage(Collider hitCollider)
     {
         return damageDealer != null && damageDealer.TryApplyDamage(hitCollider);
     }
 
+    // 투사체가 추가 대상에게 데미지를 줄 수 있는지 확인한다
     private bool CanApplyMoreDamage()
     {
         return damageDealer != null && !damageDealer.HasReachedPierceLimit;
     }
 
-    private bool HandleDamageApplied()
+    // 데미지 적용 후 관통 한계에 도달하면 HOVL 피격 처리 루틴으로 종료한다
+    private bool HandleDamageApplied(Collider hitCollider)
     {
         if (damageDealer == null || !damageDealer.HasReachedPierceLimit)
         {
@@ -209,10 +225,55 @@ public class ProjectileHitDetector : MonoBehaviour
         }
 
         enabled = false;
-        PooledProjectileReturner.ReturnOrDestroy(gameObject);
+        HandleProjectileImpact(hitCollider);
         return true;
     }
 
+    // 데미지 적용 후 관통 한계에 도달하면 RaycastHit 기준으로 HOVL 피격 처리 루틴을 호출한다
+    private bool HandleDamageApplied(RaycastHit hit)
+    {
+        if (damageDealer == null || !damageDealer.HasReachedPierceLimit)
+        {
+            return false;
+        }
+
+        enabled = false;
+        HandleProjectileImpact(hit.point, hit.normal);
+        return true;
+    }
+
+    // 데미지 피격 콜라이더에서 충돌 위치와 방향을 계산해 HOVL 피격 처리로 넘긴다
+    private void HandleProjectileImpact(Collider hitCollider)
+    {
+        Vector3 hitPoint = hitCollider == null ? transform.position : GetClosestPointOnCollider(hitCollider, transform.position);
+        Vector3 hitNormal = transform.position - hitPoint;
+        if (hitNormal.sqrMagnitude <= 0.0001f)
+        {
+            hitNormal = -transform.forward;
+        }
+
+        HandleProjectileImpact(hitPoint, hitNormal.normalized);
+    }
+
+    // HOVL 투사체의 공통 피격 루틴을 호출하고 없으면 풀 반환으로 대체한다
+    private void HandleProjectileImpact(Vector3 hitPoint, Vector3 hitNormal)
+    {
+        CacheProjectileMover();
+        if (projectileMover == null)
+        {
+            PooledProjectileReturner.ReturnOrDestroy(gameObject);
+            return;
+        }
+
+        if (!gameObject.activeInHierarchy)
+        {
+            return;
+        }
+
+        projectileMover.HandleExternalHit(hitPoint, hitNormal);
+    }
+
+    // 투사체 하위 콜라이더를 트리거로 설정해 보정 판정과 충돌 판정을 함께 사용한다
     private void ConfigureProjectileColliders()
     {
         for (int i = 0; i < projectileColliders.Count; i++)
@@ -227,12 +288,14 @@ public class ProjectileHitDetector : MonoBehaviour
         }
     }
 
+    // 투사체 자신과 하위 콜라이더를 캐싱한다
     private void CacheProjectileColliders()
     {
         projectileColliders.Clear();
         GetComponentsInChildren(true, projectileColliders);
     }
 
+    // HOVL 투사체 이동 컴포넌트를 캐싱한다
     private void CacheProjectileMover()
     {
         if (projectileMover == null)
@@ -241,11 +304,13 @@ public class ProjectileHitDetector : MonoBehaviour
         }
     }
 
+    // 지정 레이어가 환경 피격 레이어에 포함되는지 확인한다
     private bool IsEnvironmentImpactLayer(int layer)
     {
         return (environmentImpactLayerMask.value & (1 << layer)) != 0;
     }
 
+    // 데미지 레이어와 환경 피격 레이어를 합친 보정 판정 마스크를 반환한다
     private int GetHitDetectionLayerMask()
     {
         if (damageDealer == null)
@@ -256,6 +321,7 @@ public class ProjectileHitDetector : MonoBehaviour
         return damageDealer.DamageLayerMask.value | environmentImpactLayerMask.value;
     }
 
+    // RaycastHit 기반 환경 충돌을 HOVL 피격 처리로 넘긴다
     private bool TryHandleEnvironmentImpact(RaycastHit hit)
     {
         if (hit.collider == null || !IsEnvironmentImpactLayer(hit.collider.gameObject.layer))
@@ -322,6 +388,7 @@ public class ProjectileHitDetector : MonoBehaviour
         return collider.bounds.ClosestPoint(position);
     }
 
+    // 재사용되는 RaycastHit 버퍼의 사용 구간을 비운다
     private void ClearMovementHits(int hitCount)
     {
         for (int i = 0; i < hitCount; i++)

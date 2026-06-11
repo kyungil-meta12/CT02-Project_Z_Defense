@@ -1,4 +1,4 @@
-%YAML 1.1
+﻿%YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
 --- !u!114 &11400000
 MonoBehaviour:
@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::TurretDefinitionSO
   turretId: machinegun_red_3
   displayName: Machinegun_Red_3
-  basePrefab: {fileID: 3333919812949605075, guid: e9c677624ae509d4d82d9eb826f483be, type: 3}
+  basePrefab: {fileID: 5345693528658615356, guid: e9c677624ae509d4d82d9eb826f483be, type: 3}
   baseStatProfile: {fileID: 11400000, guid: 1f2459b97daf7bd48ae52e4153f98c93, type: 2}
   maxLevel: 0
   statGrowthProfile: {fileID: 11400000, guid: 660773e6c0470dd448cf837d604c1231, type: 2}

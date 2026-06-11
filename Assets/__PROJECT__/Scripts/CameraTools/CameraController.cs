@@ -5,14 +5,14 @@ public class CameraController : MonoBehaviour
 {
     public static CameraController Inst;
 
-    public float minOrthographicSize;
-    public float maxOrthographicSize;
-
     [Header("줌 감도")] public float zoomSensitivity;
     [Header("드래그 감도")] public float dragSensitivity;
-
-    [Header("카메라 이동 범위 제한(+-)")] public float distanceX;
-    [Header("카메라 이동 범위 제한(+-)")] public float distanceZ;
+    [Header("최대 줌")] public float maxZoom;
+    [Header("최소 줌")] public float minZoom;
+    [Header("최대 앞 오프셋")] public float maxForwardOffset;
+    [Header("최대 뒤 오프셋")] public float maxBackwardOffset;
+    [Header("최대 우측 오프셋")] public float maxRightOffset;
+    [Header("최대 좌측 오프셋")] public float maxLeftOffset;
 
     private Camera cam;
     private float originSize;
@@ -41,7 +41,6 @@ public class CameraController : MonoBehaviour
             DestroyImmediate(gameObject);
         }
         Inst = this;
-        Inst = this;
         DontDestroyOnLoad(gameObject);
     }
 
@@ -57,8 +56,8 @@ public class CameraController : MonoBehaviour
         originSize = cam.orthographicSize;
         currSize = originSize;
         currSizeDest = originSize;
-        currPos = cam.transform.position;
-        currPosDest = cam.transform.position;
+        currPos = originPos;
+        currPosDest = originPos;
     }
 
     void Update()
@@ -160,12 +159,44 @@ public class CameraController : MonoBehaviour
     #endif
 
         // 카메라 위치 조정
+        float camHalfHeight = currSizeDest; 
+        float camHalfWidth = currSizeDest * cam.aspect;
+
+        float pitchAngle = cam.transform.eulerAngles.x;
+        float pitchRad = pitchAngle * Mathf.Deg2Rad;
+
+        // 1. Sin 값의 절댓값을 구합니다.
+        float sinPitch = Mathf.Abs(Mathf.Sin(pitchRad));
+        float adjustedHalfHeight = camHalfHeight;
+
+        // 2. Sin 값이 0에 가까워 무한대가 되는 것을 미리 방지합니다.
+        if (sinPitch > 0.001f) 
+        {
+            adjustedHalfHeight = camHalfHeight / sinPitch;
+        }
+
+        var minX = originPos.x - maxForwardOffset;
+        var maxX = originPos.x + maxBackwardOffset;
+        var minZ = originPos.z - maxLeftOffset;
+        var maxZ = originPos.z + maxRightOffset;
+
         var zoomVal = currSizeDest / originSize;
         var currSensitivity = dragSensitivity * zoomVal;
-        currPosDest.z -= dragDelta.x * currSensitivity;
+
         currPosDest.x += dragDelta.y * currSensitivity;
-        currPosDest.x = Mathf.Clamp(currPosDest.x, originPos.x - distanceX / zoomVal, originPos.x + distanceX / zoomVal);
-        currPosDest.z = Mathf.Clamp(currPosDest.z, originPos.z - distanceZ / zoomVal, originPos.z + distanceZ / zoomVal);
+        currPosDest.z -= dragDelta.x * currSensitivity;
+        currPosDest.x = Mathf.Clamp(currPosDest.x, minX + adjustedHalfHeight, maxX - adjustedHalfHeight);
+        currPosDest.z = Mathf.Clamp(currPosDest.z, minZ + camHalfWidth, maxZ - camHalfWidth);
+        
+        if (minX + adjustedHalfHeight > maxX - adjustedHalfHeight) 
+        {
+            currPosDest.x = (minX + maxX) * 0.5f;
+        }
+        if (minZ + camHalfWidth > maxZ - camHalfWidth) 
+        {
+            currPosDest.z = (minZ + maxZ) * 0.5f;
+        }
+
         currPos = Vector3.Lerp(currPos, currPosDest, Time.deltaTime * 10f);
     }
 
@@ -203,7 +234,7 @@ public class CameraController : MonoBehaviour
 
         // 카메라 줌 반영
         currSizeDest -= zoomDelta * zoomSensitivity;
-        currSizeDest = Mathf.Clamp(currSizeDest, minOrthographicSize, maxOrthographicSize);
+        currSizeDest = Mathf.Clamp(currSizeDest, minZoom, maxZoom);
         currSize = Mathf.Lerp(currSize, currSizeDest, Time.deltaTime * 10f);
     }
 

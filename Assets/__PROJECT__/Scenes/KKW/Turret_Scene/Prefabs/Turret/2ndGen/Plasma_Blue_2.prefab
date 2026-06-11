@@ -1,5 +1,36 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
+--- !u!1 &1769718570008680061
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 3732284298627096677}
+  m_Layer: 0
+  m_Name: FireNozzle
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &3732284298627096677
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1769718570008680061}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0.535, z: 0.4}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 4357295782839811852}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &4157471123310495977
 GameObject:
   m_ObjectHideFlags: 0
@@ -12,6 +43,12 @@ GameObject:
   - component: {fileID: 384572661254233590}
   - component: {fileID: 2500255930792438076}
   - component: {fileID: 659683721615287038}
+  - component: {fileID: -5691196549830874599}
+  - component: {fileID: -1042246769450760847}
+  - component: {fileID: 1903308736497104700}
+  - component: {fileID: -8611196808681773507}
+  - component: {fileID: -1684595789162620441}
+  - component: {fileID: 1257144162829510071}
   m_Layer: 0
   m_Name: Plasma_Blue_2
   m_TagString: Untagged
@@ -26,13 +63,14 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4157471123310495977}
+  serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 4357295782839811852}
   m_Father: {fileID: 0}
-  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!33 &384572661254233590
 MeshFilter:
@@ -41,7 +79,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4157471123310495977}
-  m_Mesh: {fileID: -6895161744684149662, guid: abaf3c1f836d2844ebaa2af8cd4ec5e2, type: 3}
+  m_Mesh: {fileID: -6895161744684149662, guid: 7481489666c1dc14686d768006bfec09, type: 3}
 --- !u!23 &2500255930792438076
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -53,14 +91,21 @@ MeshRenderer:
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 2
+  m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
+  m_ForceMeshLod: -1
+  m_MeshLodSelectionBias: 0
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 8cb6072e49e9d254a97f778d74604fb1, type: 2}
+  - {fileID: 2100000, guid: 6f4d31d99e5843a48a0a8f763f82d611, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -78,9 +123,12 @@ MeshRenderer:
   m_AutoUVMaxDistance: 0.5
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
+  m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_MaskInteraction: 0
+  m_AdditionalVertexStreams: {fileID: 0}
 --- !u!65 &659683721615287038
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -89,11 +137,169 @@ BoxCollider:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4157471123310495977}
   m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
   m_IsTrigger: 0
+  m_ProvidesContacts: 0
   m_Enabled: 1
-  serializedVersion: 2
+  serializedVersion: 3
   m_Size: {x: 1.5864967, y: 0.2376855, z: 1.508848}
   m_Center: {x: 0, y: 0.11884275, z: 0.00843671}
+--- !u!114 &-5691196549830874599
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4157471123310495977}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: be3681d4c0e9f644d851459332a10c61, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ProjectZima.PolygonModularTurretsPack.Turret
+  rotatorMesh: {fileID: 7107167332859752773}
+  headMesh: {fileID: 7107167332859752773}
+  projectilePrefab: {fileID: 0}
+  canRotateXRotator: 1
+  canRotateHeadSeparately: 1
+  rotateSpeed: 500
+  turretAngleAttack: 5
+  closeRangePredictionDistance: 2
+  closeRangeFireDistance: 2
+  closeRangeTurretAngleAttack: 60
+  fireTick: 0.1
+  targetSearchInterval: 0.1
+  aimPointLerpSpeed: 18
+  showDebug: 0
+--- !u!114 &-1042246769450760847
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4157471123310495977}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a31afd3a38f12d846bcc57f9abf2944d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ProjectZima.PolygonModularTurretsPack.TargetFinder
+  radius: 10
+  targetTag: Enemy
+  targetLayer:
+    serializedVersion: 2
+    m_Bits: 128
+  pivotObject: {fileID: 7107167332859752773}
+  showDebug: 0
+  useHorizontalDistance: 1
+  requireLineOfSight: 1
+  lineOfSightBlockingMask:
+    serializedVersion: 2
+    m_Bits: 576
+  showRangeGizmo: 1
+  drawRangeOnlyWhenSelected: 1
+  rangeGizmoColor: {r: 0, g: 1, b: 0, a: 1}
+--- !u!114 &1903308736497104700
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4157471123310495977}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b41aab23c1c36d94aa4af80b1de3076a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ProjectZima.PolygonModularTurretsPack.SimpleFire
+  gunPrefabs:
+  - {fileID: 7107167332859752773}
+  firingSound: {fileID: 0}
+  muzzleVFX: {fileID: 0}
+  muzzleVFXDuration: 2
+--- !u!114 &-8611196808681773507
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4157471123310495977}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 17296b2ce492c0d469b41f99c4838a6b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TurretStatProfileApplier
+  statProfile: {fileID: 0}
+  targetTurret: {fileID: -5691196549830874599}
+  targetFinder: {fileID: -1042246769450760847}
+  targetGuns:
+  - {fileID: 8743705069267900886}
+  applyOnStart: 1
+  applyOnInspectorChange: 1
+--- !u!114 &-1684595789162620441
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4157471123310495977}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a87f91c13a2143e4aa6e691bd2b48bc7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TurretDefinitionRuntimeController
+  turretDefinition: {fileID: 11400000, guid: 031151f1ef378fd42bf4be24b3fe8b2b, type: 2}
+  level: 1
+  totalLevel: 1
+  applyOnStart: 1
+  applyOnInspectorChange: 1
+  applyStatsToTurret: 1
+  applyVFXToTurret: 1
+  logRuntimeStat: 1
+  logProjectileDamage: 1
+  statProfileApplier: {fileID: -8611196808681773507}
+  targetTurret: {fileID: -5691196549830874599}
+  targetFiringEvent: {fileID: 1903308736497104700}
+  currentTurretName: 
+  availableEvolutionNames: 
+--- !u!114 &1257144162829510071
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4157471123310495977}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ed41be34f6e64ef4b85a90d903ac51bb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TurretEvolutionRuntimeUI
+  runtimeController: {fileID: -1684595789162620441}
+  levelUpButton: {fileID: 0}
+  levelText: {fileID: 0}
+  tmpLevelText: {fileID: 0}
+  evolutionStatusText: {fileID: 0}
+  tmpEvolutionStatusText: {fileID: 0}
+  evolutionButtons:
+  - button: {fileID: 0}
+    iconImage: {fileID: 0}
+    labelText: {fileID: 0}
+    tmpLabelText: {fileID: 0}
+    sprite: {fileID: 0}
+  - button: {fileID: 0}
+    iconImage: {fileID: 0}
+    labelText: {fileID: 0}
+    tmpLabelText: {fileID: 0}
+    sprite: {fileID: 0}
+  replacePrefabOnEvolution: 1
+  clickLevelAmount: 1
+  holdStartDelay: 0.5
+  minHoldLevelsPerSecond: 4
+  maxHoldLevelsPerSecond: 45
+  accelerationDuration: 4
 --- !u!1 &7107167332859752773
 GameObject:
   m_ObjectHideFlags: 0
@@ -106,6 +312,7 @@ GameObject:
   - component: {fileID: 3461329136731735986}
   - component: {fileID: 7225358566825329166}
   - component: {fileID: 742895341088373961}
+  - component: {fileID: 8743705069267900886}
   m_Layer: 0
   m_Name: top_plasma_blue_2
   m_TagString: Untagged
@@ -120,12 +327,14 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7107167332859752773}
+  serializedVersion: 2
   m_LocalRotation: {x: 0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: -0, y: 0.20983827, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
-  m_Children: []
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 3732284298627096677}
   m_Father: {fileID: 3673139976782844499}
-  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!33 &3461329136731735986
 MeshFilter:
@@ -134,7 +343,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7107167332859752773}
-  m_Mesh: {fileID: 1522777837616189625, guid: abaf3c1f836d2844ebaa2af8cd4ec5e2, type: 3}
+  m_Mesh: {fileID: 1522777837616189625, guid: 7481489666c1dc14686d768006bfec09, type: 3}
 --- !u!23 &7225358566825329166
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -146,14 +355,21 @@ MeshRenderer:
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 2
+  m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
+  m_ForceMeshLod: -1
+  m_MeshLodSelectionBias: 0
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 8cb6072e49e9d254a97f778d74604fb1, type: 2}
+  - {fileID: 2100000, guid: 6f4d31d99e5843a48a0a8f763f82d611, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -171,9 +387,12 @@ MeshRenderer:
   m_AutoUVMaxDistance: 0.5
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
+  m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_MaskInteraction: 0
+  m_AdditionalVertexStreams: {fileID: 0}
 --- !u!65 &742895341088373961
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -182,8 +401,32 @@ BoxCollider:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7107167332859752773}
   m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
   m_IsTrigger: 0
+  m_ProvidesContacts: 0
   m_Enabled: 1
-  serializedVersion: 2
+  serializedVersion: 3
   m_Size: {x: 0.928814, y: 0.9421106, z: 1.3106347}
   m_Center: {x: 0, y: 0.4710553, z: -0.20653814}
+--- !u!114 &8743705069267900886
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7107167332859752773}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f89ead4bf227d574e9d1fafefd001433, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ProjectZima.PolygonModularTurretsPack.Gun
+  muzzleObject: {fileID: 1769718570008680061}
+  burstFireCount: 1
+  useMuzzleForwardDirection: 1
+  extraCollisionIgnoreRoots: []

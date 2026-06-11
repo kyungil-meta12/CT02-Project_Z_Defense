@@ -32,7 +32,7 @@ public class NormalZombieAttackCollider : MonoBehaviour
                     zombie.attackState = false;
                     zombie.attackTarget = null;
                     zombie.anim.SetBool("IsAttackState", false);
-                    zombie.agent.isStopped = false;
+                    if(zombie.agent.enabled)zombie.agent.isStopped = false;
                 }
             }
 
@@ -58,7 +58,7 @@ public class NormalZombieAttackCollider : MonoBehaviour
                     zombie.attackTarget = hit.gameObject;
                     zombie.attackTargetContactPoint = transform.position + (-direction * distance); // 장애물과 충돌한 위치를 바라본다
                     zombie.anim.SetBool("IsAttackState", true);
-                    zombie.agent.isStopped = true;
+                    if(zombie.agent.enabled)zombie.agent.isStopped = true;
                 }
             }
         }

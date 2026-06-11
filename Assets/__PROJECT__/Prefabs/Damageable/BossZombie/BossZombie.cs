@@ -9,6 +9,7 @@ using Random = UnityEngine.Random;
 public class BossZombie : PoolObject, IDamageable
 {
     private const string RootMotionScaleRootName = "Root";
+    private static readonly int SpeedHash = Animator.StringToHash("speed");
 
     public BossZombieSpec spec;
     public HpUI hpUI;
@@ -124,6 +125,7 @@ public class BossZombie : PoolObject, IDamageable
     {
         UpdateDeath();
         UpdateRootMotionNavigation();
+        UpdateMoveAnimatorSpeed();
     }
 
     // 비헤이비어 트리가 경로를 제어하고 애니메이터 루트모션이 실제 위치를 갱신하도록 설정한다
@@ -166,12 +168,34 @@ public class BossZombie : PoolObject, IDamageable
         transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime * 2.5f);
     }
 
+    // NavMeshAgent의 설정 속도를 애니메이터 이동 속도 파라미터에 반영한다
+    private void UpdateMoveAnimatorSpeed()
+    {
+        if (!anim)
+        {
+            return;
+        }
+
+        if (!IsAlive || !agent || !agent.enabled || !agent.isOnNavMesh || agent.isStopped || attackTargetBV.Value == null)
+        {
+            anim.SetFloat(SpeedHash, 0f);
+            return;
+        }
+
+        anim.SetFloat(SpeedHash, agent.speed);
+    }
+
     // 애니메이터 루트모션 이동량에 본 루트 스케일을 반영해 최상위 트랜스폼과 NavMeshAgent에 적용한다
     private void OnAnimatorMove()
     {
         if (!IsAlive || !anim || !agent || !agent.enabled || !agent.isOnNavMesh)
         {
             return;
+        }
+
+        if (agent.desiredVelocity.sqrMagnitude <= 0.1f)
+        {
+            transform.rotation *= anim.deltaRotation;
         }
 
         Vector3 deltaPosition = anim.deltaPosition;
@@ -184,7 +208,8 @@ public class BossZombie : PoolObject, IDamageable
             deltaPosition = transform.TransformVector(localDelta);
         }
 
-        transform.position += deltaPosition;
+        agent.Move(deltaPosition);
+        transform.position = agent.nextPosition;
         agent.nextPosition = transform.position;
     }
     

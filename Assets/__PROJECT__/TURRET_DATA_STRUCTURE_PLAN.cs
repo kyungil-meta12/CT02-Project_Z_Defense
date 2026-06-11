@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Turret Data Structure Plan
  *
  * Purpose
@@ -8,7 +8,8 @@
  * - Total level is tracked separately for display and future reward/economy systems.
  * - Evolution, projectile scale progression, and runtime evolution UI are currently implemented.
  * - Projectile damage delivery, zombie death-state filtering, and world-space damage popups are currently connected.
- * - Second generation turret Definition assets are now prepared and linked to their stat, growth, VFX progression, projectile scale, and base prefab assets.
+ * - Second generation turret Definition assets are prepared, linked, and connected through the current evolution progression data.
+ * - Runtime targeting now resolves stable target roots, ignores configured defense-line obstacle blockers, smooths aim prediction, and keeps HOVL hit VFX and projectile damage paths aligned.
  *
  * Current Evolution Tree
  *
@@ -35,22 +36,20 @@
  *   Vector MG -> Vulcan Node
  *
  * 4. Pulse Repeater
- * - Former first-generation branch end on the Sentry Pulse branch.
+ * - First-generation branch end on the Sentry Pulse branch and current second-generation entry point.
  * - Formerly named Mass Driver.
  * - Fast firing final turret.
  * - Current Definition maxLevel is 0.
- * - A Pulse Repeater evolution progression asset exists for second-generation entry, but the Definition is not connected to it yet.
- * - Planned second-generation choices:
+ * - Connected second-generation choices:
  *   Pulse Repeater -> Machinegun_Blue_1
  *   Pulse Repeater -> Machinegun_Red_1
  *   Pulse Repeater -> Laser_Blue_1
  *   Pulse Repeater -> Laser_Red_1
  *
  * 5. Vulcan Node
- * - Former first-generation branch end on the Vector MG branch.
+ * - First-generation branch end on the Vector MG branch and current second-generation entry point.
  * - Current Definition maxLevel is 0.
- * - A Vulcan Node evolution progression asset exists for second-generation entry, but the Definition is not connected to it yet.
- * - Planned second-generation choices:
+ * - Connected second-generation choices:
  *   Vulcan Node -> Lethal_Green_1
  *   Vulcan Node -> Lethal_Red_1
  *   Vulcan Node -> Plasma_Blue_1
@@ -69,13 +68,14 @@
  *   Plasma_Blue
  *   Plasma_Yellow
  * - Each second-generation Definition has basePrefab, baseStatProfile, statGrowthProfile, vfxProgressionProfile, and projectileScaleProgressionProfile assigned.
- * - Second-generation evolutionProgressionProfile references are not connected to Definitions yet.
- * - Laser and Machinegun internal evolution assets exist under TurretEvolutionProgressionSO/2ndGen.
- * - Lethal and Plasma internal evolution assets currently exist under TurretEvolutionProgressionSO root and need to be moved or treated consistently.
- * - Lethal and Plasma internal evolution assets currently need targetDefinition/displayName cleanup before being connected.
+ * - Second-generation _1 and _2 Definitions have internal evolutionProgressionProfile references connected to their next form.
+ * - Second-generation _3 Definitions intentionally have null evolutionProgressionProfile because no third-generation route is currently planned.
+ * - Evolution Entry displayName values were normalized to match the target Definition displayName format, including underscores.
+ * - All 24 second-generation Definition basePrefab references were verified to point to prefab roots instead of child model objects.
  *
  * 7. Third Generation Turrets
  * - Third generation is planned but not implemented.
+ * - Current second-generation _3 turret Definitions intentionally stop with no connected third-generation EvolutionProgressionSO.
  * - Current visual plan candidates:
  *   Poison Turret
  *   CuteStarTurret
@@ -105,7 +105,7 @@
  * - Evolution stop points should be controlled through TurretEvolutionProgressionSO.requiredLevel, not TurretDefinitionSO.maxLevel.
  * - If a turret has an evolutionProgressionProfile, the next required evolution level acts as a temporary level cap until the player chooses an evolution.
  * - Example: Sentinel-01 has maxLevel 0, but stops at level 100 because Sentinel-01_Evolution Progression SO has requiredLevel 100.
- * - Pulse Repeater and Vulcan Node currently use maxLevel 0 so they can later connect to second-generation evolution choices.
+ * - Pulse Repeater and Vulcan Node currently use maxLevel 0 and are connected to second-generation entry evolution choices.
  *
  * Current Implemented Structure
  *
@@ -211,14 +211,16 @@
  *
  * 1. TurretDefinitionRuntimeController checks the current turret's evolutionProgressionProfile using current tier level.
  * 2. TurretEvolutionRuntimeUI displays available evolution buttons.
- * 3. Each button uses the evolution entry icon first, then its fallback sprite.
- * 4. When an evolution is selected:
+ * 3. The temporary runtime upgrade popup dynamically builds all available evolution buttons, so four-way second-generation entry choices are supported.
+ * 4. Each button uses the evolution entry icon first, then its fallback sprite.
+ * 5. When an evolution is selected:
  *    - evolution effect is spawned through PooledObjectUtility.
  *    - if targetDefinition.basePrefab exists, the old turret prefab is replaced.
  *    - target turret receives the targetDefinition.
  *    - tier level resets to 1.
  *    - total level is preserved.
- * 5. Runtime UI is reattached to the evolved turret tester.
+ *    - replacement prefab keeps the existing parent slot and transform scale context.
+ * 6. Runtime UI is reattached to the evolved turret controller.
  *
  * Stat/VFX Runtime Flow
  *
@@ -262,6 +264,11 @@
  * Targeting And Firing Notes
  *
  * - TargetFinder selects the nearest valid target in range.
+ * - TargetFinder resolves collider hits to a stable tagged or IDamageable target root before returning a target.
+ * - TargetFinder line-of-sight checks use RaycastNonAlloc and can ignore ObstacleBuildSlot helper colliders, placed Obstacle colliders, and an additional inspector-controlled ignore layer mask.
+ * - Defense-line barricades should not hide zombies from turret targeting when the ignore options are enabled.
+ * - Turret aim uses TurretAimPointUtility to aim at a lower body point from target collider bounds instead of raw collider center.
+ * - Turret smooths aim position and target velocity prediction, clamps prediction lead time, and ignores vertical prediction by default to reduce visible tracking jitter.
  * - Turret now checks that the head is within turretAngleAttack before firing.
  * - Gun defaults to using the visible muzzle forward direction for projectile rotation.
  * - This keeps the visible muzzle direction and projectile launch direction aligned.
@@ -287,11 +294,13 @@
  *   void TakeDamage(float damage);
  * - Damageable state is read-only to external systems. Implementations update HP and alive state internally.
  * - ProjectileDamageDealer skips null targets, dead targets, and already-hit IDamageable instances.
+ * - ProjectileDamageDealer stores the tracked target IDamageable on spawn so HOVL hit VFX cannot consume a projectile on a non-damage child collider without applying damage.
  * - NormalZombie and BossZombie currently implement this contract.
  *
  * ProjectileDamageDealer
  * - Owns damage and pierce count for each projectile instance.
  * - Applies damage through hitCollider.GetComponentInParent<IDamageable>().
+ * - Allows colliders under the tracked target IDamageable even if the specific child collider is not on the damage layer.
  * - Keeps a per-projectile hit list so one projectile does not hit the same damageable repeatedly.
  * - Updates legacy projectile damage components so existing asset logic remains compatible.
  *
@@ -339,7 +348,7 @@
  * - Tier level 300:
  *   Damage 50, Range 100, Fire Interval 0.1, Projectile Speed 50.
  * - Current maxLevel: 0.
- * - Second-generation entry Evolution SO exists but is not connected to the Definition yet.
+ * - Second-generation entry Evolution SO is connected to the Definition.
  *
  * Vector MG
  * - Tier level 1:
@@ -354,18 +363,20 @@
  * - Tier level 300:
  *   Damage 150, Range 130, Fire Interval 0.8, Projectile Speed 50.
  * - Current maxLevel: 0.
- * - Second-generation entry Evolution SO exists but is not connected to the Definition yet.
+ * - Second-generation entry Evolution SO is connected to the Definition.
  *
  * Second Generation Data Status
  *
  * - 24 second-generation Definition assets exist.
  * - Definition base prefab/stat/growth/VFX/scale references are assigned.
- * - Current stat and growth values are placeholder-like and need balancing later.
- * - Evolution SO assets for second-generation internal progression exist, but not all are correct or connected.
- * - Known cleanup required:
- *   Lethal_Green1/2, Lethal_Red1/2, Plasma_Blue1/2, and Plasma_Yellow1/2 Evolution SO assets currently point to Machinegun_Red_3 and must be corrected before connection.
- *   Second-generation Evolution SO naming should be normalized to include underscores, for example Machinegun_Red_1_Evolution Progression SO.
- *   displayName values should be normalized to target Definition displayName format, for example Machinegun_Red_2.
+ * - Definition base prefab references were verified and corrected to root prefab objects where needed.
+ * - First-generation branch ends now connect to second-generation entry choices:
+ *   Pulse Repeater -> Machinegun_Blue_1, Machinegun_Red_1, Laser_Blue_1, Laser_Red_1.
+ *   Vulcan Node -> Lethal_Green_1, Lethal_Red_1, Plasma_Blue_1, Plasma_Yellow_1.
+ * - Second-generation internal progression is connected as _1 -> _2 -> _3 for the current families.
+ * - _3 Definitions intentionally have no next evolution until third-generation routes are designed.
+ * - Evolution entry displayName values use the same underscore format as target Definition displayName values.
+ * - Current stat/growth numbers are placeholder-like and should be balanced after combat feel is locked.
  *
  * Branch Setup Checklist
  *
@@ -432,8 +443,11 @@
  * - If direct modification is unavoidable for runtime integration, keep the change small and document why.
  * - Current direct Private Assets changes:
  *   Turret.cs: fire only when aim angle is within turretAngleAttack.
+ *   Turret.cs: shared aim smoothing, target velocity smoothing, capped prediction lead time, and lower body aim point integration.
+ *   TargetFinder.cs: stable target root resolution, configurable line-of-sight ignore options, and defense-line obstacle ignore support.
  *   Gun.cs: default projectile rotation follows muzzleObject forward direction.
- * - Recent damage popup and projectile damage integration work is project-level and does not require new Private Assets repository changes.
+ *   HS_ProjectileMover.cs: external hit handoff keeps HOVL hit VFX flow available for project-level hit correction.
+ * - Recent damage popup, projectile damage, turret placement, and runtime UI integration work is project-level where possible.
  */
 
 using UnityEngine;
@@ -441,3 +455,5 @@ using UnityEngine;
 public class TURRET_DATA_STRUCTURE_PLAN : MonoBehaviour
 {
 }
+
+

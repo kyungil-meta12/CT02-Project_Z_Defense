@@ -133,6 +133,8 @@
  * ------------------------------------------------------------------------------------------
  *
  * - 터렛 발사체는 ProjectileDamageDealer를 통해 IDamageable 대상에게 데미지를 전달한다.
+ * - ProjectileDamageDealer는 발사 시 전달받은 추적 타겟 IDamageable을 저장하여,
+ *   HOVL 피격 이펙트가 데미지 레이어가 아닌 자식 콜라이더에서 먼저 터져도 실제 타겟에게 데미지를 적용한다.
  * - ProjectileHitDetector는 빠르게 이동하는 발사체의 누락을 줄이기 위해 추적 대상 판정,
  *   Trigger/Collision 판정, 이동 구간 Raycast 판정을 함께 사용한다.
  * - 발사체는 이미 맞은 IDamageable을 중복 타격하지 않고, IsAlive == false 대상은 무시한다.
@@ -140,6 +142,11 @@
  * - NormalZombie와 BossZombie는 IDamageable을 구현하고, 사망 시 타겟 후보에서 제외되도록 IsAlive를 갱신한다.
  * - 좀비 사망 후 남아 있던 콜라이더 문제를 줄이기 위해 사망 상태와 충돌 판정을 함께 정리한다.
  * - 데미지 발생 시 DamagePopupSpawner.SpawnDamage를 통해 월드 공간 데미지 숫자를 표시한다.
+ * - TargetFinder는 콜라이더 자식이 아니라 태그 또는 IDamageable 기준의 안정적인 타겟 루트를 반환한다.
+ * - TargetFinder의 시야 판정은 인스펙터 설정에 따라 ObstacleBuildSlot 보조 콜라이더,
+ *   설치된 Obstacle 콜라이더, 추가 무시 레이어를 통과시킬 수 있다.
+ * - 터렛 조준은 TurretAimPointUtility를 통해 콜라이더 중앙보다 낮은 몸통 기준점을 사용한다.
+ * - 터렛 회전은 조준점/타겟 속도 보간, 예측 리드 시간 제한, 수직 예측 무시 옵션으로 공통 스무딩을 적용한다.
  *
  * ------------------------------------------------------------------------------------------
  * 현재 구현된 터렛 / UI / 연출 현황
@@ -147,8 +154,8 @@
  *
  * - Sentinel-01에서 Sentry Pulse 또는 Vector MG로 분기하는 진화 테스트 흐름이 구현되어 있다.
  * - Sentry Pulse는 Pulse Repeater, Vector MG는 Vulcan Node로 이어지는 1세대 진화 분기를 가진다.
- * - Pulse Repeater와 Vulcan Node는 2세대 진입 터렛으로 전환될 예정이며, 현재 maxLevel은 0으로 유지한다.
- * - Pulse Repeater와 Vulcan Node의 2세대 진입 EvolutionProgressionSO는 존재하지만 아직 Definition에는 연결하지 않았다.
+ * - Pulse Repeater와 Vulcan Node는 2세대 진입 터렛이며, 현재 maxLevel은 0으로 유지한다.
+ * - Pulse Repeater와 Vulcan Node의 2세대 진입 EvolutionProgressionSO는 Definition에 연결되어 있다.
  * - 2세대 터렛 Definition 24개가 생성되어 있고 base prefab, stat, stat growth, VFX progression, projectile scale progression 참조가 연결되어 있다.
  * - 2세대 터렛 라인업:
  *   Machinegun_Blue_1~3, Machinegun_Red_1~3,
@@ -160,9 +167,12 @@
  *   Machinegun_Blue -> Blue Fire, Machinegun_Red -> Black Fire,
  *   Lethal_Red -> Orange Explosion, Lethal_Green -> Green Explosion,
  *   Plasma_Blue -> Nova Violet, Plasma_Yellow -> Nova Orange.
- * - 2세대 내부 진화 SO는 일부 생성되어 있으나 Definition에는 아직 연결하지 않았다.
- * - Lethal/Plasma 내부 진화 SO 중 일부는 Machinegun_Red_3을 잘못 참조하고 있어 다음 작업에서 수정해야 한다.
+ * - 2세대 내부 진화는 각 계열의 _1 -> _2 -> _3 구조로 연결되어 있다.
+ * - 2세대 _3 터렛들은 아직 3세대 계획이 없으므로 evolutionProgressionProfile을 null로 둔다.
+ * - Evolution Entry displayName은 target Definition displayName과 같은 언더스코어 포함 형식으로 통일한다.
+ * - 2세대 Definition의 basePrefab 참조는 child model이 아니라 prefab root를 가리키도록 검증 및 수정했다.
  * - TurretEvolutionRuntimeUI는 런타임에서 레벨업, 진화 선택, Max Level 표시를 담당한다.
+ * - 임시 런타임 업그레이드 팝업은 가능한 진화 엔트리 수만큼 버튼을 동적으로 생성하므로 4분기 진입 UI를 표시할 수 있다.
  * - 터렛 스탯, VFX 프로필, 발사체 크기, 진화 규칙은 ScriptableObject 기반 데이터로 분리되어 있다.
  * - 메인 씬에는 터렛 진화 UI와 좀비 타겟팅/피격 흐름이 연결되어 있다.
  * - DamagePopupSettings는 데미지 팝업 프리팹, 풀 초기 크기, 폰트, 색상, 위치, 이동, 스케일, 유지 시간을 관리한다.
@@ -187,8 +197,8 @@
  * - 루트 레포의 git status는 Private Assets 내부 수정 파일을 직접 보여주지 않을 수 있다.
  * - Private Assets 내부 파일을 수정했을 때는 해당 폴더에서 별도로 git status를 확인해야 한다.
  * - 커밋도 두 레포에서 각각 필요할 수 있으므로, 작업 완료 전 루트 레포와 Private Assets 레포 상태를 모두 확인한다.
- * - 최근 터렛/좀비 전투 연결 작업은 루트 프로젝트 레포 중심으로 진행되었고,
- *   Private Assets 원본은 직접 수정하지 않는 방향을 유지한다.
+ * - 최근 터렛/좀비 전투 연결 작업은 루트 프로젝트 레포 중심으로 진행하되,
+ *   Turret.cs, TargetFinder.cs, Gun.cs, HS_ProjectileMover.cs처럼 외부 에셋 런타임 연결점은 최소 범위로 직접 수정했다.
  * - 외부 에셋 스크립트를 직접 수정해야 하는 경우에는 변경 범위를 작게 유지하고,
  *   프로젝트 레벨 어댑터/래퍼로 대체 가능한지 먼저 검토한다.
  * - Resources 경로 이동 시 Unity .meta GUID를 유지해야 기존 참조가 깨지지 않는다.

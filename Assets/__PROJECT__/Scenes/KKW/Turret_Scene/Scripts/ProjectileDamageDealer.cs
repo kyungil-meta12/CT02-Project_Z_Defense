@@ -2,6 +2,9 @@ using System.Collections.Generic;
 using ProjectZima.PolygonModularTurretsPack;
 using UnityEngine;
 
+/// <summary>
+/// 투사체가 충돌한 대상에게 데미지를 적용하고 관통 횟수와 중복 피격을 관리한다.
+/// </summary>
 [DisallowMultipleComponent]
 public class ProjectileDamageDealer : MonoBehaviour
 {
@@ -13,6 +16,7 @@ public class ProjectileDamageDealer : MonoBehaviour
     [SerializeField] private bool logDamage;
 
     private readonly List<IDamageable> hitDamageables = new List<IDamageable>(4);
+    private IDamageable trackedTargetDamageable;
 
     public bool HasReachedPierceLimit
     {
@@ -30,28 +34,33 @@ public class ProjectileDamageDealer : MonoBehaviour
         }
     }
 
+    // 데미지와 관통 수를 초기화한다
     public void Init(float damage_, int pierceCount_)
     {
         Init(damage_, pierceCount_, false);
     }
 
+    // 데미지, 관통 수, 로그 옵션을 초기화한다
     public void Init(float damage_, int pierceCount_, bool logDamage_)
     {
         Init(damage_, pierceCount_, logDamage_, null);
     }
 
+    // 데미지 처리 상태와 추적 타겟 정보를 초기화한다
     public void Init(float damage_, int pierceCount_, bool logDamage_, GameObject target)
     {
         damage = Mathf.Max(0.0f, damage_);
         pierceCount = Mathf.Max(0, pierceCount_);
         logDamage = logDamage_;
         hitDamageables.Clear();
+        trackedTargetDamageable = ResolveDamageable(target);
         enabled = true;
 
         ApplyLegacyProjectileDamageValues();
         InitHitDetector(target);
     }
 
+    // 충돌한 콜라이더에서 데미지 대상 컴포넌트를 찾아 데미지를 적용한다
     public bool TryApplyDamage(Collider hitCollider)
     {
         if (hitCollider == null)
@@ -59,13 +68,8 @@ public class ProjectileDamageDealer : MonoBehaviour
             return false;
         }
 
-        if (!IsDamageLayer(hitCollider.gameObject.layer))
-        {
-            return false;
-        }
-
         IDamageable damageable = hitCollider.GetComponentInParent<IDamageable>();
-        if (damageable == null || !damageable.IsAlive || hitDamageables.Contains(damageable))
+        if (damageable == null || !IsAllowedDamageCollider(hitCollider, damageable) || !damageable.IsAlive || hitDamageables.Contains(damageable))
         {
             return false;
         }
@@ -81,11 +85,51 @@ public class ProjectileDamageDealer : MonoBehaviour
         return true;
     }
 
+    // 지정 레이어가 데미지 레이어 마스크에 포함되는지 확인한다
     private bool IsDamageLayer(int layer)
     {
         return (damageLayerMask.value & (1 << layer)) != 0;
     }
 
+    // 충돌 콜라이더가 데미지를 줄 수 있는 레이어이거나 추적 타겟의 하위 콜라이더인지 확인한다
+    private bool IsAllowedDamageCollider(Collider hitCollider, IDamageable damageable)
+    {
+        if (hitCollider != null && IsDamageLayer(hitCollider.gameObject.layer))
+        {
+            return true;
+        }
+
+        if (damageable == trackedTargetDamageable)
+        {
+            return true;
+        }
+
+        if (damageable is Component damageableComponent)
+        {
+            return IsDamageLayer(damageableComponent.gameObject.layer);
+        }
+
+        return false;
+    }
+
+    // 발사 시 전달받은 타겟 오브젝트에서 데미지 대상 컴포넌트를 찾는다
+    private static IDamageable ResolveDamageable(GameObject target)
+    {
+        if (target == null)
+        {
+            return null;
+        }
+
+        IDamageable damageable = target.GetComponentInParent<IDamageable>();
+        if (damageable != null)
+        {
+            return damageable;
+        }
+
+        return target.GetComponentInChildren<IDamageable>();
+    }
+
+    // 기존 투사체 스크립트들이 사용하는 데미지 값도 함께 갱신한다
     private void ApplyLegacyProjectileDamageValues()
     {
         DamageManager damageManager = GetComponent<DamageManager>();
@@ -101,6 +145,7 @@ public class ProjectileDamageDealer : MonoBehaviour
         }
     }
 
+    // 보정 피격 감지 컴포넌트를 준비하고 현재 타겟을 전달한다
     private void InitHitDetector(GameObject target)
     {
         ProjectileHitDetector hitDetector = GetComponent<ProjectileHitDetector>();

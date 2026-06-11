@@ -28,8 +28,11 @@ public class NormalZombie : PoolObject, IDamageable
 
     private bool returnInstanceCoroutineRunning = false;
 
+    private Rigidbody rb;
+
     private void Awake()
     {
+        rb = GetComponent<Rigidbody>();
         anim = GetComponent<Animator>();
         agent = GetComponent<NavMeshAgent>();
         agent.updatePosition = false;
@@ -75,6 +78,8 @@ public class NormalZombie : PoolObject, IDamageable
         hpUI.gameObject.SetActive(false);
 
         SetCollidersEnabled(true); // 히트 콜라이더 활성화
+
+        rb.constraints = RigidbodyConstraints.FreezeRotationZ | RigidbodyConstraints.FreezeRotationX; // 회전 제약 재설정
 
         // 코루틴 동작 상태 초기화
         returnInstanceCoroutineRunning = false;
@@ -268,6 +273,7 @@ public class NormalZombie : PoolObject, IDamageable
         anim.SetBool("IsAttackState", false);
         anim.SetTrigger("DeadTrigger"); // 죽는 애니메이션으로 변경
         SetCollidersEnabled(false); // 히트 콜라이더 비활성화
+        rb.constraints = RigidbodyConstraints.FreezeRotation; // 모든 방향 회전 방지
     }
 
     /// <summary>

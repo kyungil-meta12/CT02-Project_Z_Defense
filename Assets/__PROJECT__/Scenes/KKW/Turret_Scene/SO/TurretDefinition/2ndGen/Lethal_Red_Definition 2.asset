@@ -20,4 +20,4 @@ MonoBehaviour:
   statGrowthProfile: {fileID: 11400000, guid: 5f7515d14fce0e24c9af4bfbf2a3ade0, type: 2}
   vfxProgressionProfile: {fileID: 11400000, guid: ab872fe79a85d574cb21a394ef3b5259, type: 2}
   projectileScaleProgressionProfile: {fileID: 11400000, guid: 832f6da9a714e0b4abe54a105559cb86, type: 2}
-  evolutionProgressionProfile: {fileID: 0}
+  evolutionProgressionProfile: {fileID: 11400000, guid: 0b925a06bd281eb46b4337f8096065a5, type: 2}

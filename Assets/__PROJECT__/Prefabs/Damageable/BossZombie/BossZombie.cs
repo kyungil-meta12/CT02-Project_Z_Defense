@@ -8,6 +8,8 @@ using Random = UnityEngine.Random;
 
 public class BossZombie : PoolObject, IDamageable
 {
+    private const string RootMotionScaleRootName = "Root";
+
     public BossZombieSpec spec;
     public HpUI hpUI;
     
@@ -16,17 +18,11 @@ public class BossZombie : PoolObject, IDamageable
     public NavMeshAgent agent;
     public Collider col;
     private Rigidbody rb;
+    [SerializeField] private Transform boneRoot;
     
-    private Transform destination;
     private float attackDamage;
     private bool returnInstanceCoroutineRunning = false;
-    private static readonly int SpeedHash = Animator.StringToHash("speed");
-    private static readonly int HitStateHash = Animator.StringToHash("Hit");
-    private static readonly int AttackStateHash = Animator.StringToHash("Attack");
-    private static readonly int BackWalkStateHash = Animator.StringToHash("BackWalk");
-    private static readonly int SkillStateHash = Animator.StringToHash("Skill");
     private readonly List<Collider> colliders = new List<Collider>(4);
-    [SerializeField] private float animationSpeedDampTime = 0.1f;
     [SerializeField] private float screamerSkillRadius = 10f;
     [SerializeField] private float screamerSkillSpeedMultiplier = 1.5f;
     [SerializeField] private bool logReceivedDamage = true;
@@ -35,14 +31,17 @@ public class BossZombie : PoolObject, IDamageable
 
     public BlackboardVariable<BossZombieEnum> bossZombieEnum;
     public BlackboardVariable<GameObject> attackTargetBV;
+    private BlackboardVariable<float> attackDistanceBV;
     private BlackboardVariable<bool> isDieBV;
     private BlackboardVariable<int> hitCountBV;
     private BlackboardVariable<int> curAttackCountBV;
+    private BlackboardVariable<float> speedBV;
     
     public float TotalHp { get; private set; }
     public float CurrHp { get; private set; }
     public bool IsAlive { get; private set; }
 
+    // 필요한 컴포넌트와 비헤이비어 블랙보드 변수를 초기화한다
     public void Awake()
     {
         behaviorAgent = GetComponent<BehaviorGraphAgent>();
@@ -52,19 +51,21 @@ public class BossZombie : PoolObject, IDamageable
         rb = GetComponent<Rigidbody>();
         GetComponentsInChildren(false, colliders);
 
-        ConfigureRootMotionNavigation();
+        ConfigureBehaviorNavigation();
         
         behaviorAgent.GetVariable("Enum", out bossZombieEnum);
         behaviorAgent.GetVariable("AttackTarget", out attackTargetBV);
+        behaviorAgent.GetVariable("AttackDistance", out attackDistanceBV);
         behaviorAgent.GetVariable("isDie", out isDieBV);
         behaviorAgent.GetVariable("hitCount", out hitCountBV);
         behaviorAgent.GetVariable("curAttackCount", out curAttackCountBV);
+        behaviorAgent.GetVariable("speed", out speedBV);
     }
 
     public override void OnSpawn()
     {
         base.OnSpawn();
-        ConfigureRootMotionNavigation();
+        ConfigureBehaviorNavigation();
 
         var randomMoveAttackSpeed = Random.Range(spec.MinMoveAttackSpeed, spec.MaxMoveAttackSpeed);
         var randomAttackDamage = Random.Range(spec.MinAttackDamage, spec.MaxAttackDamage);
@@ -74,11 +75,13 @@ public class BossZombie : PoolObject, IDamageable
         
         // 이동/공격 속도
         var moveAttackSpeedMul = isFirstWave ? randomMoveAttackSpeed : randomMoveAttackSpeed * Mathf.Pow(1f + spec.MoveAttackSpeedWeight, wave - 1f);
+        speedBV.Value = spec.MoveSpeed * moveAttackSpeedMul;
         anim.SetFloat("AttackSpeed", spec.AttackSpeed * moveAttackSpeedMul);
 
         // 공격 대미지
         var attackDamageMul = isFirstWave ? randomAttackDamage : randomAttackDamage * Mathf.Pow(1f + spec.AttackDamageWeight, wave - 1f);
         attackDamage = spec.AttackDamage * attackDamageMul;
+        attackDistanceBV.Value = spec.AttackDistance;
 
         // 체력
         var hpMul = isFirstWave ? randomHp : randomHp * Mathf.Pow(1f + spec.HpWeight, wave - 1f);
@@ -86,7 +89,6 @@ public class BossZombie : PoolObject, IDamageable
         CurrHp = TotalHp;
         IsAlive = true;
         storeDamage = 0f;
-        destination = null;
         hitCountBV.Value = 0;
         curAttackCountBV.Value = 0;
         attackTargetBV.Value = null;
@@ -99,9 +101,8 @@ public class BossZombie : PoolObject, IDamageable
         
         SetCollidersEnabled(true);
         agent.enabled = true;
-        SyncAgentPositionToTransform();
+        agent.isStopped = false;
         isDieBV.Value = false;
-        anim.SetFloat(SpeedHash, 0f);
 
         // 코루틴 동작 상태 초기화
         returnInstanceCoroutineRunning = false;
@@ -118,14 +119,15 @@ public class BossZombie : PoolObject, IDamageable
         RestoreAllScreamerSpeedBuffs();
     }
 
+    // 매 프레임 사망 처리와 루트모션 이동 방향을 갱신한다
     void Update()
     {
         UpdateDeath();
         UpdateRootMotionNavigation();
-        UpdateMoveAnimationSpeed();
     }
 
-    private void ConfigureRootMotionNavigation()
+    // 비헤이비어 트리가 경로를 제어하고 애니메이터 루트모션이 실제 위치를 갱신하도록 설정한다
+    private void ConfigureBehaviorNavigation()
     {
         if (anim)
         {
@@ -141,6 +143,7 @@ public class BossZombie : PoolObject, IDamageable
         agent.updateRotation = false;
     }
 
+    // NavMeshAgent가 계산한 진행 방향으로 보스의 회전만 갱신한다
     private void UpdateRootMotionNavigation()
     {
         if (!IsAlive || !agent || !agent.enabled || !agent.isOnNavMesh)
@@ -148,119 +151,41 @@ public class BossZombie : PoolObject, IDamageable
             return;
         }
 
-        SyncAgentPositionToTransform();
-
-        if (IsActionRootMotionState())
-        {
-            agent.isStopped = true;
-            return;
-        }
-
-        if (agent.isStopped)
-        {
-            agent.isStopped = false;
-        }
+        agent.nextPosition = transform.position;
 
         Vector3 destDir = agent.desiredVelocity;
         destDir.y = 0f;
 
-        if (destDir.sqrMagnitude > 0.1f)
+        if (destDir.sqrMagnitude <= 0.1f)
         {
-            destDir.Normalize();
-            Quaternion targetRotation = Quaternion.LookRotation(destDir);
-            transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime * 2.5f);
+            return;
         }
+
+        destDir.Normalize();
+        Quaternion targetRotation = Quaternion.LookRotation(destDir);
+        transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime * 2.5f);
     }
 
+    // 애니메이터 루트모션 이동량에 본 루트 스케일을 반영해 최상위 트랜스폼과 NavMeshAgent에 적용한다
     private void OnAnimatorMove()
     {
-        if (!IsAlive || !anim)
+        if (!IsAlive || !anim || !agent || !agent.enabled || !agent.isOnNavMesh)
         {
             return;
         }
 
-        transform.position += anim.deltaPosition;
-
-        if (IsActionRootMotionState())
+        Vector3 deltaPosition = anim.deltaPosition;
+        if (boneRoot)
         {
-            transform.rotation *= anim.deltaRotation;
+            Vector3 rootScale = boneRoot.localScale;
+            Vector3 localDelta = transform.InverseTransformVector(deltaPosition);
+            localDelta.x *= rootScale.x;
+            localDelta.z *= rootScale.z;
+            deltaPosition = transform.TransformVector(localDelta);
         }
 
-        SyncAgentPositionToTransform();
-    }
-
-    private void SyncAgentPositionToTransform()
-    {
-        if (!agent || !agent.enabled || !agent.isOnNavMesh)
-        {
-            return;
-        }
-
+        transform.position += deltaPosition;
         agent.nextPosition = transform.position;
-    }
-
-    private bool IsActionRootMotionState()
-    {
-        if (!anim)
-        {
-            return false;
-        }
-
-        AnimatorStateInfo currentState = anim.GetCurrentAnimatorStateInfo(0);
-        if (IsActionRootMotionState(currentState.shortNameHash))
-        {
-            return true;
-        }
-
-        if (!anim.IsInTransition(0))
-        {
-            return false;
-        }
-
-        AnimatorStateInfo nextState = anim.GetNextAnimatorStateInfo(0);
-        return IsActionRootMotionState(nextState.shortNameHash);
-    }
-
-    private bool IsActionRootMotionState(int stateHash)
-    {
-        return stateHash == HitStateHash ||
-               stateHash == AttackStateHash ||
-               stateHash == BackWalkStateHash ||
-               stateHash == SkillStateHash;
-    }
-
-    private void UpdateMoveAnimationSpeed()
-    {
-        if (!anim)
-        {
-            return;
-        }
-
-        if (!IsAlive)
-        {
-            anim.SetFloat(SpeedHash, 0f);
-            return;
-        }
-
-        if (!agent || !agent.enabled || !agent.isOnNavMesh)
-        {
-            anim.SetFloat(SpeedHash, 0f, animationSpeedDampTime, Time.deltaTime);
-            return;
-        }
-
-        if (IsActionRootMotionState())
-        {
-            anim.SetFloat(SpeedHash, 0f, animationSpeedDampTime, Time.deltaTime);
-            return;
-        }
-
-        float speed = agent.desiredVelocity.magnitude;
-        if (speed > 1f)
-        {
-            speed = 1f;
-        }
-
-        anim.SetFloat(SpeedHash, speed, animationSpeedDampTime, Time.deltaTime);
     }
     
     void UpdateDeath()
@@ -531,20 +456,16 @@ public class BossZombie : PoolObject, IDamageable
         SetCollidersEnabled(true);
         transform.position = t.position;
         agent.enabled = true;
-        ConfigureRootMotionNavigation();
+        agent.isStopped = false;
+        ConfigureBehaviorNavigation();
         agent.Warp(t.position);
-        SyncAgentPositionToTransform();
     }
     
+    // 스포너 호출 호환성만 유지하고 실제 이동 제어는 비헤이비어 트리에 맡긴다
     public void SetDestination(Transform t)
     {
-        destination = t;
         agent.enabled = true;
-        ConfigureRootMotionNavigation();
-
-        if (destination && agent.isOnNavMesh)
-        {
-            agent.SetDestination(destination.position);
-        }
+        agent.isStopped = false;
+        ConfigureBehaviorNavigation();
     }
 }

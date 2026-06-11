@@ -1,4 +1,4 @@
-﻿%YAML 1.1
+%YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
 --- !u!1 &760683178536181322
 GameObject:
@@ -31,22 +31,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 9012150237503244836}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &6401424821041835008
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6391739325188038059}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f89ead4bf227d574e9d1fafefd001433, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::ProjectZima.PolygonModularTurretsPack.Gun
-  muzzleObject: {fileID: 760683178536181322}
-  burstFireCount: 1
-  useMuzzleForwardDirection: 1
-  extraCollisionIgnoreRoots: []
 --- !u!1 &3656959181159089104
 GameObject:
   m_ObjectHideFlags: 0
@@ -183,7 +167,7 @@ MonoBehaviour:
   projectilePrefab: {fileID: 0}
   canRotateXRotator: 1
   canRotateHeadSeparately: 1
-  rotateSpeed: 10
+  rotateSpeed: 500
   turretAngleAttack: 5
   closeRangePredictionDistance: 2
   closeRangeFireDistance: 2
@@ -430,4 +414,19 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 0.8434455, y: 1.1446255, z: 1.4896374}
   m_Center: {x: 0, y: 0.5723128, z: 0.092273355}
-
+--- !u!114 &6401424821041835008
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6391739325188038059}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f89ead4bf227d574e9d1fafefd001433, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ProjectZima.PolygonModularTurretsPack.Gun
+  muzzleObject: {fileID: 760683178536181322}
+  burstFireCount: 1
+  useMuzzleForwardDirection: 1
+  extraCollisionIgnoreRoots: []

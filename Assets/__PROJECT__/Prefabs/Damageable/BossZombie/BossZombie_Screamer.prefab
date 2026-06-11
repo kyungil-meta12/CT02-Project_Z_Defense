@@ -1950,8 +1950,8 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
+  m_LocalScale: {x: 5, y: 5, z: 5}
+  m_ConstrainProportionsScale: 1
   m_Children:
   - {fileID: 8225144644843875078}
   m_Father: {fileID: 8487050741437378786}
@@ -1980,6 +1980,10 @@ PrefabInstance:
       propertyPath: spec
       value: 
       objectReference: {fileID: 11400000, guid: 10f1d228ca24f9b4c8eb370bab827765, type: 2}
+    - target: {fileID: 5496418273564551380, guid: bb3feed03de6ffc478b034fa5b6ed38f, type: 3}
+      propertyPath: boneRoot
+      value: 
+      objectReference: {fileID: 2269487032733829538}
     - target: {fileID: 5496418273564551380, guid: bb3feed03de6ffc478b034fa5b6ed38f, type: 3}
       propertyPath: bossZombieEnum.m_Value
       value: 1

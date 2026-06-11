@@ -19,6 +19,8 @@ public class NormalZombie : PoolObject, IDamageable
 
     private Transform destination; // 현재 추적하는 타겟
     private float attackDamage; // 타워에 가할 대미지
+    private Rigidbody rb;
+    private readonly List<Collider> colliders = new List<Collider>(4);
 
     // IDamageable value
     public float CurrHp { get; private set; } // 현재 체력
@@ -31,6 +33,7 @@ public class NormalZombie : PoolObject, IDamageable
     {
         anim = GetComponent<Animator>();
         agent = GetComponent<NavMeshAgent>();
+        rb = GetComponent<Rigidbody>();
         agent.updatePosition = false;
         agent.updateRotation = false;
     }
@@ -264,6 +267,30 @@ public class NormalZombie : PoolObject, IDamageable
         agent.enabled = false; // 에이전트 비활성화
         anim.SetBool("IsAttackState", false);
         anim.SetTrigger("DeadTrigger"); // 죽는 애니메이션으로 변경
+    }
+
+    /// <summary>
+    /// 풀링 재사용과 사망 상태에 맞춰 전체 콜라이더와 리지드바디 활성 상태를 변경한다
+    /// </summary>
+    /// <param name="isEnabled"></param>
+    private void SetCollidersEnabled(bool isEnabled)
+    {
+        for (int i = 0; i < colliders.Count; i++)
+        {
+            Collider colliderComp = colliders[i];
+            if (colliderComp == null)
+            {
+                continue;
+            }
+
+            colliderComp.enabled = isEnabled;
+        }
+
+        if (rb)
+        {
+            rb.isKinematic = !isEnabled;
+            rb.detectCollisions = isEnabled;
+        }
     }
 
     /// <summary>

@@ -10,6 +10,7 @@ public class NormalZombie : PoolObject, IDamageable
     [SerializeField] private bool logReceivedDamage = true;
     
     public HpUI hpUI;
+    public Collider hitCollider;
 
     [HideInInspector] public Animator anim;
     [HideInInspector] public bool attackState;
@@ -19,8 +20,6 @@ public class NormalZombie : PoolObject, IDamageable
 
     private Transform destination; // 현재 추적하는 타겟
     private float attackDamage; // 타워에 가할 대미지
-    private Rigidbody rb;
-    private readonly List<Collider> colliders = new List<Collider>(4);
 
     // IDamageable value
     public float CurrHp { get; private set; } // 현재 체력
@@ -33,7 +32,6 @@ public class NormalZombie : PoolObject, IDamageable
     {
         anim = GetComponent<Animator>();
         agent = GetComponent<NavMeshAgent>();
-        rb = GetComponent<Rigidbody>();
         agent.updatePosition = false;
         agent.updateRotation = false;
     }
@@ -75,6 +73,8 @@ public class NormalZombie : PoolObject, IDamageable
         hpUI.InputTotalHp(TotalHp);
         hpUI.InputCurrHp(TotalHp);
         hpUI.gameObject.SetActive(false);
+
+        SetCollidersEnabled(true); // 히트 콜라이더 활성화
 
         // 코루틴 동작 상태 초기화
         returnInstanceCoroutineRunning = false;
@@ -267,6 +267,7 @@ public class NormalZombie : PoolObject, IDamageable
         agent.enabled = false; // 에이전트 비활성화
         anim.SetBool("IsAttackState", false);
         anim.SetTrigger("DeadTrigger"); // 죽는 애니메이션으로 변경
+        SetCollidersEnabled(false); // 히트 콜라이더 비활성화
     }
 
     /// <summary>
@@ -275,22 +276,7 @@ public class NormalZombie : PoolObject, IDamageable
     /// <param name="isEnabled"></param>
     private void SetCollidersEnabled(bool isEnabled)
     {
-        for (int i = 0; i < colliders.Count; i++)
-        {
-            Collider colliderComp = colliders[i];
-            if (colliderComp == null)
-            {
-                continue;
-            }
-
-            colliderComp.enabled = isEnabled;
-        }
-
-        if (rb)
-        {
-            rb.isKinematic = !isEnabled;
-            rb.detectCollisions = isEnabled;
-        }
+        hitCollider.enabled = isEnabled;
     }
 
     /// <summary>

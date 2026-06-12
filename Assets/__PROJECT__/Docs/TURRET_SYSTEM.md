@@ -110,6 +110,8 @@ Do not use display names as stable IDs.
 9. Successful placement instantiates the turret prefab as a child of `BuildPoint`.
 10. Installed turret local position and rotation should reset to zero/identity.
 11. `TurretBaseSlot` records the occupied turret controller or fallback GameObject.
+12. `TurretPlacementController` records successful placement count per placement entry.
+13. Placement entries can use `Placement Cost Tiers` to change the next placement cost by successful placement count.
 
 ## Targeting And Firing Notes
 
@@ -142,8 +144,7 @@ The validator checks:
 - missing `upgradeCostProfile` references on turret definitions.
 - empty `baseCostsPerLevel` arrays on upgrade cost profiles.
 - empty `evolutionCosts` arrays on evolution entries with a target definition.
-- missing `placementCosts` on turret placement entries when hidden legacy `cost` is also zero.
-- hidden legacy turret placement `cost` fallback usage count.
+- missing `placementCosts` on turret placement entries.
 - negative cost amounts in upgrade, evolution, and placement cost arrays.
 
 For each turret definition:
@@ -171,6 +172,13 @@ For each turret base:
 - `PlacementHitArea` exists with collider.
 - `PlacementHitArea` is on TurretBase layer.
 - Build point should not contain a default turret for production placement prefabs.
+
+For each turret placement entry:
+
+- `Placement Costs` is the default first placement cost.
+- `Placement Cost Tiers.Min Placed Count` means successful placements already completed for that entry.
+- Example: `Min Placed Count = 1` applies to the second successful placement attempt.
+- The highest matching tier is used when multiple tiers match.
 
 ## Deprecated Or Avoided Patterns
 

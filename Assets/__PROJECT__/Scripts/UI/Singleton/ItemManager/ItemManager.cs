@@ -4,11 +4,17 @@ using IncrementalLib;
 using System;
 
 /// <summary>
-/// 플레이어가 가진 아이템을 관리하는 싱글톤 모듈
+/// 플레이어가 가진 재화와 아이템성 자원을 관리하는 싱글톤 지갑 모듈.
 /// </summary>
 public class ItemManager : MonoBehaviour
 {
     public static ItemManager Inst;
+
+    [Header("Initial Wallet")]
+    [SerializeField] private bool applyInitialWalletOnAwake = true;
+    [SerializeField] private bool applyInitialWalletOnlyWhenEmpty = true;
+    [SerializeField] private bool logInitialWalletApply = true;
+    [SerializeField] private ResourceCost[] initialWalletCurrencies = { new ResourceCost(RewardCurrencyType.Coin, 50) };
 
     // ItemIndicator에서 구독하는 이벤트
     // string 가비지 발생을 줄이기 위해 값이 변경되었을 때만 인디케이터의 텍스트에 반영한다.
@@ -44,12 +50,31 @@ public class ItemManager : MonoBehaviour
 
         Inst = this;
 
-        CoinCountString = CoinCount.ToString();
-        WaveCollectCoinCountString = WaveCollectCoinCount.ToString();
-        FirePartCountString = FirePartCount.ToString();
-        SpecialPartCountString = SpecialPartCount.ToString();
+        RefreshAllCurrencyStringsAndNotify();
+        ApplyInitialWalletIfNeeded();
+        RefreshAllCurrencyStringsAndNotify();
 
         DontDestroyOnLoad(gameObject);
+    }
+
+    // 인스펙터 입력값을 유효한 초기 지갑 설정으로 보정한다
+    void OnValidate()
+    {
+        if (initialWalletCurrencies == null)
+        {
+            return;
+        }
+
+        for (int i = 0; i < initialWalletCurrencies.Length; i++)
+        {
+            ResourceCost initialCurrency = initialWalletCurrencies[i];
+            if (initialCurrency == null)
+            {
+                continue;
+            }
+
+            initialCurrency.amount = Mathf.Max(0, initialCurrency.amount);
+        }
     }
 
     // 웨이브 증가 이벤트를 구독한다
@@ -77,6 +102,43 @@ public class ItemManager : MonoBehaviour
     void OnWaveIncrease(int wave)
     {
         AddCoinBouns(20);
+    }
+
+    // 설정된 초기 지갑 재화를 현재 플레이 세션에 적용한다
+    private void ApplyInitialWalletIfNeeded()
+    {
+        if (!applyInitialWalletOnAwake || initialWalletCurrencies == null)
+        {
+            return;
+        }
+
+        if (applyInitialWalletOnlyWhenEmpty && !IsWalletEmpty())
+        {
+            return;
+        }
+
+        for (int i = 0; i < initialWalletCurrencies.Length; i++)
+        {
+            ResourceCost initialCurrency = initialWalletCurrencies[i];
+            if (initialCurrency == null || initialCurrency.amount <= 0)
+            {
+                continue;
+            }
+
+            AddReward(initialCurrency.currencyType, initialCurrency.amount, false);
+        }
+
+        RefreshAllCurrencyStringsAndNotify();
+        if (logInitialWalletApply)
+        {
+            Debug.Log($"[ItemManager] 초기 지갑 재화를 적용했습니다. Coin:{CoinCountString}, Fire:{FirePartCountString}, Special:{SpecialPartCountString}", this);
+        }
+    }
+
+    // 현재 지갑에 보유 재화가 없는지 확인한다
+    private bool IsWalletEmpty()
+    {
+        return CoinCount <= 0 && FirePartCount <= 0 && SpecialPartCount <= 0;
     }
 
     /// <summary>
@@ -458,5 +520,13 @@ public class ItemManager : MonoBehaviour
                 OnSpecialPartValueChange?.Invoke(SpecialPartCountString);
                 break;
         }
+    }
+
+    // 모든 재화 문자열 캐시를 갱신하고 UI 이벤트를 발행한다
+    private void RefreshAllCurrencyStringsAndNotify()
+    {
+        RefreshCurrencyStringAndNotify(RewardCurrencyType.Coin);
+        RefreshCurrencyStringAndNotify(RewardCurrencyType.FirePart);
+        RefreshCurrencyStringAndNotify(RewardCurrencyType.SpecialPart);
     }
 }

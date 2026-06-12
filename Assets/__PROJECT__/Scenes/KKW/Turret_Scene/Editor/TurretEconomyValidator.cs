@@ -9,8 +9,9 @@ internal static class TurretEconomyValidator
     private const string BASE_COSTS_PROPERTY = "baseCostsPerLevel";
     private const string EVOLUTION_COSTS_PROPERTY = "evolutionCosts";
     private const string COST_AMOUNT_PROPERTY = "amount";
-    private const string LEGACY_COST_PROPERTY = "cost";
     private const string PLACEMENT_COSTS_PROPERTY = "placementCosts";
+    private const string PLACEMENT_COST_TIERS_PROPERTY = "placementCostTiers";
+    private const string TIER_COSTS_PROPERTY = "costs";
     private const string TARGET_DEFINITION_PROPERTY = "targetDefinition";
     private const string EVOLUTION_ENTRIES_PROPERTY = "evolutionEntries";
 
@@ -67,32 +68,48 @@ internal static class TurretEconomyValidator
 
             SerializedObject serializedShopEntry = new SerializedObject(shopEntry);
             SerializedProperty placementCosts = serializedShopEntry.FindProperty(PLACEMENT_COSTS_PROPERTY);
-            SerializedProperty legacyCost = serializedShopEntry.FindProperty(LEGACY_COST_PROPERTY);
             bool hasPlacementCosts = HasPayableCosts(placementCosts);
-            int legacyCostAmount = legacyCost == null ? 0 : legacyCost.intValue;
 
-            if (!hasPlacementCosts && legacyCostAmount <= 0)
+            if (!hasPlacementCosts)
             {
                 stats.MissingPlacementCostCount++;
-                LogIssue("터렛 배치 엔트리의 Placement Costs가 비어 있고 숨겨진 legacy Cost도 0입니다.", path, shopEntry);
+                LogIssue("터렛 배치 엔트리의 Placement Costs가 비어 있습니다.", path, shopEntry);
                 continue;
-            }
-
-            if (!hasPlacementCosts && legacyCostAmount > 0)
-            {
-                stats.LegacyPlacementCostFallbackCount++;
-            }
-
-            if (legacyCostAmount < 0)
-            {
-                stats.NegativeCostCount++;
-                LogIssue($"터렛 배치 엔트리의 숨겨진 legacy Cost가 음수입니다. cost={legacyCostAmount}", path, shopEntry);
             }
 
             if (placementCosts != null && placementCosts.isArray)
             {
                 ValidateCostArray(placementCosts, path, shopEntry, stats, "터렛 배치 비용");
             }
+
+            ValidatePlacementCostTiers(serializedShopEntry, path, shopEntry, stats);
+        }
+    }
+
+    // 터렛 배치 엔트리의 설치 횟수별 비용 단계 배열을 검사한다
+    private static void ValidatePlacementCostTiers(SerializedObject serializedShopEntry, string path, Object context, ValidationStats stats)
+    {
+        SerializedProperty tiers = serializedShopEntry.FindProperty(PLACEMENT_COST_TIERS_PROPERTY);
+        if (tiers == null || !tiers.isArray)
+        {
+            return;
+        }
+
+        for (int tierIndex = 0; tierIndex < tiers.arraySize; tierIndex++)
+        {
+            SerializedProperty tier = tiers.GetArrayElementAtIndex(tierIndex);
+            if (tier == null)
+            {
+                continue;
+            }
+
+            SerializedProperty costs = tier.FindPropertyRelative(TIER_COSTS_PROPERTY);
+            if (costs == null || !costs.isArray)
+            {
+                continue;
+            }
+
+            ValidateCostArray(costs, path, context, stats, $"터렛 배치 비용 단계 {tierIndex}번");
         }
     }
 
@@ -244,7 +261,6 @@ internal static class TurretEconomyValidator
         builder.AppendLine($"비어 있는 baseCostsPerLevel: {stats.EmptyUpgradeCostProfileCount}개");
         builder.AppendLine($"미설정 evolutionCosts: {stats.MissingEvolutionCostCount}개");
         builder.AppendLine($"미설정 placementCosts: {stats.MissingPlacementCostCount}개");
-        builder.AppendLine($"숨겨진 legacy Cost fallback 사용: {stats.LegacyPlacementCostFallbackCount}개");
         builder.AppendLine($"음수 비용: {stats.NegativeCostCount}개");
 
         if (issueCount > 0)
@@ -267,7 +283,6 @@ internal static class TurretEconomyValidator
         public int EmptyUpgradeCostProfileCount;
         public int MissingEvolutionCostCount;
         public int MissingPlacementCostCount;
-        public int LegacyPlacementCostFallbackCount;
         public int NegativeCostCount;
 
         public int TotalIssueCount => MissingUpgradeCostProfileCount + EmptyUpgradeCostProfileCount + MissingEvolutionCostCount + MissingPlacementCostCount + NegativeCostCount;

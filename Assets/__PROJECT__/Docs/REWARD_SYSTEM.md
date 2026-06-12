@@ -1,4 +1,4 @@
-# Reward And Currency System
+﻿# Reward And Currency System
 
 ## Purpose
 
@@ -15,6 +15,7 @@ This document tracks the planned reward and currency pipeline for zombie kill re
 ## Current State
 
 - `ItemManager` owns coin, fire part, and special part counts.
+- `ItemManager` can apply initial wallet currencies from inspector-configured `ResourceCost[] initialWalletCurrencies`.
 - `ItemManager` now exposes explicit reward, spend, afford, and refund APIs.
 - `ItemManager.AddCoinCount`, `CanUseCoin`, and `TryUseCoin` remain as compatibility wrappers.
 - `ItemManager.AddReward` can optionally update wave-collected coin tracking.
@@ -28,7 +29,7 @@ This document tracks the planned reward and currency pipeline for zombie kill re
 - `BossZombieSpec` references a default fallback `ZombieRewardProfileSO`.
 - `BossZombie.Die` grants kill reward through `RewardGrantUtility`.
 - `ZombieRewardProfileSO` supports conditional modifiers for wave range, zombie type, defense line, situation flags, currency type, amount multiplier, flat bonus, and drop chance changes.
-- `TurretShopEntrySO` is a legacy type name for turret placement entry data and defines turret placement costs through `ResourceCost[] placementCosts` with hidden legacy coin `cost` fallback.
+- `TurretShopEntrySO` is a legacy type name for turret placement entry data and defines turret placement costs through `ResourceCost[] placementCosts`.
 - `TurretBaseSlot` spends turret placement costs through `ItemManager.TrySpend`.
 - `ObstacleBuildSlot` still spends obstacle placement cost through `ItemManager.TryUseCoin`.
 - `TurretDefinitionSO` can reference `TurretUpgradeCostProfileSO`.
@@ -58,9 +59,10 @@ This document tracks the planned reward and currency pipeline for zombie kill re
 1. `TurretPlacementUI` builds slots from placement entries currently typed as `TurretShopEntrySO`.
 2. `TurretPlacementSlotUI` displays `placementCosts`.
 3. `TurretBaseSlot.TryPlace` checks the selected slot and prefab.
-4. `TurretBaseSlot.TryPlace` spends `TurretShopEntrySO.PlacementCosts` through `ItemManager.TrySpend`.
-5. Turret prefab instantiation runs only after placement cost spend succeeds.
-6. If placement instantiation fails after spend, the placement costs are refunded.
+4. `TurretPlacementController` calculates the current placement cost from the successful placement count for that entry.
+5. `TurretBaseSlot.TryPlace` spends the calculated placement costs through `ItemManager.TrySpend`.
+6. Turret prefab instantiation runs only after placement cost spend succeeds.
+7. If placement instantiation fails after spend, the placement costs are refunded.
 
 ## Planned Data Types
 
@@ -138,6 +140,7 @@ Important rule:
 
 - Reward grants can update wave-collected reward tracking.
 - Refunds must not update wave-collected reward tracking.
+- Initial wallet grants must not update wave-collected reward tracking.
 
 ## Implementation Order
 

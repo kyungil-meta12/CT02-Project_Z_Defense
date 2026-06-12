@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 
 /// <summary>
-/// 터렛 배치 UI에 표시할 터렛 정의, 프리팹, 아이콘, 배치 비용을 정의하는 ScriptableObject.
+/// 터렛 배치 UI에 표시할 터렛 정의, 프리팹, 아이콘, 설치 횟수별 배치 비용을 정의하는 ScriptableObject.
 /// </summary>
 [CreateAssetMenu(menuName = "Project Z Defense/Turret Placement Entry")]
 public class TurretShopEntrySO : ScriptableObject
@@ -17,7 +17,7 @@ public class TurretShopEntrySO : ScriptableObject
 
     [Header("Cost")]
     [SerializeField] private ResourceCost[] placementCosts;
-    [SerializeField, HideInInspector, Min(0)] private int cost;
+    [SerializeField] private TurretPlacementCostTier[] placementCostTiers;
 
     public string DisplayName
     {
@@ -74,44 +74,92 @@ public class TurretShopEntrySO : ScriptableObject
         }
     }
 
-    public int Cost
-    {
-        get
-        {
-            return cost;
-        }
-    }
-
     public ResourceCost[] PlacementCosts
     {
         get
         {
-            if (HasPayableCosts(placementCosts))
-            {
-                return placementCosts;
-            }
-
-            if (cost <= 0)
-            {
-                return System.Array.Empty<ResourceCost>();
-            }
-
-            return new[] { new ResourceCost(RewardCurrencyType.Coin, cost) };
+            return GetPlacementCosts(0);
         }
+    }
+
+    // 현재까지 설치된 개수에 맞는 배치 비용을 반환한다
+    public ResourceCost[] GetPlacementCosts(int placedCount)
+    {
+        ResourceCost[] tierCosts = GetTierCosts(placedCount);
+        if (HasPayableCosts(tierCosts))
+        {
+            return tierCosts;
+        }
+
+        if (HasPayableCosts(placementCosts))
+        {
+            return placementCosts;
+        }
+
+        return System.Array.Empty<ResourceCost>();
     }
 
     // 인스펙터 입력값을 유효한 터렛 구매 비용 범위로 보정한다
     private void OnValidate()
     {
-        cost = Mathf.Max(0, cost);
-        if (placementCosts == null)
+        ValidateCosts(placementCosts);
+
+        if (placementCostTiers == null)
         {
             return;
         }
 
-        for (int i = 0; i < placementCosts.Length; i++)
+        for (int i = 0; i < placementCostTiers.Length; i++)
         {
-            ResourceCost placementCost = placementCosts[i];
+            TurretPlacementCostTier tier = placementCostTiers[i];
+            if (tier == null)
+            {
+                continue;
+            }
+
+            tier.minPlacedCount = Mathf.Max(0, tier.minPlacedCount);
+            ValidateCosts(tier.costs);
+        }
+    }
+
+    // 설치 개수 조건에 맞는 가장 높은 단계의 비용을 반환한다
+    private ResourceCost[] GetTierCosts(int placedCount)
+    {
+        if (placementCostTiers == null || placementCostTiers.Length == 0)
+        {
+            return null;
+        }
+
+        int normalizedPlacedCount = Mathf.Max(0, placedCount);
+        int bestMinPlacedCount = -1;
+        ResourceCost[] bestCosts = null;
+
+        for (int i = 0; i < placementCostTiers.Length; i++)
+        {
+            TurretPlacementCostTier tier = placementCostTiers[i];
+            if (tier == null || tier.minPlacedCount > normalizedPlacedCount || tier.minPlacedCount < bestMinPlacedCount)
+            {
+                continue;
+            }
+
+            bestMinPlacedCount = tier.minPlacedCount;
+            bestCosts = tier.costs;
+        }
+
+        return bestCosts;
+    }
+
+    // 비용 배열의 음수 수량을 0 이상으로 보정한다
+    private static void ValidateCosts(ResourceCost[] costs)
+    {
+        if (costs == null)
+        {
+            return;
+        }
+
+        for (int i = 0; i < costs.Length; i++)
+        {
+            ResourceCost placementCost = costs[i];
             if (placementCost == null)
             {
                 continue;
@@ -140,4 +188,14 @@ public class TurretShopEntrySO : ScriptableObject
 
         return false;
     }
+}
+
+/// <summary>
+/// 터렛 배치 엔트리의 설치 개수 조건별 비용을 정의한다.
+/// </summary>
+[System.Serializable]
+public class TurretPlacementCostTier
+{
+    [Min(0)] public int minPlacedCount;
+    public ResourceCost[] costs;
 }

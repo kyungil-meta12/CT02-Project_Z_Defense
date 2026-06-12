@@ -5,7 +5,7 @@ using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 /// <summary>
-/// 터렛 배치 상점의 단일 슬롯 UI 입력과 표시 정보를 관리한다.
+/// 터렛 배치 슬롯 UI의 입력과 설치 횟수별 비용 표시를 관리한다.
 /// </summary>
 [DisallowMultipleComponent]
 public class TurretPlacementSlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler, IPointerClickHandler
@@ -23,9 +23,23 @@ public class TurretPlacementSlotUI : MonoBehaviour, IBeginDragHandler, IDragHand
     // 상점 엔트리와 배치 컨트롤러를 연결하고 표시를 갱신한다
     public void Initialize(TurretShopEntrySO shopEntry_, TurretPlacementController placementController_)
     {
+        UnsubscribePlacementController();
         shopEntry = shopEntry_;
         placementController = placementController_;
+        SubscribePlacementController();
         Refresh();
+    }
+
+    // 활성화 시 배치 컨트롤러 이벤트를 다시 구독한다
+    private void OnEnable()
+    {
+        SubscribePlacementController();
+    }
+
+    // 비활성화 시 배치 컨트롤러 이벤트 구독을 해제한다
+    private void OnDisable()
+    {
+        UnsubscribePlacementController();
     }
 
     // 컴포넌트 추가 시 기본 UI 참조를 자동으로 연결한다
@@ -123,7 +137,7 @@ public class TurretPlacementSlotUI : MonoBehaviour, IBeginDragHandler, IDragHand
             tmpNameText.text = shopEntry.DisplayName;
         }
 
-        string costLabel = FormatCosts(shopEntry.PlacementCosts);
+        string costLabel = FormatCosts(GetCurrentPlacementCosts());
         if (costText != null)
         {
             costText.text = costLabel;
@@ -133,6 +147,51 @@ public class TurretPlacementSlotUI : MonoBehaviour, IBeginDragHandler, IDragHand
         {
             tmpCostText.text = costLabel;
         }
+    }
+
+    // 현재 설치 횟수 기준 배치 비용을 조회한다
+    private ResourceCost[] GetCurrentPlacementCosts()
+    {
+        if (placementController == null)
+        {
+            return shopEntry.PlacementCosts;
+        }
+
+        return placementController.GetCurrentPlacementCosts(shopEntry);
+    }
+
+    // 배치 횟수 변경 이벤트를 구독한다
+    private void SubscribePlacementController()
+    {
+        if (placementController == null)
+        {
+            return;
+        }
+
+        placementController.OnPlacementCountChanged -= OnPlacementCountChanged;
+        placementController.OnPlacementCountChanged += OnPlacementCountChanged;
+    }
+
+    // 배치 횟수 변경 이벤트 구독을 해제한다
+    private void UnsubscribePlacementController()
+    {
+        if (placementController == null)
+        {
+            return;
+        }
+
+        placementController.OnPlacementCountChanged -= OnPlacementCountChanged;
+    }
+
+    // 같은 배치 엔트리의 설치 횟수가 바뀌면 비용 표시를 갱신한다
+    private void OnPlacementCountChanged(TurretShopEntrySO changedShopEntry)
+    {
+        if (changedShopEntry != shopEntry)
+        {
+            return;
+        }
+
+        Refresh();
     }
 
     // ResourceCost 배열을 상점 슬롯에 표시할 짧은 문자열로 변환한다

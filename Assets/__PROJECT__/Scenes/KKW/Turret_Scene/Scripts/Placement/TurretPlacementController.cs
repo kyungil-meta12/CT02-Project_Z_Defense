@@ -1,6 +1,11 @@
-﻿using UnityEngine;
+﻿using System;
+using System.Collections.Generic;
+using UnityEngine;
 using UnityEngine.EventSystems;
 
+/// <summary>
+/// 터렛 배치 입력, 프리뷰, 설치 횟수 기반 비용 계산을 관리한다.
+/// </summary>
 [DisallowMultipleComponent]
 public class TurretPlacementController : MonoBehaviour
 {
@@ -27,11 +32,14 @@ public class TurretPlacementController : MonoBehaviour
     [SerializeField, Range(0.0f, 0.45f)] private float invalidPreviewViewportPadding = 0.06f;
     [SerializeField] private bool createRuntimePreviewMaterials = true;
 
+    private readonly Dictionary<TurretShopEntrySO, int> placedCountsByEntry = new Dictionary<TurretShopEntrySO, int>();
     private TurretPlacementPreview preview;
     private TurretShopEntrySO activeShopEntry;
     private TurretBaseSlot hoveredSlot;
     private Material runtimeValidPreviewMaterial;
     private Material runtimeInvalidPreviewMaterial;
+
+    public event Action<TurretShopEntrySO> OnPlacementCountChanged;
 
     public bool IsPlacing
     {
@@ -41,6 +49,7 @@ public class TurretPlacementController : MonoBehaviour
         }
     }
 
+    // 런타임 시작 시 프리뷰와 카메라 참조를 초기화한다
     private void Awake()
     {
         preview = new TurretPlacementPreview();
@@ -52,16 +61,19 @@ public class TurretPlacementController : MonoBehaviour
         }
     }
 
+    // 비활성화 시 진행 중인 배치를 취소한다
     private void OnDisable()
     {
         CancelPlacement();
     }
 
+    // 파괴 시 런타임 프리뷰 머티리얼을 정리한다
     private void OnDestroy()
     {
         DestroyRuntimePreviewMaterials();
     }
 
+    // 월드 클릭 배치 입력을 처리한다
     private void Update()
     {
         if (!IsPlacing || !allowWorldClickPlacement)
@@ -84,6 +96,7 @@ public class TurretPlacementController : MonoBehaviour
         }
     }
 
+    // 배치 엔트리로 터렛 배치 프리뷰를 시작한다
     public void BeginPlacement(TurretShopEntrySO shopEntry, Vector2 screenPosition)
     {
         if (shopEntry == null || shopEntry.TurretPrefab == null)
@@ -98,6 +111,7 @@ public class TurretPlacementController : MonoBehaviour
         UpdatePlacement(screenPosition);
     }
 
+    // 포인터 위치에 맞춰 배치 프리뷰 상태를 갱신한다
     public void UpdatePlacement(Vector2 screenPosition)
     {
         if (!IsPlacing)
@@ -139,6 +153,7 @@ public class TurretPlacementController : MonoBehaviour
         }
     }
 
+    // 현재 포인터 위치의 슬롯에 터렛 배치를 시도한다
     public bool EndPlacement(Vector2 screenPosition)
     {
         if (!IsPlacing)
@@ -146,12 +161,20 @@ public class TurretPlacementController : MonoBehaviour
             return false;
         }
 
+        TurretShopEntrySO shopEntry = activeShopEntry;
+        ResourceCost[] placementCosts = GetCurrentPlacementCosts(shopEntry);
         TurretBaseSlot targetSlot = FindSlot(screenPosition, out _);
-        bool placed = targetSlot != null && targetSlot.TryPlace(activeShopEntry, out _);
+        bool placed = targetSlot != null && targetSlot.TryPlace(shopEntry, placementCosts, out _);
+        if (placed)
+        {
+            RegisterPlacement(shopEntry);
+        }
+
         CancelPlacement();
         return placed;
     }
 
+    // 진행 중인 배치 프리뷰를 취소한다
     public void CancelPlacement()
     {
         activeShopEntry = null;
@@ -162,6 +185,42 @@ public class TurretPlacementController : MonoBehaviour
         }
     }
 
+    // 현재 설치 횟수 기준의 배치 비용을 반환한다
+    public ResourceCost[] GetCurrentPlacementCosts(TurretShopEntrySO shopEntry)
+    {
+        if (shopEntry == null)
+        {
+            return Array.Empty<ResourceCost>();
+        }
+
+        return shopEntry.GetPlacementCosts(GetPlacedCount(shopEntry));
+    }
+
+    // 지정한 엔트리로 성공 설치한 횟수를 반환한다
+    public int GetPlacedCount(TurretShopEntrySO shopEntry)
+    {
+        if (shopEntry == null)
+        {
+            return 0;
+        }
+
+        return placedCountsByEntry.TryGetValue(shopEntry, out int count) ? count : 0;
+    }
+
+    // 성공한 배치 횟수를 기록하고 관련 UI에 변경을 알린다
+    private void RegisterPlacement(TurretShopEntrySO shopEntry)
+    {
+        if (shopEntry == null)
+        {
+            return;
+        }
+
+        int nextCount = GetPlacedCount(shopEntry) + 1;
+        placedCountsByEntry[shopEntry] = nextCount;
+        OnPlacementCountChanged?.Invoke(shopEntry);
+    }
+
+    // 프리뷰 객체와 런타임 머티리얼을 준비한다
     private void EnsurePreview()
     {
         if (preview == null)
@@ -172,16 +231,19 @@ public class TurretPlacementController : MonoBehaviour
         EnsureRuntimePreviewMaterials();
     }
 
+    // 유효 배치 프리뷰 머티리얼을 반환한다
     private Material GetValidPreviewMaterial()
     {
         return validPreviewMaterial != null ? validPreviewMaterial : runtimeValidPreviewMaterial;
     }
 
+    // 무효 배치 프리뷰 머티리얼을 반환한다
     private Material GetInvalidPreviewMaterial()
     {
         return invalidPreviewMaterial != null ? invalidPreviewMaterial : runtimeInvalidPreviewMaterial;
     }
 
+    // 인스펙터 머티리얼이 없을 때 사용할 런타임 프리뷰 머티리얼을 생성한다
     private void EnsureRuntimePreviewMaterials()
     {
         if (!createRuntimePreviewMaterials)
@@ -200,6 +262,7 @@ public class TurretPlacementController : MonoBehaviour
         }
     }
 
+    // 런타임에 생성한 프리뷰 머티리얼을 제거한다
     private void DestroyRuntimePreviewMaterials()
     {
         if (runtimeValidPreviewMaterial != null)
@@ -215,6 +278,7 @@ public class TurretPlacementController : MonoBehaviour
         }
     }
 
+    // 프리뷰에 사용할 투명 머티리얼을 생성한다
     private static Material CreatePreviewMaterial(string materialName, Color color)
     {
         Shader shader = Shader.Find("Universal Render Pipeline/Unlit");
@@ -235,6 +299,7 @@ public class TurretPlacementController : MonoBehaviour
         return material;
     }
 
+    // 지정한 머티리얼을 알파 블렌딩 프리뷰용으로 설정한다
     private static void ConfigureTransparentMaterial(Material material, Color color)
     {
         material.SetColor("_Color", color);
@@ -250,6 +315,7 @@ public class TurretPlacementController : MonoBehaviour
         material.renderQueue = (int)UnityEngine.Rendering.RenderQueue.Transparent;
     }
 
+    // 화면 좌표에서 배치 가능한 터렛 베이스 슬롯을 찾는다
     private TurretBaseSlot FindSlot(Vector2 screenPosition, out RaycastHit hit)
     {
         hit = new RaycastHit();
@@ -279,6 +345,7 @@ public class TurretPlacementController : MonoBehaviour
         return null;
     }
 
+    // 배치 베이스가 없을 때 월드 프리뷰 위치를 계산한다
     private bool TryFindInvalidPreviewPose(Vector2 screenPosition, out Vector3 position, out Quaternion rotation)
     {
         position = Vector3.zero;
@@ -325,6 +392,7 @@ public class TurretPlacementController : MonoBehaviour
         return true;
     }
 
+    // 현재 주 입력 포인터 위치를 반환한다
     private static bool TryGetPrimaryPointerPosition(out Vector2 pointerPosition)
     {
         if (Input.touchCount > 0)
@@ -337,6 +405,7 @@ public class TurretPlacementController : MonoBehaviour
         return true;
     }
 
+    // 현재 프레임에 주 입력 포인터가 눌렸는지 확인한다
     private static bool WasPrimaryPointerPressed()
     {
         if (Input.touchCount > 0)
@@ -348,6 +417,7 @@ public class TurretPlacementController : MonoBehaviour
         return Input.GetMouseButtonDown(0);
     }
 
+    // 현재 주 입력 포인터가 UI 위에 있는지 확인한다
     private static bool IsPointerOverUI()
     {
         if (EventSystem.current == null)

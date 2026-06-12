@@ -70,19 +70,24 @@ public class TurretBaseSlot : MonoBehaviour
         return hitCollider == placementHitArea || hitCollider.transform.IsChildOf(transform);
     }
 
-    // 상점 엔트리 비용을 지불한 뒤 터렛을 배치한다
+    // 상점 엔트리의 기본 비용을 지불한 뒤 터렛을 배치한다
     public bool TryPlace(TurretShopEntrySO shopEntry, out TurretDefinitionRuntimeController placedTurret)
+    {
+        ResourceCost[] placementCosts = shopEntry == null ? null : shopEntry.PlacementCosts;
+        return TryPlace(shopEntry, placementCosts, out placedTurret);
+    }
+
+    // 전달받은 설치 횟수 기준 비용을 지불한 뒤 터렛을 배치한다
+    public bool TryPlace(TurretShopEntrySO shopEntry, ResourceCost[] placementCosts, out TurretDefinitionRuntimeController placedTurret)
     {
         placedTurret = null;
 
         if (!CanPlace || shopEntry == null || shopEntry.TurretPrefab == null)
         {
-            ResourceCost[] failedCosts = shopEntry == null ? null : shopEntry.PlacementCosts;
-            TurretEconomyLogUtility.LogResult("설치", GetShopEntryName(shopEntry), failedCosts, false, this, "배치 슬롯 또는 터렛 프리팹이 유효하지 않습니다.");
+            TurretEconomyLogUtility.LogResult("설치", GetShopEntryName(shopEntry), placementCosts, false, this, "배치 슬롯 또는 터렛 프리팹이 유효하지 않습니다.");
             return false;
         }
 
-        ResourceCost[] placementCosts = shopEntry.PlacementCosts;
         if (!TrySpendPlacementCosts(placementCosts))
         {
             TurretEconomyLogUtility.LogResult("설치", GetShopEntryName(shopEntry), placementCosts, false, this, "재화가 부족하거나 ItemManager가 없습니다.");

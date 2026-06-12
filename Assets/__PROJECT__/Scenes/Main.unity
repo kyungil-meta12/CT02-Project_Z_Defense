@@ -12033,6 +12033,7 @@ MonoBehaviour:
     - {fileID: 337505483}
     retreatPoint: {fileID: 799809137}
     restoredPoint: {fileID: 1930416908}
+  startWave: 100
 --- !u!4 &293100234
 Transform:
   m_ObjectHideFlags: 0
@@ -37626,8 +37627,8 @@ MonoBehaviour:
   dragSensitivity: 0.1
   maxZoom: 60
   minZoom: 15
-  maxForwardOffset: 75
-  maxBackwardOffset: 75
+  maxForwardOffset: 105
+  maxBackwardOffset: 90
   maxRightOffset: 40
   maxLeftOffset: 40
 --- !u!1001 &995098662

@@ -1,7 +1,8 @@
 using UnityEngine;
+using UnityEngine.EventSystems;
 
 
-public class DropItem : PoolObject
+public class DropItem : PoolObject, IPointerDownHandler
 {
     [Header("아이템 파티클 프리펩")] public DropItemParticle particlePrefab;
 
@@ -10,6 +11,12 @@ public class DropItem : PoolObject
     
     private PoolObject particleInstance;
     private ParticleSystem particle;
+    private MeshCollider meshCollider;
+
+    void Awake()
+    {
+        meshCollider = GetComponent<MeshCollider>();
+    }
 
     public override void OnSpawn()
     {
@@ -25,5 +32,21 @@ public class DropItem : PoolObject
     public override void OnDespawn()
     {
         particleInstance.ReturnToPool();
+    }
+
+    /// <summary>
+    /// 아이템을 터치하면 회수되면서 월드 상에서 인스턴스가 메모리 풀로 회수된다.
+    /// </summary>
+    /// <param name="eventData"></param>
+    public void OnPointerDown(PointerEventData eventData)
+    {
+        if (eventData.pointerCurrentRaycast.isValid)
+        {
+            if (eventData.pointerCurrentRaycast.gameObject == this.gameObject)
+            {
+                print($"[DropItem] 아이템 회수 됨 | 아이템: {gameObject.name} | 획득량: {dropCount}");
+                ReturnInstance();
+            }
+        }
     }
 }

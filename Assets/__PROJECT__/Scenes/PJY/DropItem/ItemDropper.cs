@@ -1,21 +1,40 @@
+using System;
 using UnityEngine;
 
+[Serializable]
+public struct DropAttribute
+{
+    public RewardCurrencyType CurrencyType;
+    public DropItem ItemPrefab;
+}
+
 /// <summary>
-/// 드롭 아이템을 생성하는 모듈. 모든 좀비가 가지고 있어야 아이템을 드랍할 수 있다.
+/// 드롭 아이템을 생성하는 모듈. 좀비가 이 모듈을 가지고 있어야 아이템을 드랍할 수 있다.
 /// </summary>
 public class ItemDropper : MonoBehaviour
 {
-    public DropItem itemObjectPrefab;
+    [SerializeField] public DropAttribute[] drops;
 
     /// <summary>
-    /// 특정 위치에 드롭 아이템을 생성하고 아이텝의 타입과 드롭 개수를 설정한다.
+    /// 특정 위치에 특정 타입과 개수를 가진 드롭 아이템을 생성한다.
     /// </summary>
     /// <param name="spawnPosition"></param>
     /// <param name="dropCount"></param>
-    public void DropItem(Vector3 spawnPosition, int dropCount)
+    public void CreateDropItem(Vector3 spawnPosition, RewardCurrencyType rewardType, int dropCount)
     {
-        var itemComp = MemoryPool.Inst.GetInstance<DropItem>(itemObjectPrefab);
-        itemComp.dropCount = dropCount;
-        itemComp.transform.position = spawnPosition;
+        foreach(var d in drops)
+        {
+            if(d.CurrencyType == rewardType)
+            {
+                var itemComp = MemoryPool.Inst.GetInstance<DropItem>(d.ItemPrefab);
+                itemComp.rewardType = rewardType;
+                itemComp.dropCount = dropCount;
+                itemComp.transform.position = spawnPosition;
+                print($"[ItemDropper] 아이템 드롭 완료 | 타입: {rewardType} | 개수: {dropCount} | 위치: {spawnPosition}");
+                return;
+            }
+        }
+
+        Debug.LogError($"[ItemDropper] RewardCurrencyType이 일치하는 아이템을 찾을 수 없음 | 시도 타입: {rewardType}");
     }
 }

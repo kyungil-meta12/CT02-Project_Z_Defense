@@ -1,19 +1,11 @@
 using UnityEngine;
 
-/// <summary>
-/// 드롭되는 아이텝 타입
-/// </summary>
-public enum DropItemType
-{
-    NormalPart,
-    SpecialPart
-}
-
 
 public class DropItem : PoolObject
 {
-    [Header("아이템 타입")] public DropItemType itemType;
-    [Header("아이템 파티클")] public PoolObject particlePrefab;
+    [Header("아이템 파티클 프리펩")] public DropItemParticle particlePrefab;
+
+    [HideInInspector] public RewardCurrencyType rewardType;
     [HideInInspector] public int dropCount;
     
     private PoolObject particleInstance;
@@ -21,12 +13,10 @@ public class DropItem : PoolObject
 
     public override void OnSpawn()
     {
-        // 지정된 파티클을 생성 후 파티클을 초기화하고 재생한다.
-        particleInstance = MemoryPool.Inst.GetInstance<PoolObject>(particlePrefab);
+        // 지정된 파티클을 메모리풀에서 생성한다. 파티클 재생은 DropItemParticle에서 자체적으로 처리한다.
+        particleInstance = MemoryPool.Inst.GetInstance<DropItemParticle>(particlePrefab);
         particle = particleInstance.GetComponent<ParticleSystem>();
         particle.transform.position = transform.position;
-        particle.Simulate(0f, true);
-        particle.Play();
     }
 
     /// <summary>

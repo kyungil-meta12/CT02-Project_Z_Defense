@@ -34,9 +34,12 @@ public static class REWARD_CURRENCY_SYSTEM_PLAN
      * - NormalZombie.OnDespawn()은 더 이상 처치 보상을 지급하지 않는다.
      * - RewardProfile 미연결 상태에서는 DropCoin을 레거시 fallback 보상으로 사용한다.
      * - ItemManager는 AddReward, CanAfford, TrySpend, Refund API를 제공한다.
+     * - ItemManager는 인스펙터 initialWalletCurrencies로 시작 재화를 적용한다.
      * - TurretUpgradeCostProfileSO를 추가하고 TurretDefinitionSO에서 참조한다.
      * - TurretEvolutionEntry에 ResourceCost[] evolutionCosts를 추가했다.
      * - 터렛 런타임 UI는 TryUpgrade, TryEvolve, TryCreateEvolvedInstance로 비용 성공 후에만 상태를 변경한다.
+     * - TurretShopEntrySO는 placementCosts와 placementCostTiers로 터렛 설치 비용을 관리한다.
+     * - 터렛 배치 비용의 숨겨진 legacy cost fallback은 제거했다.
      *
      * Target Flow - Zombie Reward
      *
@@ -56,6 +59,15 @@ public static class REWARD_CURRENCY_SYSTEM_PLAN
      * 4. ItemManager 또는 향후 Wallet이 보유 재화를 검사하고 소비를 시도한다.
      * 5. 소비 성공 시에만 실제 레벨업/진화가 실행된다.
      * 6. 실패 시 UI는 부족한 재화 또는 잠긴 조건을 표시하고 런타임 상태를 변경하지 않는다.
+     *
+     * Target Flow - Turret Placement Cost
+     *
+     * 1. TurretPlacementUI는 TurretShopEntrySO 배열로 배치 슬롯 UI를 만든다.
+     * 2. TurretPlacementController는 배치 엔트리별 성공 설치 횟수를 세션 동안 기록한다.
+     * 3. TurretShopEntrySO.GetPlacementCosts(placedCount)가 현재 설치 횟수에 맞는 비용을 반환한다.
+     * 4. Placement Costs는 기본 비용이고, Placement Cost Tiers는 설치 횟수별 override 비용이다.
+     * 5. TurretBaseSlot.TryPlace()는 계산된 ResourceCost[]를 ItemManager.TrySpend()로 소비한 뒤 설치한다.
+     * 6. 설치 성공 후 카운트가 증가하고 UI 비용 표시가 다음 설치 비용으로 갱신된다.
      *
      * Core Data Model
      *
@@ -122,6 +134,7 @@ public static class REWARD_CURRENCY_SYSTEM_PLAN
      *
      * ItemManager Role
      * - Owns current player currency amounts.
+     * - Applies initial wallet currencies from inspector settings at Awake when enabled.
      * - Emits value changed events for UI.
      * - Exposes explicit APIs:
      *   AddReward
@@ -150,10 +163,16 @@ public static class REWARD_CURRENCY_SYSTEM_PLAN
      * 9. Done: Add TurretUpgradeCostProfileSO and connect it to TurretDefinitionSO.
      * 10. Done: Add ResourceCost[] to TurretEvolutionEntry.
      * 11. Done: Replace turret UI direct AddLevel/Evolve calls with TryUpgrade/TryEvolve calls.
-     * 12. Next: Balance ZombieRewardProfileSO assets assigned to prefab overrides or spec fallback.
-     * 13. Next: Create and assign TurretUpgradeCostProfileSO assets.
-     * 14. Next: Fill evolutionCosts on turret evolution progression assets.
-     * 15. Ongoing: Update Docs whenever reward or cost ownership changes.
+     * 12. Done: Add inspector-configurable initial wallet currencies to ItemManager.
+     * 13. Done: Move turret upgrade cost to TurretUpgradeCostProfileSO.
+     * 14. Done: Fill and validate turret upgrade/evolution cost assets.
+     * 15. Done: Move turret placement cost to ResourceCost[] placementCosts.
+     * 16. Done: Add placement count based cost tiers for Sentinel-01 placement flow.
+     * 17. Done: Remove turret placement legacy cost fallback.
+     * 18. Next: Move obstacle placement cost from int Cost/TryUseCoin/AddCoinCount to ResourceCost[]/TrySpend/Refund.
+     * 19. Next: Remove NormalZombieSpec.DropCoin after every active zombie reward profile is verified.
+     * 20. Next: Remove ItemManager compatibility wrappers after AddCoinCount, CanUseCoin, and TryUseCoin call sites reach zero.
+     * 21. Ongoing: Update Docs whenever reward or cost ownership changes.
      *
      * Edge Cases To Check
      * - Pooled zombie returned without dying must not grant rewards.
@@ -168,11 +187,34 @@ public static class REWARD_CURRENCY_SYSTEM_PLAN
      * - Refund must not increase wave-collected reward tracking.
      * - UI should stop upgrade hold when currency becomes insufficient.
      * - Evolution cost should be consumed once even when prefab replacement is used.
+     * - Turret placement should consume the cost calculated for the current placement count only once.
+     * - Turret placement count should increase only after successful prefab installation.
+     * - Initial wallet grants must not increase WaveCollectCoinCount.
      *
      * Migration Notes
      * - NormalZombieSpec.DropCoin should be treated as legacy once rewardProfile is connected.
      * - Keep one shared NormalZombieSpec when only reward data differs; use NormalZombie.rewardProfileOverride on prefab originals or Variants.
-     * - Existing obstacle placement can keep TryUseCoin temporarily, then move to ResourceCost later.
+     * - Next migration target is obstacle placement: ObstacleBuildEntrySO.cost, ObstacleBuildSlot.CanUseCoin/TryUseCoin/AddCoinCount.
      * - BossZombieSpec item drop percentage fields are legacy balancing data and should move into reward profiles instead of adding more boss-specific code.
+     *
+     * Tomorrow Handoff
+     * - Start from obstacle placement cost migration.
+     * - Read:
+     *   Assets/__PROJECT__/Docs/README.md
+     *   Assets/__PROJECT__/Docs/TEAM_CODING_CONVENTION.md
+     *   Assets/__PROJECT__/Docs/PROJECT_STRUCTURE.md
+     *   Assets/__PROJECT__/Docs/GAMEPLAY_RUNTIME_FLOW.md
+     *   Assets/__PROJECT__/Docs/REWARD_SYSTEM.md
+     * - Main files:
+     *   Assets/__PROJECT__/Prefabs/Damageable/Obstacle/ObstacleBuildEntrySO.cs
+     *   Assets/__PROJECT__/Prefabs/Damageable/Obstacle/ObstacleBuildSlot.cs
+     *   Assets/__PROJECT__/Prefabs/Damageable/Obstacle/ObstaclePlacementSlotUI.cs
+     *   Assets/__PROJECT__/Scripts/UI/Singleton/ItemManager/ItemManager.cs
+     * - Desired change:
+     *   ObstacleBuildEntrySO adds ResourceCost[] buildCosts.
+     *   ObstacleBuildSlot spends buildCosts through ItemManager.TrySpend().
+     *   Invalid prefab failure refunds through ItemManager.Refund().
+     *   UI displays ResourceCost[] instead of legacy int Cost.
+     *   Keep old cost only as temporary fallback if asset migration is not done in the same pass.
      */
 }

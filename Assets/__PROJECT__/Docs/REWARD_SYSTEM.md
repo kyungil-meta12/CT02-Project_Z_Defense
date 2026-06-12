@@ -30,6 +30,7 @@ This document tracks the planned reward and currency pipeline for zombie kill re
 - `BossZombie.Die` grants kill reward through `RewardGrantUtility`.
 - `ZombieRewardProfileSO` supports conditional modifiers for wave range, zombie type, defense line, situation flags, currency type, amount multiplier, flat bonus, and drop chance changes.
 - `TurretShopEntrySO` is a legacy type name for turret placement entry data and defines turret placement costs through `ResourceCost[] placementCosts`.
+- `TurretShopEntrySO` supports `placementCostTiers` so Sentinel-01 placement can become more expensive by successful placement count.
 - `TurretBaseSlot` spends turret placement costs through `ItemManager.TrySpend`.
 - `ObstacleBuildSlot` still spends obstacle placement cost through `ItemManager.TryUseCoin`.
 - `TurretDefinitionSO` can reference `TurretUpgradeCostProfileSO`.
@@ -63,6 +64,7 @@ This document tracks the planned reward and currency pipeline for zombie kill re
 5. `TurretBaseSlot.TryPlace` spends the calculated placement costs through `ItemManager.TrySpend`.
 6. Turret prefab instantiation runs only after placement cost spend succeeds.
 7. If placement instantiation fails after spend, the placement costs are refunded.
+8. Successful placement increments the entry placement count and refreshes the next UI cost.
 
 ## Planned Data Types
 
@@ -156,10 +158,11 @@ Important rule:
 10. Done: Add evolution costs to `TurretEvolutionEntry`.
 11. Done: Replace turret UI direct level/evolution calls with `TryUpgrade` and `TryEvolve`.
 12. Done: Move turret placement/shop entry cost to `ResourceCost[] placementCosts`.
-13. Next: Create and balance `ZombieRewardProfileSO` assets assigned to prefab overrides or spec fallback.
-14. Next: Create `TurretUpgradeCostProfileSO` assets and assign them to turret definitions.
-15. Next: Fill `TurretEvolutionEntry.evolutionCosts` in evolution progression assets.
-16. Later: Move obstacle placement cost to `ResourceCost` after turret economy is stable.
+13. Done: Add placement count based cost tiers for turret placement entries.
+14. Done: Remove turret placement legacy `cost` fallback from runtime code.
+15. Next: Move obstacle placement cost to `ResourceCost`.
+16. Next: Remove `NormalZombieSpec.DropCoin` after active reward profiles are verified.
+17. Next: Remove `ItemManager` compatibility wrappers after old call sites reach zero.
 
 ## Edge Cases
 
@@ -173,6 +176,40 @@ Important rule:
 - Evolution prefab replacement must not consume cost twice.
 - Turret placement should not instantiate a turret when placement cost spend fails.
 - Turret placement should refund costs if prefab instantiation fails after spend.
+- Turret placement count should increase only after successful prefab installation.
+
+## Next Cleanup Plan
+
+1. Move obstacle placement cost to `ResourceCost`.
+2. Remove `NormalZombieSpec.DropCoin` after all active zombie reward profiles are verified.
+3. Remove `ItemManager.AddCoinCount`, `CanUseCoin`, and `TryUseCoin` after call sites reach zero.
+
+## Tomorrow Handoff
+
+Start with obstacle placement cost migration.
+
+Read before editing:
+
+- `Assets/__PROJECT__/Docs/README.md`
+- `Assets/__PROJECT__/Docs/TEAM_CODING_CONVENTION.md`
+- `Assets/__PROJECT__/Docs/PROJECT_STRUCTURE.md`
+- `Assets/__PROJECT__/Docs/GAMEPLAY_RUNTIME_FLOW.md`
+- `Assets/__PROJECT__/Docs/REWARD_SYSTEM.md`
+
+Main files:
+
+- `Assets/__PROJECT__/Prefabs/Damageable/Obstacle/ObstacleBuildEntrySO.cs`
+- `Assets/__PROJECT__/Prefabs/Damageable/Obstacle/ObstacleBuildSlot.cs`
+- `Assets/__PROJECT__/Prefabs/Damageable/Obstacle/ObstaclePlacementSlotUI.cs`
+- `Assets/__PROJECT__/Scripts/UI/Singleton/ItemManager/ItemManager.cs`
+
+Goal:
+
+- Add `ResourceCost[] buildCosts` or equivalent to `ObstacleBuildEntrySO`.
+- Spend obstacle build costs through `ItemManager.TrySpend`.
+- Refund through `ItemManager.Refund`, not `AddCoinCount`.
+- Update obstacle placement UI to display `ResourceCost[]`.
+- Keep old `cost` only as a temporary asset fallback if YAML migration is not done in the same pass.
 
 ## Related Plan File
 

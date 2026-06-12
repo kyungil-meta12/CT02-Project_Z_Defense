@@ -1,4 +1,4 @@
-%YAML 1.1
+﻿%YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
 --- !u!1001 &8900878172673422675
 PrefabInstance:
@@ -8,6 +8,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 2198761140652240216, guid: 4696f3a76ac50b74dba3cd8982cf1807, type: 3}
+      propertyPath: rewardProfileOverride
+      value:
+      objectReference: {fileID: 11400000, guid: c893909046cd9a043b4005d973feb8b1, type: 2}
     - target: {fileID: 2927825134225070825, guid: 4696f3a76ac50b74dba3cd8982cf1807, type: 3}
       propertyPath: m_Name
       value: NZ_ShopKeeper
@@ -62,7 +66,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8427991729622540254, guid: 4696f3a76ac50b74dba3cd8982cf1807, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
-      value: 
+      value:
       objectReference: {fileID: 2100000, guid: e664cf1b7f35039489da18a0f2e0b8fb, type: 2}
     - target: {fileID: 9175698223646993104, guid: 4696f3a76ac50b74dba3cd8982cf1807, type: 3}
       propertyPath: m_AnchorMax.x

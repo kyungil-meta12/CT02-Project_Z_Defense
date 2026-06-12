@@ -54,13 +54,14 @@ Do not use display names as stable IDs.
 
 | Type | Role |
 | --- | --- |
-| `TurretDefinitionSO` | Top-level turret identity, prefab, base stat profile, growth, VFX progression, projectile scale progression, evolution progression, max level. |
+| `TurretDefinitionSO` | Top-level turret identity, prefab, base stat profile, growth, upgrade cost profile, VFX progression, projectile scale progression, evolution progression, max level. |
 | `TurretStatProfileSO` | Base combat values for tier level 1: damage, range, fire interval, projectile speed, projectile count, pierce count. |
 | `TurretStatGrowthProfileSO` | Tier-level-based growth calculation using completed growth steps. |
+| `TurretUpgradeCostProfileSO` | Calculates upgrade costs from current tier level to target tier level. |
 | `TurretVFXProfileSO` | Projectile visual data only: projectile prefab, muzzle VFX, muzzle duration. No balance values. Audio is intentionally removed until the project-level sound system is rebuilt. |
 | `TurretVFXProgressionSO` | Selects active VFX profile by current tier level. |
 | `TurretProjectileScaleProgressionSO` | Selects projectile scale by current tier level. |
-| `TurretEvolutionProgressionSO` | Defines available evolutions and required tier levels. |
+| `TurretEvolutionProgressionSO` | Defines available evolutions, required tier levels, branch-specific costs, icons, and effects. |
 | `TurretShopEntrySO` | Defines placement UI slot data, cost, icon, definition, prefab override, preview prefab. |
 
 ## Stat And VFX Runtime Flow
@@ -80,12 +81,21 @@ Do not use display names as stable IDs.
 
 1. `TurretDefinitionRuntimeController` checks available evolutions for current tier level.
 2. `TurretEvolutionRuntimeUI` displays choices.
-3. UI uses entry icon first, then fallback sprite.
-4. On selection, evolution effect can spawn through `PooledObjectUtility.SpawnEffect`.
-5. If target definition has a base prefab, the old turret prefab is replaced.
-6. Target turret receives the new definition.
-7. Tier level resets to `1`; total level is preserved.
-8. Runtime UI reattaches to the evolved turret controller.
+3. UI calls `TryEvolve` or `TryCreateEvolvedInstance` so `ItemManager` spends `evolutionCosts` before runtime state changes.
+4. UI uses entry icon first, then fallback sprite.
+5. On selection, evolution effect can spawn through `PooledObjectUtility.SpawnEffect`.
+6. If target definition has a base prefab, the old turret prefab is replaced.
+7. Target turret receives the new definition.
+8. Tier level resets to `1`; total level is preserved.
+9. Runtime UI reattaches to the evolved turret controller.
+
+## Upgrade Cost Flow
+
+1. `TurretDefinitionRuntimeController.GetUpgradeCosts` queries `TurretDefinitionSO.upgradeCostProfile`.
+2. `TurretUpgradeCostProfileSO` calculates total `ResourceCost[]` from current tier level to target tier level.
+3. UI calls `TryUpgrade`, not `AddLevel`, for player-facing upgrades.
+4. `ItemManager.TrySpend` consumes all required currencies atomically before `SetLevel` runs.
+5. Hold upgrade input stops when the target is capped, evolution becomes available, or currency is insufficient.
 
 ## Placement Runtime Flow
 
@@ -130,7 +140,7 @@ For each turret definition:
 - User-facing `displayName` assigned.
 - `basePrefab` assigned.
 - `baseStatProfile` assigned.
-- Growth, VFX progression, projectile scale progression assigned when needed.
+- Growth, upgrade cost, VFX progression, projectile scale progression assigned when needed.
 - Evolution progression assigned only if the turret can evolve.
 - `maxLevel` is `0` unless the form should stop leveling.
 
@@ -138,6 +148,7 @@ For each evolution entry:
 
 - `requiredLevel` uses tier level.
 - `targetDefinition` assigned.
+- `evolutionCosts` assigned when the branch should consume currency.
 - Display name and icon assigned for runtime UI.
 - Evolution effect prefab assigned only when an effect should play.
 

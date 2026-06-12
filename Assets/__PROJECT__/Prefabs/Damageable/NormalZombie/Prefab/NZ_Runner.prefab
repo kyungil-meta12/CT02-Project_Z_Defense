@@ -1,4 +1,4 @@
-%YAML 1.1
+﻿%YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
 --- !u!1001 &7054349253086590069
 PrefabInstance:
@@ -12,6 +12,10 @@ PrefabInstance:
       propertyPath: m_IsActive
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 2198761140652240216, guid: 4696f3a76ac50b74dba3cd8982cf1807, type: 3}
+      propertyPath: rewardProfileOverride
+      value:
+      objectReference: {fileID: 11400000, guid: 1e3ba61edbc6f9f41aa683368a356c19, type: 2}
     - target: {fileID: 2927825134225070825, guid: 4696f3a76ac50b74dba3cd8982cf1807, type: 3}
       propertyPath: m_Name
       value: NZ_Runner
@@ -62,7 +66,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8353242499857457227, guid: 4696f3a76ac50b74dba3cd8982cf1807, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
-      value: 
+      value:
       objectReference: {fileID: 2100000, guid: 4759575715544fa409b1d5ad319beb4b, type: 2}
     - target: {fileID: 9175698223646993104, guid: 4696f3a76ac50b74dba3cd8982cf1807, type: 3}
       propertyPath: m_AnchorMax.x

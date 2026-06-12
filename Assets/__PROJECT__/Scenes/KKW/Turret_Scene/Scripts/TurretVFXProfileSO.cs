@@ -12,7 +12,4 @@ public class TurretVFXProfileSO : ScriptableObject
     [Header("Muzzle")]
     public GameObject muzzleVFX;
     public float muzzleVFXDuration = 2.0f;
-
-    [Header("Sound")]
-    public AudioClip fireSound;
 }

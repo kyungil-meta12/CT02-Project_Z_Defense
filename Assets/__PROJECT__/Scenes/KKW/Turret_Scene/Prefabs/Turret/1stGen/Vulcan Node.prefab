@@ -818,7 +818,6 @@ MonoBehaviour:
   - {fileID: 2819577974763065509}
   - {fileID: 1561890264532464011}
   - {fileID: 1972308744135401043}
-  firingSound: {fileID: 0}
   muzzleVFX: {fileID: 0}
   muzzleVFXDuration: 2
 --- !u!114 &6133019874014236239

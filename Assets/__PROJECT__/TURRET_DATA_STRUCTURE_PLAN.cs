@@ -148,14 +148,15 @@
  * - Example: level 300 means 299 completed growth steps.
  *
  * 4. TurretVFXProfileSO
- * - Holds visual/audio projectile data only.
- * - Projectile prefab, muzzle VFX, muzzle duration, fire sound.
+ * - Holds projectile visual data only.
+ * - Projectile prefab, muzzle VFX, and muzzle duration.
  * - It should not contain balance values such as damage, range, fire interval, or projectile speed.
+ * - Audio data is intentionally removed until the project-level sound system is rebuilt.
  * - It should not be duplicated just to represent projectile size.
  *
  * 5. TurretVFXProgressionSO
  * - Selects which TurretVFXProfileSO is active for the current tier level.
- * - This is for projectile type/VFX/sound changes.
+ * - This is for projectile type and VFX changes.
  * - Every turret Definition should reference its own progression asset unless intentionally sharing VFX progression.
  * - Level entries are tier-level based, not total-level based.
  *
@@ -228,7 +229,7 @@
  * 2. It clamps the requested tier level by evolution requirements and maxLevel.
  * 3. It calculates runtime stats using TurretStatCalculator.
  * 4. It applies combat stats through TurretStatProfileApplier.
- * 5. It selects projectile prefab/muzzle/sound through TurretVFXProgressionSO.
+ * 5. It selects projectile prefab and muzzle VFX through TurretVFXProgressionSO.
  * 6. It selects projectile scale through TurretProjectileScaleProgressionSO.
  * 7. Turret stores the selected projectile prefab, projectile speed, damage, pierce count, and scale.
  * 8. Gun/RocketFire applies damage, speed, scale, pooling reset, and collision ignore rules to each spawned projectile.

@@ -186,7 +186,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ProjectZima.PolygonModularTurretsPack.SimpleFire
   gunPrefabs:
   - {fileID: 4697786878282561900}
-  firingSound: {fileID: 0}
   muzzleVFX: {fileID: 0}
   muzzleVFXDuration: 2
 --- !u!114 &1107144937192034872

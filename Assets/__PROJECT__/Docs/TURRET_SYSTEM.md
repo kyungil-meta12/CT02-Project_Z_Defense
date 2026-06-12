@@ -57,7 +57,7 @@ Do not use display names as stable IDs.
 | `TurretDefinitionSO` | Top-level turret identity, prefab, base stat profile, growth, VFX progression, projectile scale progression, evolution progression, max level. |
 | `TurretStatProfileSO` | Base combat values for tier level 1: damage, range, fire interval, projectile speed, projectile count, pierce count. |
 | `TurretStatGrowthProfileSO` | Tier-level-based growth calculation using completed growth steps. |
-| `TurretVFXProfileSO` | Visual/audio projectile data only: projectile prefab, muzzle VFX, muzzle duration, fire sound. No balance values. |
+| `TurretVFXProfileSO` | Projectile visual data only: projectile prefab, muzzle VFX, muzzle duration. No balance values. Audio is intentionally removed until the project-level sound system is rebuilt. |
 | `TurretVFXProgressionSO` | Selects active VFX profile by current tier level. |
 | `TurretProjectileScaleProgressionSO` | Selects projectile scale by current tier level. |
 | `TurretEvolutionProgressionSO` | Defines available evolutions and required tier levels. |
@@ -69,7 +69,7 @@ Do not use display names as stable IDs.
 2. It clamps level by evolution requirements and max level.
 3. `TurretStatCalculator` calculates runtime stats from base and growth profiles.
 4. `TurretStatProfileApplier` applies combat stats to the runtime turret components.
-5. `TurretVFXProgressionSO` selects projectile/muzzle/audio data.
+5. `TurretVFXProgressionSO` selects projectile and muzzle VFX data.
 6. `TurretProjectileScaleProgressionSO` selects projectile scale.
 7. Firing logic applies projectile prefab, speed, damage, pierce count, scale, and collision ignore rules per spawn.
 8. `ProjectileDamageDealer` applies damage to `IDamageable` targets.

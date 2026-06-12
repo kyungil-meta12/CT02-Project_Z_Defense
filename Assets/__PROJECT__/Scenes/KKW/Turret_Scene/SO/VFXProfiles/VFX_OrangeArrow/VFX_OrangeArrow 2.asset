@@ -16,4 +16,3 @@ MonoBehaviour:
   projectilePrefab: {fileID: 1976014488594992, guid: ae76114d54faab04face7cceeeb3af97, type: 3}
   muzzleVFX: {fileID: 0}
   muzzleVFXDuration: 2
-  fireSound: {fileID: 0}

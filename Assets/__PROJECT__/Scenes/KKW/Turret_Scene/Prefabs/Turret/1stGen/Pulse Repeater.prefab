@@ -643,7 +643,6 @@ MonoBehaviour:
   gunPrefabs:
   - {fileID: 8009988405166705574}
   - {fileID: 7321803352020619158}
-  firingSound: {fileID: 0}
   muzzleVFX: {fileID: 0}
   muzzleVFXDuration: 2
 --- !u!114 &-3058233465517193488

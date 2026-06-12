@@ -478,7 +478,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   gunPrefabs:
   - {fileID: 3268643604017311785}
-  firingSound: {fileID: 0}
   muzzleVFX: {fileID: 0}
   muzzleVFXDuration: 2
 --- !u!114 &4207014700442325580

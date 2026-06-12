@@ -113,7 +113,6 @@ public class TurretVFXProfileRuntimeUI : MonoBehaviour
         {
             targetFiringEvent.muzzleVFX = profile.muzzleVFX;
             targetFiringEvent.muzzleVFXDuration = profile.muzzleVFXDuration;
-            targetFiringEvent.firingSound = profile.fireSound;
         }
 
         ApplyStatProfileApplier();

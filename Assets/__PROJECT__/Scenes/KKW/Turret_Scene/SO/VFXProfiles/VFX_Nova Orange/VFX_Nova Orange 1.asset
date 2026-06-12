@@ -17,4 +17,3 @@ MonoBehaviour:
   projectileSpeed: 0
   muzzleVFX: {fileID: 0}
   muzzleVFXDuration: 2
-  fireSound: {fileID: 0}

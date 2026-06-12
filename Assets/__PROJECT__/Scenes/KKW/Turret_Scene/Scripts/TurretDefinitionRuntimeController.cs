@@ -290,7 +290,6 @@ public class TurretDefinitionRuntimeController : MonoBehaviour
         {
             targetFiringEvent.muzzleVFX = vfxProfile.muzzleVFX;
             targetFiringEvent.muzzleVFXDuration = vfxProfile.muzzleVFXDuration;
-            targetFiringEvent.firingSound = vfxProfile.fireSound;
         }
     }
 

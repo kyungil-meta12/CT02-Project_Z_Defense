@@ -12033,7 +12033,7 @@ MonoBehaviour:
     - {fileID: 337505483}
     retreatPoint: {fileID: 799809137}
     restoredPoint: {fileID: 1930416908}
-  startWave: 100
+  startWave: 1
 --- !u!4 &293100234
 Transform:
   m_ObjectHideFlags: 0

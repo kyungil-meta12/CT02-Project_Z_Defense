@@ -24,6 +24,7 @@ public class DropItem : PoolObject
         // 지정된 파티클을 생성 후 파티클을 초기화하고 재생한다.
         particleInstance = MemoryPool.Inst.GetInstance<PoolObject>(particlePrefab);
         particle = particleInstance.GetComponent<ParticleSystem>();
+        particle.transform.position = transform.position;
         particle.Simulate(0f, true);
         particle.Play();
     }

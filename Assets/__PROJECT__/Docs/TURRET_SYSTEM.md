@@ -62,7 +62,7 @@ Do not use display names as stable IDs.
 | `TurretVFXProgressionSO` | Selects active VFX profile by current tier level. |
 | `TurretProjectileScaleProgressionSO` | Selects projectile scale by current tier level. |
 | `TurretEvolutionProgressionSO` | Defines available evolutions, required tier levels, branch-specific costs, icons, and effects. |
-| `TurretShopEntrySO` | Defines placement UI slot data, cost, icon, definition, prefab override, preview prefab. |
+| `TurretShopEntrySO` | Legacy type name for turret placement entry data. Defines placement UI slot data, placement costs, icon, definition, prefab override, and preview prefab. |
 
 ## Stat And VFX Runtime Flow
 
@@ -99,16 +99,17 @@ Do not use display names as stable IDs.
 
 ## Placement Runtime Flow
 
-1. `TurretPlacementUI` builds bottom-bar slots from `TurretShopEntrySO` entries.
+1. `TurretPlacementUI` builds bottom-bar slots from placement entries currently typed as `TurretShopEntrySO`.
 2. `TurretPlacementSlotUI` starts placement by drag or click.
 3. `TurretPlacementController` raycasts against the TurretBase layer and expects `PlacementHitArea`.
 4. Hit collider must have `TurretBaseSlot` in parent hierarchy.
 5. If the slot has `BuildPoint` and no turret, preview snaps to `BuildPoint` and shows valid state.
 6. If occupied, preview still snaps to `BuildPoint` but shows invalid state.
 7. If no turret base is hit, invalid preview projects onto fixed placement plane.
-8. Successful placement instantiates the turret prefab as a child of `BuildPoint`.
-9. Installed turret local position and rotation should reset to zero/identity.
-10. `TurretBaseSlot` records the occupied turret controller or fallback GameObject.
+8. `TurretBaseSlot.TryPlace` spends `TurretShopEntrySO.PlacementCosts` through `ItemManager.TrySpend`.
+9. Successful placement instantiates the turret prefab as a child of `BuildPoint`.
+10. Installed turret local position and rotation should reset to zero/identity.
+11. `TurretBaseSlot` records the occupied turret controller or fallback GameObject.
 
 ## Targeting And Firing Notes
 
@@ -133,6 +134,17 @@ Do not use display names as stable IDs.
 - `DamagePopup.Init` must receive settings every spawn because pooled text objects retain previous state.
 
 ## Setup Checklist
+
+Run `Project Z Defense/Validation/Validate Turret Economy` after wiring turret economy assets.
+
+The validator checks:
+
+- missing `upgradeCostProfile` references on turret definitions.
+- empty `baseCostsPerLevel` arrays on upgrade cost profiles.
+- empty `evolutionCosts` arrays on evolution entries with a target definition.
+- missing `placementCosts` on turret placement entries when hidden legacy `cost` is also zero.
+- hidden legacy turret placement `cost` fallback usage count.
+- negative cost amounts in upgrade, evolution, and placement cost arrays.
 
 For each turret definition:
 

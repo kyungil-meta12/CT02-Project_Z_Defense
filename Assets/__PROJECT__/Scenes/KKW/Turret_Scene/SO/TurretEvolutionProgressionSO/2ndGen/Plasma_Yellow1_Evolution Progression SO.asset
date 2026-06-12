@@ -1,4 +1,4 @@
-﻿%YAML 1.1
+%YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
 --- !u!114 &11400000
 MonoBehaviour:
@@ -16,6 +16,9 @@ MonoBehaviour:
   - requiredLevel: 100
     targetDefinition: {fileID: 11400000, guid: 9d0b292809c540243818bd7563489b41, type: 2}
     displayName: Plasma_Yellow_2
+    evolutionCosts:
+    - currencyType: 0
+      amount: 1000
     evolutionIcon: {fileID: 21300000, guid: eda3867fcac4a1d4bbe208b1e8b3ec2e, type: 3}
     evolutionEffectPrefab: {fileID: 640602461530948004, guid: 938be4f127f81d348a60fe4019a9422c, type: 3}
     evolutionEffectLocalOffset: {x: 0, y: 0, z: 0}

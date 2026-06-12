@@ -248,20 +248,24 @@ public class TurretDefinitionRuntimeController : MonoBehaviour
         TurretEvolutionEntry evolutionEntry = GetAvailableEvolution(availableIndex);
         if (evolutionEntry == null || evolutionEntry.targetDefinition == null)
         {
+            TurretEconomyLogUtility.LogResult("진화", GetCurrentTurretLogName(), null, false, this, "선택 가능한 진화 후보가 없습니다.");
             return false;
         }
 
         if (!TrySpendCosts(evolutionEntry.evolutionCosts))
         {
+            TurretEconomyLogUtility.LogResult("진화", GetEvolutionName(evolutionEntry), evolutionEntry.evolutionCosts, false, this, "재화가 부족하거나 ItemManager가 없습니다.");
             return false;
         }
 
         if (Evolve(availableIndex))
         {
+            TurretEconomyLogUtility.LogResult("진화", GetEvolutionName(evolutionEntry), evolutionEntry.evolutionCosts, true, this);
             return true;
         }
 
         RefundCosts(evolutionEntry.evolutionCosts);
+        TurretEconomyLogUtility.LogResult("진화", GetEvolutionName(evolutionEntry), evolutionEntry.evolutionCosts, false, this, "진화 적용에 실패해 비용을 환불했습니다.");
         return false;
     }
 
@@ -300,11 +304,13 @@ public class TurretDefinitionRuntimeController : MonoBehaviour
         TurretEvolutionEntry evolutionEntry = GetAvailableEvolution(availableIndex);
         if (evolutionEntry == null || evolutionEntry.targetDefinition == null)
         {
+            TurretEconomyLogUtility.LogResult("진화", GetCurrentTurretLogName(), null, false, this, "선택 가능한 진화 후보가 없습니다.");
             return null;
         }
 
         if (!TrySpendCosts(evolutionEntry.evolutionCosts))
         {
+            TurretEconomyLogUtility.LogResult("진화", GetEvolutionName(evolutionEntry), evolutionEntry.evolutionCosts, false, this, "재화가 부족하거나 ItemManager가 없습니다.");
             return null;
         }
 
@@ -312,8 +318,11 @@ public class TurretDefinitionRuntimeController : MonoBehaviour
         if (evolvedRuntimeController == null)
         {
             RefundCosts(evolutionEntry.evolutionCosts);
+            TurretEconomyLogUtility.LogResult("진화", GetEvolutionName(evolutionEntry), evolutionEntry.evolutionCosts, false, this, "진화 프리팹 생성에 실패해 비용을 환불했습니다.");
+            return null;
         }
 
+        TurretEconomyLogUtility.LogResult("진화", GetEvolutionName(evolutionEntry), evolutionEntry.evolutionCosts, true, this);
         return evolvedRuntimeController;
     }
 
@@ -346,18 +355,28 @@ public class TurretDefinitionRuntimeController : MonoBehaviour
     // 레벨업 비용을 소모한 뒤 현재 티어 레벨을 지정한 수량만큼 증가시킨다
     public bool TryUpgrade(int levelAmount)
     {
-        if (!CanUpgrade(levelAmount))
+        if (levelAmount <= 0)
         {
+            TurretEconomyLogUtility.LogResult("업그레이드", GetCurrentTurretLogName(), null, false, this, "업그레이드 수량이 유효하지 않습니다.");
+            return false;
+        }
+
+        int targetLevel = GetClampedLevelForProgression(level + levelAmount, level);
+        if (targetLevel <= level)
+        {
+            TurretEconomyLogUtility.LogResult("업그레이드", GetCurrentTurretLogName(), null, false, this, "현재 레벨에서 더 이상 업그레이드할 수 없습니다.");
             return false;
         }
 
         ResourceCost[] costs = GetUpgradeCosts(levelAmount);
         if (!TrySpendCosts(costs))
         {
+            TurretEconomyLogUtility.LogResult("업그레이드", GetCurrentTurretLogName(), costs, false, this, "재화가 부족하거나 ItemManager가 없습니다.");
             return false;
         }
 
         SetLevel(level + levelAmount);
+        TurretEconomyLogUtility.LogResult("업그레이드", GetCurrentTurretLogName(), costs, true, this);
         return true;
     }
 
@@ -607,6 +626,12 @@ public class TurretDefinitionRuntimeController : MonoBehaviour
         }
 
         return GetDefinitionName(entry.targetDefinition);
+    }
+
+    // 현재 터렛 정의의 로그용 표시 이름을 반환한다
+    private string GetCurrentTurretLogName()
+    {
+        return GetDefinitionName(turretDefinition);
     }
 
     // 터렛 정의의 표시 이름을 반환한다

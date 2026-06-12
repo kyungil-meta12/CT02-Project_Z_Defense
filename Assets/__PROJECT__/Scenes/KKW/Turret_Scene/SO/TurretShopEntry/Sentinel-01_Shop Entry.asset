@@ -17,4 +17,7 @@ MonoBehaviour:
   turretDefinition: {fileID: 11400000, guid: bfd04d6c347d461469139eb424cb49cd, type: 2}
   overridePrefab: {fileID: 0}
   previewPrefab: {fileID: 0}
-  cost: 0
+  placementCosts:
+  - currencyType: 0
+    amount: 0
+  cost: 50

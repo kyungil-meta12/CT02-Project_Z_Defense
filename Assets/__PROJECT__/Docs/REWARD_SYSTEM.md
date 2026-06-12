@@ -28,7 +28,9 @@ This document tracks the planned reward and currency pipeline for zombie kill re
 - `BossZombieSpec` references a default fallback `ZombieRewardProfileSO`.
 - `BossZombie.Die` grants kill reward through `RewardGrantUtility`.
 - `ZombieRewardProfileSO` supports conditional modifiers for wave range, zombie type, defense line, situation flags, currency type, amount multiplier, flat bonus, and drop chance changes.
-- `ObstacleBuildSlot` currently spends placement cost through `ItemManager.TryUseCoin`.
+- `TurretShopEntrySO` is a legacy type name for turret placement entry data and defines turret placement costs through `ResourceCost[] placementCosts` with hidden legacy coin `cost` fallback.
+- `TurretBaseSlot` spends turret placement costs through `ItemManager.TrySpend`.
+- `ObstacleBuildSlot` still spends obstacle placement cost through `ItemManager.TryUseCoin`.
 - `TurretDefinitionSO` can reference `TurretUpgradeCostProfileSO`.
 - `TurretEvolutionEntry` can define `ResourceCost[] evolutionCosts`.
 - Turret runtime UI calls `TryUpgrade`, `TryEvolve`, or `TryCreateEvolvedInstance`, so upgrades/evolutions only execute after cost spend succeeds.
@@ -50,6 +52,15 @@ This document tracks the planned reward and currency pipeline for zombie kill re
 4. `TurretEvolutionEntry` supplies evolution costs.
 5. `ItemManager` spends currency only after all requirements pass.
 6. Runtime level-up or evolution executes only after spend succeeds.
+
+## Target Turret Placement Cost Flow
+
+1. `TurretPlacementUI` builds slots from placement entries currently typed as `TurretShopEntrySO`.
+2. `TurretPlacementSlotUI` displays `placementCosts`.
+3. `TurretBaseSlot.TryPlace` checks the selected slot and prefab.
+4. `TurretBaseSlot.TryPlace` spends `TurretShopEntrySO.PlacementCosts` through `ItemManager.TrySpend`.
+5. Turret prefab instantiation runs only after placement cost spend succeeds.
+6. If placement instantiation fails after spend, the placement costs are refunded.
 
 ## Planned Data Types
 
@@ -78,6 +89,7 @@ Use this ownership:
 - Round and situation scaling should be added to `ZombieRewardProfileSO.Modifiers`, not to prefab scripts.
 - `TurretDefinitionSO` may reference an upgrade cost profile.
 - `TurretEvolutionEntry` may hold evolution costs because the cost belongs to a specific branch choice.
+- `TurretShopEntrySO` holds placement costs because the cost belongs to the placement entry being installed.
 
 ## Reward Modifier Rules
 
@@ -140,10 +152,11 @@ Important rule:
 9. Done: Add `TurretUpgradeCostProfileSO`.
 10. Done: Add evolution costs to `TurretEvolutionEntry`.
 11. Done: Replace turret UI direct level/evolution calls with `TryUpgrade` and `TryEvolve`.
-12. Next: Create and balance `ZombieRewardProfileSO` assets assigned to prefab overrides or spec fallback.
-13. Next: Create `TurretUpgradeCostProfileSO` assets and assign them to turret definitions.
-14. Next: Fill `TurretEvolutionEntry.evolutionCosts` in evolution progression assets.
-15. Later: Move obstacle placement cost to `ResourceCost` after turret economy is stable.
+12. Done: Move turret placement/shop entry cost to `ResourceCost[] placementCosts`.
+13. Next: Create and balance `ZombieRewardProfileSO` assets assigned to prefab overrides or spec fallback.
+14. Next: Create `TurretUpgradeCostProfileSO` assets and assign them to turret definitions.
+15. Next: Fill `TurretEvolutionEntry.evolutionCosts` in evolution progression assets.
+16. Later: Move obstacle placement cost to `ResourceCost` after turret economy is stable.
 
 ## Edge Cases
 
@@ -155,6 +168,8 @@ Important rule:
 - Drop chances should be clamped between `0` and `1`.
 - Upgrade hold input should stop when currency becomes insufficient.
 - Evolution prefab replacement must not consume cost twice.
+- Turret placement should not instantiate a turret when placement cost spend fails.
+- Turret placement should refund costs if prefab instantiation fails after spend.
 
 ## Related Plan File
 

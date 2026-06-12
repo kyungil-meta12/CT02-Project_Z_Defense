@@ -2360,6 +2360,7 @@ MonoBehaviour:
   - {fileID: 22100000, guid: c8ab4e27c8b2b2341b0a57f6fea44b8a, type: 2}
   - {fileID: 22100000, guid: 42499c0794d724f4396528ea423197b5, type: 2}
   - {fileID: 22100000, guid: 0b7c52e7343462241a8817465a95215c, type: 2}
+  waveLimit: 60
   logReceivedDamage: 1
   hpUI: {fileID: 8476630290883587589}
   hitCollider: {fileID: 660597126758215374}

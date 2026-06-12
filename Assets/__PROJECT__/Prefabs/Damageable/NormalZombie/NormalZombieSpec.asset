@@ -14,16 +14,16 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::NormalZombieSpec
   MoveSpeed: 1
   AttackSpeed: 0.8
-  MoveAttackSpeedWeight: 0.05
+  MoveAttackSpeedWeight: 0.01
   MinMoveAttackSpeed: 1
-  MaxMoveAttackSpeed: 1.5
+  MaxMoveAttackSpeed: 1.25
   AttackDamage: 25
-  AttackDamageWeight: 0.05
+  AttackDamageWeight: 0.01
   MinAttackDamage: 0.5
   MaxAttackDamage: 1.5
   AttackDistance: 0.5
   Hp: 100
-  HpWeight: 0.05
+  HpWeight: 0.01
   MinHp: 0.9
   MaxHp: 1.1
   DropCoin: 10

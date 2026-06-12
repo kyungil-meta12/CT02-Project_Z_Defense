@@ -35,6 +35,8 @@ public class GameManager : MonoBehaviour
     public int KillCount{ get; private set; }= 0; // 현재 킬 카운트
     public int DestKillCount{ get; private set; } = 0; // 목표 킬 카운트
 
+    [Header("시작 웨이브")] public int startWave;
+
     private void OnValidate()
     {
         EnsureDefaultDefenseLineEntries();
@@ -49,6 +51,9 @@ public class GameManager : MonoBehaviour
         }
 
         Inst = this;
+
+        Wave = startWave;
+
         DontDestroyOnLoad(gameObject);
         EnsureDefaultDefenseLineEntries();
     }

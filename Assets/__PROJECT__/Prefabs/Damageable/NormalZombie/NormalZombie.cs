@@ -7,6 +7,7 @@ public class NormalZombie : PoolObject, IDamageable
 {
     [Header("일반 좀비 기본 스펙")] public NormalZombieSpec spec;
     [Header("애니메이터 컨트롤러 목록")] public RuntimeAnimatorController[] animControllers;
+    [Header("스펙 증가 웨이브 제한")] public int waveLimit;
     [SerializeField] private bool logReceivedDamage = true;
     
     public HpUI hpUI;
@@ -46,6 +47,7 @@ public class NormalZombie : PoolObject, IDamageable
         float randomHp = Random.Range(spec.MinHp, spec.MaxHp);
         float wave = GameManager.Inst.Wave;
         bool isFirstWave = GameManager.Inst.Wave == 1;
+        float limitWave = Mathf.Clamp(wave, 0f, waveLimit);
 
         // 기본 수치 * 랜덤 수치 * 웨이브 반영 수치를 곱하여 결정
         // 웨이브 1때는 웨이브 가중치를 적용하지 않는다.
@@ -55,7 +57,7 @@ public class NormalZombie : PoolObject, IDamageable
         anim.SetBool("IsAttackState", false);
 
         // 이동/공격 속도
-        float moveAttackSpeedMul = isFirstWave ? randomMoveAttackSpeed : randomMoveAttackSpeed * Mathf.Pow(1f + spec.MoveAttackSpeedWeight, wave - 1f);
+        float moveAttackSpeedMul = isFirstWave ? randomMoveAttackSpeed : randomMoveAttackSpeed * Mathf.Pow(1f + spec.MoveAttackSpeedWeight, limitWave - 1f);
         anim.SetFloat("MoveSpeed", spec.MoveSpeed * moveAttackSpeedMul);
         anim.SetFloat("AttackSpeed", spec.AttackSpeed * moveAttackSpeedMul);
 

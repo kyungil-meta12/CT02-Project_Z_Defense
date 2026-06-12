@@ -68180,6 +68180,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d408cf298a66bce4daff9085b6a6f1c6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ItemManager
+  applyInitialWalletOnAwake: 1
+  applyInitialWalletOnlyWhenEmpty: 1
+  logInitialWalletApply: 1
+  initialWalletCurrencies:
+  - currencyType: 0
+    amount: 50
 --- !u!4 &1848747282
 Transform:
   m_ObjectHideFlags: 0

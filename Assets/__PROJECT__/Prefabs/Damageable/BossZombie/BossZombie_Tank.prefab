@@ -1097,6 +1097,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BossZombieController
   spec: {fileID: 11400000, guid: 7534fe6ad626a7a42b363ffa197af1a0, type: 2}
+  rewardProfileOverride: {fileID: 11400000, guid: eb2fda2c7dad99c4f902fbbec727bbef, type: 2}
   hpUI: {fileID: 1752618957355306017}
   behaviorAgent: {fileID: 6826328001050502462}
   anim: {fileID: 3317958215391167824}

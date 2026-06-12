@@ -16,19 +16,35 @@ public static class REWARD_CURRENCY_SYSTEM_PLAN
      * - UI, 좀비, 터렛 개별 클래스가 직접 보상/비용 계산식을 소유하지 않도록 책임을 분리한다.
      *
      * Current Problems
-     * - NormalZombieSpec.DropCoin 하나로 일반 좀비 코인 보상이 고정되어 있다.
-     * - NormalZombie.OnDespawn()에서 보상을 지급해 풀링 반환과 처치 보상이 섞여 있다.
-     * - ItemManager.AddCoinCount()가 획득과 환불을 구분하지 않아 WaveCollectCoinCount가 오염될 수 있다.
+     * - NormalZombieSpec.DropCoin 하나로 일반 좀비 코인 보상이 고정되어 있었다.
+     * - NormalZombie.OnDespawn()에서 보상을 지급해 풀링 반환과 처치 보상이 섞여 있었다.
+     * - ItemManager.AddCoinCount()가 획득과 환불을 구분하지 않아 WaveCollectCoinCount가 오염될 수 있었다.
      * - TryUseCoin(), AddCoinCount() 직접 호출이 여러 시스템에 퍼지면 새 재화와 조건 추가 비용이 커진다.
      * - 보상/비용이 코인 기준으로만 표현되어 화기 부품, 속성 부품, 이벤트 재화 확장이 어렵다.
+     *
+     * Current Migration Status
+     * - RewardCurrencyType, RewardEntry, ResourceCost를 추가했다.
+     * - ZombieRewardProfileSO와 ZombieRewardContext를 추가했다.
+     * - NormalZombieSpec이 ZombieRewardProfileSO를 참조한다.
+     * - NormalZombie가 프리팹별 rewardProfileOverride를 우선 사용하고 없으면 Spec 기본값으로 fallback한다.
+     * - BossZombie도 프리팹별 rewardProfileOverride를 우선 사용하고 없으면 BossZombieSpec 기본값으로 fallback한다.
+     * - NormalZombie.Die()가 RewardGrantUtility를 통해 처치 보상을 지급한다.
+     * - BossZombie.Die()가 RewardGrantUtility를 통해 처치 보상을 지급한다.
+     * - ZombieRewardProfileSO.Modifiers로 웨이브 구간, 보스 여부, 라인, 상황 플래그, 재화별 보상 가중치를 적용한다.
+     * - NormalZombie.OnDespawn()은 더 이상 처치 보상을 지급하지 않는다.
+     * - RewardProfile 미연결 상태에서는 DropCoin을 레거시 fallback 보상으로 사용한다.
+     * - ItemManager는 AddReward, CanAfford, TrySpend, Refund API를 제공한다.
+     * - TurretUpgradeCostProfileSO를 추가하고 TurretDefinitionSO에서 참조한다.
+     * - TurretEvolutionEntry에 ResourceCost[] evolutionCosts를 추가했다.
+     * - 터렛 런타임 UI는 TryUpgrade, TryEvolve, TryCreateEvolvedInstance로 비용 성공 후에만 상태를 변경한다.
      *
      * Target Flow - Zombie Reward
      *
      * 1. NormalZombie.TakeDamage()에서 HP가 0 이하가 되면 Die()를 호출한다.
      * 2. Die()는 IsAlive를 false로 바꾸고 킬 카운트를 증가시킨다.
-     * 3. Die()에서 NormalZombieSpec.rewardProfile을 사용해 처치 보상을 요청한다.
+     * 3. Die()에서 프리팹별 rewardProfileOverride를 먼저 확인하고, 없으면 ZombieSpec.rewardProfile로 처치 보상을 요청한다.
      * 4. ZombieRewardContext가 현재 웨이브, 좀비 타입, 방어선/라인, 보스 여부, 이벤트 배율 등을 제공한다.
-     * 5. RewardCalculator 또는 RewardGrantUtility가 RewardProfile + Context로 최종 보상을 계산한다.
+     * 5. RewardGrantUtility가 RewardProfile + Context + Modifiers로 최종 보상을 계산한다.
      * 6. ItemManager 또는 향후 Wallet이 계산된 재화를 지급하고 UI 이벤트를 발행한다.
      * 7. OnDespawn()은 풀 반환 정리만 담당하고 처치 보상 지급을 하지 않는다.
      *
@@ -55,15 +71,34 @@ public static class REWARD_CURRENCY_SYSTEM_PLAN
      * - float dropChance
      * - Optional min/max random amount for future balancing.
      *
+     * ZombieRewardModifier
+     * - Conditional reward modifier inside ZombieRewardProfileSO.
+     * - Conditions:
+     *   target currency
+     *   normal or boss zombie
+     *   min/max wave
+     *   defense line index
+     *   required situation flags
+     * - Effects:
+     *   amountMultiplier
+     *   flatAmountBonus
+     *   dropChanceMultiplier
+     *   additionalDropChance
+     *
+     * ZombieRewardSituation
+     * - Runtime flags for event bonus, fever time, perfect defense, low base health, first kill in wave, or custom triggers.
+     * - Future systems should add flags to ZombieRewardContext instead of creating prefab-specific reward code.
+     *
      * ResourceCost
      * - RewardCurrencyType currencyType
      * - int amount
      * - Used by turret upgrade, turret evolution, placement, shop, and future skills.
      *
      * ZombieRewardProfileSO
-     * - Holds base reward entries for a zombie spec.
-     * - Should be referenced by NormalZombieSpec, not directly by every prefab Variant.
-     * - Keeps prefab Variant override management small.
+     * - Holds reward entries for a zombie prefab override or zombie spec fallback.
+     * - NormalZombie.rewardProfileOverride is used when stats are shared but rewards differ per prefab or Variant.
+     * - NormalZombieSpec.RewardProfile remains the shared default fallback.
+     * - BossZombie.rewardProfileOverride and BossZombieSpec.RewardProfile follow the same ownership rule.
      *
      * ZombieRewardContext
      * - Runtime-only value data.
@@ -71,9 +106,9 @@ public static class REWARD_CURRENCY_SYSTEM_PLAN
      *   wave
      *   isBoss
      *   defenseLineIndex
-     *   enemyId or spec reference
-     *   eventRewardMultiplier
-     *   additionalRuntimeMultiplier
+     *   situationFlags
+     *   sourceSpec
+     *   rewardMultiplier
      *
      * TurretUpgradeCostProfileSO
      * - Calculates upgrade cost by current tier level and target tier level.
@@ -104,15 +139,21 @@ public static class REWARD_CURRENCY_SYSTEM_PLAN
      *
      * Initial Implementation Order
      *
-     * 1. Add RewardCurrencyType, RewardEntry, ResourceCost.
-     * 2. Add ZombieRewardProfileSO.
-     * 3. Add rewardProfile reference to NormalZombieSpec.
-     * 4. Move normal zombie reward grant from OnDespawn() to Die().
-     * 5. Add ItemManager reward/spend/refund APIs while keeping old wrappers.
-     * 6. Add TurretUpgradeCostProfileSO and connect it to TurretDefinitionSO or shared config.
-     * 7. Add ResourceCost[] to TurretEvolutionEntry.
-     * 8. Replace turret UI direct AddLevel/Evolve calls with TryUpgrade/TryEvolve calls.
-     * 9. Update Docs whenever reward or cost ownership changes.
+     * 1. Done: Add RewardCurrencyType, RewardEntry, ResourceCost.
+     * 2. Done: Add ZombieRewardProfileSO.
+     * 3. Done: Add rewardProfile reference to NormalZombieSpec.
+     * 4. Done: Move normal zombie reward grant from OnDespawn() to Die().
+     * 5. Done: Add ItemManager reward/spend/refund APIs while keeping old wrappers.
+     * 6. Done: Add prefab-level rewardProfileOverride to NormalZombie.
+     * 7. Done: Add prefab-level rewardProfileOverride to BossZombie.
+     * 8. Done: Add conditional ZombieRewardModifier support to ZombieRewardProfileSO.
+     * 9. Done: Add TurretUpgradeCostProfileSO and connect it to TurretDefinitionSO.
+     * 10. Done: Add ResourceCost[] to TurretEvolutionEntry.
+     * 11. Done: Replace turret UI direct AddLevel/Evolve calls with TryUpgrade/TryEvolve calls.
+     * 12. Next: Balance ZombieRewardProfileSO assets assigned to prefab overrides or spec fallback.
+     * 13. Next: Create and assign TurretUpgradeCostProfileSO assets.
+     * 14. Next: Fill evolutionCosts on turret evolution progression assets.
+     * 15. Ongoing: Update Docs whenever reward or cost ownership changes.
      *
      * Edge Cases To Check
      * - Pooled zombie returned without dying must not grant rewards.
@@ -122,13 +163,16 @@ public static class REWARD_CURRENCY_SYSTEM_PLAN
      * - Missing rewardProfile should not break zombie death flow.
      * - Zero or negative reward amounts should be ignored or clamped.
      * - Drop chance must be clamped from 0 to 1.
+     * - Modifier amount multipliers and chance multipliers must never go below 0.
+     * - maxWave 0 means no upper wave cap.
      * - Refund must not increase wave-collected reward tracking.
      * - UI should stop upgrade hold when currency becomes insufficient.
      * - Evolution cost should be consumed once even when prefab replacement is used.
      *
      * Migration Notes
      * - NormalZombieSpec.DropCoin should be treated as legacy once rewardProfile is connected.
+     * - Keep one shared NormalZombieSpec when only reward data differs; use NormalZombie.rewardProfileOverride on prefab originals or Variants.
      * - Existing obstacle placement can keep TryUseCoin temporarily, then move to ResourceCost later.
-     * - BossZombieSpec item drop percentage fields should be migrated to reward profiles instead of adding more boss-specific code.
+     * - BossZombieSpec item drop percentage fields are legacy balancing data and should move into reward profiles instead of adding more boss-specific code.
      */
 }

@@ -1,4 +1,4 @@
-%YAML 1.1
+﻿%YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
 --- !u!1001 &1909840801529399111
 PrefabInstance:
@@ -8,6 +8,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 2198761140652240216, guid: 4696f3a76ac50b74dba3cd8982cf1807, type: 3}
+      propertyPath: rewardProfileOverride
+      value:
+      objectReference: {fileID: 11400000, guid: dd23cb96b78e16448b54c4def1de9660, type: 2}
     - target: {fileID: 2927825134225070825, guid: 4696f3a76ac50b74dba3cd8982cf1807, type: 3}
       propertyPath: m_Name
       value: NZ_Solider
@@ -62,7 +66,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7595434027879592898, guid: 4696f3a76ac50b74dba3cd8982cf1807, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
-      value: 
+      value:
       objectReference: {fileID: 2100000, guid: ce2170e4bada3de43a95f7e6e70975fa, type: 2}
     - target: {fileID: 9175698223646993104, guid: 4696f3a76ac50b74dba3cd8982cf1807, type: 3}
       propertyPath: m_AnchorMax.x

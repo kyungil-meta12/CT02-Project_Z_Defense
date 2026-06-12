@@ -1,5 +1,8 @@
 using UnityEngine;
 
+/// <summary>
+/// 일반 좀비의 기본 전투 스탯과 처치 보상 프로필을 정의하는 ScriptableObject.
+/// </summary>
 [CreateAssetMenu(fileName = "NormalZombieSpec", menuName = "Scriptable Objects/NormalZombieSpec")]
 public class NormalZombieSpec : ScriptableObject
 {
@@ -26,5 +29,12 @@ public class NormalZombieSpec : ScriptableObject
     public float MinHp;
     public float MaxHp;
 
-    [Header("드랍하는 코인량")] public int DropCoin;
+    [Header("처치 보상 프로필")] public ZombieRewardProfileSO RewardProfile;
+    [Header("레거시 코인 보상 - RewardProfile 연결 전 임시 fallback")] public int DropCoin;
+
+    // 인스펙터 입력값을 유효한 범위로 보정한다
+    private void OnValidate()
+    {
+        DropCoin = Mathf.Max(0, DropCoin);
+    }
 }

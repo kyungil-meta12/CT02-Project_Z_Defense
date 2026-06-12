@@ -1,4 +1,5 @@
 using System;
+using System.Text;
 using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -30,6 +31,7 @@ public class TurretTemporaryUpgradePopupUI : MonoBehaviour
     [Header("Upgrade")]
     [SerializeField, Min(1)] private int levelUpAmount = 1;
     [SerializeField] private bool replacePrefabOnEvolution = true;
+    [SerializeField] private bool spendCurrencyForTemporaryUpgrade = true;
     [SerializeField, Min(0.0f)] private float holdStartDelay = 0.5f;
     [SerializeField, Min(0.1f)] private float minHoldLevelsPerSecond = 4.0f;
     [SerializeField, Min(0.1f)] private float maxHoldLevelsPerSecond = 45.0f;
@@ -37,7 +39,7 @@ public class TurretTemporaryUpgradePopupUI : MonoBehaviour
 
     [Header("Temporary UI")]
     [SerializeField] private Vector2 popupAnchoredPosition = new Vector2(0.0f, 360.0f);
-    [SerializeField] private Vector2 popupSize = new Vector2(920.0f, 480.0f);
+    [SerializeField] private Vector2 popupSize = new Vector2(920.0f, 540.0f);
 
     private TurretPlacementController placementController;
     private TurretDefinitionRuntimeController selectedTurret;
@@ -49,6 +51,7 @@ public class TurretTemporaryUpgradePopupUI : MonoBehaviour
     private TMP_Text titleText;
     private TMP_Text levelText;
     private TMP_Text statusText;
+    private Toggle spendCurrencyToggle;
     private TMP_Text currentStatText;
     private TMP_Text nextStatText;
     private Button levelUpButton;
@@ -137,17 +140,31 @@ public class TurretTemporaryUpgradePopupUI : MonoBehaviour
         ShowPopup();
     }
 
-    // 선택된 터렛의 현재 티어 레벨을 설정된 양만큼 올린다
-    private void AddLevel()
+    // 선택된 터렛의 현재 티어 레벨을 테스트 토글 상태에 맞게 올린다
+    private bool AddLevel()
     {
         if (selectedTurret == null)
         {
             HidePopup();
-            return;
+            return false;
         }
 
-        selectedTurret.AddLevel(levelUpAmount);
+        if (ShouldSpendCurrency())
+        {
+            if (!selectedTurret.TryUpgrade(levelUpAmount))
+            {
+                EndLevelHold();
+                RefreshUI();
+                return false;
+            }
+        }
+        else
+        {
+            selectedTurret.AddLevel(levelUpAmount);
+        }
+
         RefreshUI();
+        return true;
     }
 
     // 레벨업 버튼을 누르기 시작할 때 홀드 가속 상태를 초기화한다
@@ -156,7 +173,10 @@ public class TurretTemporaryUpgradePopupUI : MonoBehaviour
         isHoldingLevelButton = true;
         holdElapsedTime = 0.0f;
         holdLevelAccumulator = 0.0f;
-        AddLevel();
+        if (!AddLevel())
+        {
+            EndLevelHold();
+        }
     }
 
     // 레벨업 버튼 홀드 상태를 해제하고 누적값을 초기화한다
@@ -195,7 +215,11 @@ public class TurretTemporaryUpgradePopupUI : MonoBehaviour
         holdLevelAccumulator -= levelAmount;
         for (int i = 0; i < levelAmount; i++)
         {
-            AddLevel();
+            if (!AddLevel())
+            {
+                EndLevelHold();
+                return;
+            }
 
             if (selectedTurret == null ||
                 selectedTurret.GetAvailableEvolutionCount() > 0 ||
@@ -225,11 +249,16 @@ public class TurretTemporaryUpgradePopupUI : MonoBehaviour
         TurretDefinitionRuntimeController evolvedTurret;
         if (replacePrefabOnEvolution)
         {
-            evolvedTurret = selectedTurret.CreateEvolvedInstance(availableIndex);
+            evolvedTurret = ShouldSpendCurrency()
+                ? selectedTurret.TryCreateEvolvedInstance(availableIndex)
+                : selectedTurret.CreateEvolvedInstance(availableIndex);
         }
         else
         {
-            evolvedTurret = selectedTurret.Evolve(availableIndex) ? selectedTurret : null;
+            bool isEvolved = ShouldSpendCurrency()
+                ? selectedTurret.TryEvolve(availableIndex)
+                : selectedTurret.Evolve(availableIndex);
+            evolvedTurret = isEvolved ? selectedTurret : null;
         }
 
         if (evolvedTurret == null)
@@ -366,6 +395,8 @@ public class TurretTemporaryUpgradePopupUI : MonoBehaviour
         titleText = CreateText("Title", popupRoot.transform, "Turret", 34, FontStyles.Bold, TextAlignmentOptions.Left);
         levelText = CreateText("Level", popupRoot.transform, "Lv.", 24, FontStyles.Normal, TextAlignmentOptions.Left);
         statusText = CreateText("Status", popupRoot.transform, string.Empty, 22, FontStyles.Bold, TextAlignmentOptions.Left);
+        spendCurrencyToggle = CreateToggle("SpendCurrencyToggle", popupRoot.transform, "Spend Cost", spendCurrencyForTemporaryUpgrade);
+        spendCurrencyToggle.onValueChanged.AddListener(OnSpendCurrencyToggleChanged);
 
         GameObject statsRow = CreateUIObject("StatsRow", popupRoot.transform);
         HorizontalLayoutGroup statsLayout = statsRow.AddComponent<HorizontalLayoutGroup>();
@@ -436,15 +467,17 @@ public class TurretTemporaryUpgradePopupUI : MonoBehaviour
         nextStatText.text = "Next\n" + FormatStats(nextStat);
 
         int evolutionCount = selectedTurret.GetAvailableEvolutionCount();
-        bool canLevelUp = evolutionCount == 0 && !selectedTurret.IsMaxTierLevelReached;
-        if (!canLevelUp)
+        ResourceCost[] upgradeCosts = selectedTurret.GetUpgradeCosts(levelUpAmount);
+        bool isLevelUpVisible = evolutionCount == 0 && !selectedTurret.IsMaxTierLevelReached;
+        bool canLevelUp = isLevelUpVisible && (!ShouldSpendCurrency() || selectedTurret.CanUpgrade(levelUpAmount));
+        if (!isLevelUpVisible || !canLevelUp)
         {
             EndLevelHold();
         }
 
-        levelUpButton.gameObject.SetActive(canLevelUp);
+        levelUpButton.gameObject.SetActive(isLevelUpVisible);
         levelUpButton.interactable = canLevelUp;
-        levelUpButtonText.text = $"Upgrade +{levelUpAmount}";
+        levelUpButtonText.text = $"Upgrade +{levelUpAmount}{FormatCosts(upgradeCosts)}{FormatCostMode()}";
 
         if (evolutionCount > 0)
         {
@@ -486,6 +519,7 @@ public class TurretTemporaryUpgradePopupUI : MonoBehaviour
                titleText != null &&
                levelText != null &&
                statusText != null &&
+               spendCurrencyToggle != null &&
                currentStatText != null &&
                nextStatText != null &&
                levelUpButton != null &&
@@ -511,6 +545,7 @@ public class TurretTemporaryUpgradePopupUI : MonoBehaviour
         titleText = FindChildComponent<TMP_Text>(popupRoot.transform, "Title");
         levelText = FindChildComponent<TMP_Text>(popupRoot.transform, "Level");
         statusText = FindChildComponent<TMP_Text>(popupRoot.transform, "Status");
+        spendCurrencyToggle = FindChildComponent<Toggle>(popupRoot.transform, "SpendCurrencyToggle");
         currentStatText = FindChildComponent<TMP_Text>(popupRoot.transform, "StatsRow/CurrentStats/Text");
         nextStatText = FindChildComponent<TMP_Text>(popupRoot.transform, "StatsRow/NextStats/Text");
         levelUpButton = FindChildComponent<Button>(popupRoot.transform, "ButtonRow/LevelUpButton");
@@ -524,6 +559,13 @@ public class TurretTemporaryUpgradePopupUI : MonoBehaviour
         if (levelUpButton != null)
         {
             BindLevelHoldButton(levelUpButton.gameObject);
+        }
+
+        if (spendCurrencyToggle != null)
+        {
+            spendCurrencyToggle.onValueChanged.RemoveListener(OnSpendCurrencyToggleChanged);
+            spendCurrencyToggle.isOn = spendCurrencyForTemporaryUpgrade;
+            spendCurrencyToggle.onValueChanged.AddListener(OnSpendCurrencyToggleChanged);
         }
 
         return IsRuntimeUIReady() && EnsureEvolutionButtonCapacity(DEFAULT_EVOLUTION_BUTTON_CAPACITY);
@@ -642,6 +684,7 @@ public class TurretTemporaryUpgradePopupUI : MonoBehaviour
         titleText = null;
         levelText = null;
         statusText = null;
+        spendCurrencyToggle = null;
         currentStatText = null;
         nextStatText = null;
         levelUpButton = null;
@@ -755,7 +798,10 @@ public class TurretTemporaryUpgradePopupUI : MonoBehaviour
             }
 
             string evolutionName = GetEvolutionName(entry);
-            evolutionButtonLabels[i].text = evolutionName;
+            ResourceCost[] evolutionCosts = selectedTurret.GetEvolutionCosts(i);
+            bool canEvolve = !ShouldSpendCurrency() || selectedTurret.CanEvolve(i);
+            evolutionButtons[i].interactable = canEvolve;
+            evolutionButtonLabels[i].text = evolutionName + FormatCosts(evolutionCosts) + FormatCostMode();
 
             Sprite sprite = GetEvolutionSprite(entry);
             evolutionButtonIcons[i].gameObject.SetActive(sprite != null);
@@ -788,6 +834,75 @@ public class TurretTemporaryUpgradePopupUI : MonoBehaviour
                $"Projectile Speed: {stat.projectileSpeed:0.##}\n" +
                $"Projectile Count: {stat.projectileCount}\n" +
                $"Pierce Count: {stat.pierceCount}";
+    }
+
+    // 비용 배열을 UI에 표시할 짧은 문자열로 변환한다
+    private static string FormatCosts(ResourceCost[] costs)
+    {
+        if (costs == null || costs.Length == 0)
+        {
+            return string.Empty;
+        }
+
+        StringBuilder builder = new StringBuilder();
+        for (int i = 0; i < costs.Length; i++)
+        {
+            ResourceCost cost = costs[i];
+            if (cost == null || cost.amount <= 0)
+            {
+                continue;
+            }
+
+            if (builder.Length == 0)
+            {
+                builder.Append("\n");
+            }
+            else
+            {
+                builder.Append(" / ");
+            }
+
+            builder.Append(GetCurrencyLabel(cost.currencyType));
+            builder.Append(" ");
+            builder.Append(cost.amount);
+        }
+
+        return builder.ToString();
+    }
+
+    // 재화 종류를 UI 표시용 짧은 이름으로 변환한다
+    private static string GetCurrencyLabel(RewardCurrencyType currencyType)
+    {
+        switch (currencyType)
+        {
+            case RewardCurrencyType.Coin:
+                return "Coin";
+            case RewardCurrencyType.FirePart:
+                return "Fire";
+            case RewardCurrencyType.SpecialPart:
+                return "Special";
+            default:
+                return currencyType.ToString();
+        }
+    }
+
+    // 임시 UI 테스트 옵션에서 비용 소모 여부를 반환한다
+    private bool ShouldSpendCurrency()
+    {
+        return spendCurrencyForTemporaryUpgrade;
+    }
+
+    // 비용 소모 비활성화 상태를 버튼 라벨에 표시한다
+    private string FormatCostMode()
+    {
+        return ShouldSpendCurrency() ? string.Empty : "\nCost OFF";
+    }
+
+    // 비용 소모 토글 변경값을 저장하고 현재 UI 상태를 다시 계산한다
+    private void OnSpendCurrencyToggleChanged(bool isOn)
+    {
+        spendCurrencyForTemporaryUpgrade = isOn;
+        RefreshUI();
     }
 
     // 팝업 루트를 활성화한다
@@ -870,6 +985,42 @@ public class TurretTemporaryUpgradePopupUI : MonoBehaviour
         labelRect.offsetMax = new Vector2(-12.0f, -8.0f);
 
         return button;
+    }
+
+    // 테스트용 비용 소모 토글 UI를 생성한다
+    private static Toggle CreateToggle(string objectName, Transform parent, string label, bool isOn)
+    {
+        GameObject toggleObject = CreateUIObject(objectName, parent);
+        HorizontalLayoutGroup layout = toggleObject.AddComponent<HorizontalLayoutGroup>();
+        layout.spacing = 10.0f;
+        layout.childControlWidth = false;
+        layout.childControlHeight = true;
+        layout.childForceExpandWidth = false;
+        layout.childForceExpandHeight = false;
+        AddLayoutElement(toggleObject, 0.0f, 32.0f);
+
+        GameObject backgroundObject = CreateUIObject("Background", toggleObject.transform);
+        Image backgroundImage = backgroundObject.AddComponent<Image>();
+        backgroundImage.color = new Color(1.0f, 1.0f, 1.0f, 0.22f);
+        AddLayoutElement(backgroundObject, 28.0f, 28.0f);
+
+        GameObject checkmarkObject = CreateUIObject("Checkmark", backgroundObject.transform);
+        Image checkmarkImage = checkmarkObject.AddComponent<Image>();
+        checkmarkImage.color = new Color(0.25f, 0.82f, 0.52f, 0.95f);
+        RectTransform checkmarkRect = checkmarkImage.rectTransform;
+        checkmarkRect.anchorMin = new Vector2(0.2f, 0.2f);
+        checkmarkRect.anchorMax = new Vector2(0.8f, 0.8f);
+        checkmarkRect.offsetMin = Vector2.zero;
+        checkmarkRect.offsetMax = Vector2.zero;
+
+        TMP_Text labelText = CreateText("Label", toggleObject.transform, label, 20, FontStyles.Bold, TextAlignmentOptions.Left);
+        AddLayoutElement(labelText.gameObject, 180.0f, 30.0f);
+
+        Toggle toggle = toggleObject.AddComponent<Toggle>();
+        toggle.targetGraphic = backgroundImage;
+        toggle.graphic = checkmarkImage;
+        toggle.isOn = isOn;
+        return toggle;
     }
 
     // 진화 버튼 안에 표시할 아이콘 이미지를 생성한다

@@ -1,6 +1,9 @@
 using ProjectZima.PolygonModularTurretsPack;
 using UnityEngine;
 
+/// <summary>
+/// 터렛 Definition을 런타임 터렛 오브젝트에 적용하고 레벨업, 진화, 비용 소모를 중계한다.
+/// </summary>
 [DisallowMultipleComponent]
 [RequireComponent(typeof(TurretStatProfileApplier))]
 public class TurretDefinitionRuntimeController : MonoBehaviour
@@ -90,6 +93,7 @@ public class TurretDefinitionRuntimeController : MonoBehaviour
         }
     }
 
+    // 컴포넌트 추가 시 필요한 참조를 자동으로 수집한다
     private void Reset()
     {
         RefreshReferences();
@@ -107,6 +111,7 @@ public class TurretDefinitionRuntimeController : MonoBehaviour
         }
     }
 
+    // 시작 시 총 레벨을 보정하고 터렛 정의를 적용한다
     private void Start()
     {
         totalLevel = Mathf.Max(totalLevel, level);
@@ -118,6 +123,7 @@ public class TurretDefinitionRuntimeController : MonoBehaviour
     }
 
     [ContextMenu("Apply Turret Definition")]
+    // 현재 터렛 정의와 레벨을 실제 터렛 스탯과 VFX에 적용한다
     public void Apply()
     {
         RefreshReferences();
@@ -151,6 +157,7 @@ public class TurretDefinitionRuntimeController : MonoBehaviour
         }
     }
 
+    // 현재 레벨에서 진화 후보가 하나 이상 있는지 확인한다
     public bool CanEvolve()
     {
         return turretDefinition != null &&
@@ -158,6 +165,7 @@ public class TurretDefinitionRuntimeController : MonoBehaviour
                turretDefinition.evolutionProgressionProfile.CanEvolve(level);
     }
 
+    // 현재 레벨에서 표시 가능한 진화 후보 수를 반환한다
     public int GetAvailableEvolutionCount()
     {
         if (turretDefinition == null || turretDefinition.evolutionProgressionProfile == null)
@@ -168,6 +176,7 @@ public class TurretDefinitionRuntimeController : MonoBehaviour
         return turretDefinition.evolutionProgressionProfile.GetAvailableEvolutionCount(level);
     }
 
+    // 현재 레벨에서 지정한 표시 인덱스의 진화 후보를 반환한다
     public TurretEvolutionEntry GetAvailableEvolution(int availableIndex)
     {
         if (turretDefinition == null || turretDefinition.evolutionProgressionProfile == null)
@@ -178,6 +187,46 @@ public class TurretDefinitionRuntimeController : MonoBehaviour
         return turretDefinition.evolutionProgressionProfile.GetAvailableEvolution(level, availableIndex);
     }
 
+    // 지정한 레벨업 수량에 필요한 비용을 반환한다
+    public ResourceCost[] GetUpgradeCosts(int levelAmount)
+    {
+        if (turretDefinition == null || turretDefinition.upgradeCostProfile == null || levelAmount <= 0)
+        {
+            return System.Array.Empty<ResourceCost>();
+        }
+
+        int targetLevel = GetClampedLevelForProgression(level + levelAmount, level);
+        return turretDefinition.upgradeCostProfile.GetCosts(level, targetLevel);
+    }
+
+    // 지정한 레벨업을 비용까지 포함해 수행할 수 있는지 확인한다
+    public bool CanUpgrade(int levelAmount)
+    {
+        if (levelAmount <= 0 || GetClampedLevelForProgression(level + levelAmount, level) <= level)
+        {
+            return false;
+        }
+
+        return CanSpendCosts(GetUpgradeCosts(levelAmount));
+    }
+
+    // 지정한 진화 후보의 진화 비용을 반환한다
+    public ResourceCost[] GetEvolutionCosts(int availableIndex)
+    {
+        TurretEvolutionEntry evolutionEntry = GetAvailableEvolution(availableIndex);
+        return evolutionEntry == null ? System.Array.Empty<ResourceCost>() : evolutionEntry.evolutionCosts;
+    }
+
+    // 지정한 진화 후보로 비용까지 포함해 진화할 수 있는지 확인한다
+    public bool CanEvolve(int availableIndex)
+    {
+        TurretEvolutionEntry evolutionEntry = GetAvailableEvolution(availableIndex);
+        return evolutionEntry != null &&
+               evolutionEntry.targetDefinition != null &&
+               CanSpendCosts(evolutionEntry.evolutionCosts);
+    }
+
+    // 비용 없이 지정한 진화 후보로 현재 터렛 정의를 교체한다
     public bool Evolve(int availableIndex)
     {
         TurretEvolutionEntry evolutionEntry = GetAvailableEvolution(availableIndex);
@@ -193,6 +242,30 @@ public class TurretDefinitionRuntimeController : MonoBehaviour
         return true;
     }
 
+    // 진화 비용을 소모한 뒤 지정한 진화 후보로 현재 터렛 정의를 교체한다
+    public bool TryEvolve(int availableIndex)
+    {
+        TurretEvolutionEntry evolutionEntry = GetAvailableEvolution(availableIndex);
+        if (evolutionEntry == null || evolutionEntry.targetDefinition == null)
+        {
+            return false;
+        }
+
+        if (!TrySpendCosts(evolutionEntry.evolutionCosts))
+        {
+            return false;
+        }
+
+        if (Evolve(availableIndex))
+        {
+            return true;
+        }
+
+        RefundCosts(evolutionEntry.evolutionCosts);
+        return false;
+    }
+
+    // 비용 없이 지정한 진화 후보의 프리팹 인스턴스를 생성한다
     public TurretDefinitionRuntimeController CreateEvolvedInstance(int availableIndex)
     {
         TurretEvolutionEntry evolutionEntry = GetAvailableEvolution(availableIndex);
@@ -221,6 +294,30 @@ public class TurretDefinitionRuntimeController : MonoBehaviour
         return evolvedRuntimeController;
     }
 
+    // 진화 비용을 소모한 뒤 지정한 진화 후보의 프리팹 인스턴스를 생성한다
+    public TurretDefinitionRuntimeController TryCreateEvolvedInstance(int availableIndex)
+    {
+        TurretEvolutionEntry evolutionEntry = GetAvailableEvolution(availableIndex);
+        if (evolutionEntry == null || evolutionEntry.targetDefinition == null)
+        {
+            return null;
+        }
+
+        if (!TrySpendCosts(evolutionEntry.evolutionCosts))
+        {
+            return null;
+        }
+
+        TurretDefinitionRuntimeController evolvedRuntimeController = CreateEvolvedInstance(availableIndex);
+        if (evolvedRuntimeController == null)
+        {
+            RefundCosts(evolutionEntry.evolutionCosts);
+        }
+
+        return evolvedRuntimeController;
+    }
+
+    // 비용 없이 현재 티어 레벨을 지정한 값으로 설정한다
     public void SetLevel(int level_)
     {
         int previousLevel = level;
@@ -235,6 +332,7 @@ public class TurretDefinitionRuntimeController : MonoBehaviour
         Apply();
     }
 
+    // 비용 없이 현재 티어 레벨을 지정한 수량만큼 증가시킨다
     public void AddLevel(int levelAmount)
     {
         if (levelAmount <= 0)
@@ -245,11 +343,31 @@ public class TurretDefinitionRuntimeController : MonoBehaviour
         SetLevel(level + levelAmount);
     }
 
+    // 레벨업 비용을 소모한 뒤 현재 티어 레벨을 지정한 수량만큼 증가시킨다
+    public bool TryUpgrade(int levelAmount)
+    {
+        if (!CanUpgrade(levelAmount))
+        {
+            return false;
+        }
+
+        ResourceCost[] costs = GetUpgradeCosts(levelAmount);
+        if (!TrySpendCosts(costs))
+        {
+            return false;
+        }
+
+        SetLevel(level + levelAmount);
+        return true;
+    }
+
+    // 총 레벨을 유지하면서 터렛 정의와 티어 레벨을 설정한다
     public void SetDefinition(TurretDefinitionSO turretDefinition_, int level_)
     {
         SetDefinition(turretDefinition_, Mathf.Max(totalLevel, level_), level_);
     }
 
+    // 터렛 정의, 총 레벨, 티어 레벨을 설정한 뒤 적용한다
     public void SetDefinition(TurretDefinitionSO turretDefinition_, int totalLevel_, int tierLevel_)
     {
         turretDefinition = turretDefinition_;
@@ -259,6 +377,7 @@ public class TurretDefinitionRuntimeController : MonoBehaviour
     }
 
     [ContextMenu("Evolve To First Available")]
+    // 컨텍스트 메뉴에서 첫 번째 진화 후보로 비용 없이 진화한다
     private void EvolveToFirstAvailable()
     {
         if (!Evolve(0))
@@ -267,6 +386,7 @@ public class TurretDefinitionRuntimeController : MonoBehaviour
         }
     }
 
+    // 런타임 스탯에 맞는 VFX와 투사체 프리팹을 적용한다
     private void ApplyVFX(TurretRuntimeStat runtimeStat)
     {
         if (turretDefinition.vfxProgressionProfile == null)
@@ -293,6 +413,7 @@ public class TurretDefinitionRuntimeController : MonoBehaviour
         }
     }
 
+    // 현재 레벨에 맞는 투사체 스케일을 반환한다
     private float GetProjectileScale()
     {
         if (turretDefinition.projectileScaleProgressionProfile == null)
@@ -303,6 +424,7 @@ public class TurretDefinitionRuntimeController : MonoBehaviour
         return turretDefinition.projectileScaleProgressionProfile.GetScaleForLevel(level);
     }
 
+    // 진화 엔트리에 설정된 연출 효과를 재생한다
     private void PlayEvolutionEffect(TurretEvolutionEntry evolutionEntry)
     {
         if (evolutionEntry == null || evolutionEntry.evolutionEffectPrefab == null)
@@ -315,6 +437,71 @@ public class TurretDefinitionRuntimeController : MonoBehaviour
         PooledObjectUtility.SpawnEffect(evolutionEntry.evolutionEffectPrefab, effectPosition, transform.rotation, effectDuration);
     }
 
+    // 비용 배열을 현재 재화 상태로 지불할 수 있는지 확인한다
+    private bool CanSpendCosts(ResourceCost[] costs)
+    {
+        if (!HasPayableCosts(costs))
+        {
+            return true;
+        }
+
+        if (ItemManager.Inst == null)
+        {
+            return false;
+        }
+
+        return ItemManager.Inst.CanAfford(costs);
+    }
+
+    // 비용 배열을 실제 재화에서 차감한다
+    private bool TrySpendCosts(ResourceCost[] costs)
+    {
+        if (!HasPayableCosts(costs))
+        {
+            return true;
+        }
+
+        if (ItemManager.Inst == null)
+        {
+            Debug.LogWarning("[TurretDefinitionRuntimeController] ItemManager가 없어 터렛 비용을 소모할 수 없습니다.", this);
+            return false;
+        }
+
+        return ItemManager.Inst.TrySpend(costs);
+    }
+
+    // 이미 소모한 비용 배열을 환불한다
+    private void RefundCosts(ResourceCost[] costs)
+    {
+        if (!HasPayableCosts(costs) || ItemManager.Inst == null)
+        {
+            return;
+        }
+
+        ItemManager.Inst.Refund(costs);
+    }
+
+    // 실제 지불해야 하는 비용이 하나 이상 있는지 확인한다
+    private static bool HasPayableCosts(ResourceCost[] costs)
+    {
+        if (costs == null)
+        {
+            return false;
+        }
+
+        for (int i = 0; i < costs.Length; i++)
+        {
+            ResourceCost cost = costs[i];
+            if (cost != null && cost.amount > 0)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    // 진화 대기 레벨과 최대 레벨을 고려해 요청 레벨을 보정한다
     private int GetClampedLevelForProgression(int requestedLevel, int currentLevel)
     {
         int clampedLevel = Mathf.Max(1, requestedLevel);
@@ -349,6 +536,7 @@ public class TurretDefinitionRuntimeController : MonoBehaviour
         return Mathf.Min(clampedLevel, nextRequiredLevel);
     }
 
+    // 필요한 터렛 관련 컴포넌트 참조를 수집한다
     private void RefreshReferences()
     {
         if (statProfileApplier == null)
@@ -367,6 +555,7 @@ public class TurretDefinitionRuntimeController : MonoBehaviour
         }
     }
 
+    // 현재 터렛 이름과 사용 가능한 진화 이름 문자열을 갱신한다
     private void RefreshRuntimeNames()
     {
         currentTurretName = turretDefinition == null ? string.Empty : GetDefinitionName(turretDefinition);
@@ -404,6 +593,7 @@ public class TurretDefinitionRuntimeController : MonoBehaviour
         availableEvolutionNames = builder.ToString();
     }
 
+    // 진화 엔트리의 표시 이름을 반환한다
     private string GetEvolutionName(TurretEvolutionEntry entry)
     {
         if (entry == null)
@@ -419,6 +609,7 @@ public class TurretDefinitionRuntimeController : MonoBehaviour
         return GetDefinitionName(entry.targetDefinition);
     }
 
+    // 터렛 정의의 표시 이름을 반환한다
     private string GetDefinitionName(TurretDefinitionSO definition)
     {
         if (definition == null)

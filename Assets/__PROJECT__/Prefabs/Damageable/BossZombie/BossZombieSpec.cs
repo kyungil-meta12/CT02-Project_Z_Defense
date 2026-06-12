@@ -1,5 +1,8 @@
 using UnityEngine;
 
+/// <summary>
+/// 보스 좀비의 공통 스탯, 스킬 밸런스, 기본 처치 보상 프로필을 정의하는 ScriptableObject.
+/// </summary>
 [CreateAssetMenu(fileName = "BossZombieSpec", menuName = "Scriptable Objects/BossZombieSpec")]
 public class BossZombieSpec : ScriptableObject
 {
@@ -26,6 +29,14 @@ public class BossZombieSpec : ScriptableObject
     public float MinHp;
     public float MaxHp;
 
-    [Header("기본 아이템 드랍률(int)")] public float NormalItemDropPercentage;
-    [Header("레어 아이템 드랍률(int)")] public float RareItemDropPercentage;
+    [Header("기본 처치 보상 프로필")] public ZombieRewardProfileSO RewardProfile;
+    [Header("레거시 기본 아이템 드랍률(int)")] public float NormalItemDropPercentage;
+    [Header("레거시 레어 아이템 드랍률(int)")] public float RareItemDropPercentage;
+
+    // 인스펙터 입력값을 유효한 보스 스펙 범위로 보정한다
+    private void OnValidate()
+    {
+        NormalItemDropPercentage = Mathf.Max(0.0f, NormalItemDropPercentage);
+        RareItemDropPercentage = Mathf.Max(0.0f, RareItemDropPercentage);
+    }
 }

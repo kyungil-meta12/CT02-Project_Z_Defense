@@ -15,20 +15,31 @@ This document tracks the planned reward and currency pipeline for zombie kill re
 ## Current State
 
 - `ItemManager` owns coin, fire part, and special part counts.
-- `ItemManager.AddCoinCount` adds to both total coin and wave-collected coin.
-- `ItemManager.TryUseCoin` spends coin directly.
-- `NormalZombieSpec.DropCoin` defines a fixed coin amount.
-- `NormalZombie.OnDespawn` currently grants `spec.DropCoin`.
+- `ItemManager` now exposes explicit reward, spend, afford, and refund APIs.
+- `ItemManager.AddCoinCount`, `CanUseCoin`, and `TryUseCoin` remain as compatibility wrappers.
+- `ItemManager.AddReward` can optionally update wave-collected coin tracking.
+- `ItemManager.Refund` does not update wave-collected reward tracking.
+- `NormalZombie` can override kill reward with a prefab-level `ZombieRewardProfileSO`.
+- `NormalZombieSpec` references a default fallback `ZombieRewardProfileSO`.
+- `NormalZombieSpec.DropCoin` remains as a legacy fallback until reward profile assets are assigned.
+- `NormalZombie.Die` grants kill reward through `RewardGrantUtility`.
+- `NormalZombie.OnDespawn` no longer grants kill reward.
+- `BossZombie` can override kill reward with a prefab-level `ZombieRewardProfileSO`.
+- `BossZombieSpec` references a default fallback `ZombieRewardProfileSO`.
+- `BossZombie.Die` grants kill reward through `RewardGrantUtility`.
+- `ZombieRewardProfileSO` supports conditional modifiers for wave range, zombie type, defense line, situation flags, currency type, amount multiplier, flat bonus, and drop chance changes.
 - `ObstacleBuildSlot` currently spends placement cost through `ItemManager.TryUseCoin`.
-- Turret upgrade and evolution flows currently do not spend currency.
+- `TurretDefinitionSO` can reference `TurretUpgradeCostProfileSO`.
+- `TurretEvolutionEntry` can define `ResourceCost[] evolutionCosts`.
+- Turret runtime UI calls `TryUpgrade`, `TryEvolve`, or `TryCreateEvolvedInstance`, so upgrades/evolutions only execute after cost spend succeeds.
 
 ## Target Zombie Reward Flow
 
 1. `NormalZombie.TakeDamage` detects HP reaching zero.
 2. `NormalZombie.Die` transitions the zombie to dead state.
-3. `NormalZombie.Die` requests reward grant from `spec.rewardProfile`.
+3. `NormalZombie.Die` or `BossZombie.Die` requests reward grant from prefab override reward profile first, then `spec.rewardProfile`.
 4. `ZombieRewardContext` supplies runtime conditions such as wave, line, boss flag, and event multiplier.
-5. `RewardGrantUtility` calculates the final rewards and calls `ItemManager`.
+5. `RewardGrantUtility` applies matching profile modifiers, calculates the final rewards, and calls `ItemManager`.
 6. `NormalZombie.OnDespawn` only handles pool cleanup and never grants kill reward.
 
 ## Target Turret Cost Flow
@@ -46,8 +57,10 @@ This document tracks the planned reward and currency pipeline for zombie kill re
 | --- | --- |
 | `RewardCurrencyType` | Shared currency enum such as `Coin`, `FirePart`, `SpecialPart`. |
 | `RewardEntry` | Reward currency, amount, chance, and future random amount options. |
+| `ZombieRewardModifier` | Conditional reward adjustment by wave range, zombie type, defense line, situation flag, and currency. |
+| `ZombieRewardSituation` | Runtime situation flags such as event bonus, fever time, perfect defense, or custom triggers. |
 | `ResourceCost` | Cost currency and amount for upgrades, evolution, placement, shop, and skills. |
-| `ZombieRewardProfileSO` | Base zombie kill rewards referenced by zombie spec data. |
+| `ZombieRewardProfileSO` | Zombie kill reward data referenced by prefab overrides or zombie spec fallback data. |
 | `ZombieRewardContext` | Runtime-only reward modifiers such as wave, line, boss, and event multiplier. |
 | `TurretUpgradeCostProfileSO` | Calculates turret upgrade cost by current and target tier level. |
 | `RewardGrantUtility` | Converts profile + context into concrete currency grants. |
@@ -57,10 +70,42 @@ This document tracks the planned reward and currency pipeline for zombie kill re
 Use this ownership:
 
 - `NormalZombie` references `NormalZombieSpec`.
-- `NormalZombieSpec` references `ZombieRewardProfileSO`.
-- Zombie prefab Variants should not each own reward data unless a specific Variant intentionally needs a different spec.
+- `NormalZombie.rewardProfileOverride` is optional and is used first when a specific prefab or Variant needs different rewards.
+- `NormalZombieSpec` references a default fallback `ZombieRewardProfileSO`.
+- Zombie prefab Variants should override only `rewardProfileOverride` when their stats stay shared but rewards differ.
+- `BossZombie` follows the same override-first rule through `BossZombie.rewardProfileOverride`.
+- `BossZombieSpec` references a default fallback `ZombieRewardProfileSO`.
+- Round and situation scaling should be added to `ZombieRewardProfileSO.Modifiers`, not to prefab scripts.
 - `TurretDefinitionSO` may reference an upgrade cost profile.
 - `TurretEvolutionEntry` may hold evolution costs because the cost belongs to a specific branch choice.
+
+## Reward Modifier Rules
+
+Each `ZombieRewardProfileSO` has:
+
+- `Rewards`: base reward entries.
+- `Modifiers`: optional conditional adjustments.
+
+Modifier conditions:
+
+- `targetFilter`: all currencies or one specific currency.
+- `zombieTypeFilter`: any, normal only, or boss only.
+- `minWave` and `maxWave`: wave range; `maxWave = 0` means no upper limit.
+- `defenseLineIndex`: `-1` means any line.
+- `requiredSituations`: all selected situation flags must be present in `ZombieRewardContext`.
+
+Modifier effects:
+
+- `amountMultiplier`: multiplies reward amount.
+- `flatAmountBonus`: adds a flat amount before multiplication.
+- `dropChanceMultiplier`: multiplies drop chance.
+- `additionalDropChance`: adds or subtracts drop chance after multiplication.
+
+Example:
+
+- Wave 10+ coin reward x1.5: `targetCurrency = Coin`, `minWave = 10`, `maxWave = 0`, `amountMultiplier = 1.5`.
+- Fever item drop chance +20%: `requiredSituations = FeverTime`, `additionalDropChance = 0.2`.
+- Boss-only special part x2: `zombieTypeFilter = BossOnly`, `targetCurrency = SpecialPart`, `amountMultiplier = 2`.
 
 ## ItemManager Migration
 
@@ -84,15 +129,21 @@ Important rule:
 
 ## Implementation Order
 
-1. Add shared reward/cost value types.
-2. Add `ZombieRewardProfileSO`.
-3. Add `rewardProfile` to `NormalZombieSpec`.
-4. Move zombie reward grant from `OnDespawn` to `Die`.
-5. Split `ItemManager` reward, spend, and refund APIs.
-6. Add turret upgrade cost profile.
-7. Add evolution costs.
-8. Replace turret UI direct level/evolution calls with `TryUpgrade` and `TryEvolve`.
-9. Move obstacle placement cost to `ResourceCost` after turret economy is stable.
+1. Done: Add shared reward/cost value types.
+2. Done: Add `ZombieRewardProfileSO`.
+3. Done: Add `rewardProfile` to `NormalZombieSpec`.
+4. Done: Move zombie reward grant from `OnDespawn` to `Die`.
+5. Done: Split `ItemManager` reward, spend, afford, and refund APIs.
+6. Done: Add prefab-level reward profile override to `NormalZombie`.
+7. Done: Add prefab-level reward profile override to `BossZombie`.
+8. Done: Add conditional reward modifiers to `ZombieRewardProfileSO`.
+9. Done: Add `TurretUpgradeCostProfileSO`.
+10. Done: Add evolution costs to `TurretEvolutionEntry`.
+11. Done: Replace turret UI direct level/evolution calls with `TryUpgrade` and `TryEvolve`.
+12. Next: Create and balance `ZombieRewardProfileSO` assets assigned to prefab overrides or spec fallback.
+13. Next: Create `TurretUpgradeCostProfileSO` assets and assign them to turret definitions.
+14. Next: Fill `TurretEvolutionEntry.evolutionCosts` in evolution progression assets.
+15. Later: Move obstacle placement cost to `ResourceCost` after turret economy is stable.
 
 ## Edge Cases
 

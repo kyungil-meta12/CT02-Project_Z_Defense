@@ -6,12 +6,16 @@ using UnityEngine;
 using UnityEngine.AI;
 using Random = UnityEngine.Random;
 
+/// <summary>
+/// 보스 좀비의 웨이브 스탯 초기화, 스킬, 피격, 사망, 처치 보상 지급을 담당한다.
+/// </summary>
 public class BossZombie : PoolObject, IDamageable
 {
     private const string RootMotionScaleRootName = "Root";
     private static readonly int SpeedHash = Animator.StringToHash("speed");
 
     public BossZombieSpec spec;
+    [Header("프리팹별 처치 보상 Override")] [SerializeField] private ZombieRewardProfileSO rewardProfileOverride;
     public HpUI hpUI;
     
     public BehaviorGraphAgent behaviorAgent;
@@ -63,6 +67,7 @@ public class BossZombie : PoolObject, IDamageable
         behaviorAgent.GetVariable("speed", out speedBV);
     }
 
+    // 풀에서 꺼낼 때 웨이브 기반 보스 스탯과 런타임 상태를 초기화한다
     public override void OnSpawn()
     {
         base.OnSpawn();
@@ -109,6 +114,7 @@ public class BossZombie : PoolObject, IDamageable
         returnInstanceCoroutineRunning = false;
     }
 
+    // 풀에 반환될 때 보스 전용 지속 효과와 버프 상태를 정리한다
     public override void OnDespawn()
     {
         if (screamerSkillCoroutine != null)
@@ -120,6 +126,7 @@ public class BossZombie : PoolObject, IDamageable
         RestoreAllScreamerSpeedBuffs();
     }
 
+    // 매 프레임 사망 처리와 루트모션 이동 방향을 갱신한다
     // 매 프레임 사망 처리와 루트모션 이동 방향을 갱신한다
     void Update()
     {
@@ -213,6 +220,7 @@ public class BossZombie : PoolObject, IDamageable
         agent.nextPosition = transform.position;
     }
     
+    // 사망 애니메이션이 충분히 진행되면 풀 반환 코루틴을 시작한다
     void UpdateDeath()
     {
         if(IsAlive || returnInstanceCoroutineRunning)
@@ -227,6 +235,7 @@ public class BossZombie : PoolObject, IDamageable
         }
     }
     
+    // 사망 연출 대기 후 보스 인스턴스를 풀에 반환한다
     IEnumerator ReturnInstanceCoroutine()
     {
         returnInstanceCoroutineRunning = true;
@@ -234,6 +243,7 @@ public class BossZombie : PoolObject, IDamageable
         ReturnInstance();
     }
     
+    // 일반 공격 애니메이션 타이밍에 현재 공격 대상에게 피해를 준다
     public void OnAttack()
     {
         if (TryDamageAttackTarget(attackDamage))
@@ -242,6 +252,7 @@ public class BossZombie : PoolObject, IDamageable
         }
     }
 
+    // 보스 타입에 맞는 스킬을 실행한다
     public void OnSkill()
     {
         switch (bossZombieEnum.Value)
@@ -347,6 +358,7 @@ public class BossZombie : PoolObject, IDamageable
 
     //부머 스킬 : 1/2데미지로 1초마다 타격 10회 반복
     readonly WaitForSeconds boomerSkillWait = new WaitForSeconds(1f);
+    // 부머 스킬을 1초 간격으로 반복 실행한다
     private IEnumerator BoomerSkill()
     {
         int t = 0;
@@ -363,6 +375,7 @@ public class BossZombie : PoolObject, IDamageable
         }
     }
     
+    // 외부 공격으로 받은 데미지를 체력에 반영하고 사망 여부를 확인한다
     public void TakeDamage(float damage)
     {
         if (!IsAlive)
@@ -403,6 +416,7 @@ public class BossZombie : PoolObject, IDamageable
         }
     }
 
+    // 현재 공격 대상이 유효하면 지정한 데미지를 적용한다
     private bool TryDamageAttackTarget(float damage)
     {
         if (!attackTargetBV.Value)
@@ -431,10 +445,12 @@ public class BossZombie : PoolObject, IDamageable
     /// 사망 상태로 전환한다<para/>
     /// 죽은 보스가 타겟/충돌 대상으로 남지 않도록 콜라이더를 비활성화한다
     /// </summary>
+    // 사망 상태 전환과 처치 보상 지급을 한 번만 처리한다
     private void Die()
     {
         IsAlive = false; // 생존 상태 비활성화
         GameManager.Inst.IncreaseKillCount();
+        GrantKillReward();
 
         hpUI.gameObject.SetActive(false); // hp UI 비활성화
 
@@ -453,10 +469,31 @@ public class BossZombie : PoolObject, IDamageable
         isDieBV.Value = true;
     }
 
+    // 보스 프리팹 Override 또는 스펙의 보상 프로필을 기준으로 처치 보상을 지급한다
+    private void GrantKillReward()
+    {
+        if (spec == null)
+        {
+            Debug.LogWarning("[BossZombie] 스펙이 없어 처치 보상을 지급할 수 없습니다.", this);
+            return;
+        }
+
+        int wave = GameManager.Inst == null ? 1 : GameManager.Inst.Wave;
+        ZombieRewardContext rewardContext = ZombieRewardContext.CreateBossZombie(wave, spec, transform.position);
+        RewardGrantUtility.GrantZombieReward(GetRewardProfile(), 0, rewardContext, this);
+    }
+
+    // 프리팹별 Override가 있으면 우선 사용하고 없으면 스펙 기본 보상 프로필을 반환한다
+    private ZombieRewardProfileSO GetRewardProfile()
+    {
+        return rewardProfileOverride != null ? rewardProfileOverride : spec.RewardProfile;
+    }
+
     /// <summary>
     /// 풀링 재사용과 사망 상태에 맞춰 전체 콜라이더와 리지드바디 활성 상태를 변경한다
     /// </summary>
     /// <param name="isEnabled"></param>
+    // 풀 재사용과 사망 상태에 맞춰 전체 콜라이더 활성 상태를 변경한다
     private void SetCollidersEnabled(bool isEnabled)
     {
         for (int i = 0; i < colliders.Count; i++)
@@ -476,6 +513,7 @@ public class BossZombie : PoolObject, IDamageable
         }
     }
     
+    // 스폰 위치로 보스를 이동시키고 NavMeshAgent를 재활성화한다
     public void SetPosition(Transform t)
     {
         SetCollidersEnabled(true);

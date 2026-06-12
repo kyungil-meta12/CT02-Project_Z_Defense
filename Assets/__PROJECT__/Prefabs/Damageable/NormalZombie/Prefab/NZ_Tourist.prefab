@@ -1,4 +1,4 @@
-%YAML 1.1
+﻿%YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
 --- !u!1001 &3588888330676696615
 PrefabInstance:
@@ -10,8 +10,12 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 892145116635996175, guid: 4696f3a76ac50b74dba3cd8982cf1807, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
-      value: 
+      value:
       objectReference: {fileID: 2100000, guid: 77b21607c66df0d4b80a0addc59f17ea, type: 2}
+    - target: {fileID: 2198761140652240216, guid: 4696f3a76ac50b74dba3cd8982cf1807, type: 3}
+      propertyPath: rewardProfileOverride
+      value:
+      objectReference: {fileID: 11400000, guid: 62a4ced0eed5f714f933febcbfde90a1, type: 2}
     - target: {fileID: 2927825134225070825, guid: 4696f3a76ac50b74dba3cd8982cf1807, type: 3}
       propertyPath: m_Name
       value: NZ_Tourist

@@ -12,9 +12,9 @@ public class ItemManager : MonoBehaviour
 
     // ItemIndicator에서 구독하는 이벤트
     // string 가비지 발생을 줄이기 위해 값이 변경되었을 때만 인디케이터의 텍스트에 반영한다.
-     public event Action<string> OnCoinValueChange;
-     public event Action<string> OnFirePartValueChange;
-     public event Action<string> OnSpecialPartValueChange;
+    public event Action<string> OnCoinValueChange;
+    public event Action<string> OnFirePartValueChange;
+    public event Action<string> OnSpecialPartValueChange;
 
     // 소지한 코인 개수
     public Incremental CoinCount { get; private set; } = new(0);
@@ -33,11 +33,13 @@ public class ItemManager : MonoBehaviour
     public string WaveCollectCoinCountString { get; private set; }
 
 
+    // 싱글톤 인스턴스와 표시용 재화 문자열을 초기화한다
     void Awake()
     {
         if (Inst && Inst != this)
         {
-            DestroyImmediate(gameObject);
+            Destroy(gameObject);
+            return;
         }
 
         Inst = this;
@@ -50,15 +52,21 @@ public class ItemManager : MonoBehaviour
         DontDestroyOnLoad(gameObject);
     }
 
+    // 웨이브 증가 이벤트를 구독한다
     void Start()
     {
         // 웨이브 증가 이벤트 체이닝 추가
         GameManager.Inst.OnWaveIncrease += OnWaveIncrease;
     }
 
+    // 싱글톤과 이벤트 구독을 정리한다
     void OnDestroy()
     {
-        Inst = null;
+        if (Inst == this)
+        {
+            Inst = null;
+        }
+
         if (GameManager.Inst)
         {
             GameManager.Inst.OnWaveIncrease -= OnWaveIncrease;
@@ -76,13 +84,10 @@ public class ItemManager : MonoBehaviour
     /// 웨이브 동안에 수집된 코인이 기록된다.
     /// </summary>
     /// <param name="coinsToAdd"></param>
+    // 코인을 보상으로 지급하고 웨이브 획득량에 반영한다
     public void AddCoinCount(int coinsToAdd)
     {
-        CoinCount += coinsToAdd;
-        WaveCollectCoinCount += coinsToAdd;
-        CoinCountString = CoinCount.ToString();
-        WaveCollectCoinCountString = WaveCollectCoinCount.ToString();
-        OnCoinValueChange?.Invoke(CoinCountString);
+        AddReward(RewardCurrencyType.Coin, coinsToAdd, true);
     }
 
     /// <summary>
@@ -90,6 +95,7 @@ public class ItemManager : MonoBehaviour
     /// 이 메서드를 호출하면 WaveCollectCoinCount가 0으로 초기화 된다.
     /// </summary>
     /// <param name="percentage"></param>
+    // 웨이브 획득 코인 기준 보너스를 지급하고 웨이브 획득량을 초기화한다
     public void AddCoinBouns(int percentage)
     {
         int percentNumerator = percentage;
@@ -97,31 +103,105 @@ public class ItemManager : MonoBehaviour
         var result = WaveCollectCoinCount * percentNumerator / percentDenominator;
         CoinCount += result;
         WaveCollectCoinCount = 0;
-        CoinCountString = CoinCount.ToString();
-        WaveCollectCoinCountString = WaveCollectCoinCount.ToString();
-        OnCoinValueChange?.Invoke(CoinCountString);
+        RefreshCurrencyStringAndNotify(RewardCurrencyType.Coin);
     }
 
     /// <summary>
     /// 화기 부품 소지량을 증가시킨다.
     /// </summary>
     /// <param name="partsToAdd"></param>
+    // 화기 부품을 보상으로 지급한다
     public void AddFirePartCount(int partsToAdd)
     {
-        FirePartCount += partsToAdd;
-        FirePartCountString = FirePartCount.ToString();
-        OnFirePartValueChange?.Invoke(FirePartCountString);
+        AddReward(RewardCurrencyType.FirePart, partsToAdd, false);
     }
 
     /// <summary>
     /// 속성 부품 소지량을 증가시킨다.
     /// </summary>
     /// <param name="partsToAdd"></param>
+    // 속성 부품을 보상으로 지급한다
     public void AddSpecialPartCount(int partsToAdd)
     {
-        SpecialPartCount += partsToAdd;
-        SpecialPartCountString = SpecialPartCount.ToString();
-        OnSpecialPartValueChange?.Invoke(SpecialPartCountString);
+        AddReward(RewardCurrencyType.SpecialPart, partsToAdd, false);
+    }
+
+    /// <summary>
+    /// 지정한 재화를 보상으로 지급한다.
+    /// </summary>
+    /// <param name="currencyType"></param>
+    /// <param name="amount"></param>
+    /// <param name="countAsWaveReward"></param>
+    // 지정한 재화를 보상으로 지급하고 필요하면 웨이브 획득량에 반영한다
+    public void AddReward(RewardCurrencyType currencyType, int amount, bool countAsWaveReward)
+    {
+        if (amount <= 0)
+        {
+            return;
+        }
+
+        switch (currencyType)
+        {
+            case RewardCurrencyType.Coin:
+                CoinCount += amount;
+                if (countAsWaveReward)
+                {
+                    WaveCollectCoinCount += amount;
+                }
+                break;
+            case RewardCurrencyType.FirePart:
+                FirePartCount += amount;
+                break;
+            case RewardCurrencyType.SpecialPart:
+                SpecialPartCount += amount;
+                break;
+        }
+
+        RefreshCurrencyStringAndNotify(currencyType);
+    }
+
+    /// <summary>
+    /// 환불 재화를 지급하되 웨이브 획득량에는 반영하지 않는다.
+    /// </summary>
+    /// <param name="currencyType"></param>
+    /// <param name="amount"></param>
+    // 지정한 재화를 환불하고 웨이브 획득량에는 반영하지 않는다
+    public void Refund(RewardCurrencyType currencyType, int amount)
+    {
+        AddReward(currencyType, amount, false);
+    }
+
+    /// <summary>
+    /// 단일 비용을 환불한다.
+    /// </summary>
+    /// <param name="cost"></param>
+    // 단일 비용 데이터를 기준으로 재화를 환불한다
+    public void Refund(ResourceCost cost)
+    {
+        if (cost == null)
+        {
+            return;
+        }
+
+        Refund(cost.currencyType, cost.amount);
+    }
+
+    /// <summary>
+    /// 여러 비용을 환불한다.
+    /// </summary>
+    /// <param name="costs"></param>
+    // 여러 비용 데이터를 순서대로 환불한다
+    public void Refund(ResourceCost[] costs)
+    {
+        if (costs == null)
+        {
+            return;
+        }
+
+        for (int i = 0; i < costs.Length; i++)
+        {
+            Refund(costs[i]);
+        }
     }
 
     /// <summary>
@@ -129,9 +209,10 @@ public class ItemManager : MonoBehaviour
     /// </summary>
     /// <param name="coinsToUse"></param>
     /// <returns></returns>
+    // 코인을 지정 수량만큼 보유했는지 확인한다
     public bool CanUseCoin(int coinsToUse)
     {
-        return CoinCount >= coinsToUse;
+        return CanAfford(RewardCurrencyType.Coin, coinsToUse);
     }
 
     /// <summary>
@@ -139,9 +220,10 @@ public class ItemManager : MonoBehaviour
     /// </summary>
     /// <param name="partsToUse"></param>
     /// <returns></returns>
+    // 화기 부품을 지정 수량만큼 보유했는지 확인한다
     public bool CanUseFirePart(int partsToUse)
     {
-        return FirePartCount >= partsToUse;
+        return CanAfford(RewardCurrencyType.FirePart, partsToUse);
     }
 
     /// <summary>
@@ -149,9 +231,67 @@ public class ItemManager : MonoBehaviour
     /// </summary>
     /// <param name="partsToUse"></param>
     /// <returns></returns>
+    // 속성 부품을 지정 수량만큼 보유했는지 확인한다
     public bool CanUseSpecialPart(int partsToUse)
     {
-        return SpecialPartCount >= partsToUse;
+        return CanAfford(RewardCurrencyType.SpecialPart, partsToUse);
+    }
+
+    /// <summary>
+    /// 지정한 재화를 충분히 보유했는지 확인한다.
+    /// </summary>
+    /// <param name="currencyType"></param>
+    /// <param name="amount"></param>
+    /// <returns></returns>
+    // 지정한 재화를 충분히 보유했는지 확인한다
+    public bool CanAfford(RewardCurrencyType currencyType, int amount)
+    {
+        if (amount <= 0)
+        {
+            return true;
+        }
+
+        switch (currencyType)
+        {
+            case RewardCurrencyType.Coin:
+                return CoinCount >= amount;
+            case RewardCurrencyType.FirePart:
+                return FirePartCount >= amount;
+            case RewardCurrencyType.SpecialPart:
+                return SpecialPartCount >= amount;
+            default:
+                return false;
+        }
+    }
+
+    /// <summary>
+    /// 단일 비용을 지불할 수 있는지 확인한다.
+    /// </summary>
+    /// <param name="cost"></param>
+    /// <returns></returns>
+    // 단일 비용 데이터를 지불할 수 있는지 확인한다
+    public bool CanAfford(ResourceCost cost)
+    {
+        return cost == null || CanAfford(cost.currencyType, cost.amount);
+    }
+
+    /// <summary>
+    /// 여러 비용을 모두 지불할 수 있는지 확인한다.
+    /// </summary>
+    /// <param name="costs"></param>
+    /// <returns></returns>
+    // 여러 비용 데이터를 모두 지불할 수 있는지 확인한다
+    public bool CanAfford(ResourceCost[] costs)
+    {
+        if (costs == null)
+        {
+            return true;
+        }
+
+        GetTotalCosts(costs, out int coinCost, out int firePartCost, out int specialPartCost);
+        return CanAfford(RewardCurrencyType.Coin, coinCost) &&
+               CanAfford(RewardCurrencyType.FirePart, firePartCost) &&
+               CanAfford(RewardCurrencyType.SpecialPart, specialPartCost);
     }
 
     /// <summary>
@@ -160,16 +300,10 @@ public class ItemManager : MonoBehaviour
     /// </summary>
     /// <param name="coinsToUse"></param>
     /// <returns></returns>
+    // 코인 소비를 시도한다
     public bool TryUseCoin(int coinsToUse)
     {
-        if (CoinCount < coinsToUse)
-        {
-            return false;
-        }
-        CoinCount -= coinsToUse;
-        CoinCountString = CoinCount.ToString();
-        OnCoinValueChange?.Invoke(CoinCountString);
-        return true;
+        return TrySpend(RewardCurrencyType.Coin, coinsToUse);
     }
 
     /// <summary>
@@ -178,16 +312,10 @@ public class ItemManager : MonoBehaviour
     /// </summary>
     /// <param name="partsToUse"></param>
     /// <returns></returns>
+    // 화기 부품 소비를 시도한다
     public bool TryUseFirePart(int partsToUse)
     {
-        if (FirePartCount < partsToUse)
-        {
-            return false;
-        }
-        FirePartCount -= partsToUse;
-        FirePartCountString = FirePartCount.ToString();
-        OnFirePartValueChange?.Invoke(FirePartCountString);
-        return true;
+        return TrySpend(RewardCurrencyType.FirePart, partsToUse);
     }
 
     /// <summary>
@@ -196,15 +324,139 @@ public class ItemManager : MonoBehaviour
     /// </summary>
     /// <param name="partsToUse"></param>
     /// <returns></returns>
+    // 속성 부품 소비를 시도한다
     public bool TryUseSpecialPart(int partsToUse)
     {
-        if (SpecialPartCount < partsToUse)
+        return TrySpend(RewardCurrencyType.SpecialPart, partsToUse);
+    }
+
+    /// <summary>
+    /// 지정한 재화 소비를 시도한다.
+    /// </summary>
+    /// <param name="currencyType"></param>
+    /// <param name="amount"></param>
+    /// <returns></returns>
+    // 지정한 재화 소비를 시도하고 성공 시 문자열 캐시와 UI 이벤트를 갱신한다
+    public bool TrySpend(RewardCurrencyType currencyType, int amount)
+    {
+        if (!CanAfford(currencyType, amount))
         {
             return false;
         }
-        SpecialPartCount -= partsToUse;
-        SpecialPartCountString = SpecialPartCount.ToString();
-        OnSpecialPartValueChange?.Invoke(SpecialPartCountString);
+
+        if (amount <= 0)
+        {
+            return true;
+        }
+
+        switch (currencyType)
+        {
+            case RewardCurrencyType.Coin:
+                CoinCount -= amount;
+                break;
+            case RewardCurrencyType.FirePart:
+                FirePartCount -= amount;
+                break;
+            case RewardCurrencyType.SpecialPart:
+                SpecialPartCount -= amount;
+                break;
+            default:
+                return false;
+        }
+
+        RefreshCurrencyStringAndNotify(currencyType);
         return true;
+    }
+
+    /// <summary>
+    /// 단일 비용 소비를 시도한다.
+    /// </summary>
+    /// <param name="cost"></param>
+    /// <returns></returns>
+    // 단일 비용 데이터 소비를 시도한다
+    public bool TrySpend(ResourceCost cost)
+    {
+        return cost == null || TrySpend(cost.currencyType, cost.amount);
+    }
+
+    /// <summary>
+    /// 여러 비용 소비를 원자적으로 시도한다.
+    /// </summary>
+    /// <param name="costs"></param>
+    /// <returns></returns>
+    // 여러 비용 데이터를 모두 지불 가능할 때만 순서대로 소비한다
+    public bool TrySpend(ResourceCost[] costs)
+    {
+        if (!CanAfford(costs))
+        {
+            return false;
+        }
+
+        if (costs == null)
+        {
+            return true;
+        }
+
+        GetTotalCosts(costs, out int coinCost, out int firePartCost, out int specialPartCost);
+        bool spentCoin = TrySpend(RewardCurrencyType.Coin, coinCost);
+        bool spentFirePart = TrySpend(RewardCurrencyType.FirePart, firePartCost);
+        bool spentSpecialPart = TrySpend(RewardCurrencyType.SpecialPart, specialPartCost);
+        return spentCoin && spentFirePart && spentSpecialPart;
+    }
+
+    // 비용 배열을 재화 종류별 총합으로 변환한다
+    private static void GetTotalCosts(ResourceCost[] costs, out int coinCost, out int firePartCost, out int specialPartCost)
+    {
+        coinCost = 0;
+        firePartCost = 0;
+        specialPartCost = 0;
+
+        if (costs == null)
+        {
+            return;
+        }
+
+        for (int i = 0; i < costs.Length; i++)
+        {
+            ResourceCost cost = costs[i];
+            if (cost == null || cost.amount <= 0)
+            {
+                continue;
+            }
+
+            switch (cost.currencyType)
+            {
+                case RewardCurrencyType.Coin:
+                    coinCost += cost.amount;
+                    break;
+                case RewardCurrencyType.FirePart:
+                    firePartCost += cost.amount;
+                    break;
+                case RewardCurrencyType.SpecialPart:
+                    specialPartCost += cost.amount;
+                    break;
+            }
+        }
+    }
+
+    // 재화 문자열 캐시를 갱신하고 해당 UI 이벤트를 발행한다
+    private void RefreshCurrencyStringAndNotify(RewardCurrencyType currencyType)
+    {
+        switch (currencyType)
+        {
+            case RewardCurrencyType.Coin:
+                CoinCountString = CoinCount.ToString();
+                WaveCollectCoinCountString = WaveCollectCoinCount.ToString();
+                OnCoinValueChange?.Invoke(CoinCountString);
+                break;
+            case RewardCurrencyType.FirePart:
+                FirePartCountString = FirePartCount.ToString();
+                OnFirePartValueChange?.Invoke(FirePartCountString);
+                break;
+            case RewardCurrencyType.SpecialPart:
+                SpecialPartCountString = SpecialPartCount.ToString();
+                OnSpecialPartValueChange?.Invoke(SpecialPartCountString);
+                break;
+        }
     }
 }

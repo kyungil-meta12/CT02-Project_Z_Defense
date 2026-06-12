@@ -23,6 +23,11 @@ public class WaveIndicator : MonoBehaviour
     {
         // 게임 매니저 웨이브 증가 이벤트 구독
         GameManager.Inst.OnWaveIncrease += OnWaveChange;
+
+        // 시작 웨이브를 텍스트로 설정
+        text.text = GameManager.Inst.Wave.ToString();
+
+        // 팝업 활성화
         EnablePopup();
     }
 

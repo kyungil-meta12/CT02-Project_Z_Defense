@@ -1,6 +1,9 @@
 using TMPro;
 using UnityEngine;
 
+/// <summary>
+/// 월드 공간에서 데미지 숫자를 표시하고 수명 종료 시 풀로 반환한다.
+/// </summary>
 [RequireComponent(typeof(TextMeshPro))]
 public class DamagePopup : PoolObject
 {
@@ -16,17 +19,20 @@ public class DamagePopup : PoolObject
     private float endScale;
     private bool isInitialized;
 
+    // 텍스트 메시 컴포넌트를 초기화한다
     private void Awake()
     {
         EnsureTextMesh();
     }
 
+    // 풀에서 꺼내기 직전에 재사용 상태를 초기화한다
     public override void OnBeforeSpawn()
     {
         elapsedTime = 0f;
         isInitialized = false;
     }
 
+    // 풀에 반환될 때 초기화 완료 상태를 해제한다
     public override void OnDespawn()
     {
         isInitialized = false;
@@ -41,38 +47,20 @@ public class DamagePopup : PoolObject
     /// <param name="camera_"></param>
     public void Init(string text, Vector3 position, DamagePopupSettings settings, Camera camera_)
     {
-        if (settings == null)
-        {
-            Debug.LogWarning("[DamagePopup] Settings was null. Runtime default settings will be used.", this);
-            settings = DamagePopupSettings.CreateRuntimeDefault();
-        }
-
-        if (textMesh == null)
-        {
-            EnsureTextMesh();
-        }
-
+        settings = PrepareTextMesh(settings);
         textMesh.text = text;
-        textMesh.color = settings.DamageColor;
-        textMesh.alignment = TextAlignmentOptions.Center;
-        textMesh.fontSize = settings.FontSize;
-        textMesh.enableAutoSizing = false;
-        textMesh.font = settings.FontAsset != null ? settings.FontAsset : defaultFontAsset;
-
-        targetCamera = camera_;
-        lifetime = Mathf.Max(0.01f, settings.Lifetime);
-        elapsedTime = 0f;
-        startPosition = position;
-        moveOffset = settings.MoveOffset;
-        startColor = settings.DamageColor;
-        startScale = settings.StartScale;
-        endScale = settings.EndScale;
-        isInitialized = true;
-
-        transform.position = startPosition;
-        transform.localScale = Vector3.one * startScale;
+        ApplyRuntimeState(position, settings, camera_);
     }
 
+    // 데미지 팝업 숫자를 GC 부담이 낮은 TMP 숫자 설정 경로로 초기화한다
+    public void Init(int damageValue, Vector3 position, DamagePopupSettings settings, Camera camera_)
+    {
+        settings = PrepareTextMesh(settings);
+        textMesh.SetText("{0}", damageValue);
+        ApplyRuntimeState(position, settings, camera_);
+    }
+
+    // 매 프레임 팝업 위치, 크기, 투명도, 카메라 방향을 갱신한다
     private void Update()
     {
         if (!isInitialized)
@@ -98,6 +86,46 @@ public class DamagePopup : PoolObject
         }
     }
 
+    // 팝업 텍스트 컴포넌트와 표시 스타일을 준비한다
+    private DamagePopupSettings PrepareTextMesh(DamagePopupSettings settings)
+    {
+        if (settings == null)
+        {
+            Debug.LogWarning("[DamagePopup] 설정이 없어 런타임 기본값을 사용합니다.", this);
+            settings = DamagePopupSettings.CreateRuntimeDefault();
+        }
+
+        if (textMesh == null)
+        {
+            EnsureTextMesh();
+        }
+
+        textMesh.color = settings.DamageColor;
+        textMesh.alignment = TextAlignmentOptions.Center;
+        textMesh.fontSize = settings.FontSize;
+        textMesh.enableAutoSizing = false;
+        textMesh.font = settings.FontAsset != null ? settings.FontAsset : defaultFontAsset;
+        return settings;
+    }
+
+    // 팝업의 위치, 이동, 생명주기 상태를 적용한다
+    private void ApplyRuntimeState(Vector3 position, DamagePopupSettings settings, Camera camera_)
+    {
+        targetCamera = camera_;
+        lifetime = Mathf.Max(0.01f, settings.Lifetime);
+        elapsedTime = 0f;
+        startPosition = position;
+        moveOffset = settings.MoveOffset;
+        startColor = settings.DamageColor;
+        startScale = settings.StartScale;
+        endScale = settings.EndScale;
+        isInitialized = true;
+
+        transform.position = startPosition;
+        transform.localScale = Vector3.one * startScale;
+    }
+
+    // 팝업이 현재 카메라를 바라보게 회전시킨다
     private void FaceCamera()
     {
         if (targetCamera == null)
@@ -109,6 +137,7 @@ public class DamagePopup : PoolObject
         transform.rotation = Quaternion.LookRotation(transform.position - cameraTransform.position, cameraTransform.up);
     }
 
+    // TextMeshPro 컴포넌트를 확보하고 기본 폰트를 저장한다
     private void EnsureTextMesh()
     {
         textMesh = GetComponent<TextMeshPro>();

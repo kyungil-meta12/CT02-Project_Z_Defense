@@ -233,7 +233,7 @@
  * 6. It selects projectile scale through TurretProjectileScaleProgressionSO.
  * 7. Turret stores the selected projectile prefab, projectile speed, damage, pierce count, and scale.
  * 8. Gun/RocketFire applies damage, speed, scale, pooling reset, and collision ignore rules to each spawned projectile.
- * 9. ProjectileDamageDealer refreshes damage, pierce count, logging state, legacy DamageManager/Projectile damage values, and hit detector state on spawn.
+ * 9. ProjectileDamageDealer refreshes damage, pierce count, logging state, and hit detector state on spawn.
  * 10. ProjectileHitDetector applies damage to tracked targets, trigger/collision hits, or movement raycast hits.
  * 11. DamagePopupSpawner displays damage values when IDamageable implementations report damage.
  *
@@ -303,7 +303,7 @@
  * - Applies damage through hitCollider.GetComponentInParent<IDamageable>().
  * - Allows colliders under the tracked target IDamageable even if the specific child collider is not on the damage layer.
  * - Keeps a per-projectile hit list so one projectile does not hit the same damageable repeatedly.
- * - Updates legacy projectile damage components so existing asset logic remains compatible.
+ * - Legacy DamageManager/Projectile components are not part of the active damage path.
  *
  * ProjectileHitDetector
  * - Adds a robust hit path around projectile motion.

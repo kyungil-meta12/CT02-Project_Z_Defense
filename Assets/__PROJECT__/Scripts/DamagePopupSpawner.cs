@@ -1,6 +1,9 @@
 using TMPro;
 using UnityEngine;
 
+/// <summary>
+/// 데미지 팝업 프리팹과 설정을 관리하고 피격 위치에 팝업을 스폰한다.
+/// </summary>
 public class DamagePopupSpawner : MonoBehaviour
 {
     private const string DAMAGE_POPUP_RESOURCE_PATH = "UI/DamagePopup";
@@ -14,6 +17,7 @@ public class DamagePopupSpawner : MonoBehaviour
     private DamagePopup damagePopupPrefab;
     private Camera targetCamera;
 
+    // 싱글톤 인스턴스와 팝업 풀을 초기화한다
     private void Awake()
     {
         if (Inst != null && Inst != this)
@@ -29,6 +33,7 @@ public class DamagePopupSpawner : MonoBehaviour
         Prewarm();
     }
 
+    // 현재 싱글톤 인스턴스가 제거될 때 정적 참조를 정리한다
     private void OnDestroy()
     {
         if (Inst == this)
@@ -51,9 +56,10 @@ public class DamagePopupSpawner : MonoBehaviour
 
         DamagePopupSpawner spawner = GetOrCreateInstance();
         Vector3 spawnPosition = target.position + (Vector3.up * spawner.settings.HeightOffset);
-        spawner.Spawn(Mathf.RoundToInt(damage).ToString(), spawnPosition);
+        spawner.Spawn(Mathf.RoundToInt(damage), spawnPosition);
     }
 
+    // 씬 인스턴스가 없으면 런타임 컨테이너 아래에 스포너를 생성한다
     private static DamagePopupSpawner GetOrCreateInstance()
     {
         if (Inst != null)
@@ -63,10 +69,11 @@ public class DamagePopupSpawner : MonoBehaviour
 
         GameObject spawnerObject = new GameObject("DamagePopupSpawner");
         spawnerObject.transform.SetParent(GetOrCreateRuntimeSystemsContainer());
-        Debug.LogWarning("[DamagePopupSpawner] Scene instance was missing. A runtime DamagePopupSpawner was created automatically.");
+        Debug.LogWarning("[DamagePopupSpawner] 씬 인스턴스가 없어 런타임 DamagePopupSpawner를 생성했습니다.");
         return spawnerObject.AddComponent<DamagePopupSpawner>();
     }
 
+    // 메모리 풀이 없으면 런타임 컨테이너 아래에 생성한다
     private static MemoryPool GetOrCreateMemoryPool()
     {
         if (MemoryPool.Inst != null)
@@ -76,10 +83,10 @@ public class DamagePopupSpawner : MonoBehaviour
 
         GameObject memoryPoolObject = new GameObject("MemoryPool");
         memoryPoolObject.transform.SetParent(GetOrCreateRuntimeSystemsContainer());
-        //Debug.LogWarning("[DamagePopupSpawner] MemoryPool was missing. A runtime MemoryPool was created automatically.");
         return memoryPoolObject.AddComponent<MemoryPool>();
     }
 
+    // 런타임 시스템을 묶을 컨테이너 트랜스폼을 반환한다
     private static Transform GetOrCreateRuntimeSystemsContainer()
     {
         GameObject containerObject = GameObject.Find(RUNTIME_SYSTEMS_CONTAINER_NAME);
@@ -91,6 +98,7 @@ public class DamagePopupSpawner : MonoBehaviour
         return new GameObject(RUNTIME_SYSTEMS_CONTAINER_NAME).transform;
     }
 
+    // 설정된 초기 개수만큼 데미지 팝업을 풀에 미리 생성한다
     private void Prewarm()
     {
         if (damagePopupPrefab == null)
@@ -101,7 +109,8 @@ public class DamagePopupSpawner : MonoBehaviour
         GetOrCreateMemoryPool().Prewarm(damagePopupPrefab, settings.InitialPoolSize);
     }
 
-    private void Spawn(string text, Vector3 position)
+    // 데미지 숫자 팝업을 풀에서 가져와 표시한다
+    private void Spawn(int damageValue, Vector3 position)
     {
         if (targetCamera == null)
         {
@@ -121,9 +130,10 @@ public class DamagePopupSpawner : MonoBehaviour
             return;
         }
 
-        popup.Init(text, position, settings, targetCamera);
+        popup.Init(damageValue, position, settings, targetCamera);
     }
 
+    // 설정 또는 리소스에서 데미지 팝업 프리팹을 확보한다
     private void EnsurePrefab()
     {
         EnsureSettings();
@@ -151,6 +161,7 @@ public class DamagePopupSpawner : MonoBehaviour
         damagePopupPrefab = CreateRuntimePrefab();
     }
 
+    // 리소스 프리팹이 없을 때 사용할 런타임 기본 팝업을 만든다
     private DamagePopup CreateRuntimePrefab()
     {
         GameObject popupObject = new GameObject("DamagePopup");
@@ -163,6 +174,7 @@ public class DamagePopupSpawner : MonoBehaviour
         return popupObject.AddComponent<DamagePopup>();
     }
 
+    // 데미지 팝업 설정을 확보하고 없으면 런타임 기본값을 사용한다
     private void EnsureSettings()
     {
         if (settings != null)
@@ -173,11 +185,12 @@ public class DamagePopupSpawner : MonoBehaviour
         settings = Resources.Load<DamagePopupSettings>(DAMAGE_POPUP_SETTINGS_RESOURCE_PATH);
         if (settings == null)
         {
-            Debug.LogWarning("[DamagePopupSpawner] DamagePopupSettings was missing. Runtime default settings will be used.");
+            Debug.LogWarning("[DamagePopupSpawner] DamagePopupSettings가 없어 런타임 기본 설정을 사용합니다.");
             settings = DamagePopupSettings.CreateRuntimeDefault();
         }
     }
 
+    // 팝업 프리팹의 TextMeshPro 표시 설정을 적용한다
     private void ApplyTextSettings(TextMeshPro textMesh)
     {
         if (textMesh == null)

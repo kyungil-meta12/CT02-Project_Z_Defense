@@ -106,6 +106,7 @@ Do not use display names as stable IDs.
 - `TargetFinder` resolves hit colliders to a stable tagged or `IDamageable` target root before returning a target, avoiding aim jitter from multi-collider enemies.
 - `TargetFinder` can ignore `ObstacleBuildSlot` helper colliders, placed `Obstacle` colliders, and an additional ignore layer mask during line-of-sight checks so defense-line barricades do not hide zombies from turret targeting.
 - `Turret` smooths target aim point and target velocity prediction, clamps prediction lead time, and ignores vertical prediction by default to reduce visible tracking jitter.
+- `Turret` staggers its first target search within `targetSearchInterval` so many turrets do not all run physics target scans on the same frame.
 - Turret fires only when the head is within `turretAngleAttack`.
 - Gun projectile rotation should follow visible muzzle forward direction.
 - Homing/projectile mover components may still receive selected targets for hit tracking.
@@ -114,6 +115,7 @@ Do not use display names as stable IDs.
 
 - Projectile scale must be applied every spawn.
 - Projectile speed, damage, pierce count, target/collider state, and collision ignores must be refreshed every spawn.
+- `ProjectileComponentCache` caches frequently reused projectile components and colliders on pooled projectile instances to avoid repeated hierarchy scans during firing.
 - `ProjectileDamageDealer` allows colliders under the tracked target `IDamageable` even if the specific child collider is not on the damage layer; this prevents HOVL hit VFX from ending a projectile on a non-damage child collider without applying damage.
 - Do not rely on prefab state or previous pooled state.
 - Evolution effects should spawn through `PooledObjectUtility.SpawnEffect`.

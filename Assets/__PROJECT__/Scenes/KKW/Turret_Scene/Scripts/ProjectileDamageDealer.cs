@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using ProjectZima.PolygonModularTurretsPack;
 using UnityEngine;
 
 /// <summary>
@@ -17,6 +16,7 @@ public class ProjectileDamageDealer : MonoBehaviour
 
     private readonly List<IDamageable> hitDamageables = new List<IDamageable>(4);
     private IDamageable trackedTargetDamageable;
+    private ProjectileHitDetector hitDetector;
 
     public bool HasReachedPierceLimit
     {
@@ -56,7 +56,6 @@ public class ProjectileDamageDealer : MonoBehaviour
         trackedTargetDamageable = ResolveDamageable(target);
         enabled = true;
 
-        ApplyLegacyProjectileDamageValues();
         InitHitDetector(target);
     }
 
@@ -129,29 +128,16 @@ public class ProjectileDamageDealer : MonoBehaviour
         return target.GetComponentInChildren<IDamageable>();
     }
 
-    // 기존 투사체 스크립트들이 사용하는 데미지 값도 함께 갱신한다
-    private void ApplyLegacyProjectileDamageValues()
-    {
-        DamageManager damageManager = GetComponent<DamageManager>();
-        if (damageManager != null)
-        {
-            damageManager.SetDamage(damage);
-        }
-
-        Projectile projectile = GetComponent<Projectile>();
-        if (projectile != null)
-        {
-            projectile.damage = damage;
-        }
-    }
-
     // 보정 피격 감지 컴포넌트를 준비하고 현재 타겟을 전달한다
     private void InitHitDetector(GameObject target)
     {
-        ProjectileHitDetector hitDetector = GetComponent<ProjectileHitDetector>();
         if (hitDetector == null)
         {
-            hitDetector = gameObject.AddComponent<ProjectileHitDetector>();
+            hitDetector = GetComponent<ProjectileHitDetector>();
+            if (hitDetector == null)
+            {
+                hitDetector = gameObject.AddComponent<ProjectileHitDetector>();
+            }
         }
 
         hitDetector.Init(this, target);

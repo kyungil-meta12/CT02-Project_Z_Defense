@@ -18,6 +18,7 @@ MonoBehaviour:
   baseStatProfile: {fileID: 11400000, guid: af3765c74b112ba49b5cc100f0bac4c8, type: 2}
   maxLevel: 0
   statGrowthProfile: {fileID: 11400000, guid: 883856b1bae02074db8d5860fa10243e, type: 2}
+  upgradeCostProfile: {fileID: 11400000, guid: 891ba1317f1e2274bbfbfcaed9b8f986, type: 2}
   vfxProgressionProfile: {fileID: 11400000, guid: 1217939c09910424290ffa07ead770fa, type: 2}
   projectileScaleProgressionProfile: {fileID: 11400000, guid: 32861555aa178e341b07bc22517bef84, type: 2}
   evolutionProgressionProfile: {fileID: 11400000, guid: b263b8791d3910e45b9bd51c0b053764, type: 2}

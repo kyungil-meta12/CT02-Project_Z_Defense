@@ -28,16 +28,4 @@ MonoBehaviour:
   - currencyType: 0
     amount: 100
     dropChance: 1
-  modifiers:
-  - enabled: 0
-    targetFilter: 0
-    targetCurrency: 0
-    zombieTypeFilter: 0
-    minWave: 1
-    maxWave: 0
-    defenseLineIndex: 0
-    requiredSituations: 0
-    amountMultiplier: 0
-    flatAmountBonus: 0
-    dropChanceMultiplier: 0
-    additionalDropChance: 0
+  modifiers: []

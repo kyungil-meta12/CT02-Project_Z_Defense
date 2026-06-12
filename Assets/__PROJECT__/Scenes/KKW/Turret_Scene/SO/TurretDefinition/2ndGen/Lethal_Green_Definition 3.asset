@@ -1,4 +1,4 @@
-﻿%YAML 1.1
+%YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
 --- !u!114 &11400000
 MonoBehaviour:
@@ -18,6 +18,7 @@ MonoBehaviour:
   baseStatProfile: {fileID: 11400000, guid: bb648034f6ec5d24493dfa8d1e04af9e, type: 2}
   maxLevel: 0
   statGrowthProfile: {fileID: 11400000, guid: e31673ec758010c40a4904d4c33979c7, type: 2}
+  upgradeCostProfile: {fileID: 11400000, guid: 82c8398caf2d9a242ac46e929a55bf15, type: 2}
   vfxProgressionProfile: {fileID: 11400000, guid: f4f1a415cfb900746b80091de1c44539, type: 2}
   projectileScaleProgressionProfile: {fileID: 11400000, guid: c6ff8d62a312ea742abfac11e7562505, type: 2}
   evolutionProgressionProfile: {fileID: 0}

@@ -1,8 +1,12 @@
+using System.Text;
 using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
+/// <summary>
+/// 장애물/게이트 배치 버튼의 표시 정보와 클릭/드래그 배치 입력을 처리한다.
+/// </summary>
 [DisallowMultipleComponent]
 public class ObstaclePlacementSlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler, IPointerClickHandler
 {
@@ -149,7 +153,8 @@ public class ObstaclePlacementSlotUI : MonoBehaviour, IBeginDragHandler, IDragHa
             tmpNameText.text = buildEntry.DisplayName;
         }
 
-        string costLabel = buildEntry.Cost <= 0 ? string.Empty : buildEntry.Cost.ToString();
+        // UI 표시는 실제 소비에 쓰이는 BuildCosts를 그대로 사용해 표시 비용과 결제 비용이 갈라지지 않게 한다.
+        string costLabel = FormatCosts(buildEntry.BuildCosts);
         if (costText != null)
         {
             costText.text = costLabel;
@@ -158,6 +163,52 @@ public class ObstaclePlacementSlotUI : MonoBehaviour, IBeginDragHandler, IDragHa
         if (tmpCostText != null)
         {
             tmpCostText.text = costLabel;
+        }
+    }
+
+    // ResourceCost 배열을 배치 버튼에 표시할 짧은 문자열로 변환한다
+    private static string FormatCosts(ResourceCost[] costs)
+    {
+        if (costs == null || costs.Length == 0)
+        {
+            return string.Empty;
+        }
+
+        StringBuilder builder = new StringBuilder();
+        for (int i = 0; i < costs.Length; i++)
+        {
+            ResourceCost cost = costs[i];
+            if (cost == null || cost.amount <= 0)
+            {
+                continue;
+            }
+
+            if (builder.Length > 0)
+            {
+                builder.Append(" / ");
+            }
+
+            builder.Append(GetCurrencyLabel(cost.currencyType));
+            builder.Append(" ");
+            builder.Append(cost.amount);
+        }
+
+        return builder.ToString();
+    }
+
+    // 재화 종류를 배치 UI 표시용 짧은 이름으로 변환한다
+    private static string GetCurrencyLabel(RewardCurrencyType currencyType)
+    {
+        switch (currencyType)
+        {
+            case RewardCurrencyType.Coin:
+                return "Coin";
+            case RewardCurrencyType.FirePart:
+                return "Fire";
+            case RewardCurrencyType.SpecialPart:
+                return "Special";
+            default:
+                return currencyType.ToString();
         }
     }
 }

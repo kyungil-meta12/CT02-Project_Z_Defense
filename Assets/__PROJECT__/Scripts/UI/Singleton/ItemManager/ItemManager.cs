@@ -142,17 +142,6 @@ public class ItemManager : MonoBehaviour
     }
 
     /// <summary>
-    /// 코인 소지량을 증가시킨다.<para/>
-    /// 웨이브 동안에 수집된 코인이 기록된다.
-    /// </summary>
-    /// <param name="coinsToAdd"></param>
-    // 코인을 보상으로 지급하고 웨이브 획득량에 반영한다
-    public void AddCoinCount(int coinsToAdd)
-    {
-        AddReward(RewardCurrencyType.Coin, coinsToAdd, true);
-    }
-
-    /// <summary>
     /// 웨이브 동안에 수집한 WaveCollectCoinCount의 percentage만큼을 현재 코인 소지량에 추가한다.<para/>
     /// 이 메서드를 호출하면 WaveCollectCoinCount가 0으로 초기화 된다.
     /// </summary>
@@ -267,17 +256,6 @@ public class ItemManager : MonoBehaviour
     }
 
     /// <summary>
-    /// 코인을 소모할 수 있는지 확인한다.
-    /// </summary>
-    /// <param name="coinsToUse"></param>
-    /// <returns></returns>
-    // 코인을 지정 수량만큼 보유했는지 확인한다
-    public bool CanUseCoin(int coinsToUse)
-    {
-        return CanAfford(RewardCurrencyType.Coin, coinsToUse);
-    }
-
-    /// <summary>
     /// 화기 부품을 소모할 수 있는지 확인한다.
     /// </summary>
     /// <param name="partsToUse"></param>
@@ -354,18 +332,6 @@ public class ItemManager : MonoBehaviour
         return CanAfford(RewardCurrencyType.Coin, coinCost) &&
                CanAfford(RewardCurrencyType.FirePart, firePartCost) &&
                CanAfford(RewardCurrencyType.SpecialPart, specialPartCost);
-    }
-
-    /// <summary>
-    /// 코인을 사용을 시도한다.<para/>
-    /// 코인이 부족하다면 false를 리턴하고, 그렇지 않다면 코인을 소모하고 true를 리턴한다.
-    /// </summary>
-    /// <param name="coinsToUse"></param>
-    /// <returns></returns>
-    // 코인 소비를 시도한다
-    public bool TryUseCoin(int coinsToUse)
-    {
-        return TrySpend(RewardCurrencyType.Coin, coinsToUse);
     }
 
     /// <summary>

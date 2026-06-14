@@ -18,4 +18,6 @@ MonoBehaviour:
   obstaclePrefab: {fileID: 1242232213132576, guid: 93623804a1860b2409814746410da6bd, type: 3}
   previewPrefab: {fileID: 0}
   placementLocalEulerAngles: {x: 0, y: -90, z: 0}
-  cost: 50
+  buildCosts:
+  - currencyType: 0
+    amount: 500

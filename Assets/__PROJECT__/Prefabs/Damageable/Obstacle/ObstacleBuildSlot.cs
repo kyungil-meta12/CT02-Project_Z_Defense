@@ -1,6 +1,10 @@
 using System.Collections.Generic;
+using System.Text;
 using UnityEngine;
 
+/// <summary>
+/// 방어선 장애물/게이트 설치 슬롯의 점유 상태와 배치 비용 소비를 관리한다.
+/// </summary>
 [DisallowMultipleComponent]
 public class ObstacleBuildSlot : MonoBehaviour
 {
@@ -16,6 +20,7 @@ public class ObstacleBuildSlot : MonoBehaviour
     [Header("Runtime")]
     [SerializeField] private Obstacle currentObstacle;
     [SerializeField] private GameObject currentObstacleObject;
+    [SerializeField] private bool logPlacementResults = true;
 
     private readonly List<Obstacle> obstacleCandidates = new List<Obstacle>(4);
 
@@ -139,17 +144,8 @@ public class ObstacleBuildSlot : MonoBehaviour
     // 지정 빌드 항목을 현재 슬롯에 설치할 수 있는지 확인한다
     public bool CanPlaceEntry(ObstacleBuildEntrySO buildEntry)
     {
-        if (buildEntry == null || buildEntry.ObstaclePrefab == null || buildEntry.SlotType != slotType || !CanPlace)
-        {
-            return false;
-        }
-
-        if (ItemManager.Inst == null)
-        {
-            return false;
-        }
-
-        return ItemManager.Inst.CanUseCoin(buildEntry.Cost);
+        // 프리뷰 갱신 중 매 프레임 호출되므로 로그와 문자열 포맷팅 없이 빠른 판정만 수행한다.
+        return CanPlaceEntryInternal(buildEntry);
     }
 
     // 빌드 항목의 프리팹을 슬롯 위치에 생성하고 점유 상태로 등록한다
@@ -157,13 +153,11 @@ public class ObstacleBuildSlot : MonoBehaviour
     {
         placedObstacle = null;
 
-        if (!CanPlaceEntry(buildEntry))
+        // 실제 배치 확정 시점에서만 상세 실패 사유를 만든다. 프리뷰 경로에서 만들면 콘솔 스팸과 GC 할당이 발생한다.
+        string failureReason = GetPlacementFailureReason(buildEntry);
+        if (!string.IsNullOrEmpty(failureReason))
         {
-            if (buildEntry != null && ItemManager.Inst != null)
-            {
-                Obstacle currentObs = CurrentObstacle;
-                //Debug.Log($"[ObstacleBuildSlot] 배치 불가 - 필요 코인: {buildEntry.Cost}, 보유 코인: {ItemManager.Inst.CoinCount}, 슬롯 타입: {slotType}, 빌드 타입: {buildEntry.SlotType}, CanPlace: {CanPlace}, BuildPoint null: {buildPoint == null}, CurrentObstacle: {(currentObs != null ? currentObs.name : "null")}, CurrentObstacle IsAlive: {(currentObs != null ? currentObs.IsAlive.ToString() : "N/A")}");
-            }
+            LogPlacementFailed(buildEntry, failureReason);
             return false;
         }
 
@@ -173,9 +167,11 @@ public class ObstacleBuildSlot : MonoBehaviour
             return false;
         }
 
-        if (!ItemManager.Inst.TryUseCoin(buildEntry.Cost))
+        ResourceCost[] buildCosts = buildEntry.BuildCosts;
+        // 장애물 배치도 터렛 경제와 같은 ResourceCost[] 파이프라인을 사용한다. Coin 전용 fallback은 검증 혼선을 만들기 때문에 사용하지 않는다.
+        if (!ItemManager.Inst.TrySpend(buildCosts))
         {
-            //Debug.Log($"[ObstacleBuildSlot] 코인 부족 - 필요: {buildEntry.Cost}, 보유: {ItemManager.Inst.CoinCount}", this);
+            LogPlacementFailed(buildEntry, $"배치 비용 지불에 실패했습니다. 필요 비용: {FormatCosts(buildCosts)}, 보유 재화: {FormatWallet()}");
             return false;
         }
 
@@ -189,15 +185,16 @@ public class ObstacleBuildSlot : MonoBehaviour
             Debug.LogError("[ObstacleBuildSlot] 설치한 프리팹에 Obstacle 컴포넌트가 없습니다.", this);
             Destroy(obstacleObject);
 
-            // 코인을 환불한다
-            ItemManager.Inst.AddCoinCount(buildEntry.Cost);
+            // 이미 지불한 배치 비용을 환불한다
+            ItemManager.Inst.Refund(buildCosts);
+            LogPlacementFailed(buildEntry, $"생성된 프리팹에 Obstacle 컴포넌트가 없어 비용을 환불했습니다. 필요 컴포넌트: Obstacle, 프리팹: {buildEntry.ObstaclePrefab.name}");
             return false;
         }
 
         currentObstacle = placedObstacle;
         currentObstacleObject = obstacleObject;
 
-        //Debug.Log($"[ObstacleBuildSlot] 배치 성공 - {buildEntry.DisplayName}, 남은 코인: {ItemManager.Inst.CoinCount}");
+        LogPlacementSucceeded(buildEntry, placedObstacle, buildCosts);
 
         if (GameManager.Inst != null)
         {
@@ -205,6 +202,161 @@ public class ObstacleBuildSlot : MonoBehaviour
         }
 
         return true;
+    }
+
+    // 현재 슬롯에 지정 빌드 항목을 배치할 수 없는 이유를 반환한다
+    private string GetPlacementFailureReason(ObstacleBuildEntrySO buildEntry)
+    {
+        if (buildEntry == null)
+        {
+            return "배치 항목이 비어 있습니다.";
+        }
+
+        if (buildEntry.ObstaclePrefab == null)
+        {
+            return $"배치 항목 '{buildEntry.DisplayName}'에 장애물 프리팹이 없습니다.";
+        }
+
+        if (buildEntry.SlotType != slotType)
+        {
+            return $"슬롯 타입이 맞지 않습니다. 슬롯 타입: {slotType}, 빌드 타입: {buildEntry.SlotType}";
+        }
+
+        if (buildPoint == null)
+        {
+            return "BuildPoint가 없어 배치 위치를 결정할 수 없습니다.";
+        }
+
+        Obstacle obstacle = CurrentObstacle;
+        if (obstacle != null)
+        {
+            return $"설치 장소에 이미 '{GetObstacleName(obstacle)}'이 있습니다.";
+        }
+
+        if (ItemManager.Inst == null)
+        {
+            return "ItemManager가 없어 재화 보유량을 확인할 수 없습니다.";
+        }
+
+        ResourceCost[] buildCosts = buildEntry.BuildCosts;
+        if (!ItemManager.Inst.CanAfford(buildCosts))
+        {
+            return $"재화가 부족합니다. 필요 비용: {FormatCosts(buildCosts)}, 보유 재화: {FormatWallet()}";
+        }
+
+        return string.Empty;
+    }
+
+    // 프리뷰 갱신 중 문자열 할당 없이 배치 가능 여부만 확인한다
+    private bool CanPlaceEntryInternal(ObstacleBuildEntrySO buildEntry)
+    {
+        if (buildEntry == null || buildEntry.ObstaclePrefab == null)
+        {
+            return false;
+        }
+
+        if (buildEntry.SlotType != slotType || buildPoint == null)
+        {
+            return false;
+        }
+
+        if (CurrentObstacle != null || ItemManager.Inst == null)
+        {
+            return false;
+        }
+
+        return ItemManager.Inst.CanAfford(buildEntry.BuildCosts);
+    }
+
+    // 장애물 배치 실패 사유를 콘솔에 출력한다
+    private void LogPlacementFailed(ObstacleBuildEntrySO buildEntry, string reason)
+    {
+        if (!logPlacementResults)
+        {
+            return;
+        }
+
+        Debug.LogWarning($"[ObstacleBuildSlot] 배치 실패 - 슬롯: {name}, 항목: {GetBuildEntryName(buildEntry)}, 사유: {reason}", this);
+    }
+
+    // 장애물 배치 성공 결과를 콘솔에 출력한다
+    private void LogPlacementSucceeded(ObstacleBuildEntrySO buildEntry, Obstacle placedObstacle, ResourceCost[] buildCosts)
+    {
+        if (!logPlacementResults)
+        {
+            return;
+        }
+
+        Debug.Log($"[ObstacleBuildSlot] 배치 성공 - 슬롯: {name}, 항목: {GetBuildEntryName(buildEntry)}, 설치 대상: {GetObstacleName(placedObstacle)}, 비용: {FormatCosts(buildCosts)}, 남은 재화: {FormatWallet()}", this);
+    }
+
+    // 빌드 항목의 로그용 이름을 반환한다
+    private static string GetBuildEntryName(ObstacleBuildEntrySO buildEntry)
+    {
+        return buildEntry == null ? "없음" : buildEntry.DisplayName;
+    }
+
+    // 장애물의 로그용 이름을 반환한다
+    private static string GetObstacleName(Obstacle obstacle)
+    {
+        return obstacle == null ? "없음" : obstacle.name;
+    }
+
+    // 비용 배열을 로그에 표시할 문자열로 변환한다
+    private static string FormatCosts(ResourceCost[] costs)
+    {
+        if (costs == null || costs.Length == 0)
+        {
+            return "없음";
+        }
+
+        StringBuilder builder = new StringBuilder();
+        for (int i = 0; i < costs.Length; i++)
+        {
+            ResourceCost cost = costs[i];
+            if (cost == null || cost.amount <= 0)
+            {
+                continue;
+            }
+
+            if (builder.Length > 0)
+            {
+                builder.Append(", ");
+            }
+
+            builder.Append(GetCurrencyLabel(cost.currencyType));
+            builder.Append(" ");
+            builder.Append(cost.amount);
+        }
+
+        return builder.Length == 0 ? "없음" : builder.ToString();
+    }
+
+    // 현재 지갑 상태를 로그에 표시할 문자열로 변환한다
+    private static string FormatWallet()
+    {
+        if (ItemManager.Inst == null)
+        {
+            return "ItemManager 없음";
+        }
+
+        return $"Coin {ItemManager.Inst.CoinCount}, Fire {ItemManager.Inst.FirePartCount}, Special {ItemManager.Inst.SpecialPartCount}";
+    }
+
+    // 재화 종류를 로그 표시용 짧은 이름으로 변환한다
+    private static string GetCurrencyLabel(RewardCurrencyType currencyType)
+    {
+        switch (currencyType)
+        {
+            case RewardCurrencyType.Coin:
+                return "Coin";
+            case RewardCurrencyType.FirePart:
+                return "Fire";
+            case RewardCurrencyType.SpecialPart:
+                return "Special";
+            default:
+                return currencyType.ToString();
+        }
     }
 
     // 지정 장애물이 현재 점유 대상이면 슬롯 점유 상태를 비운다

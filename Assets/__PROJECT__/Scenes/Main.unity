@@ -3147,7 +3147,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 50
+  m_text: Coin 500
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -11877,7 +11877,7 @@ MonoBehaviour:
     retreatPoint: {fileID: 799809137}
     restoredPoint: {fileID: 1930416908}
   startWave: 1
-  startTimeScale: 5
+  startTimeScale: 1
   baseFixedDeltaTime: 0.02
 --- !u!4 &293100234
 Transform:
@@ -37573,6 +37573,10 @@ PrefabInstance:
     - target: {fileID: 1242232213132576, guid: 93623804a1860b2409814746410da6bd, type: 3}
       propertyPath: m_Name
       value: Obstacle
+      objectReference: {fileID: 0}
+    - target: {fileID: 1242232213132576, guid: 93623804a1860b2409814746410da6bd, type: 3}
+      propertyPath: m_IsActive
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 4791364480665360, guid: 93623804a1860b2409814746410da6bd, type: 3}
       propertyPath: m_LocalPosition.x

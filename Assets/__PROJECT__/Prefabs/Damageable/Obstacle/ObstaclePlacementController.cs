@@ -1,6 +1,9 @@
 using UnityEngine;
 using UnityEngine.EventSystems;
 
+/// <summary>
+/// 장애물/게이트 배치 입력, 프리뷰, 슬롯 확정을 관리한다.
+/// </summary>
 [DisallowMultipleComponent]
 public class ObstaclePlacementController : MonoBehaviour
 {
@@ -17,6 +20,9 @@ public class ObstaclePlacementController : MonoBehaviour
     [SerializeField] private Vector3 previewLocalOffset = Vector3.zero;
     [SerializeField, Min(0.01f)] private float previewScaleMultiplier = 1.0f;
     [SerializeField] private bool createRuntimePreviewMaterials = true;
+
+    [Header("Debug")]
+    [SerializeField] private bool logPlacementResults = true;
 
     private TurretPlacementPreview preview;
     private ObstacleBuildEntrySO activeBuildEntry;
@@ -84,6 +90,7 @@ public class ObstaclePlacementController : MonoBehaviour
     {
         if (buildEntry == null || buildEntry.ObstaclePrefab == null)
         {
+            LogPlacementFailed(buildEntry, "배치 항목이 비어 있거나 장애물 프리팹이 없습니다.");
             CancelPlacement();
             return;
         }
@@ -126,7 +133,15 @@ public class ObstaclePlacementController : MonoBehaviour
         }
 
         ObstacleBuildSlot targetSlot = FindSlot(screenPosition, out _);
-        bool placed = targetSlot != null && targetSlot.TryPlace(activeBuildEntry, out _);
+        if (targetSlot == null)
+        {
+            // 슬롯을 찾지 못한 입력 단계 실패는 컨트롤러에서 기록하고, 슬롯 내부 조건 실패는 ObstacleBuildSlot.TryPlace에서 기록한다.
+            LogPlacementFailed(activeBuildEntry, "포인터 위치에서 설치 슬롯을 찾을 수 없습니다.");
+            CancelPlacement();
+            return false;
+        }
+
+        bool placed = targetSlot.TryPlace(activeBuildEntry, out _);
         CancelPlacement();
         return placed;
     }
@@ -259,6 +274,18 @@ public class ObstaclePlacementController : MonoBehaviour
         }
 
         return hit.collider.GetComponentInParent<ObstacleBuildSlot>();
+    }
+
+    // 배치 컨트롤러 단계에서 발생한 배치 실패 사유를 콘솔에 출력한다
+    private void LogPlacementFailed(ObstacleBuildEntrySO buildEntry, string reason)
+    {
+        if (!logPlacementResults)
+        {
+            return;
+        }
+
+        string entryName = buildEntry == null ? "없음" : buildEntry.DisplayName;
+        Debug.LogWarning($"[ObstaclePlacementController] 배치 실패 - 항목: {entryName}, 사유: {reason}", this);
     }
 
     // 마우스 또는 첫 번째 터치의 화면 좌표를 가져온다

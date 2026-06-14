@@ -6,6 +6,10 @@ public enum ObstacleBuildSlotType
     Gate
 }
 
+/// <summary>
+/// 장애물 또는 게이트 배치 UI와 배치 비용, 프리팹 정보를 정의한다.
+/// 배치 비용은 legacy Coin 전용 값이 아니라 ResourceCost[]만 source of truth로 사용한다.
+/// </summary>
 [CreateAssetMenu(fileName = "ObstacleBuildEntry", menuName = "Project Z Defense/Obstacle Build Entry")]
 public class ObstacleBuildEntrySO : ScriptableObject
 {
@@ -20,7 +24,7 @@ public class ObstacleBuildEntrySO : ScriptableObject
     [SerializeField] private Vector3 placementLocalEulerAngles;
 
     [Header("Cost")]
-    [SerializeField, Min(0)] private int cost;
+    [SerializeField] private ResourceCost[] buildCosts;
 
     public string DisplayName
     {
@@ -75,11 +79,32 @@ public class ObstacleBuildEntrySO : ScriptableObject
         }
     }
 
-    public int Cost
+    public ResourceCost[] BuildCosts
     {
         get
         {
-            return cost;
+            // 장애물 배치 비용은 터렛 배치/업그레이드/진화와 같은 다중 재화 파이프라인을 타야 하므로 legacy int Cost fallback을 두지 않는다.
+            return buildCosts;
+        }
+    }
+
+    // 인스펙터 비용 값을 음수가 아닌 값으로 보정한다
+    private void OnValidate()
+    {
+        if (buildCosts == null)
+        {
+            return;
+        }
+
+        for (int i = 0; i < buildCosts.Length; i++)
+        {
+            ResourceCost buildCost = buildCosts[i];
+            if (buildCost == null)
+            {
+                continue;
+            }
+
+            buildCost.amount = Mathf.Max(0, buildCost.amount);
         }
     }
 }

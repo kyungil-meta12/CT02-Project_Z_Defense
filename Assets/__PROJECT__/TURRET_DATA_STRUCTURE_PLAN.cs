@@ -198,7 +198,7 @@
  * 9. TurretShopEntrySO
  * - Holds data for turret placement UI entries.
  * - References a TurretDefinitionSO and optionally overrides the spawned prefab or preview prefab.
- * - The runtime placement UI reads display name, icon, cost, turret definition, turret prefab, and preview prefab from this asset.
+ * - The runtime placement UI reads display name, icon, placement costs, turret definition, turret prefab, and preview prefab from this asset.
  * - Turret prefab defaults to TurretDefinitionSO.basePrefab when overridePrefab is not assigned.
  * - Preview prefab defaults to the turret prefab when previewPrefab is not assigned.
  *
@@ -208,7 +208,7 @@
  * private TurretDefinitionSO turretDefinition;
  * private GameObject overridePrefab;
  * private GameObject previewPrefab;
- * private int cost;
+ * private ResourceCost[] placementCosts;
  *
  * Evolution Runtime Flow
  *

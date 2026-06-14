@@ -16,8 +16,8 @@ This document tracks the planned reward and currency pipeline for zombie kill re
 
 - `ItemManager` owns coin, fire part, and special part counts.
 - `ItemManager` can apply initial wallet currencies from inspector-configured `ResourceCost[] initialWalletCurrencies`.
-- `ItemManager` now exposes explicit reward, spend, afford, and refund APIs.
-- `ItemManager.AddCoinCount`, `CanUseCoin`, and `TryUseCoin` remain as compatibility wrappers.
+- `ItemManager` exposes explicit reward, spend, afford, and refund APIs.
+- Legacy Coin-only compatibility APIs have been removed.
 - `ItemManager.AddReward` can optionally update wave-collected coin tracking.
 - `ItemManager.Refund` does not update wave-collected reward tracking.
 - `NormalZombie` grants kill reward through its prefab-level `ZombieRewardProfileSO`.
@@ -32,7 +32,9 @@ This document tracks the planned reward and currency pipeline for zombie kill re
 - `TurretShopEntrySO` is a legacy type name for turret placement entry data and defines turret placement costs through `ResourceCost[] placementCosts`.
 - `TurretShopEntrySO` supports `placementCostTiers` so Sentinel-01 placement can become more expensive by successful placement count.
 - `TurretBaseSlot` spends turret placement costs through `ItemManager.TrySpend`.
-- `ObstacleBuildSlot` still spends obstacle placement cost through `ItemManager.TryUseCoin`.
+- `ObstacleBuildEntrySO` exposes obstacle and gate placement costs through `ResourceCost[] buildCosts`.
+- `ObstacleBuildSlot` spends obstacle and gate placement costs through `ItemManager.TrySpend` and refunds through `ItemManager.Refund`.
+- Obstacle placement no longer has an integer Coin fallback path; `ResourceCost[] buildCosts` is the only placement cost source.
 - `TurretDefinitionSO` can reference `TurretUpgradeCostProfileSO`.
 - `TurretEvolutionEntry` can define `ResourceCost[] evolutionCosts`.
 - Turret runtime UI calls `TryUpgrade`, `TryEvolve`, or `TryCreateEvolvedInstance`, so upgrades/evolutions only execute after cost spend succeeds.
@@ -160,15 +162,9 @@ Example:
 - Fever item drop chance +20%: `requiredSituations = FeverTime`, `additionalDropChance = 0.2`.
 - Boss-only special part x2: `zombieTypeFilter = BossOnly`, `targetCurrency = SpecialPart`, `amountMultiplier = 2`.
 
-## ItemManager Migration
+## ItemManager APIs
 
-Keep old APIs temporarily:
-
-- `AddCoinCount`
-- `CanUseCoin`
-- `TryUseCoin`
-
-Add explicit APIs:
+Use explicit APIs:
 
 - `AddReward`
 - `CanAfford`
@@ -180,6 +176,24 @@ Important rule:
 - Reward grants can update wave-collected reward tracking.
 - Refunds must not update wave-collected reward tracking.
 - Initial wallet grants must not update wave-collected reward tracking.
+- Cost checks should use `CanAfford` and confirmed spending should use `TrySpend`, even for Coin-only costs, so future multi-currency costs do not need new gameplay code.
+- Legacy Coin-only wrappers were removed after call sites reached zero to prevent new obstacle, turret, or UI code from bypassing the shared currency pipeline.
+
+## Obstacle Placement Cost Migration Rationale
+
+Obstacle rebuild costs used to be represented as a single Coin value on `ObstacleBuildEntrySO`. That was enough for the first rebuild flow, but it diverged from the turret economy path after turret placement, upgrades, and evolution moved to `ResourceCost[]`.
+
+The current obstacle placement path intentionally mirrors turret placement:
+
+1. `ObstacleBuildEntrySO.buildCosts` owns the serialized cost data.
+2. `ObstaclePlacementSlotUI` displays the same `ResourceCost[]` data.
+3. `ObstacleBuildSlot.CanPlaceEntry` performs a quiet affordance check for placement preview.
+4. `ObstacleBuildSlot.TryPlace` spends with `ItemManager.TrySpend` only when placement is confirmed.
+5. If prefab validation fails after spending, `ObstacleBuildSlot.TryPlace` refunds with `ItemManager.Refund`.
+
+The old `int cost`, `Cost`, `AddCoinCount`, `CanUseCoin`, and `TryUseCoin` paths should stay removed. Keeping a fallback would make it unclear whether a successful rebuild came from the new data or the old Coin field, which makes economy validation and team review unreliable.
+
+Debugging follows the same boundary: preview checks stay silent to avoid per-frame log spam and GC allocation, while confirmed placement attempts log concrete Korean failure reasons such as occupied slot, insufficient currency, missing prefab, or missing `ItemManager`.
 
 ## Implementation Order
 
@@ -197,9 +211,10 @@ Important rule:
 12. Done: Move turret placement/shop entry cost to `ResourceCost[] placementCosts`.
 13. Done: Add placement count based cost tiers for turret placement entries.
 14. Done: Remove turret placement legacy `cost` fallback from runtime code.
-15. Next: Move obstacle placement cost to `ResourceCost`.
+15. Done: Move obstacle placement cost spending to `ResourceCost[]`.
 16. Done: Remove normal zombie spec reward fallback fields after active reward profiles were verified.
-17. Next: Remove `ItemManager` compatibility wrappers after old call sites reach zero.
+17. Done: Remove legacy Coin-only `ItemManager` wrappers after old call sites reached zero.
+18. Done: Add obstacle placement logs at confirmed placement time while keeping preview validation quiet.
 
 ## Edge Cases
 
@@ -214,15 +229,18 @@ Important rule:
 - Turret placement should not instantiate a turret when placement cost spend fails.
 - Turret placement should refund costs if prefab instantiation fails after spend.
 - Turret placement count should increase only after successful prefab installation.
+- Obstacle placement should not instantiate an obstacle when build cost spend fails.
+- Obstacle placement should refund costs if prefab instantiation fails after spend.
+- Obstacle placement preview should not emit logs every frame.
 
 ## Next Cleanup Plan
 
-1. Move obstacle placement cost to `ResourceCost`.
-2. Remove `ItemManager.AddCoinCount`, `CanUseCoin`, and `TryUseCoin` after call sites reach zero.
+1. Keep new cost data in `ResourceCost[]` fields.
+2. Do not reintroduce Coin-only spend or refund wrappers.
 
 ## Tomorrow Handoff
 
-Start with obstacle placement cost migration.
+Start with obstacle placement regression checks and any future multi-currency cost tuning.
 
 Read before editing:
 
@@ -241,11 +259,10 @@ Main files:
 
 Goal:
 
-- Add `ResourceCost[] buildCosts` or equivalent to `ObstacleBuildEntrySO`.
+- Keep obstacle build costs in `ObstacleBuildEntrySO.buildCosts`.
 - Spend obstacle build costs through `ItemManager.TrySpend`.
-- Refund through `ItemManager.Refund`, not `AddCoinCount`.
-- Update obstacle placement UI to display `ResourceCost[]`.
-- Keep old `cost` only as a temporary asset fallback if YAML migration is not done in the same pass.
+- Refund through `ItemManager.Refund`.
+- Keep obstacle placement UI displaying `ResourceCost[]`.
 
 ## Related Plan File
 

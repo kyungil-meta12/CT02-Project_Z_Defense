@@ -18,8 +18,8 @@ public static class REWARD_CURRENCY_SYSTEM_PLAN
      * Current Problems
      * - NormalZombieSpec.DropCoin 하나로 일반 좀비 코인 보상이 고정되어 있었다.
      * - NormalZombie.OnDespawn()에서 보상을 지급해 풀링 반환과 처치 보상이 섞여 있었다.
-     * - ItemManager.AddCoinCount()가 획득과 환불을 구분하지 않아 WaveCollectCoinCount가 오염될 수 있었다.
-     * - TryUseCoin(), AddCoinCount() 직접 호출이 여러 시스템에 퍼지면 새 재화와 조건 추가 비용이 커진다.
+     * - 기존 코인 지급 API가 획득과 환불을 구분하지 않아 WaveCollectCoinCount가 오염될 수 있었다.
+     * - 코인 전용 소비/지급 API 직접 호출이 여러 시스템에 퍼지면 새 재화와 조건 추가 비용이 커진다.
      * - 보상/비용이 코인 기준으로만 표현되어 화기 부품, 속성 부품, 이벤트 재화 확장이 어렵다.
      *
      * Current Migration Status
@@ -43,6 +43,9 @@ public static class REWARD_CURRENCY_SYSTEM_PLAN
      * - 터렛 런타임 UI는 TryUpgrade, TryEvolve, TryCreateEvolvedInstance로 비용 성공 후에만 상태를 변경한다.
      * - TurretShopEntrySO는 placementCosts와 placementCostTiers로 터렛 설치 비용을 관리한다.
      * - 터렛 배치 비용의 숨겨진 legacy cost fallback은 제거했다.
+     * - ObstacleBuildEntrySO는 buildCosts만 장애물/게이트 설치 비용의 source of truth로 사용한다.
+     * - 장애물 배치 경로의 int cost, Cost, legacy Coin fallback은 제거했다.
+     * - 장애물 배치 성공/실패 로그는 실제 확정 시도인 TryPlace에서만 출력하고, 프리뷰용 CanPlaceEntry는 조용한 bool 판정만 유지한다.
      *
      * Target Flow - Zombie Reward
      *
@@ -108,7 +111,7 @@ public static class REWARD_CURRENCY_SYSTEM_PLAN
      * ResourceCost
      * - RewardCurrencyType currencyType
      * - int amount
-     * - Used by turret upgrade, turret evolution, placement, shop, and future skills.
+     * - Used by turret upgrade, turret evolution, turret placement, obstacle placement, shop, and future skills.
      *
      * ZombieRewardProfileSO
      * - Holds reward entries for a zombie prefab override or boss zombie spec fallback.
@@ -145,7 +148,8 @@ public static class REWARD_CURRENCY_SYSTEM_PLAN
      *   TrySpend
      *   CanAfford
      *   Refund
-     * - Existing AddCoinCount, TryUseCoin, CanUseCoin can remain as compatibility wrappers during migration.
+     * - Legacy Coin-only compatibility wrappers have been removed after call sites reached zero.
+     * - Even Coin-only costs should use ResourceCost[] so future FirePart, SpecialPart, event currency, or mixed costs do not require gameplay code rewrites.
      *
      * Ownership Rules
      * - ScriptableObjects hold data, not scene-specific mutable state.
@@ -160,7 +164,7 @@ public static class REWARD_CURRENCY_SYSTEM_PLAN
      * 2. Done: Add ZombieRewardProfileSO.
      * 3. Done: Add prefab-level rewardProfileOverride to NormalZombie.
      * 4. Done: Move normal zombie reward grant from OnDespawn() to Die().
-     * 5. Done: Add ItemManager reward/spend/refund APIs while keeping old wrappers.
+     * 5. Done: Add ItemManager reward/spend/refund APIs.
      * 6. Done: Add prefab-level rewardProfileOverride to NormalZombie.
      * 7. Done: Add prefab-level rewardProfileOverride to BossZombie.
      * 8. Done: Add conditional ZombieRewardModifier support to ZombieRewardProfileSO.
@@ -173,12 +177,13 @@ public static class REWARD_CURRENCY_SYSTEM_PLAN
      * 15. Done: Move turret placement cost to ResourceCost[] placementCosts.
      * 16. Done: Add placement count based cost tiers for Sentinel-01 placement flow.
      * 17. Done: Remove turret placement legacy cost fallback.
-     * 18. Next: Move obstacle placement cost from int Cost/TryUseCoin/AddCoinCount to ResourceCost[]/TrySpend/Refund.
+     * 18. Done: Move obstacle placement cost from legacy int cost and Coin-only calls to ResourceCost[]/TrySpend/Refund.
      * 19. Done: Remove NormalZombieSpec RewardProfile/DropCoin fallback fields after active normal zombie reward profiles were verified.
      * 20. Done: Remove ZombieSpawnData legacy spawn scaling after ZombieWaveSpawnProfileSO became the spawn source of truth.
-     * 21. Next: Remove ItemManager compatibility wrappers after AddCoinCount, CanUseCoin, and TryUseCoin call sites reach zero.
+     * 21. Done: Remove ItemManager Coin-only compatibility wrappers after call sites reached zero.
      * 22. Done: Remove BossZombieSpec legacy item drop percentage fields after boss reward profiles became the source of truth.
-     * 23. Ongoing: Update Docs whenever reward or cost ownership changes.
+     * 23. Done: Add obstacle placement logs at confirmed placement time while keeping preview validation quiet.
+     * 24. Ongoing: Update Docs whenever reward or cost ownership changes.
      *
      * Edge Cases To Check
      * - Pooled zombie returned without dying must not grant rewards.
@@ -196,14 +201,19 @@ public static class REWARD_CURRENCY_SYSTEM_PLAN
      * - Turret placement should consume the cost calculated for the current placement count only once.
      * - Turret placement count should increase only after successful prefab installation.
      * - Initial wallet grants must not increase WaveCollectCoinCount.
+     * - Obstacle placement should not instantiate an obstacle when build cost spend fails.
+     * - Obstacle placement should refund costs if prefab instantiation fails after spend.
+     * - Obstacle placement preview should not emit logs every frame.
      *
      * Migration Notes
      * - NormalZombieSpec should stay focused on combat stats; use NormalZombie.rewardProfileOverride on prefab originals or Variants for rewards.
-     * - Next migration target is obstacle placement: ObstacleBuildEntrySO.cost, ObstacleBuildSlot.CanUseCoin/TryUseCoin/AddCoinCount.
+     * - Obstacle placement uses ObstacleBuildEntrySO.buildCosts as the only build cost source.
+     * - Do not reintroduce obstacle integer cost fallback. It hides whether a rebuild succeeded through new ResourceCost data or old Coin data, which breaks economy validation.
+     * - ObstacleBuildSlot.CanPlaceEntry is a preview hot path. It must avoid logs, string formatting, and debug-only allocation. Put detailed failure reasons in TryPlace.
      * - Boss zombie item drops should be represented in ZombieRewardProfileSO instead of BossZombieSpec fields.
      *
      * Tomorrow Handoff
-     * - Start from obstacle placement cost migration.
+     * - Start from obstacle placement regression checks and future multi-currency cost tuning.
      * - Read:
      *   Assets/__PROJECT__/Docs/README.md
      *   Assets/__PROJECT__/Docs/TEAM_CODING_CONVENTION.md
@@ -215,11 +225,12 @@ public static class REWARD_CURRENCY_SYSTEM_PLAN
      *   Assets/__PROJECT__/Prefabs/Damageable/Obstacle/ObstacleBuildSlot.cs
      *   Assets/__PROJECT__/Prefabs/Damageable/Obstacle/ObstaclePlacementSlotUI.cs
      *   Assets/__PROJECT__/Scripts/UI/Singleton/ItemManager/ItemManager.cs
-     * - Desired change:
-     *   ObstacleBuildEntrySO adds ResourceCost[] buildCosts.
+     * - Current state:
+     *   ObstacleBuildEntrySO uses ResourceCost[] buildCosts.
      *   ObstacleBuildSlot spends buildCosts through ItemManager.TrySpend().
      *   Invalid prefab failure refunds through ItemManager.Refund().
-     *   UI displays ResourceCost[] instead of legacy int Cost.
-     *   Keep old cost only as temporary fallback if asset migration is not done in the same pass.
+     *   UI displays ResourceCost[] costs.
+     *   Legacy obstacle integer cost and Coin-only ItemManager wrappers are removed.
+     *   Placement debug logs are Korean, actionable, and emitted only for confirmed placement attempts.
      */
 }

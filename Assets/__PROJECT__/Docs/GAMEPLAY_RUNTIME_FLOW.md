@@ -101,10 +101,10 @@ Important policy:
 2. `ObstaclePlacementSlotUI` starts placement by drag or click.
 3. `ObstaclePlacementController` raycasts against `ObstacleBuildSlot` hit areas.
 4. Preview snaps to the slot `BuildPoint`.
-5. Placement is valid only when the slot is empty, the entry type matches the slot type, and `ItemManager` has enough coins to cover the entry's `Cost`.
-6. `ObstacleBuildSlot.CanPlaceEntry` checks slot availability, type match, and coin availability through `ItemManager.CanUseCoin`.
-7. `ObstacleBuildSlot.TryPlace` deducts the cost using `ItemManager.TryUseCoin` before instantiating the obstacle under `BuildPoint`.
-8. If the obstacle prefab is invalid and placement fails, the deducted coins are refunded.
+5. Placement is valid only when the slot is empty, the entry type matches the slot type, and `ItemManager` can afford the entry's `ResourceCost[] buildCosts`.
+6. `ObstacleBuildSlot.CanPlaceEntry` checks slot availability, type match, and build cost availability through `ItemManager.CanAfford`.
+7. `ObstacleBuildSlot.TryPlace` deducts the build costs using `ItemManager.TrySpend` before instantiating the obstacle under `BuildPoint`.
+8. If the obstacle prefab is invalid and placement fails after spending, the deducted costs are refunded.
 9. The placed obstacle is assigned to the slot and `GameManager.NotifyObstaclePlaced` is called.
 10. If the line was breached and all required slots are occupied again, `GameManager.NotifyDefenseLineRestored` restores that defense line.
 
@@ -118,9 +118,19 @@ Slot type policy:
 
 Cost policy:
 
-- Each `ObstacleBuildEntrySO` defines a `Cost` value.
-- `ItemManager.TryUseCoin` deducts coins only if sufficient coins are available.
-- If placement fails after coin deduction (invalid prefab), coins are refunded via `ItemManager.AddCoinCount`.
+- Each `ObstacleBuildEntrySO` defines `ResourceCost[] buildCosts` for obstacle or gate placement.
+- `ItemManager.TrySpend` deducts placement costs only if all required currencies are available.
+- If placement fails after cost deduction (invalid prefab), costs are refunded via `ItemManager.Refund`.
+- Legacy `int cost`, `Cost`, and Coin-only spend/refund fallback paths are intentionally removed for obstacle placement.
+- Obstacle placement now uses the same multi-currency cost contract as turret placement, turret upgrade, and turret evolution.
+- Do not reintroduce `AddCoinCount`, `CanUseCoin`, or `TryUseCoin` for obstacle rebuilds; use `AddReward`, `CanAfford`, `TrySpend`, and `Refund`.
+
+Debug policy:
+
+- `ObstacleBuildSlot.CanPlaceEntry` is called continuously during placement preview refresh, so it must stay quiet and avoid debug string formatting.
+- Detailed failure reasons belong in `ObstacleBuildSlot.TryPlace`, because that method represents the player's actual placement confirmation.
+- Current placement logs cover missing build entry, missing prefab, slot type mismatch, missing `BuildPoint`, occupied slot, missing `ItemManager`, insufficient currency, spend failure, invalid placed prefab with refund, and successful placement.
+- Keep these logs actionable and Korean, but do not log from per-frame preview paths unless a future diagnostic mode adds throttling.
 
 ## Survivor Flow
 

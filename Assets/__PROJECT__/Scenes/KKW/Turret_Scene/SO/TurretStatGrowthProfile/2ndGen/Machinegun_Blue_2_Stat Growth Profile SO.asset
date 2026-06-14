@@ -16,11 +16,11 @@ MonoBehaviour:
   rangePerLevel: 0.1010101
   fireIntervalReductionPerLevel: 0.0001443
   projectileSpeedIntervalLevel: 20
-  projectileSpeedPerInterval: 1
+  projectileSpeedPerInterval: 5
   projectileCountIntervalLevel: 0
   pierceCountIntervalLevel: 0
   maxRange: 66
   minFireInterval: 0.1
-  maxProjectileSpeed: 50
+  maxProjectileSpeed: 90
   maxProjectileCount: 1
   maxPierceCount: 1

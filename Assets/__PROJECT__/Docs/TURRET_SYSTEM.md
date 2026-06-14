@@ -123,6 +123,21 @@ Do not use display names as stable IDs.
 
 Second-generation fire interval progression uses a family baseline curve: `_1` starts slower, `_2` is slightly faster than baseline, and `_3` reaches the fastest form. Damage growth was not flattened after this fire interval pass, so second-generation forms may feel stronger than a strict equal-DPS table.
 
+### Second-Generation Projectile Speed
+
+Projectile speed is a feel differentiator from second generation onward. `Laser_Blue` should feel almost instant, `Laser_Red` remains fast but heavier, machineguns use fast physical bullets, and plasma/lethal lines use slower projectiles to emphasize high-impact shots.
+
+| Family | Lv1 projectile speed | Lv100 projectile speed |
+| --- | --- | --- |
+| Laser_Blue_1/2/3 | 90 / 110 / 130 | 130 / 150 / 180 |
+| Laser_Red_1/2/3 | 70 / 85 / 100 | 105 / 120 / 140 |
+| Machinegun_Blue_1/2/3 | 55 / 65 / 75 | 80 / 90 / 105 |
+| Machinegun_Red_1/2/3 | 45 / 55 / 65 | 70 / 80 / 95 |
+| Plasma_Blue_1/2/3 | 35 / 42 / 50 | 55 / 62 / 75 |
+| Plasma_Yellow_1/2/3 | 25 / 30 / 35 | 40 / 48 / 55 |
+| Lethal_Green_1/2/3 | 30 / 35 / 40 | 45 / 52 / 60 |
+| Lethal_Red_1/2/3 | 22 / 26 / 30 | 36 / 42 / 50 |
+
 ## Evolution Runtime Flow
 
 1. `TurretDefinitionRuntimeController` checks available evolutions for current tier level.

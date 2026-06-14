@@ -58,6 +58,7 @@ Check these before finishing pooled-object work:
 - Object disabled by scene or hierarchy before returning to pool.
 - Missing `OriginStack` fallback.
 - Stale target, damage, speed, animator, particle, trail, or collider state from previous use.
+- Pooled damage receivers that disable colliders on death should restore collider and Rigidbody simulation state before reuse.
 - Event subscriptions not removed before return.
 - Components on child objects left active or detached incorrectly.
 

@@ -36,6 +36,8 @@ Damage rules:
 
 - Dead targets must return `IsAlive == false` before they can be selected or damaged again.
 - Damage paths should ignore null targets, dead targets, and duplicate projectile hits.
+- Normal zombie death disables all cached child colliders, including hit and attack colliders, so dead pooled bodies do not block turret projectiles while waiting for death animation and pool return.
+- Normal zombie death also stops Rigidbody simulation during the death state and restores the original Rigidbody settings on spawn so the body does not sink after colliders are disabled.
 - World-space damage feedback is spawned through `DamagePopupSpawner.SpawnDamage` where visible feedback is required.
 
 ## Obstacle And Defense Line Flow

@@ -413,6 +413,24 @@
  *   _3 level 1 = 1.35x baseline attack speed, _3 level 100 = 1.5x baseline attack speed.
  * - Damage growth was not flattened after the fire interval rebalance, so higher forms may feel stronger than a strict equal-DPS table.
  *
+ * Second Generation Projectile Speed Balance
+ *
+ * - Projectile speed is a primary feel differentiator from second generation onward.
+ * - Laser_Blue is the fastest line and should feel close to instant-hit while still using projectile flow.
+ * - Laser_Red remains fast, but slower and heavier than Laser_Blue.
+ * - Machinegun lines use fast physical bullets below laser speed.
+ * - Plasma and Lethal lines use slower, heavier projectiles to support high-damage impact feel.
+ *
+ * Tier level 1 -> tier level 100 projectile speed:
+ * - Laser_Blue_1/2/3: 90 -> 130, 110 -> 150, 130 -> 180.
+ * - Laser_Red_1/2/3: 70 -> 105, 85 -> 120, 100 -> 140.
+ * - Machinegun_Blue_1/2/3: 55 -> 80, 65 -> 90, 75 -> 105.
+ * - Machinegun_Red_1/2/3: 45 -> 70, 55 -> 80, 65 -> 95.
+ * - Plasma_Blue_1/2/3: 35 -> 55, 42 -> 62, 50 -> 75.
+ * - Plasma_Yellow_1/2/3: 25 -> 40, 30 -> 48, 35 -> 55.
+ * - Lethal_Green_1/2/3: 30 -> 45, 35 -> 52, 40 -> 60.
+ * - Lethal_Red_1/2/3: 22 -> 36, 26 -> 42, 30 -> 50.
+ *
  * Second Generation Data Status
  *
  * - 24 second-generation Definition assets exist.

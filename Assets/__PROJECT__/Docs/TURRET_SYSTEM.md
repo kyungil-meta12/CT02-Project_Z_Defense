@@ -84,6 +84,8 @@ Do not use display names as stable IDs.
 - `TurretStatGrowthProfileSO` grows damage, range, fire interval, projectile speed, projectile count, and pierce count toward tier level `100`.
 - The current curve intentionally allows a tier level `100` turret to be stronger than the next evolved turret at tier level `1`, creating a short power dip after evolution and a higher growth ceiling afterward.
 - Range is capped at `maxRange = 66` because larger ranges exceed the current game view.
+- Single-target DPS should be checked from runtime stat values as `damage * projectileCount / fireInterval`.
+- `pierceCount` is not part of single-target DPS. Treat it as lane-clearing potential, roughly `DPS * (pierceCount + 1)` only when every pierced target is expected to be hit.
 
 ### First-Generation Balance
 
@@ -162,6 +164,10 @@ Projectile speed is a feel differentiator from second generation onward. `Laser_
 ### Current Turret Cost Balance
 
 Upgrade costs use a low base Coin value plus an additional cost percentage per tier level, so early upgrades are cheaper while late upgrades become heavier. The Lv1 -> Lv100 total is kept close to the previous flat-cost totals.
+
+`TurretUpgradeCostProfileSO` calculates each level-up cost from the target tier level. For a one-level upgrade, the effective cost is `ceil(baseCoin * (1 + (targetLevel - 1) * additionalPercent))`. Multi-level upgrade requests sum that same formula for every level from `currentTierLevel + 1` through `targetTierLevel`.
+
+The intended economy ramp is form-based: Sentinel-01 uses a 1% per-tier surcharge, first evolutions use 2%, first-generation branch ends and second-generation `_1` forms use 3%, second-generation `_2` forms use 4%, and second-generation `_3` forms use 5%. Keep future cost profiles aligned with this ramp unless the reward curve is rebalanced at the same time.
 
 | Form | Base Coin per level-up | Additional cost per tier level | Approx. Lv1 -> Lv100 total |
 | --- | ---: | ---: | ---: |
@@ -242,6 +248,12 @@ The validator checks:
 - empty `evolutionCosts` arrays on evolution entries with a target definition.
 - missing `placementCosts` on turret placement entries.
 - negative cost amounts in upgrade, evolution, and placement cost arrays.
+- upgrade cost ramp mismatches against the current form rules.
+- evolution cost ramp mismatches against the current branch-entry rules.
+- `maxLevel` values set together with `evolutionProgressionProfile`.
+- evolution entries that target the same `TurretDefinitionSO` as their source definition.
+
+Use `Project Z Defense/Reports/Turret Balance Report` when reviewing balance changes. The report window summarizes turret Lv1/Lv100 DPS, upgrade costs, evolution costs, wave reward estimates, and how many extra upgrade levels one average wave reward can buy for each upgrade cost tier. Use its CSV export when sharing a balance pass outside Unity.
 
 For each turret definition:
 

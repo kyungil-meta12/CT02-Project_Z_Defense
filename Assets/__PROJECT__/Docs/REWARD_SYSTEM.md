@@ -124,6 +124,10 @@ Each `RewardEntry` has:
 
 Coin reward entries currently use `0.8~1.2` so repeated kills do not always grant the exact same coin amount. Non-coin rewards should usually stay at `1.0~1.0` unless their quantity should intentionally vary.
 
+Wave reward growth is split between prefab reward profiles and `ZombieWaveSpawnProfileSO.rewardMultiplier`. Prefab profiles define the base value for each zombie type, while the wave profile scales the value for the active stage. Expected wave income should be reviewed as weighted average reward per spawned zombie multiplied by the stage spawn count.
+
+`ZombieSpawnRuntimeModifiers.Sanitized()` treats zero or negative runtime multipliers as `1.0` at spawn time. If an early stage asset shows `rewardMultiplier = 0`, runtime reward calculation still behaves as `1.0` unless that sanitization rule changes.
+
 Modifier conditions:
 
 - `targetFilter`: all currencies or one specific currency.
@@ -147,6 +151,8 @@ Amount calculation order:
 4. Apply matching modifier amount multipliers.
 5. Apply `RewardEntry` random amount multiplier.
 6. Floor to the final integer amount.
+
+For current coin-only kill rewards, the practical check is `floor(baseCoin * stageRewardMultiplier * Random.Range(0.8, 1.2))`. Use the weighted spawn entries when estimating a full wave instead of averaging only by role names, because multiple prefabs in the same role can carry different entry weights.
 
 Example:
 

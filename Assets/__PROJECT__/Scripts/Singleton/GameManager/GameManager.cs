@@ -2,14 +2,21 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
+/// <summary>
+/// 웨이브 진행, 게임 배속, 방어선 상태, 생존자/장애물 등록을 관리한다.
+/// </summary>
 public class GameManager : MonoBehaviour
 {
     private const int DEFAULT_DEFENSE_LINE_COUNT = 3;
     private const int FIRST_DEFENSE_LINE_SLOT_COUNT = 3;
     private const int SECOND_DEFENSE_LINE_SLOT_COUNT = 3;
     private const int THIRD_DEFENSE_LINE_SLOT_COUNT = 1;
+    private const float DEFAULT_FIXED_DELTA_TIME = 0.02f;
+    private const float MIN_TIME_SCALE = 0.01f;
+    private const float MIN_FIXED_DELTA_TIME = 0.001f;
 
     [Serializable]
+    // 방어선 슬롯과 대피/복귀 지점 설정을 묶어 관리한다
     private class DefenseLineEntry
     {
         [Header("방어선 설정")]
@@ -35,13 +42,24 @@ public class GameManager : MonoBehaviour
     public int KillCount{ get; private set; }= 0; // 현재 킬 카운트
     public int DestKillCount{ get; private set; } = 0; // 목표 킬 카운트
 
-    [Header("시작 웨이브")] public int startWave;
+    [Header("시작 웨이브")] [Min(1)] public int startWave = 1;
+    [Header("게임 배속")]
+    [SerializeField, Min(MIN_TIME_SCALE)] private float startTimeScale = 1f;
+    [SerializeField, HideInInspector] private float baseFixedDeltaTime = DEFAULT_FIXED_DELTA_TIME;
 
+    public float StartTimeScale => startTimeScale;
+    public float CurrentTimeScale => Time.timeScale;
+
+    // 인스펙터 값이 유효 범위를 벗어나지 않도록 보정한다
     private void OnValidate()
     {
+        startWave = Mathf.Max(1, startWave);
+        startTimeScale = Mathf.Max(MIN_TIME_SCALE, startTimeScale);
+        baseFixedDeltaTime = Mathf.Max(MIN_FIXED_DELTA_TIME, baseFixedDeltaTime);
         EnsureDefaultDefenseLineEntries();
     }
 
+    // 싱글톤을 초기화하고 시작 웨이브와 게임 배속을 적용한다
     private void Awake()
     {
         if(Inst && Inst != this)
@@ -53,11 +71,13 @@ public class GameManager : MonoBehaviour
         Inst = this;
 
         Wave = startWave;
+        SetGameTimeScale(startTimeScale);
 
         DontDestroyOnLoad(gameObject);
         EnsureDefaultDefenseLineEntries();
     }
 
+    // 싱글톤 인스턴스가 제거될 때 정적 참조를 정리한다
     private void OnDestroy()
     {
         if (Inst == this)
@@ -66,6 +86,7 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    // 목표 킬 수 달성 여부를 확인하고 다음 웨이브로 진행한다
     private void Update()
     {
         // 킬 카운트가 목표 킬 카운트에 도달할 시 웨이브를 증가시킨다
@@ -82,6 +103,7 @@ public class GameManager : MonoBehaviour
     /// ZombieSpawner에서 호출
     /// </summary>
     /// <param name="val"></param>
+    // 목표 킬 카운트를 현재 웨이브 목표로 저장한다
     public void InputDestKillCount(int val)
     {
         DestKillCount = val;
@@ -90,9 +112,19 @@ public class GameManager : MonoBehaviour
     /// <summary>
     /// 현재 킬 카운트를 1 증가시킨다.
     /// </summary>
+    // 현재 웨이브의 처치 수를 증가시킨다
     public void IncreaseKillCount()
     {
         KillCount++;
+    }
+
+    // 게임 배속과 FixedUpdate 기준 간격을 함께 적용한다
+    public void SetGameTimeScale(float timeScale)
+    {
+        startTimeScale = Mathf.Max(MIN_TIME_SCALE, timeScale);
+        baseFixedDeltaTime = Mathf.Max(MIN_FIXED_DELTA_TIME, baseFixedDeltaTime);
+        Time.timeScale = startTimeScale;
+        Time.fixedDeltaTime = baseFixedDeltaTime * startTimeScale;
     }
 
     // 생존자를 방어선 이벤트 수신 대상으로 등록한다
@@ -560,6 +592,7 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    // 방어선 슬롯 정렬을 위해 슬롯 인덱스를 비교한다
     private static int CompareObstacleBuildSlotIndex(ObstacleBuildSlot left, ObstacleBuildSlot right)
     {
         if (left == null && right == null)

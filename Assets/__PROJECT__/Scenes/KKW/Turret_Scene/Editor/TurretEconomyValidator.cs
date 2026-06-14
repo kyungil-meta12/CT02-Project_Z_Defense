@@ -14,6 +14,9 @@ internal static class TurretEconomyValidator
     private const string TIER_COSTS_PROPERTY = "costs";
     private const string TARGET_DEFINITION_PROPERTY = "targetDefinition";
     private const string EVOLUTION_ENTRIES_PROPERTY = "evolutionEntries";
+    private const string BASE_COST_AMOUNT_PROPERTY = "amount";
+    private const string ADDITIONAL_COST_PERCENT_PROPERTY = "additionalCostPercentPerTierLevel";
+    private const float COST_PERCENT_TOLERANCE = 0.001f;
 
     // 터렛 경제 데이터 전체를 검사하고 콘솔에 결과를 출력한다
     [MenuItem(MENU_PATH)]
@@ -48,7 +51,262 @@ internal static class TurretEconomyValidator
                 stats.MissingUpgradeCostProfileCount++;
                 LogIssue("업그레이드 비용 프로필이 연결되지 않은 터렛 정의입니다.", path, definition);
             }
+
+            if (definition.maxLevel > 0 && definition.evolutionProgressionProfile != null)
+            {
+                stats.MaxLevelEvolutionConflictCount++;
+                LogIssue("maxLevel과 evolutionProgressionProfile이 함께 설정되어 있습니다. 진화 대기 레벨은 Evolution Progression SO에서 관리하고, maxLevel은 최종 터렛에만 사용해야 합니다.", path, definition);
+            }
+
+            ValidateSelfTargetEvolution(definition, path, stats);
+            ValidateDefinitionEvolutionCostRamp(definition, path, stats);
+            ValidateDefinitionCostRamp(definition, path, stats);
         }
+    }
+
+    // 터렛 정의의 진화 엔트리가 자기 자신을 목표로 가리키는지 검사한다
+    private static void ValidateSelfTargetEvolution(TurretDefinitionSO definition, string path, ValidationStats stats)
+    {
+        TurretEvolutionProgressionSO progression = definition.evolutionProgressionProfile;
+        if (progression == null || progression.evolutionEntries == null)
+        {
+            return;
+        }
+
+        for (int i = 0; i < progression.evolutionEntries.Length; i++)
+        {
+            TurretEvolutionEntry entry = progression.evolutionEntries[i];
+            if (entry == null || entry.targetDefinition == null || entry.targetDefinition != definition)
+            {
+                continue;
+            }
+
+            stats.SelfTargetEvolutionCount++;
+            LogIssue($"진화 엔트리 {i}번이 자기 자신을 Target Definition으로 가리킵니다.", path, definition);
+        }
+    }
+
+    // 터렛 정의의 진화 비용이 현재 경제 단계와 일치하는지 검사한다
+    private static void ValidateDefinitionEvolutionCostRamp(TurretDefinitionSO definition, string path, ValidationStats stats)
+    {
+        TurretEvolutionProgressionSO progression = definition.evolutionProgressionProfile;
+        if (progression == null || progression.evolutionEntries == null)
+        {
+            return;
+        }
+
+        for (int i = 0; i < progression.evolutionEntries.Length; i++)
+        {
+            TurretEvolutionEntry entry = progression.evolutionEntries[i];
+            if (entry == null || entry.targetDefinition == null)
+            {
+                continue;
+            }
+
+            if (!TryGetExpectedEvolutionCoin(definition, entry.targetDefinition, out int expectedCoin))
+            {
+                continue;
+            }
+
+            if (!TryGetCoinAmount(entry.evolutionCosts, out int actualCoin))
+            {
+                continue;
+            }
+
+            if (actualCoin == expectedCoin)
+            {
+                continue;
+            }
+
+            stats.EvolutionCostRampMismatchCount++;
+            LogIssue($"진화 엔트리 {i}번의 비용 램프가 예상값과 다릅니다. {definition.displayName} -> {entry.targetDefinition.displayName}, 예상 Coin {expectedCoin}, 현재 Coin {actualCoin}", path, definition);
+        }
+    }
+
+    // 진화 경로 이름 규칙으로 기대 진화 비용을 계산한다
+    private static bool TryGetExpectedEvolutionCoin(TurretDefinitionSO sourceDefinition, TurretDefinitionSO targetDefinition, out int expectedCoin)
+    {
+        expectedCoin = 0;
+        string sourceName = sourceDefinition == null ? string.Empty : sourceDefinition.displayName;
+        string targetName = targetDefinition == null ? string.Empty : targetDefinition.displayName;
+        if (string.IsNullOrWhiteSpace(sourceName) || string.IsNullOrWhiteSpace(targetName))
+        {
+            return false;
+        }
+
+        if (sourceName == "Sentinel-01" && (targetName == "Sentry Pulse" || targetName == "Vector MG"))
+        {
+            expectedCoin = 20000;
+            return true;
+        }
+
+        if ((sourceName == "Sentry Pulse" && targetName == "Pulse Repeater") ||
+            (sourceName == "Vector MG" && targetName == "Vulcan Node"))
+        {
+            expectedCoin = 60000;
+            return true;
+        }
+
+        if ((sourceName == "Pulse Repeater" || sourceName == "Vulcan Node") && targetName.EndsWith("_1", System.StringComparison.Ordinal))
+        {
+            expectedCoin = 180000;
+            return true;
+        }
+
+        if (sourceName.EndsWith("_1", System.StringComparison.Ordinal) && targetName.EndsWith("_2", System.StringComparison.Ordinal))
+        {
+            expectedCoin = 300000;
+            return true;
+        }
+
+        if (sourceName.EndsWith("_2", System.StringComparison.Ordinal) && targetName.EndsWith("_3", System.StringComparison.Ordinal))
+        {
+            expectedCoin = 450000;
+            return true;
+        }
+
+        return false;
+    }
+
+    // 비용 배열에서 Coin 비용 합계를 읽는다
+    private static bool TryGetCoinAmount(ResourceCost[] costs, out int coinAmount)
+    {
+        coinAmount = 0;
+        if (costs == null)
+        {
+            return false;
+        }
+
+        bool hasCoinCost = false;
+        for (int i = 0; i < costs.Length; i++)
+        {
+            ResourceCost cost = costs[i];
+            if (cost == null || cost.currencyType != RewardCurrencyType.Coin)
+            {
+                continue;
+            }
+
+            hasCoinCost = true;
+            coinAmount += Mathf.Max(0, cost.amount);
+        }
+
+        return hasCoinCost;
+    }
+
+    // 터렛 정의 이름과 연결된 업그레이드 비용 프로필의 경제 램프가 일치하는지 검사한다
+    private static void ValidateDefinitionCostRamp(TurretDefinitionSO definition, string path, ValidationStats stats)
+    {
+        if (definition.upgradeCostProfile == null)
+        {
+            return;
+        }
+
+        if (!TryGetExpectedCostRamp(definition, out int expectedBaseCoin, out float expectedPercent))
+        {
+            return;
+        }
+
+        if (!TryGetCostProfileValues(definition.upgradeCostProfile, out RewardCurrencyType currencyType, out int baseAmount, out float percent))
+        {
+            return;
+        }
+
+        if (currencyType != RewardCurrencyType.Coin || baseAmount != expectedBaseCoin || Mathf.Abs(percent - expectedPercent) > COST_PERCENT_TOLERANCE)
+        {
+            stats.CostRampMismatchCount++;
+            LogIssue($"업그레이드 비용 램프가 예상값과 다릅니다. 예상: Coin {expectedBaseCoin}, {expectedPercent:0.###}% / 현재: {currencyType} {baseAmount}, {percent:0.###}%", path, definition);
+        }
+    }
+
+    // 터렛 정의의 이름 규칙으로 기대 비용 램프를 계산한다
+    private static bool TryGetExpectedCostRamp(TurretDefinitionSO definition, out int expectedBaseCoin, out float expectedPercent)
+    {
+        expectedBaseCoin = 0;
+        expectedPercent = 0.0f;
+
+        string displayName = definition == null ? string.Empty : definition.displayName;
+        if (string.IsNullOrWhiteSpace(displayName))
+        {
+            return false;
+        }
+
+        if (displayName == "Sentinel-01")
+        {
+            expectedBaseCoin = 233;
+            expectedPercent = 1.0f;
+            return true;
+        }
+
+        if (displayName == "Sentry Pulse" || displayName == "Vector MG")
+        {
+            expectedBaseCoin = 350;
+            expectedPercent = 2.0f;
+            return true;
+        }
+
+        if (displayName == "Pulse Repeater" || displayName == "Vulcan Node")
+        {
+            expectedBaseCoin = 640;
+            expectedPercent = 3.0f;
+            return true;
+        }
+
+        if (displayName.EndsWith("_1", System.StringComparison.Ordinal))
+        {
+            expectedBaseCoin = 3200;
+            expectedPercent = 3.0f;
+            return true;
+        }
+
+        if (displayName.EndsWith("_2", System.StringComparison.Ordinal))
+        {
+            expectedBaseCoin = 5667;
+            expectedPercent = 4.0f;
+            return true;
+        }
+
+        if (displayName.EndsWith("_3", System.StringComparison.Ordinal))
+        {
+            expectedBaseCoin = 10571;
+            expectedPercent = 5.0f;
+            return true;
+        }
+
+        return false;
+    }
+
+    // 업그레이드 비용 프로필의 첫 번째 기본 비용과 추가 퍼센트를 읽는다
+    private static bool TryGetCostProfileValues(TurretUpgradeCostProfileSO profile, out RewardCurrencyType currencyType, out int baseAmount, out float percent)
+    {
+        currencyType = RewardCurrencyType.Coin;
+        baseAmount = 0;
+        percent = 0.0f;
+
+        SerializedObject serializedProfile = new SerializedObject(profile);
+        SerializedProperty baseCosts = serializedProfile.FindProperty(BASE_COSTS_PROPERTY);
+        SerializedProperty additionalPercent = serializedProfile.FindProperty(ADDITIONAL_COST_PERCENT_PROPERTY);
+        if (baseCosts == null || !baseCosts.isArray || baseCosts.arraySize == 0 || additionalPercent == null)
+        {
+            return false;
+        }
+
+        SerializedProperty firstCost = baseCosts.GetArrayElementAtIndex(0);
+        if (firstCost == null)
+        {
+            return false;
+        }
+
+        SerializedProperty amount = firstCost.FindPropertyRelative(BASE_COST_AMOUNT_PROPERTY);
+        SerializedProperty currency = firstCost.FindPropertyRelative("currencyType");
+        if (amount == null || currency == null)
+        {
+            return false;
+        }
+
+        currencyType = (RewardCurrencyType)currency.enumValueIndex;
+        baseAmount = amount.intValue;
+        percent = additionalPercent.floatValue;
+        return true;
     }
 
     // 모든 터렛 배치 엔트리의 배치 비용 설정 여부와 음수 비용을 검사한다
@@ -262,6 +520,10 @@ internal static class TurretEconomyValidator
         builder.AppendLine($"미설정 evolutionCosts: {stats.MissingEvolutionCostCount}개");
         builder.AppendLine($"미설정 placementCosts: {stats.MissingPlacementCostCount}개");
         builder.AppendLine($"음수 비용: {stats.NegativeCostCount}개");
+        builder.AppendLine($"비용 램프 불일치: {stats.CostRampMismatchCount}개");
+        builder.AppendLine($"진화 비용 램프 불일치: {stats.EvolutionCostRampMismatchCount}개");
+        builder.AppendLine($"maxLevel/진화 프로필 충돌: {stats.MaxLevelEvolutionConflictCount}개");
+        builder.AppendLine($"자기 자신 진화 Target: {stats.SelfTargetEvolutionCount}개");
 
         if (issueCount > 0)
         {
@@ -284,7 +546,11 @@ internal static class TurretEconomyValidator
         public int MissingEvolutionCostCount;
         public int MissingPlacementCostCount;
         public int NegativeCostCount;
+        public int CostRampMismatchCount;
+        public int EvolutionCostRampMismatchCount;
+        public int MaxLevelEvolutionConflictCount;
+        public int SelfTargetEvolutionCount;
 
-        public int TotalIssueCount => MissingUpgradeCostProfileCount + EmptyUpgradeCostProfileCount + MissingEvolutionCostCount + MissingPlacementCostCount + NegativeCostCount;
+        public int TotalIssueCount => MissingUpgradeCostProfileCount + EmptyUpgradeCostProfileCount + MissingEvolutionCostCount + MissingPlacementCostCount + NegativeCostCount + CostRampMismatchCount + EvolutionCostRampMismatchCount + MaxLevelEvolutionConflictCount + SelfTargetEvolutionCount;
     }
 }

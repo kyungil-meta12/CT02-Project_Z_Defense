@@ -20,7 +20,7 @@ Before editing `Main.unity`:
 
 | System | Requirement |
 | --- | --- |
-| `GameManager` | One active instance. Owns wave count, kill count, defense lines, survivor/obstacle lists. |
+| `GameManager` | One active instance. Owns wave count, kill count, starting game time scale, defense lines, survivor/obstacle lists. |
 | `MemoryPool` | Prefer scene or prefab instance. Runtime fallback exists in some systems but should not be relied on for final setup. |
 | `DamagePopupSpawner` | Optional scene instance. Can create itself at runtime, but final scene should use configured Resources assets. |
 | `ZombieSpawner` | Requires `ZombieWaveSpawnProfileSO`, spawn positions, normal zombie prefabs, boss zombie prefabs. |
@@ -35,6 +35,8 @@ Before editing `Main.unity`:
 - `obstacleSlots`
 - `retreatPoint`
 - `restoredPoint`
+
+`GameManager` also exposes `startWave` and starting game time scale for test runs and balance checks. Keep production scene values at the intended default before sharing main scene changes.
 
 Rules:
 

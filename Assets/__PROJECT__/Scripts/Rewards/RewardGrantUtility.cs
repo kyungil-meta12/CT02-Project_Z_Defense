@@ -5,8 +5,8 @@ using UnityEngine;
 /// </summary>
 public static class RewardGrantUtility
 {
-    // 좀비 처치 보상을 지급하고, 프로필이 없으면 임시 레거시 코인 보상을 지급한다
-    public static void GrantZombieReward(ZombieRewardProfileSO rewardProfile, int legacyFallbackCoin, ZombieRewardContext context, Object logContext)
+    // 좀비 처치 보상 프로필을 실제 재화 지급으로 변환한다
+    public static void GrantZombieReward(ZombieRewardProfileSO rewardProfile, ZombieRewardContext context, Object logContext)
     {
         if (ItemManager.Inst == null)
         {
@@ -16,7 +16,7 @@ public static class RewardGrantUtility
 
         if (rewardProfile == null)
         {
-            GrantLegacyFallbackCoin(legacyFallbackCoin, logContext);
+            Debug.LogWarning("[RewardGrantUtility] 보상 프로필이 없어 좀비 처치 보상을 지급하지 않습니다.", logContext);
             return;
         }
 
@@ -31,18 +31,6 @@ public static class RewardGrantUtility
         {
             GrantRewardEntry(rewards[i], context, modifiers);
         }
-    }
-
-    // 보상 프로필 연결 전 기존 DropCoin 값을 임시 보상으로 지급한다
-    private static void GrantLegacyFallbackCoin(int legacyFallbackCoin, Object logContext)
-    {
-        if (legacyFallbackCoin <= 0)
-        {
-            Debug.LogWarning("[RewardGrantUtility] 보상 프로필이 없고 레거시 코인 보상도 0 이하입니다.", logContext);
-            return;
-        }
-
-        ItemManager.Inst.AddReward(RewardCurrencyType.Coin, legacyFallbackCoin, true);
     }
 
     // 단일 보상 엔트리의 확률과 배율을 계산해 지급한다

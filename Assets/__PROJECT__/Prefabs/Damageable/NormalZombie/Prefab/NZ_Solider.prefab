@@ -1,4 +1,4 @@
-﻿%YAML 1.1
+%YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
 --- !u!1001 &1909840801529399111
 PrefabInstance:
@@ -8,6 +8,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 2198761140652240216, guid: 4696f3a76ac50b74dba3cd8982cf1807, type: 3}
+      propertyPath: spec
+      value:
+      objectReference: {fileID: 11400000, guid: 9ac7d38b87a544afa9f4b6c22ed80040, type: 2}
     - target: {fileID: 2198761140652240216, guid: 4696f3a76ac50b74dba3cd8982cf1807, type: 3}
       propertyPath: rewardProfileOverride
       value:

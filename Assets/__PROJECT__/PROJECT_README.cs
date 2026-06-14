@@ -141,6 +141,11 @@
  * - pierceCount는 한 발사체가 추가로 관통 가능한 대상 수로 사용하며, 한계 도달 시 풀로 반환한다.
  * - NormalZombie와 BossZombie는 IDamageable을 구현하고, 사망 시 타겟 후보에서 제외되도록 IsAlive를 갱신한다.
  * - 좀비 사망 후 남아 있던 콜라이더 문제를 줄이기 위해 사망 상태와 충돌 판정을 함께 정리한다.
+ * - 일반 좀비 16종은 Weak, Basic, Fast, Tough, Attacker, Elite 6개 NormalZombieSpec 역할군으로 묶어 기본 전투 스탯을 관리한다.
+ * - NormalZombieSpec은 HP, 공격력, 이동/공격 속도, 공격거리, 개체별 랜덤 편차만 소유한다.
+ * - ZombieWaveSpawnProfileSO는 웨이브 구간, 스폰 수, 스폰 간격, 등장 프리팹 가중치, 보스 마지막 스폰, HP/공격력/속도/보상 배율을 소유한다.
+ * - 기존 ZombieSpawnData 기반 스폰 간격/스폰 수 성장 데이터는 제거되었고, Main 씬의 ZombieSpawner는 ZombieWaveSpawnProfileSO를 사용한다.
+ * - 현재 1차 캠페인 밸런스는 1~500웨이브 기준이며, 451~500 구간 hpMultiplier 280으로 후반 Elite 일반 좀비가 약 79,800~100,800 HP 범위에 들어오도록 잡는다.
  * - 데미지 발생 시 DamagePopupSpawner.SpawnDamage를 통해 월드 공간 데미지 숫자를 표시한다.
  * - TargetFinder는 콜라이더 자식이 아니라 태그 또는 IDamageable 기준의 안정적인 타겟 루트를 반환한다.
  * - TargetFinder의 시야 판정은 인스펙터 설정에 따라 ObstacleBuildSlot 보조 콜라이더,

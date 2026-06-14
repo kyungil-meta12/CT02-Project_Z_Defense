@@ -25,14 +25,17 @@ public static class REWARD_CURRENCY_SYSTEM_PLAN
      * Current Migration Status
      * - RewardCurrencyType, RewardEntry, ResourceCost를 추가했다.
      * - ZombieRewardProfileSO와 ZombieRewardContext를 추가했다.
-     * - NormalZombieSpec이 ZombieRewardProfileSO를 참조한다.
-     * - NormalZombie가 프리팹별 rewardProfileOverride를 우선 사용하고 없으면 Spec 기본값으로 fallback한다.
+     * - NormalZombie는 프리팹별 rewardProfileOverride로 보상을 관리한다.
+     * - NormalZombieSpec은 일반 좀비 전투 스탯만 관리한다.
      * - BossZombie도 프리팹별 rewardProfileOverride를 우선 사용하고 없으면 BossZombieSpec 기본값으로 fallback한다.
+     * - BossZombieSpec의 레거시 아이템 드랍률 필드는 제거했고, 보스 보상은 ZombieRewardProfileSO로 관리한다.
      * - NormalZombie.Die()가 RewardGrantUtility를 통해 처치 보상을 지급한다.
      * - BossZombie.Die()가 RewardGrantUtility를 통해 처치 보상을 지급한다.
      * - ZombieRewardProfileSO.Modifiers로 웨이브 구간, 보스 여부, 라인, 상황 플래그, 재화별 보상 가중치를 적용한다.
      * - NormalZombie.OnDespawn()은 더 이상 처치 보상을 지급하지 않는다.
-     * - RewardProfile 미연결 상태에서는 DropCoin을 레거시 fallback 보상으로 사용한다.
+     * - NormalZombieSpec의 RewardProfile/DropCoin fallback은 제거했다.
+     * - ZombieWaveSpawnProfileSO가 웨이브별 rewardMultiplier를 제공하고, ZombieSpawner가 스폰 직후 좀비 인스턴스에 적용한다.
+     * - ZombieSpawnData 기반 스폰 간격/스폰 수 성장 fallback은 제거했다.
      * - ItemManager는 AddReward, CanAfford, TrySpend, Refund API를 제공한다.
      * - ItemManager는 인스펙터 initialWalletCurrencies로 시작 재화를 적용한다.
      * - TurretUpgradeCostProfileSO를 추가하고 TurretDefinitionSO에서 참조한다.
@@ -45,7 +48,7 @@ public static class REWARD_CURRENCY_SYSTEM_PLAN
      *
      * 1. NormalZombie.TakeDamage()에서 HP가 0 이하가 되면 Die()를 호출한다.
      * 2. Die()는 IsAlive를 false로 바꾸고 킬 카운트를 증가시킨다.
-     * 3. Die()에서 프리팹별 rewardProfileOverride를 먼저 확인하고, 없으면 ZombieSpec.rewardProfile로 처치 보상을 요청한다.
+     * 3. Die()에서 프리팹별 rewardProfileOverride로 처치 보상을 요청한다.
      * 4. ZombieRewardContext가 현재 웨이브, 좀비 타입, 방어선/라인, 보스 여부, 이벤트 배율 등을 제공한다.
      * 5. RewardGrantUtility가 RewardProfile + Context + Modifiers로 최종 보상을 계산한다.
      * 6. ItemManager 또는 향후 Wallet이 계산된 재화를 지급하고 UI 이벤트를 발행한다.
@@ -107,9 +110,9 @@ public static class REWARD_CURRENCY_SYSTEM_PLAN
      * - Used by turret upgrade, turret evolution, placement, shop, and future skills.
      *
      * ZombieRewardProfileSO
-     * - Holds reward entries for a zombie prefab override or zombie spec fallback.
-     * - NormalZombie.rewardProfileOverride is used when stats are shared but rewards differ per prefab or Variant.
-     * - NormalZombieSpec.RewardProfile remains the shared default fallback.
+     * - Holds reward entries for a zombie prefab override or boss zombie spec fallback.
+     * - NormalZombie.rewardProfileOverride owns normal zombie reward data per prefab or Variant.
+     * - NormalZombieSpec owns normal zombie combat stats only.
      * - BossZombie.rewardProfileOverride and BossZombieSpec.RewardProfile follow the same ownership rule.
      *
      * ZombieRewardContext
@@ -154,7 +157,7 @@ public static class REWARD_CURRENCY_SYSTEM_PLAN
      *
      * 1. Done: Add RewardCurrencyType, RewardEntry, ResourceCost.
      * 2. Done: Add ZombieRewardProfileSO.
-     * 3. Done: Add rewardProfile reference to NormalZombieSpec.
+     * 3. Done: Add prefab-level rewardProfileOverride to NormalZombie.
      * 4. Done: Move normal zombie reward grant from OnDespawn() to Die().
      * 5. Done: Add ItemManager reward/spend/refund APIs while keeping old wrappers.
      * 6. Done: Add prefab-level rewardProfileOverride to NormalZombie.
@@ -170,16 +173,18 @@ public static class REWARD_CURRENCY_SYSTEM_PLAN
      * 16. Done: Add placement count based cost tiers for Sentinel-01 placement flow.
      * 17. Done: Remove turret placement legacy cost fallback.
      * 18. Next: Move obstacle placement cost from int Cost/TryUseCoin/AddCoinCount to ResourceCost[]/TrySpend/Refund.
-     * 19. Next: Remove NormalZombieSpec.DropCoin after every active zombie reward profile is verified.
-     * 20. Next: Remove ItemManager compatibility wrappers after AddCoinCount, CanUseCoin, and TryUseCoin call sites reach zero.
-     * 21. Ongoing: Update Docs whenever reward or cost ownership changes.
+     * 19. Done: Remove NormalZombieSpec RewardProfile/DropCoin fallback fields after active normal zombie reward profiles were verified.
+     * 20. Done: Remove ZombieSpawnData legacy spawn scaling after ZombieWaveSpawnProfileSO became the spawn source of truth.
+     * 21. Next: Remove ItemManager compatibility wrappers after AddCoinCount, CanUseCoin, and TryUseCoin call sites reach zero.
+     * 22. Done: Remove BossZombieSpec legacy item drop percentage fields after boss reward profiles became the source of truth.
+     * 23. Ongoing: Update Docs whenever reward or cost ownership changes.
      *
      * Edge Cases To Check
      * - Pooled zombie returned without dying must not grant rewards.
      * - MemoryPool.Prewarm must not grant rewards.
      * - Duplicate Die() calls must not grant duplicate rewards.
      * - Missing ItemManager should log a Korean actionable warning and skip only the reward grant.
-     * - Missing rewardProfile should not break zombie death flow.
+     * - Missing rewardProfile should not break zombie death flow, but should skip the reward grant.
      * - Zero or negative reward amounts should be ignored or clamped.
      * - Drop chance must be clamped from 0 to 1.
      * - Modifier amount multipliers and chance multipliers must never go below 0.
@@ -192,10 +197,9 @@ public static class REWARD_CURRENCY_SYSTEM_PLAN
      * - Initial wallet grants must not increase WaveCollectCoinCount.
      *
      * Migration Notes
-     * - NormalZombieSpec.DropCoin should be treated as legacy once rewardProfile is connected.
-     * - Keep one shared NormalZombieSpec when only reward data differs; use NormalZombie.rewardProfileOverride on prefab originals or Variants.
+     * - NormalZombieSpec should stay focused on combat stats; use NormalZombie.rewardProfileOverride on prefab originals or Variants for rewards.
      * - Next migration target is obstacle placement: ObstacleBuildEntrySO.cost, ObstacleBuildSlot.CanUseCoin/TryUseCoin/AddCoinCount.
-     * - BossZombieSpec item drop percentage fields are legacy balancing data and should move into reward profiles instead of adding more boss-specific code.
+     * - Boss zombie item drops should be represented in ZombieRewardProfileSO instead of BossZombieSpec fields.
      *
      * Tomorrow Handoff
      * - Start from obstacle placement cost migration.

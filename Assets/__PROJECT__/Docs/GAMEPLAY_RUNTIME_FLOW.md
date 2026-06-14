@@ -6,13 +6,45 @@ This document summarizes the current runtime flow for waves, zombies, obstacles,
 
 ## Wave And Spawn Flow
 
-1. `ZombieSpawner.Start` reads `ZombieSpawnData`.
-2. `ZombieSpawner` sends the target kill count to `GameManager.InputDestKillCount`.
-3. During runtime, `ZombieSpawner` spawns normal zombies from pooled prefabs by interval.
-4. The last spawn in the wave can be a boss zombie.
-5. Zombies notify kill progress through `GameManager.IncreaseKillCount` when their death flow completes.
-6. `GameManager.Update` increases `Wave` when `KillCount == DestKillCount` and invokes `OnWaveIncrease`.
-7. `ZombieSpawner` receives the next wave and recalculates spawn interval/count from `ZombieSpawnData`.
+1. `ZombieSpawner.Start` reads the assigned `ZombieWaveSpawnProfileSO`.
+2. If no wave spawn profile is assigned, `ZombieSpawner` disables spawning for that wave and logs a warning.
+3. `ZombieSpawner` sends the target kill count to `GameManager.InputDestKillCount`.
+4. During runtime, `ZombieSpawner` spawns normal zombies from pooled prefabs by interval.
+5. With `ZombieWaveSpawnProfileSO`, normal and boss prefab candidates can be weighted and restricted by wave range.
+6. The last spawn in the wave can be a boss zombie when the active profile stage enables it.
+7. Spawn profile runtime multipliers can adjust spawned zombie HP, attack damage, move/attack speed, and reward amount.
+8. Zombies notify kill progress through `GameManager.IncreaseKillCount` when their death flow completes.
+9. `GameManager.Update` increases `Wave` when `KillCount == DestKillCount` and invokes `OnWaveIncrease`.
+10. `ZombieSpawner` receives the next wave and recalculates spawn settings from the active wave profile.
+
+## Normal Zombie Role Specs
+
+Normal zombie prefabs are grouped into shared role-based `NormalZombieSpec` assets so profession variants can have distinct baseline stats without requiring one spec per prefab.
+
+| Role Spec | Prefabs | Intent |
+| --- | --- | --- |
+| `NormalZombieSpec_Weak` | `NZ_Tourist`, `NZ_Bellhop`, `NZ_ShopKeeper` | Early weak civilian zombies. |
+| `NormalZombieSpec_Basic` | `NZ_BusinessMan`, `NZ_Hobo`, `NZ_AirportWorker`, `NZ_Farmer` | Baseline general zombies. |
+| `NormalZombieSpec_Fast` | `NZ_Runner` | Lower HP, higher move/attack speed pressure. |
+| `NormalZombieSpec_Tough` | `NZ_RoadWorker`, `NZ_Mechanic`, `NZ_Trucker` | Higher HP, slower heavy-worker zombies. |
+| `NormalZombieSpec_Attacker` | `NZ_Pimp`, `NZ_Prizoner`, `NZ_AirportSecurity` | Higher attack threat zombies. |
+| `NormalZombieSpec_Elite` | `NZ_FireFighter`, `NZ_Solider` | Late stronger profession zombies. |
+
+`NormalZombieSpec` owns only role baseline combat stats and per-instance random variance. `ZombieWaveSpawnProfileSO` owns wave-specific spawn composition, entry weight, HP multiplier, attack damage multiplier, move/attack speed multiplier, and reward multiplier.
+
+## Zombie Spawn Data Ownership
+
+`ZombieSpawnData` has been retired. Do not add new wave, spawn count, spawn interval, or zombie stat scaling data to `ZombieSpawner` or a separate legacy spawn asset.
+
+Use `ZombieWaveSpawnProfileSO` for:
+
+- Wave ranges and stage segmentation.
+- Spawn count and spawn interval.
+- Weighted normal and boss prefab entries.
+- Final-spawn boss toggle.
+- Runtime HP, attack damage, move/attack speed, and reward multipliers.
+
+Current first-pass campaign balancing uses wave `1~500`, with the final `451~500` stage using `hpMultiplier = 280`. With current role specs this puts late normal elite zombies around `79,800~100,800` HP before future turret DPS rebalancing.
 
 ## Damage Contract
 

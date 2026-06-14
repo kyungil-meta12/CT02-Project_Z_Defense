@@ -10,6 +10,8 @@
  * - Projectile damage delivery, zombie death-state filtering, and world-space damage popups are currently connected.
  * - Second generation turret Definition assets are prepared, linked, and connected through the current evolution progression data.
  * - Runtime targeting now resolves stable target roots, ignores configured defense-line obstacle blockers, uses projectile-speed-based lead prediction, and keeps HOVL hit VFX and projectile damage paths aligned.
+ * - Turret DPS rebalancing should use the current 1~500 wave ZombieWaveSpawnProfileSO as the enemy durability baseline.
+ * - Current wave 451~500 hpMultiplier is 280, making late Elite normal zombies roughly 79,800~100,800 HP with the current NormalZombieSpec_Elite values.
  *
  * Current Evolution Tree
  *

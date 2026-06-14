@@ -1,4 +1,4 @@
-﻿%YAML 1.1
+%YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
 --- !u!1001 &8471452620690055277
 PrefabInstance:
@@ -12,6 +12,10 @@ PrefabInstance:
       propertyPath: m_IsActive
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 2198761140652240216, guid: 4696f3a76ac50b74dba3cd8982cf1807, type: 3}
+      propertyPath: spec
+      value:
+      objectReference: {fileID: 11400000, guid: 9ac7d38b87a544afa9f4b6c22ed80040, type: 2}
     - target: {fileID: 2198761140652240216, guid: 4696f3a76ac50b74dba3cd8982cf1807, type: 3}
       propertyPath: rewardProfileOverride
       value:

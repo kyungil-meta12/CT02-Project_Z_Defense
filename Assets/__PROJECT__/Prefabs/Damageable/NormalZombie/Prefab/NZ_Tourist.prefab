@@ -1,4 +1,4 @@
-﻿%YAML 1.1
+%YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
 --- !u!1001 &3588888330676696615
 PrefabInstance:
@@ -12,6 +12,10 @@ PrefabInstance:
       propertyPath: 'm_Materials.Array.data[0]'
       value:
       objectReference: {fileID: 2100000, guid: 77b21607c66df0d4b80a0addc59f17ea, type: 2}
+    - target: {fileID: 2198761140652240216, guid: 4696f3a76ac50b74dba3cd8982cf1807, type: 3}
+      propertyPath: spec
+      value:
+      objectReference: {fileID: 11400000, guid: 5c3b3312c7bc4ec1acaed282d107cf34, type: 2}
     - target: {fileID: 2198761140652240216, guid: 4696f3a76ac50b74dba3cd8982cf1807, type: 3}
       propertyPath: rewardProfileOverride
       value:

@@ -44,7 +44,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bff78d83e94dce84c9cec90575b78cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::NormalZombieSpawner
-  spawnData: {fileID: 11400000, guid: af646cd8a781bfe489afc467438a4fe0, type: 2}
   spwanPoints: []
   destinations: []
   normalZombiePrefabs:

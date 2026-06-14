@@ -26,6 +26,7 @@ public class BossZombie : PoolObject, IDamageable
     [SerializeField] private Transform boneRoot;
     
     private float attackDamage;
+    private float rewardMultiplier = 1.0f;
     private bool returnInstanceCoroutineRunning = false;
     private readonly List<Collider> colliders = new List<Collider>(4);
     [SerializeField] private float screamerSkillRadius = 10f;
@@ -93,6 +94,7 @@ public class BossZombie : PoolObject, IDamageable
         var hpMul = isFirstWave ? randomHp : randomHp * Mathf.Pow(1f + spec.HpWeight, wave - 1f);
         TotalHp = spec.Hp * hpMul;
         CurrHp = TotalHp;
+        rewardMultiplier = 1.0f;
         IsAlive = true;
         storeDamage = 0f;
         hitCountBV.Value = 0;
@@ -112,6 +114,33 @@ public class BossZombie : PoolObject, IDamageable
 
         // 코루틴 동작 상태 초기화
         returnInstanceCoroutineRunning = false;
+    }
+
+    // 스폰 프로필에서 전달한 HP, 공격력, 이동/공격 속도, 보상 배율을 적용한다
+    public void ApplySpawnRuntimeModifiers(ZombieSpawnRuntimeModifiers modifiers)
+    {
+        ZombieSpawnRuntimeModifiers safeModifiers = modifiers.Sanitized();
+
+        TotalHp *= safeModifiers.hpMultiplier;
+        CurrHp = TotalHp;
+        attackDamage *= safeModifiers.attackDamageMultiplier;
+        rewardMultiplier = safeModifiers.rewardMultiplier;
+
+        if (speedBV != null)
+        {
+            speedBV.Value *= safeModifiers.moveAttackSpeedMultiplier;
+        }
+
+        if (anim != null)
+        {
+            anim.SetFloat("AttackSpeed", anim.GetFloat("AttackSpeed") * safeModifiers.moveAttackSpeedMultiplier);
+        }
+
+        if (hpUI != null)
+        {
+            hpUI.InputTotalHp(TotalHp);
+            hpUI.InputCurrHp(CurrHp);
+        }
     }
 
     // 풀에 반환될 때 보스 전용 지속 효과와 버프 상태를 정리한다
@@ -479,8 +508,8 @@ public class BossZombie : PoolObject, IDamageable
         }
 
         int wave = GameManager.Inst == null ? 1 : GameManager.Inst.Wave;
-        ZombieRewardContext rewardContext = ZombieRewardContext.CreateBossZombie(wave, spec, transform.position);
-        RewardGrantUtility.GrantZombieReward(GetRewardProfile(), 0, rewardContext, this);
+        ZombieRewardContext rewardContext = ZombieRewardContext.CreateBossZombie(wave, spec, transform.position).WithRewardMultiplier(rewardMultiplier);
+        RewardGrantUtility.GrantZombieReward(GetRewardProfile(), rewardContext, this);
     }
 
     // 프리팹별 Override가 있으면 우선 사용하고 없으면 스펙 기본 보상 프로필을 반환한다

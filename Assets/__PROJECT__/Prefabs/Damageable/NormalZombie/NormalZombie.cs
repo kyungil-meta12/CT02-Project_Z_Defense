@@ -11,7 +11,6 @@ public class NormalZombie : PoolObject, IDamageable
     [Header("일반 좀비 기본 스펙")] public NormalZombieSpec spec;
     [Header("프리팹별 처치 보상 Override")] [SerializeField] private ZombieRewardProfileSO rewardProfileOverride;
     [Header("애니메이터 컨트롤러 목록")] public RuntimeAnimatorController[] animControllers;
-    [Header("스펙 증가 웨이브 제한")] public int waveLimit;
     [SerializeField] private bool logReceivedDamage = true;
     
     public HpUI hpUI;
@@ -25,6 +24,7 @@ public class NormalZombie : PoolObject, IDamageable
 
     private Transform destination; // 현재 추적하는 타겟
     private float attackDamage; // 타워에 가할 대미지
+    private float rewardMultiplier = 1.0f; // 스폰 프로필에서 적용한 처치 보상 배율
 
     // IDamageable value
     public float CurrHp { get; private set; } // 현재 체력
@@ -50,36 +50,28 @@ public class NormalZombie : PoolObject, IDamageable
         agent.updateRotation = false;
     }
 
-    // 풀에서 꺼낼 때 웨이브 기반 스탯과 런타임 상태를 초기화한다
+    // 풀에서 꺼낼 때 스펙 기반 스탯과 런타임 상태를 초기화한다
     public override void OnSpawn()
     {
         float randomMoveAttackSpeed = Random.Range(spec.MinMoveAttackSpeed, spec.MaxMoveAttackSpeed);
         float randomAttackDamage = Random.Range(spec.MinAttackDamage, spec.MaxAttackDamage);
         float randomHp = Random.Range(spec.MinHp, spec.MaxHp);
-        float wave = GameManager.Inst.Wave;
-        bool isFirstWave = GameManager.Inst.Wave == 1;
-        float limitWave = Mathf.Clamp(wave, 0f, waveLimit);
-
-        // 기본 수치 * 랜덤 수치 * 웨이브 반영 수치를 곱하여 결정
-        // 웨이브 1때는 웨이브 가중치를 적용하지 않는다.
 
         // 애니메이터 랜덤 선택
         anim.runtimeAnimatorController = animControllers[Random.Range(0, animControllers.Length)];
         anim.SetBool("IsAttackState", false);
 
         // 이동/공격 속도
-        float moveAttackSpeedMul = isFirstWave ? randomMoveAttackSpeed : randomMoveAttackSpeed * Mathf.Pow(1f + spec.MoveAttackSpeedWeight, limitWave - 1f);
-        anim.SetFloat("MoveSpeed", spec.MoveSpeed * moveAttackSpeedMul);
-        anim.SetFloat("AttackSpeed", spec.AttackSpeed * moveAttackSpeedMul);
+        anim.SetFloat("MoveSpeed", spec.MoveSpeed * randomMoveAttackSpeed);
+        anim.SetFloat("AttackSpeed", spec.AttackSpeed * randomMoveAttackSpeed);
 
         // 공격 대미지
-        float attackDamageMul = isFirstWave ? randomAttackDamage : randomAttackDamage * Mathf.Pow(1f + spec.AttackDamageWeight, wave - 1f);
-        attackDamage = spec.AttackDamage * attackDamageMul;
+        attackDamage = spec.AttackDamage * randomAttackDamage;
 
         // 체력
-        float hpMul = isFirstWave ? randomHp : randomHp * Mathf.Pow(1f + spec.HpWeight, wave - 1f);
-        TotalHp = spec.Hp * hpMul;
+        TotalHp = spec.Hp * randomHp;
         CurrHp = TotalHp;
+        rewardMultiplier = 1.0f;
         IsAlive = true;
         attackState = false;
         attackTarget = null;
@@ -100,6 +92,29 @@ public class NormalZombie : PoolObject, IDamageable
 
         // 테스트용 코루틴
        // StartCoroutine(AutoDeathCoroutine());
+    }
+
+    // 스폰 프로필에서 전달한 HP, 공격력, 이동/공격 속도, 보상 배율을 적용한다
+    public void ApplySpawnRuntimeModifiers(ZombieSpawnRuntimeModifiers modifiers)
+    {
+        ZombieSpawnRuntimeModifiers safeModifiers = modifiers.Sanitized();
+
+        TotalHp *= safeModifiers.hpMultiplier;
+        CurrHp = TotalHp;
+        attackDamage *= safeModifiers.attackDamageMultiplier;
+        rewardMultiplier = safeModifiers.rewardMultiplier;
+
+        if (anim != null)
+        {
+            anim.SetFloat("MoveSpeed", anim.GetFloat("MoveSpeed") * safeModifiers.moveAttackSpeedMultiplier);
+            anim.SetFloat("AttackSpeed", anim.GetFloat("AttackSpeed") * safeModifiers.moveAttackSpeedMultiplier);
+        }
+
+        if (hpUI != null)
+        {
+            hpUI.InputTotalHp(TotalHp);
+            hpUI.InputCurrHp(CurrHp);
+        }
     }
 
     // 테스트용으로 일정 시간 뒤 좀비를 사망 처리한다
@@ -290,7 +305,7 @@ public class NormalZombie : PoolObject, IDamageable
         rb.constraints = RigidbodyConstraints.FreezeRotation; // 모든 방향 회전 방지
     }
 
-    // 일반 좀비 프리팹 Override 또는 스펙의 보상 프로필을 기준으로 처치 보상을 지급한다
+    // 일반 좀비 프리팹 Override 보상 프로필을 기준으로 처치 보상을 지급한다
     private void GrantKillReward()
     {
         if (spec == null)
@@ -300,14 +315,8 @@ public class NormalZombie : PoolObject, IDamageable
         }
 
         int wave = GameManager.Inst == null ? 1 : GameManager.Inst.Wave;
-        ZombieRewardContext rewardContext = ZombieRewardContext.CreateNormalZombie(wave, spec, transform.position);
-        RewardGrantUtility.GrantZombieReward(GetRewardProfile(), spec.DropCoin, rewardContext, this);
-    }
-
-    // 프리팹별 Override가 있으면 우선 사용하고 없으면 스펙 기본 보상 프로필을 반환한다
-    private ZombieRewardProfileSO GetRewardProfile()
-    {
-        return rewardProfileOverride != null ? rewardProfileOverride : spec.RewardProfile;
+        ZombieRewardContext rewardContext = ZombieRewardContext.CreateNormalZombie(wave, spec, transform.position).WithRewardMultiplier(rewardMultiplier);
+        RewardGrantUtility.GrantZombieReward(rewardProfileOverride, rewardContext, this);
     }
 
     /// <summary>

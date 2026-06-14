@@ -30,13 +30,4 @@ public class BossZombieSpec : ScriptableObject
     public float MaxHp;
 
     [Header("기본 처치 보상 프로필")] public ZombieRewardProfileSO RewardProfile;
-    [Header("레거시 기본 아이템 드랍률(int)")] public float NormalItemDropPercentage;
-    [Header("레거시 레어 아이템 드랍률(int)")] public float RareItemDropPercentage;
-
-    // 인스펙터 입력값을 유효한 보스 스펙 범위로 보정한다
-    private void OnValidate()
-    {
-        NormalItemDropPercentage = Mathf.Max(0.0f, NormalItemDropPercentage);
-        RareItemDropPercentage = Mathf.Max(0.0f, RareItemDropPercentage);
-    }
 }

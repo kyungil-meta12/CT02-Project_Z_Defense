@@ -23,7 +23,7 @@ Before editing `Main.unity`:
 | `GameManager` | One active instance. Owns wave count, kill count, defense lines, survivor/obstacle lists. |
 | `MemoryPool` | Prefer scene or prefab instance. Runtime fallback exists in some systems but should not be relied on for final setup. |
 | `DamagePopupSpawner` | Optional scene instance. Can create itself at runtime, but final scene should use configured Resources assets. |
-| `ZombieSpawner` | Requires `ZombieSpawnData`, spawn positions, normal zombie prefabs, boss zombie prefabs. |
+| `ZombieSpawner` | Requires `ZombieWaveSpawnProfileSO`, spawn positions, normal zombie prefabs, boss zombie prefabs. |
 | `ObstaclePlacementController` | Required for runtime obstacle/gate placement UI. |
 | Camera | `CameraController` where camera shake is expected by obstacle fracture. |
 
@@ -138,11 +138,11 @@ Survivor movement depends on:
 
 `ZombieSpawner` requires:
 
-- `ZombieSpawnData`
+- `ZombieWaveSpawnProfileSO`
 - `normalZombiePrefabs`
 - `bossZombiePrefabs`
-- `normalSpawnPositions`
-- `bossSpawnPosition`
+- `spwanPoints`
+- `destinations`
 
 Spawned zombies should:
 

@@ -2352,7 +2352,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3d5b1ecefff3ffd46b91ce3639847689, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::NormalZombieController
-  spec: {fileID: 11400000, guid: d29bd727521c6034d914890009ba68aa, type: 2}
+  spec: {fileID: 11400000, guid: 9427b99aa7a4430c8ccbb5215f4d6c56, type: 2}
   rewardProfileOverride: {fileID: 11400000, guid: da80630286cb280468bd4a234d4f8265, type: 2}
   animControllers:
   - {fileID: 9100000, guid: 7276f3537f9bae045910ac2ab627a9f6, type: 2}
@@ -2361,7 +2361,6 @@ MonoBehaviour:
   - {fileID: 22100000, guid: c8ab4e27c8b2b2341b0a57f6fea44b8a, type: 2}
   - {fileID: 22100000, guid: 42499c0794d724f4396528ea423197b5, type: 2}
   - {fileID: 22100000, guid: 0b7c52e7343462241a8817465a95215c, type: 2}
-  waveLimit: 60
   logReceivedDamage: 1
   hpUI: {fileID: 8476630290883587589}
   hitCollider: {fileID: 660597126758215374}

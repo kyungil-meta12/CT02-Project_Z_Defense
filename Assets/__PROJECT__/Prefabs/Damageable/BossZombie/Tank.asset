@@ -26,5 +26,3 @@ MonoBehaviour:
   HpWeight: 0.05
   MinHp: 0.9
   MaxHp: 1.1
-  NormalItemDropPercentage: 0
-  RareItemDropPercentage: 20

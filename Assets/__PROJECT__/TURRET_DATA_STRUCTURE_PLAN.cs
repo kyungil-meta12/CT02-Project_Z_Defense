@@ -279,7 +279,8 @@
  * - Turret aim uses TurretAimPointUtility to aim at a lower body point from target collider bounds instead of raw collider center.
  * - Turret smooths aim position and target velocity prediction, ignores vertical prediction by default, and uses TurretLeadPredictionUtility to aim at an estimated projectile/target intercept point.
  * - Slow projectiles can use longer prediction lead time while fast projectiles keep shorter lead time to avoid visible over-leading.
- * - Turret now checks that the head is within turretAngleAttack before firing.
+ * - Turret normally fires on its configured interval while a valid target and projectile prefab exist.
+ * - requireAimAngleBeforeFire can restore strict turretAngleAttack gating for turrets that must wait for perfect alignment.
  * - Gun defaults to using the visible muzzle forward direction for projectile rotation.
  * - This keeps the visible muzzle direction and projectile launch direction aligned.
  * - Homing/projectile mover components can still receive the selected target for hit tracking.
@@ -517,7 +518,7 @@
  * - Prefer project-level wrappers, profiles, adapters, or duplicated prefabs under the project scene folder.
  * - If direct modification is unavoidable for runtime integration, keep the change small and document why.
  * - Current direct Private Assets changes:
- *   Turret.cs: fire only when aim angle is within turretAngleAttack.
+ *   Turret.cs: fire interval is not blocked by aim angle by default; requireAimAngleBeforeFire can restore strict aim-angle gating.
  *   Turret.cs: shared aim smoothing, target velocity smoothing, projectile-speed-based intercept prediction, and lower body aim point integration.
  *   TargetFinder.cs: stable target root resolution, configurable line-of-sight ignore options, and defense-line obstacle ignore support.
  *   Gun.cs: default projectile rotation follows muzzleObject forward direction.

@@ -183,7 +183,7 @@ Projectile speed is a feel differentiator from second generation onward. `Laser_
 - `Turret` smooths target aim point and target velocity prediction, ignores vertical prediction by default, and uses `TurretLeadPredictionUtility` to aim at an estimated projectile/target intercept point.
 - Prediction lead time can scale from slow-projectile long lead to fast-projectile short lead, improving low-speed projectile hit rate without making laser-speed shots over-lead visibly.
 - `Turret` staggers its first target search within `targetSearchInterval` so many turrets do not all run physics target scans on the same frame.
-- Turret fires only when the head is within `turretAngleAttack`.
+- Turret fires on its configured fire interval while a valid target and projectile prefab exist. `requireAimAngleBeforeFire` can restore strict `turretAngleAttack` gating if a specific turret needs to wait for perfect alignment.
 - Gun projectile rotation should follow visible muzzle forward direction.
 - Homing/projectile mover components may still receive selected targets for hit tracking.
 

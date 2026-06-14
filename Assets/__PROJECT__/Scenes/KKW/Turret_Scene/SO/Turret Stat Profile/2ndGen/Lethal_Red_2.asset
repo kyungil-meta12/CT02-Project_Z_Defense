@@ -12,9 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 64086bcb185c80947a81b76bc4479622, type: 3}
   m_Name: Lethal_Red_2
   m_EditorClassIdentifier: Assembly-CSharp::TurretStatProfileSO
-  damage: 100
+  damage: 3000
   range: 100
-  fireInterval: 1.2
+  fireInterval: 2.5
   projectileSpeed: 35
   projectileCount: 1
   pierceCount: 0

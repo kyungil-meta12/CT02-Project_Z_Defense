@@ -12,9 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5e18c5f48204fa04fb0e390cc01c28bf, type: 3}
   m_Name: Pulse Repeater_Stat Growth Profile SO
   m_EditorClassIdentifier: Assembly-CSharp::TurretStatGrowthProfileSO
-  damagePercentPerLevel: 0.17099072
+  damagePercentPerLevel: 0.212845
   rangePerLevel: 0.06688963
-  fireIntervalReductionPerLevel: 0.0013377927
+  fireIntervalReductionPerLevel: 0.0008081
   projectileSpeedIntervalLevel: 30
   projectileSpeedPerInterval: 1
   projectileCountIntervalLevel: 0

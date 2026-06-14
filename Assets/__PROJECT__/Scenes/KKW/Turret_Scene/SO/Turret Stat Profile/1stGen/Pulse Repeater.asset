@@ -12,9 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 64086bcb185c80947a81b76bc4479622, type: 3}
   m_Name: Pulse Repeater
   m_EditorClassIdentifier: Assembly-CSharp::TurretStatProfileSO
-  damage: 30
+  damage: 70
   range: 80
-  fireInterval: 0.5
+  fireInterval: 0.2
   projectileSpeed: 40
   projectileCount: 1
   pierceCount: 0

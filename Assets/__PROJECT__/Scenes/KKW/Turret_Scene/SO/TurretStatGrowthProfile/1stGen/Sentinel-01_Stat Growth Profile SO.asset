@@ -12,9 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5e18c5f48204fa04fb0e390cc01c28bf, type: 3}
   m_Name: Sentinel-01_Stat Growth Profile SO
   m_EditorClassIdentifier: Assembly-CSharp::TurretStatGrowthProfileSO
-  damagePercentPerLevel: 0.9298426
+  damagePercentPerLevel: 0.752247
   rangePerLevel: 0.3030303
-  fireIntervalReductionPerLevel: 0.005050505
+  fireIntervalReductionPerLevel: 0.0020202
   projectileSpeedIntervalLevel: 20
   projectileSpeedPerInterval: 3
   projectileCountIntervalLevel: 0

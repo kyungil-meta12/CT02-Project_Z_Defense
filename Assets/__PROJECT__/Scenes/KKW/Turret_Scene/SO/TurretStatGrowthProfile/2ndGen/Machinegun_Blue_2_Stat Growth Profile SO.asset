@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::TurretStatGrowthProfileSO
   damagePercentPerLevel: 0.702605
   rangePerLevel: 0.10033445
-  fireIntervalReductionPerLevel: 0.000202
+  fireIntervalReductionPerLevel: 0.0001443
   projectileSpeedIntervalLevel: 20
   projectileSpeedPerInterval: 1
   projectileCountIntervalLevel: 0

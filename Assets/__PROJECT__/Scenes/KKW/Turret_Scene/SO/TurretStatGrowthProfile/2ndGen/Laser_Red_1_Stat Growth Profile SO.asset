@@ -14,13 +14,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::TurretStatGrowthProfileSO
   damagePercentPerLevel: 0.66109
   rangePerLevel: 0.10033445
-  fireIntervalReductionPerLevel: 0.0006061
+  fireIntervalReductionPerLevel: 0.0005981
   projectileSpeedIntervalLevel: 20
   projectileSpeedPerInterval: 1
   projectileCountIntervalLevel: 0
   pierceCountIntervalLevel: 0
   maxRange: 130
-  minFireInterval: 0.24
+  minFireInterval: 0.3158
   maxProjectileSpeed: 50
   maxProjectileCount: 1
   maxPierceCount: 1

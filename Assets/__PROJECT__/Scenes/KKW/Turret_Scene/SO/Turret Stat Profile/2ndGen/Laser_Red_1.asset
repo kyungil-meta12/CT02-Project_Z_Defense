@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::TurretStatProfileSO
   damage: 180
   range: 100
-  fireInterval: 0.3
+  fireInterval: 0.375
   projectileSpeed: 35
   projectileCount: 1
   pierceCount: 0

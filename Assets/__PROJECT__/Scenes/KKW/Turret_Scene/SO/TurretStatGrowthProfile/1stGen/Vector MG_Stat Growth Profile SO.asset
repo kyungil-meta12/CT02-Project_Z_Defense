@@ -13,13 +13,13 @@ MonoBehaviour:
   m_Name: Vector MG_Stat Growth Profile SO
   m_EditorClassIdentifier: Assembly-CSharp::TurretStatGrowthProfileSO
   damagePercentPerLevel: 1.36834
-  rangePerLevel: 0.10050251
+  rangePerLevel: 0.1414
   fireIntervalReductionPerLevel: 0.0040404
   projectileSpeedIntervalLevel: 20
   projectileSpeedPerInterval: 1
   projectileCountIntervalLevel: 0
   pierceCountIntervalLevel: 0
-  maxRange: 90
+  maxRange: 66
   minFireInterval: 1.5
   maxProjectileSpeed: 40
   maxProjectileCount: 1

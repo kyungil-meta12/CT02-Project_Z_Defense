@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Lethal_Green_1
   m_EditorClassIdentifier: Assembly-CSharp::TurretStatProfileSO
   damage: 900
-  range: 100
+  range: 45
   fireInterval: 1.875
   projectileSpeed: 35
   projectileCount: 1

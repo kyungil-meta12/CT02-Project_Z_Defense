@@ -35,10 +35,10 @@ Evolution resets tier level to `1` and preserves total level.
 | Turret | Role | Evolution |
 | --- | --- | --- |
 | Sentinel-01 | Base turret, tier 1-100 | Evolves at tier 100 into Sentry Pulse or Vector MG. |
-| Sentry Pulse | First branch, fast-fire path, tier 1-200 | Evolves at tier 200 into Pulse Repeater. |
-| Vector MG | First branch, high-damage path, tier 1-200 | Evolves at tier 200 into Vulcan Node. |
-| Pulse Repeater | Final Sentry Pulse branch | Max tier 300. |
-| Vulcan Node | Final Vector MG branch | Max tier 300. |
+| Sentry Pulse | First branch, fast-fire path, tier 1-100 | Evolves at tier 100 into Pulse Repeater. |
+| Vector MG | First branch, high-damage path, tier 1-100 | Evolves at tier 100 into Vulcan Node. |
+| Pulse Repeater | First-generation fast-fire branch end, tier 1-100 | Evolves at tier 100 into Machinegun or Laser second-generation entries. |
+| Vulcan Node | First-generation high-damage branch end, tier 1-100 | Evolves at tier 100 into Lethal or Plasma second-generation entries. |
 
 Recommended turret IDs use stable lower_snake_case:
 
@@ -76,6 +76,52 @@ Do not use display names as stable IDs.
 8. `ProjectileDamageDealer` applies damage to `IDamageable` targets.
 9. `ProjectileHitDetector` handles tracked target, trigger/collision, and movement raycast hit paths.
 10. Damage receivers spawn damage popups where appropriate.
+
+## Current Balance Direction
+
+- Current turret forms are balanced around tier level `100` evolution gates.
+- `TurretStatProfileSO` stores tier level `1` base values used immediately after placement or evolution.
+- `TurretStatGrowthProfileSO` grows damage, range, fire interval, projectile speed, projectile count, and pierce count toward tier level `100`.
+- The current curve intentionally allows a tier level `100` turret to be stronger than the next evolved turret at tier level `1`, creating a short power dip after evolution and a higher growth ceiling afterward.
+- Range is capped at `maxRange = 66` because larger ranges exceed the current game view.
+
+### First-Generation Balance
+
+| Turret | Lv1 damage | Lv1 range | Lv1 fire interval | Lv100 damage | Lv100 range | Lv100 fire interval |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| Sentinel-01 | 25 | 35 | 0.7 | 52.5 | 50 | 0.5 |
+| Sentry Pulse | 35 | 42 | 0.4 | 84 | 58 | 0.2 |
+| Vector MG | 175 | 44 | 2 | 672 | 58 | 1.6 |
+| Pulse Repeater | 70 | 48 | 0.2 | 86.4 | 64 | 0.12 |
+| Vulcan Node | 700 | 52 | 2 | 1152 | 66 | 1.6 |
+
+### Second-Generation Lv1 Balance
+
+| Family | Lv1 damage | Lv1 range | Lv1 fire interval |
+| --- | --- | --- | --- |
+| Machinegun_Blue_1/2/3 | 72 / 144 / 288 | 49 / 53 / 57 | 0.15 / 0.1143 / 0.0889 |
+| Machinegun_Red_1/2/3 | 120 / 240 / 480 | 47 / 51 / 55 | 0.25 / 0.1905 / 0.1481 |
+| Laser_Blue_1/2/3 | 45 / 90 / 180 | 55 / 59 / 63 | 0.0938 / 0.0714 / 0.0556 |
+| Laser_Red_1/2/3 | 180 / 360 / 720 | 53 / 57 / 61 | 0.375 / 0.2857 / 0.2222 |
+| Lethal_Green_1/2/3 | 900 / 1800 / 3600 | 45 / 49 / 53 | 1.875 / 1.4286 / 1.1111 |
+| Lethal_Red_1/2/3 | 1500 / 3000 / 6000 | 43 / 47 / 51 | 3.125 / 2.381 / 1.8519 |
+| Plasma_Blue_1/2/3 | 600 / 1200 / 2400 | 51 / 55 / 59 | 1.25 / 0.9524 / 0.7407 |
+| Plasma_Yellow_1/2/3 | 2400 / 4800 / 9600 | 49 / 53 / 57 | 5 / 3.8095 / 2.963 |
+
+### Second-Generation Lv100 Range Targets
+
+| Family | Lv100 range |
+| --- | --- |
+| Machinegun_Blue_1/2/3 | 60 / 63 / 66 |
+| Machinegun_Red_1/2/3 | 58 / 62 / 65 |
+| Laser_Blue_1/2/3 | 66 / 66 / 66 |
+| Laser_Red_1/2/3 | 64 / 66 / 66 |
+| Lethal_Green_1/2/3 | 58 / 62 / 64 |
+| Lethal_Red_1/2/3 | 56 / 60 / 62 |
+| Plasma_Blue_1/2/3 | 64 / 66 / 66 |
+| Plasma_Yellow_1/2/3 | 62 / 64 / 66 |
+
+Second-generation fire interval progression uses a family baseline curve: `_1` starts slower, `_2` is slightly faster than baseline, and `_3` reaches the fastest form. Damage growth was not flattened after this fire interval pass, so second-generation forms may feel stronger than a strict equal-DPS table.
 
 ## Evolution Runtime Flow
 

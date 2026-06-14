@@ -13,13 +13,13 @@ MonoBehaviour:
   m_Name: Sentry Pulse_Stat Growth Profile SO
   m_EditorClassIdentifier: Assembly-CSharp::TurretStatGrowthProfileSO
   damagePercentPerLevel: 0.888233
-  rangePerLevel: 0.15075377
+  rangePerLevel: 0.1616
   fireIntervalReductionPerLevel: 0.0020202
   projectileSpeedIntervalLevel: 20
   projectileSpeedPerInterval: 1.5
   projectileCountIntervalLevel: 0
   pierceCountIntervalLevel: 0
-  maxRange: 90
+  maxRange: 66
   minFireInterval: 0.2
   maxProjectileSpeed: 40
   maxProjectileCount: 1

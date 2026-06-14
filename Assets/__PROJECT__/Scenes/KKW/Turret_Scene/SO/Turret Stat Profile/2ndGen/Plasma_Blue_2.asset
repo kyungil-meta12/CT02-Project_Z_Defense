@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Plasma_Blue_2
   m_EditorClassIdentifier: Assembly-CSharp::TurretStatProfileSO
   damage: 1200
-  range: 100
+  range: 55
   fireInterval: 0.9524
   projectileSpeed: 35
   projectileCount: 1

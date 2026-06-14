@@ -13,13 +13,13 @@ MonoBehaviour:
   m_Name: Pulse Repeater_Stat Growth Profile SO
   m_EditorClassIdentifier: Assembly-CSharp::TurretStatGrowthProfileSO
   damagePercentPerLevel: 0.212845
-  rangePerLevel: 0.06688963
+  rangePerLevel: 0.1616
   fireIntervalReductionPerLevel: 0.0008081
   projectileSpeedIntervalLevel: 30
   projectileSpeedPerInterval: 1
   projectileCountIntervalLevel: 0
   pierceCountIntervalLevel: 0
-  maxRange: 100
+  maxRange: 66
   minFireInterval: 0.1
   maxProjectileSpeed: 50
   maxProjectileCount: 1

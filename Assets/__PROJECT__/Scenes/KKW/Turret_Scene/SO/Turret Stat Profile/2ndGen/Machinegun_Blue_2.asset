@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Machinegun_Blue_2
   m_EditorClassIdentifier: Assembly-CSharp::TurretStatProfileSO
   damage: 144
-  range: 100
+  range: 53
   fireInterval: 0.1143
   projectileSpeed: 35
   projectileCount: 1

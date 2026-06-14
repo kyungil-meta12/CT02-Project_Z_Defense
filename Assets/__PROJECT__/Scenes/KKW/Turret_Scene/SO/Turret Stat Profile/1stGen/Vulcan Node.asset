@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Vulcan Node
   m_EditorClassIdentifier: Assembly-CSharp::TurretStatProfileSO
   damage: 700
-  range: 100
+  range: 52
   fireInterval: 2
   projectileSpeed: 35
   projectileCount: 1

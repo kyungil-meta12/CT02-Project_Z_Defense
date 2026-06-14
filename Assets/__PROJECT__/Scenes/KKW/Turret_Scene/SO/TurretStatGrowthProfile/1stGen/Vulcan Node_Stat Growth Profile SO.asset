@@ -13,13 +13,13 @@ MonoBehaviour:
   m_Name: Vulcan Node_Stat Growth Profile SO
   m_EditorClassIdentifier: Assembly-CSharp::TurretStatGrowthProfileSO
   damagePercentPerLevel: 0.504475
-  rangePerLevel: 0.10033445
+  rangePerLevel: 0.1414
   fireIntervalReductionPerLevel: 0.0040404
   projectileSpeedIntervalLevel: 20
   projectileSpeedPerInterval: 1
   projectileCountIntervalLevel: 0
   pierceCountIntervalLevel: 0
-  maxRange: 130
+  maxRange: 66
   minFireInterval: 0.8
   maxProjectileSpeed: 50
   maxProjectileCount: 1

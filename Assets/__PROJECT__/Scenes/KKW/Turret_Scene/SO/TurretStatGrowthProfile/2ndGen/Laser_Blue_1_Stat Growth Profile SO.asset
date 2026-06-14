@@ -13,13 +13,13 @@ MonoBehaviour:
   m_Name: Laser_Blue_1_Stat Growth Profile SO
   m_EditorClassIdentifier: Assembly-CSharp::TurretStatGrowthProfileSO
   damagePercentPerLevel: 0.66109
-  rangePerLevel: 0.10033445
+  rangePerLevel: 0.1111111
   fireIntervalReductionPerLevel: 0.0001495
   projectileSpeedIntervalLevel: 20
   projectileSpeedPerInterval: 1
   projectileCountIntervalLevel: 0
   pierceCountIntervalLevel: 0
-  maxRange: 130
+  maxRange: 66
   minFireInterval: 0.0789
   maxProjectileSpeed: 50
   maxProjectileCount: 1

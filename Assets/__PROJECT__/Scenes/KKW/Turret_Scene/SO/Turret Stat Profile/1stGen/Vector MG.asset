@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Vector MG
   m_EditorClassIdentifier: Assembly-CSharp::TurretStatProfileSO
   damage: 175
-  range: 70
+  range: 44
   fireInterval: 2
   projectileSpeed: 30
   projectileCount: 1

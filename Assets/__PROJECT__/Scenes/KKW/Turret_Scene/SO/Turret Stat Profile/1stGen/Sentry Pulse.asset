@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Sentry Pulse
   m_EditorClassIdentifier: Assembly-CSharp::TurretStatProfileSO
   damage: 35
-  range: 60
+  range: 42
   fireInterval: 0.4
   projectileSpeed: 25
   projectileCount: 1

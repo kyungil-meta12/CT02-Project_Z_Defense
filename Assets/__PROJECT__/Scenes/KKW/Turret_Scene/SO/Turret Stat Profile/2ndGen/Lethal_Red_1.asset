@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Lethal_Red_1
   m_EditorClassIdentifier: Assembly-CSharp::TurretStatProfileSO
   damage: 1500
-  range: 100
+  range: 43
   fireInterval: 3.125
   projectileSpeed: 35
   projectileCount: 1

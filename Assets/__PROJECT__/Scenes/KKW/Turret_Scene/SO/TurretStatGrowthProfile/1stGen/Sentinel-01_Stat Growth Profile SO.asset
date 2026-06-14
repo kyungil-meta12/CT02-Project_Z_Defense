@@ -13,13 +13,13 @@ MonoBehaviour:
   m_Name: Sentinel-01_Stat Growth Profile SO
   m_EditorClassIdentifier: Assembly-CSharp::TurretStatGrowthProfileSO
   damagePercentPerLevel: 0.752247
-  rangePerLevel: 0.3030303
+  rangePerLevel: 0.1515
   fireIntervalReductionPerLevel: 0.0020202
   projectileSpeedIntervalLevel: 20
   projectileSpeedPerInterval: 3
   projectileCountIntervalLevel: 0
   pierceCountIntervalLevel: 0
-  maxRange: 80
+  maxRange: 66
   minFireInterval: 0.5
   maxProjectileSpeed: 35
   maxProjectileCount: 1

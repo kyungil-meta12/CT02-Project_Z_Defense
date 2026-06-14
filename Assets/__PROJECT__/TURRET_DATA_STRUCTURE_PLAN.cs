@@ -329,42 +329,89 @@
  *
  * Current Balance Data
  *
+ * Balance Direction
+ * - Every current evolution gate is balanced around tier level 100.
+ * - Tier level 1 values live in TurretStatProfileSO and are applied immediately after placement or evolution.
+ * - TurretStatGrowthProfileSO grows tier level 1 values toward tier level 100 values.
+ * - The current curve intentionally allows a tier level 100 turret to be stronger than the next evolved turret at tier level 1.
+ * - This creates a temporary power dip after evolution while giving the evolved turret a higher growth ceiling.
+ * - Range is capped at maxRange 66 because larger values exceed the current game view.
+ *
  * Sentinel-01
  * - Tier level 1:
- *   Damage 10, Range 50, Fire Interval 1, Projectile Speed 20.
+ *   Damage 25, Range 35, Fire Interval 0.7, Projectile Speed 20.
  * - Tier level 100:
- *   Damage 25, Range 80, Fire Interval 0.5, Projectile Speed 35.
+ *   Damage 52.5, Range 50, Fire Interval 0.5, Projectile Speed 35.
  * - Evolution required level: 100.
  *
  * Sentry Pulse
  * - Tier level 1:
- *   Damage 20, Range 60, Fire Interval 0.8, Projectile Speed 25.
- * - Tier level 200:
- *   Damage 30, Range 90, Fire Interval 0.3, Projectile Speed 40.
- * - Evolution required level: 200.
+ *   Damage 35, Range 42, Fire Interval 0.4, Projectile Speed 25.
+ * - Tier level 100:
+ *   Damage 84, Range 58, Fire Interval 0.2, Projectile Speed 40.
+ * - Evolution required level: 100.
  *
  * Pulse Repeater
  * - Tier level 1:
- *   Damage 30, Range 80, Fire Interval 0.5, Projectile Speed 40.
- * - Tier level 300:
- *   Damage 50, Range 100, Fire Interval 0.1, Projectile Speed 50.
+ *   Damage 70, Range 48, Fire Interval 0.2, Projectile Speed 40.
+ * - Tier level 100:
+ *   Damage 86.4, Range 64, Fire Interval 0.12, Projectile Speed 43.
  * - Current maxLevel: 0.
  * - Second-generation entry Evolution SO is connected to the Definition.
  *
  * Vector MG
  * - Tier level 1:
- *   Damage 100, Range 70, Fire Interval 2, Projectile Speed 30.
- * - Tier level 200:
- *   Damage 140, Range 90, Fire Interval 1.5, Projectile Speed 40.
- * - Evolution required level: 200.
+ *   Damage 175, Range 44, Fire Interval 2, Projectile Speed 30.
+ * - Tier level 100:
+ *   Damage 672, Range 58, Fire Interval 1.6, Projectile Speed 35.
+ * - Evolution required level: 100.
  *
  * Vulcan Node
  * - Tier level 1:
- *   Damage 100, Range 100, Fire Interval 1.2, Projectile Speed 35.
- * - Tier level 300:
- *   Damage 150, Range 130, Fire Interval 0.8, Projectile Speed 50.
+ *   Damage 700, Range 52, Fire Interval 2, Projectile Speed 35.
+ * - Tier level 100:
+ *   Damage 1152, Range 66, Fire Interval 1.6, Projectile Speed 40.
  * - Current maxLevel: 0.
  * - Second-generation entry Evolution SO is connected to the Definition.
+ *
+ * Second Generation Tier Level 1 Balance
+ *
+ * - Machinegun_Blue_1/2/3:
+ *   Damage 72/144/288, Range 49/53/57, Fire Interval 0.15/0.1143/0.0889.
+ * - Machinegun_Red_1/2/3:
+ *   Damage 120/240/480, Range 47/51/55, Fire Interval 0.25/0.1905/0.1481.
+ * - Laser_Blue_1/2/3:
+ *   Damage 45/90/180, Range 55/59/63, Fire Interval 0.0938/0.0714/0.0556.
+ * - Laser_Red_1/2/3:
+ *   Damage 180/360/720, Range 53/57/61, Fire Interval 0.375/0.2857/0.2222.
+ * - Lethal_Green_1/2/3:
+ *   Damage 900/1800/3600, Range 45/49/53, Fire Interval 1.875/1.4286/1.1111.
+ * - Lethal_Red_1/2/3:
+ *   Damage 1500/3000/6000, Range 43/47/51, Fire Interval 3.125/2.381/1.8519.
+ * - Plasma_Blue_1/2/3:
+ *   Damage 600/1200/2400, Range 51/55/59, Fire Interval 1.25/0.9524/0.7407.
+ * - Plasma_Yellow_1/2/3:
+ *   Damage 2400/4800/9600, Range 49/53/57, Fire Interval 5/3.8095/2.963.
+ *
+ * Second Generation Tier Level 100 Range Targets
+ *
+ * - Machinegun_Blue_1/2/3: Range 60/63/66.
+ * - Machinegun_Red_1/2/3: Range 58/62/65.
+ * - Laser_Blue_1/2/3: Range 66/66/66.
+ * - Laser_Red_1/2/3: Range 64/66/66.
+ * - Lethal_Green_1/2/3: Range 58/62/64.
+ * - Lethal_Red_1/2/3: Range 56/60/62.
+ * - Plasma_Blue_1/2/3: Range 64/66/66.
+ * - Plasma_Yellow_1/2/3: Range 62/64/66.
+ *
+ * Second Generation Fire Interval Growth Direction
+ *
+ * - Each second-generation family now starts slower on _1 and gets faster through _2 and _3.
+ * - Within each family, current fire interval intent is approximately:
+ *   _1 level 1 = 0.8x baseline attack speed, _1 level 100 = 0.95x baseline attack speed.
+ *   _2 level 1 = 1.05x baseline attack speed, _2 level 100 = 1.2x baseline attack speed.
+ *   _3 level 1 = 1.35x baseline attack speed, _3 level 100 = 1.5x baseline attack speed.
+ * - Damage growth was not flattened after the fire interval rebalance, so higher forms may feel stronger than a strict equal-DPS table.
  *
  * Second Generation Data Status
  *
@@ -377,7 +424,7 @@
  * - Second-generation internal progression is connected as _1 -> _2 -> _3 for the current families.
  * - _3 Definitions intentionally have no next evolution until third-generation routes are designed.
  * - Evolution entry displayName values use the same underscore format as target Definition displayName values.
- * - Current stat/growth numbers are placeholder-like and should be balanced after combat feel is locked.
+ * - Current stat/growth numbers are an active balance pass focused on damage, fire interval, and range.
  *
  * Branch Setup Checklist
  *

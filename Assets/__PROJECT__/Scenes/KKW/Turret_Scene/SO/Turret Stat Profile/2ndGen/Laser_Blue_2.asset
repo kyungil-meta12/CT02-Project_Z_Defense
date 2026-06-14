@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Laser_Blue_2
   m_EditorClassIdentifier: Assembly-CSharp::TurretStatProfileSO
   damage: 90
-  range: 100
+  range: 59
   fireInterval: 0.0714
   projectileSpeed: 35
   projectileCount: 1

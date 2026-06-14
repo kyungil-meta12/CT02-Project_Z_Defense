@@ -13,13 +13,13 @@ MonoBehaviour:
   m_Name: Machinegun_Blue_2_Stat Growth Profile SO
   m_EditorClassIdentifier: Assembly-CSharp::TurretStatGrowthProfileSO
   damagePercentPerLevel: 0.702605
-  rangePerLevel: 0.10033445
+  rangePerLevel: 0.1010101
   fireIntervalReductionPerLevel: 0.0001443
   projectileSpeedIntervalLevel: 20
   projectileSpeedPerInterval: 1
   projectileCountIntervalLevel: 0
   pierceCountIntervalLevel: 0
-  maxRange: 130
+  maxRange: 66
   minFireInterval: 0.1
   maxProjectileSpeed: 50
   maxProjectileCount: 1

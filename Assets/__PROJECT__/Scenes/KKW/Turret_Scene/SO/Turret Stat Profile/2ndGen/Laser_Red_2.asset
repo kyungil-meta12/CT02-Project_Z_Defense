@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Laser_Red_2
   m_EditorClassIdentifier: Assembly-CSharp::TurretStatProfileSO
   damage: 360
-  range: 100
+  range: 57
   fireInterval: 0.2857
   projectileSpeed: 35
   projectileCount: 1

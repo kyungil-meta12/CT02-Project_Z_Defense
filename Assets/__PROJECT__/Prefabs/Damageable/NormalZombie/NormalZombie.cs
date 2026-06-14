@@ -34,6 +34,9 @@ public class NormalZombie : PoolObject, IDamageable
     private bool returnInstanceCoroutineRunning = false;
 
     private Rigidbody rb;
+    private Collider[] cachedColliders;
+    private bool originalUseGravity;
+    private bool originalIsKinematic;
 
     // 필요한 컴포넌트를 캐시하고 NavMeshAgent 루트모션 동작 방식을 설정한다
     private void Awake()
@@ -41,6 +44,8 @@ public class NormalZombie : PoolObject, IDamageable
         rb = GetComponent<Rigidbody>();
         anim = GetComponent<Animator>();
         agent = GetComponent<NavMeshAgent>();
+        CacheColliders();
+        CacheRigidbodyDefaults();
         agent.updatePosition = false;
         agent.updateRotation = false;
     }
@@ -86,6 +91,7 @@ public class NormalZombie : PoolObject, IDamageable
         hpUI.gameObject.SetActive(false);
 
         SetCollidersEnabled(true); // 히트 콜라이더 활성화
+        RestoreRigidbodySimulation();
 
         rb.constraints = RigidbodyConstraints.FreezeRotationZ | RigidbodyConstraints.FreezeRotationX; // 회전 제약 재설정
 
@@ -280,6 +286,7 @@ public class NormalZombie : PoolObject, IDamageable
         anim.SetBool("IsAttackState", false);
         anim.SetTrigger("DeadTrigger"); // 죽는 애니메이션으로 변경
         SetCollidersEnabled(false); // 히트 콜라이더 비활성화
+        StopRigidbodySimulation();
         rb.constraints = RigidbodyConstraints.FreezeRotation; // 모든 방향 회전 방지
     }
 
@@ -310,7 +317,77 @@ public class NormalZombie : PoolObject, IDamageable
     // 풀 재사용과 사망 상태에 맞춰 히트 콜라이더 활성 상태를 변경한다
     private void SetCollidersEnabled(bool isEnabled)
     {
-        hitCollider.enabled = isEnabled;
+        if (cachedColliders == null || cachedColliders.Length == 0)
+        {
+            CacheColliders();
+        }
+
+        if (cachedColliders == null || cachedColliders.Length == 0)
+        {
+            if (hitCollider != null)
+            {
+                hitCollider.enabled = isEnabled;
+            }
+
+            return;
+        }
+
+        for (int i = 0; i < cachedColliders.Length; i++)
+        {
+            Collider cachedCollider = cachedColliders[i];
+            if (cachedCollider == null)
+            {
+                continue;
+            }
+
+            cachedCollider.enabled = isEnabled;
+        }
+    }
+
+    // 사망 후 투사체 판정에 남지 않도록 자식 콜라이더를 캐시한다
+    private void CacheColliders()
+    {
+        cachedColliders = GetComponentsInChildren<Collider>(true);
+    }
+
+    // 재사용 시 원래 리지드바디 물리 설정을 복구하기 위해 기본값을 저장한다
+    private void CacheRigidbodyDefaults()
+    {
+        if (rb == null)
+        {
+            return;
+        }
+
+        originalUseGravity = rb.useGravity;
+        originalIsKinematic = rb.isKinematic;
+    }
+
+    // 사망 중 바닥 콜라이더 없이 중력으로 가라앉지 않도록 리지드바디 물리를 멈춘다
+    private void StopRigidbodySimulation()
+    {
+        if (rb == null)
+        {
+            return;
+        }
+
+        rb.linearVelocity = Vector3.zero;
+        rb.angularVelocity = Vector3.zero;
+        rb.useGravity = false;
+        rb.isKinematic = true;
+    }
+
+    // 풀에서 다시 사용할 때 리지드바디 물리 설정을 원래 상태로 복구한다
+    private void RestoreRigidbodySimulation()
+    {
+        if (rb == null)
+        {
+            return;
+        }
+
+        rb.isKinematic = originalIsKinematic;
+        rb.useGravity = originalUseGravity;
+        rb.linearVelocity = Vector3.zero;
+        rb.angularVelocity = Vector3.zero;
     }
 
     /// <summary>

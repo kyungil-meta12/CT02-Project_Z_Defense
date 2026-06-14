@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Pulse Repeater
   m_EditorClassIdentifier: Assembly-CSharp::TurretStatProfileSO
   damage: 70
-  range: 80
+  range: 48
   fireInterval: 0.2
   projectileSpeed: 40
   projectileCount: 1

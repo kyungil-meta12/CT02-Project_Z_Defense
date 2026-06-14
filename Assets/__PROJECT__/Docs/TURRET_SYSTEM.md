@@ -159,6 +159,31 @@ Projectile speed is a feel differentiator from second generation onward. `Laser_
 4. `ItemManager.TrySpend` consumes all required currencies atomically before `SetLevel` runs.
 5. Hold upgrade input stops when the target is capped, evolution becomes available, or currency is insufficient.
 
+### Current Turret Cost Balance
+
+Upgrade costs use a low base Coin value plus an additional cost percentage per tier level, so early upgrades are cheaper while late upgrades become heavier. The Lv1 -> Lv100 total is kept close to the previous flat-cost totals.
+
+| Form | Base Coin per level-up | Additional cost per tier level | Approx. Lv1 -> Lv100 total |
+| --- | ---: | ---: | ---: |
+| Sentinel-01 | 233 | 1% | 34,601 |
+| Sentry Pulse / Vector MG | 350 | 2% | 69,300 |
+| Pulse Repeater / Vulcan Node | 640 | 3% | 158,400 |
+| Second-generation `_1` | 3,200 | 3% | 792,000 |
+| Second-generation `_2` | 5,667 | 4% | 1,683,099 |
+| Second-generation `_3` | 10,571 | 5% | 3,662,852 |
+
+Evolution costs are branch-entry gates:
+
+| Evolution step | Coin cost |
+| --- | ---: |
+| Sentinel-01 -> Sentry Pulse / Vector MG | 20,000 |
+| Sentry Pulse -> Pulse Repeater / Vector MG -> Vulcan Node | 60,000 |
+| Pulse Repeater / Vulcan Node -> second-generation `_1` branch | 180,000 |
+| Second-generation `_1` -> `_2` | 300,000 |
+| Second-generation `_2` -> `_3` | 450,000 |
+
+A complete path from Sentinel-01 tier level 1 to a second-generation `_3` tier level 100 costs roughly 7.4M Coin before placement costs. Integer cost rounding causes only a tiny difference from the previous flat-cost total. This is tuned as a first pass against the current 500-wave reward curve.
+
 ## Placement Runtime Flow
 
 1. `TurretPlacementUI` builds bottom-bar slots from placement entries currently typed as `TurretShopEntrySO`.

@@ -18,7 +18,7 @@ MonoBehaviour:
     displayName: Plasma_Blue_3
     evolutionCosts:
     - currencyType: 0
-      amount: 1000
+      amount: 450000
     evolutionIcon: {fileID: 21300000, guid: 4effe9414c8774e48933060958be0427, type: 3}
     evolutionEffectPrefab: {fileID: 640602461530948004, guid: 938be4f127f81d348a60fe4019a9422c, type: 3}
     evolutionEffectLocalOffset: {x: 0, y: 0, z: 0}

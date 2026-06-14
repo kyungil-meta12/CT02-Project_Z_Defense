@@ -36,6 +36,7 @@ This document tracks the planned reward and currency pipeline for zombie kill re
 - `TurretDefinitionSO` can reference `TurretUpgradeCostProfileSO`.
 - `TurretEvolutionEntry` can define `ResourceCost[] evolutionCosts`.
 - Turret runtime UI calls `TryUpgrade`, `TryEvolve`, or `TryCreateEvolvedInstance`, so upgrades/evolutions only execute after cost spend succeeds.
+- Turret upgrade costs currently use form-based base Coin values plus additional cost percentage per tier level, while turret evolution costs use fixed branch-entry Coin gates.
 
 ## Target Zombie Reward Flow
 
@@ -55,6 +56,17 @@ This document tracks the planned reward and currency pipeline for zombie kill re
 4. `TurretEvolutionEntry` supplies evolution costs.
 5. `ItemManager` spends currency only after all requirements pass.
 6. Runtime level-up or evolution executes only after spend succeeds.
+
+Current turret economy first pass:
+
+- Sentinel-01: 233 base Coin per level-up, 1% additional cost per tier level.
+- Sentry Pulse / Vector MG: 350 base Coin per level-up, 2% additional cost per tier level.
+- Pulse Repeater / Vulcan Node: 640 base Coin per level-up, 3% additional cost per tier level.
+- Second-generation `_1`: 3,200 base Coin per level-up, 3% additional cost per tier level.
+- Second-generation `_2`: 5,667 base Coin per level-up, 4% additional cost per tier level.
+- Second-generation `_3`: 10,571 base Coin per level-up, 5% additional cost per tier level.
+- Evolution gates: 20,000 -> 60,000 -> 180,000 -> 300,000 -> 450,000 Coin by progression depth.
+- One full path to a second-generation `_3` tier level 100 costs about 7.4M Coin before placement costs.
 
 ## Target Turret Placement Cost Flow
 

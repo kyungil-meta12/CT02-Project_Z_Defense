@@ -14,5 +14,5 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::TurretUpgradeCostProfileSO
   baseCostsPerLevel:
   - currencyType: 0
-    amount: 5
-  additionalCostPercentPerTierLevel: 0
+    amount: 350
+  additionalCostPercentPerTierLevel: 2

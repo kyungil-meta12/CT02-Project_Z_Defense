@@ -182,7 +182,7 @@ Evolution costs are branch-entry gates:
 
 | Evolution step | Coin cost |
 | --- | ---: |
-| Sentinel-01 -> Sentry Pulse / Vector MG | 20,000 |
+| Sentinel-01 -> Sentry Pulse / Vector MG | 10,000 |
 | Sentry Pulse -> Pulse Repeater / Vector MG -> Vulcan Node | 60,000 |
 | Pulse Repeater / Vulcan Node -> second-generation `_1` branch | 180,000 |
 | Second-generation `_1` -> `_2` | 300,000 |

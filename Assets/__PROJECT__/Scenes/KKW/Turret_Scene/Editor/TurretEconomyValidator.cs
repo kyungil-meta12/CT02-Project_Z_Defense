@@ -136,7 +136,7 @@ internal static class TurretEconomyValidator
 
         if (sourceName == "Sentinel-01" && (targetName == "Sentry Pulse" || targetName == "Vector MG"))
         {
-            expectedCoin = 20000;
+            expectedCoin = 10000;
             return true;
         }
 

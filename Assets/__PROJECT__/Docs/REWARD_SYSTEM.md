@@ -67,7 +67,7 @@ Current turret economy first pass:
 - Second-generation `_1`: 3,200 base Coin per level-up, 3% additional cost per tier level.
 - Second-generation `_2`: 5,667 base Coin per level-up, 4% additional cost per tier level.
 - Second-generation `_3`: 10,571 base Coin per level-up, 5% additional cost per tier level.
-- Evolution gates: 20,000 -> 60,000 -> 180,000 -> 300,000 -> 450,000 Coin by progression depth.
+- Evolution gates: 10,000 -> 60,000 -> 180,000 -> 300,000 -> 450,000 Coin by progression depth.
 - One full path to a second-generation `_3` tier level 100 costs about 7.4M Coin before placement costs.
 
 ## Target Turret Placement Cost Flow

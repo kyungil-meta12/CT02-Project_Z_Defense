@@ -149,6 +149,7 @@ Projectile speed is a feel differentiator from second generation onward. `Laser_
 7. Target turret receives the new definition.
 8. Tier level resets to `1`; total level is preserved.
 9. Runtime UI reattaches to the evolved turret controller.
+10. The temporary runtime popup also refreshes the selected turret range indicator after selection, upgrade, or evolution.
 
 ## Upgrade Cost Flow
 
@@ -179,11 +180,19 @@ Projectile speed is a feel differentiator from second generation onward. `Laser_
 - `TargetFinder` selects the nearest valid target in range.
 - `TargetFinder` resolves hit colliders to a stable tagged or `IDamageable` target root before returning a target, avoiding aim jitter from multi-collider enemies.
 - `TargetFinder` can ignore `ObstacleBuildSlot` helper colliders, placed `Obstacle` colliders, and an additional ignore layer mask during line-of-sight checks so defense-line barricades do not hide zombies from turret targeting.
-- `Turret` smooths target aim point and target velocity prediction, clamps prediction lead time, and ignores vertical prediction by default to reduce visible tracking jitter.
+- `Turret` smooths target aim point and target velocity prediction, ignores vertical prediction by default, and uses `TurretLeadPredictionUtility` to aim at an estimated projectile/target intercept point.
+- Prediction lead time can scale from slow-projectile long lead to fast-projectile short lead, improving low-speed projectile hit rate without making laser-speed shots over-lead visibly.
 - `Turret` staggers its first target search within `targetSearchInterval` so many turrets do not all run physics target scans on the same frame.
 - Turret fires only when the head is within `turretAngleAttack`.
 - Gun projectile rotation should follow visible muzzle forward direction.
 - Homing/projectile mover components may still receive selected targets for hit tracking.
+
+## Runtime Range Indicator
+
+- `TurretTemporaryUpgradePopupUI` owns the selected-turret range display because it already owns turret click selection and selection clearing.
+- `TurretRangeIndicator` renders one reusable `LineRenderer` circle in world space for the currently selected turret.
+- The indicator uses the selected turret's current calculated runtime range, so level-up and evolution changes are reflected when the popup refreshes.
+- The indicator is hidden when selection is cleared or placement input is active.
 
 ## Pooling Rules
 

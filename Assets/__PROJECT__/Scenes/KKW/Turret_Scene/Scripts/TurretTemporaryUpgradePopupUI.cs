@@ -41,9 +41,17 @@ public class TurretTemporaryUpgradePopupUI : MonoBehaviour
     [SerializeField] private Vector2 popupAnchoredPosition = new Vector2(0.0f, 360.0f);
     [SerializeField] private Vector2 popupSize = new Vector2(920.0f, 540.0f);
 
+    [Header("Range Indicator")]
+    [SerializeField] private bool showRangeIndicatorOnSelection = true;
+    [SerializeField, Min(12)] private int rangeIndicatorSegments = 96;
+    [SerializeField, Min(0.001f)] private float rangeIndicatorLineWidth = 0.08f;
+    [SerializeField] private float rangeIndicatorYOffset = 0.05f;
+    [SerializeField] private Color rangeIndicatorColor = new Color(0.2f, 0.85f, 1.0f, 0.65f);
+
     private TurretPlacementController placementController;
     private TurretDefinitionRuntimeController selectedTurret;
     private TurretBaseSlot selectedSlot;
+    private TurretRangeIndicator rangeIndicator;
 
     private Canvas popupCanvas;
     private GameObject popupRoot;
@@ -102,17 +110,24 @@ public class TurretTemporaryUpgradePopupUI : MonoBehaviour
         HidePopup();
     }
 
+    // 파괴 시 런타임 사거리 표시 오브젝트를 정리한다
+    private void OnDestroy()
+    {
+        DestroyRangeIndicator();
+    }
+
     // 입력을 감지해 터렛 선택, 팝업 갱신, 팝업 닫기를 처리한다
     private void Update()
     {
         UpdateLevelHold();
 
-        if (!WasPrimaryPointerPressed() || IsPointerOverUI() || IsPointerInsidePopup())
+        if (placementController != null && placementController.IsPlacing)
         {
+            HidePopup();
             return;
         }
 
-        if (placementController != null && placementController.IsPlacing)
+        if (!WasPrimaryPointerPressed() || IsPointerOverUI() || IsPointerInsidePopup())
         {
             return;
         }
@@ -465,6 +480,7 @@ public class TurretTemporaryUpgradePopupUI : MonoBehaviour
 
         currentStatText.text = "Current\n" + FormatStats(currentStat);
         nextStatText.text = "Next\n" + FormatStats(nextStat);
+        RefreshRangeIndicator(currentStat.range);
 
         int evolutionCount = selectedTurret.GetAvailableEvolutionCount();
         ResourceCost[] upgradeCosts = selectedTurret.GetUpgradeCosts(levelUpAmount);
@@ -920,11 +936,70 @@ public class TurretTemporaryUpgradePopupUI : MonoBehaviour
         EndLevelHold();
         selectedTurret = null;
         selectedSlot = null;
+        HideRangeIndicator();
 
         if (popupRoot != null)
         {
             popupRoot.SetActive(false);
         }
+    }
+
+    // 선택된 터렛의 현재 사거리 표시를 갱신한다
+    private void RefreshRangeIndicator(float range)
+    {
+        if (!showRangeIndicatorOnSelection || selectedTurret == null)
+        {
+            HideRangeIndicator();
+            return;
+        }
+
+        EnsureRangeIndicator();
+        Vector3 center = GetSelectedTurretRangeCenter();
+        rangeIndicator.Show(center, range, rangeIndicatorSegments, rangeIndicatorLineWidth, rangeIndicatorYOffset, rangeIndicatorColor);
+    }
+
+    // 사거리 표시 컴포넌트를 런타임에 준비한다
+    private void EnsureRangeIndicator()
+    {
+        if (rangeIndicator != null)
+        {
+            return;
+        }
+
+        GameObject indicatorObject = new GameObject("Temporary_TurretRangeIndicator");
+        rangeIndicator = indicatorObject.AddComponent<TurretRangeIndicator>();
+    }
+
+    // 선택된 터렛 또는 슬롯 기준으로 사거리 표시 중심점을 반환한다
+    private Vector3 GetSelectedTurretRangeCenter()
+    {
+        if (selectedSlot != null && selectedSlot.BuildPoint != null)
+        {
+            return selectedSlot.BuildPoint.position;
+        }
+
+        return selectedTurret != null ? selectedTurret.transform.position : Vector3.zero;
+    }
+
+    // 사거리 표시를 숨긴다
+    private void HideRangeIndicator()
+    {
+        if (rangeIndicator != null)
+        {
+            rangeIndicator.Hide();
+        }
+    }
+
+    // 생성된 사거리 표시 오브젝트를 제거한다
+    private void DestroyRangeIndicator()
+    {
+        if (rangeIndicator == null)
+        {
+            return;
+        }
+
+        Destroy(rangeIndicator.gameObject);
+        rangeIndicator = null;
     }
 
     // UI 전용 RectTransform 오브젝트를 생성하고 부모에 연결한다

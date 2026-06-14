@@ -77,7 +77,11 @@ public static class RewardGrantUtility
             }
         }
 
-        return Mathf.FloorToInt(Mathf.Max(0.0f, amount) * multiplier);
+        float minRandomMultiplier = Mathf.Max(0.0f, reward.minAmountMultiplier);
+        float maxRandomMultiplier = Mathf.Max(minRandomMultiplier, reward.maxAmountMultiplier);
+        float randomMultiplier = Random.Range(minRandomMultiplier, maxRandomMultiplier);
+
+        return Mathf.FloorToInt(Mathf.Max(0.0f, amount) * multiplier * randomMultiplier);
     }
 
     // 보상 엔트리와 조건부 보정 목록으로 최종 드랍 확률을 계산한다

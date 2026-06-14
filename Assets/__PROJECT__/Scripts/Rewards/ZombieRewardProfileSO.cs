@@ -50,6 +50,8 @@ public class ZombieRewardProfileSO : ScriptableObject
 
             reward.amount = Mathf.Max(0, reward.amount);
             reward.dropChance = Mathf.Clamp01(reward.dropChance);
+            reward.minAmountMultiplier = Mathf.Max(0.0f, reward.minAmountMultiplier);
+            reward.maxAmountMultiplier = Mathf.Max(reward.minAmountMultiplier, reward.maxAmountMultiplier);
         }
     }
 

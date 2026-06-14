@@ -30,7 +30,7 @@ Normal zombie prefabs are grouped into shared role-based `NormalZombieSpec` asse
 | `NormalZombieSpec_Attacker` | `NZ_Pimp`, `NZ_Prizoner`, `NZ_AirportSecurity` | Higher attack threat zombies. |
 | `NormalZombieSpec_Elite` | `NZ_FireFighter`, `NZ_Solider` | Late stronger profession zombies. |
 
-`NormalZombieSpec` owns only role baseline combat stats and per-instance random variance. `ZombieWaveSpawnProfileSO` owns wave-specific spawn composition, entry weight, HP multiplier, attack damage multiplier, move/attack speed multiplier, and reward multiplier.
+`NormalZombieSpec` and `BossZombieSpec` own only baseline combat stats and per-instance random variance. `ZombieWaveSpawnProfileSO` owns wave-specific spawn composition, entry weight, HP multiplier, attack damage multiplier, move/attack speed multiplier, and reward multiplier for both normal and boss zombies.
 
 ## Zombie Spawn Data Ownership
 

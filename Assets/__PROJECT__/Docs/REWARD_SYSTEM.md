@@ -72,7 +72,7 @@ This document tracks the planned reward and currency pipeline for zombie kill re
 | Type | Responsibility |
 | --- | --- |
 | `RewardCurrencyType` | Shared currency enum such as `Coin`, `FirePart`, `SpecialPart`. |
-| `RewardEntry` | Reward currency, amount, chance, and future random amount options. |
+| `RewardEntry` | Reward currency, amount, chance, and per-entry random amount multiplier range. |
 | `ZombieRewardModifier` | Conditional reward adjustment by wave range, zombie type, defense line, situation flag, and currency. |
 | `ZombieRewardSituation` | Runtime situation flags such as event bonus, fever time, perfect defense, or custom triggers. |
 | `ResourceCost` | Cost currency and amount for upgrades, evolution, placement, shop, and skills. |
@@ -103,6 +103,15 @@ Each `ZombieRewardProfileSO` has:
 - `Rewards`: base reward entries.
 - `Modifiers`: optional conditional adjustments.
 
+Each `RewardEntry` has:
+
+- `currencyType`: reward currency.
+- `amount`: base amount before runtime multipliers.
+- `dropChance`: chance to grant this reward entry.
+- `minAmountMultiplier` and `maxAmountMultiplier`: final random amount range.
+
+Coin reward entries currently use `0.8~1.2` so repeated kills do not always grant the exact same coin amount. Non-coin rewards should usually stay at `1.0~1.0` unless their quantity should intentionally vary.
+
 Modifier conditions:
 
 - `targetFilter`: all currencies or one specific currency.
@@ -117,6 +126,15 @@ Modifier effects:
 - `flatAmountBonus`: adds a flat amount before multiplication.
 - `dropChanceMultiplier`: multiplies drop chance.
 - `additionalDropChance`: adds or subtracts drop chance after multiplication.
+
+Amount calculation order:
+
+1. Start from `RewardEntry.amount`.
+2. Apply matching modifier flat bonuses.
+3. Apply `ZombieWaveSpawnProfileSO` reward multiplier through `ZombieRewardContext.rewardMultiplier`.
+4. Apply matching modifier amount multipliers.
+5. Apply `RewardEntry` random amount multiplier.
+6. Floor to the final integer amount.
 
 Example:
 

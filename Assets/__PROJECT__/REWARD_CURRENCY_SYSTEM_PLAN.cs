@@ -84,7 +84,8 @@ public static class REWARD_CURRENCY_SYSTEM_PLAN
      * - RewardCurrencyType currencyType
      * - int amount
      * - float dropChance
-     * - Optional min/max random amount for future balancing.
+     * - min/max amount multiplier for per-entry reward variance.
+     * - Current coin zombie reward profiles use 0.8~1.2 random amount multiplier.
      *
      * ZombieRewardModifier
      * - Conditional reward modifier inside ZombieRewardProfileSO.

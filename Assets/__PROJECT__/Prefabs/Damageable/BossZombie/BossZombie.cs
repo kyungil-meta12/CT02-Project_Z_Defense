@@ -68,7 +68,7 @@ public class BossZombie : PoolObject, IDamageable
         behaviorAgent.GetVariable("speed", out speedBV);
     }
 
-    // 풀에서 꺼낼 때 웨이브 기반 보스 스탯과 런타임 상태를 초기화한다
+    // 풀에서 꺼낼 때 스펙 기반 보스 스탯과 런타임 상태를 초기화한다
     public override void OnSpawn()
     {
         base.OnSpawn();
@@ -77,22 +77,17 @@ public class BossZombie : PoolObject, IDamageable
         var randomMoveAttackSpeed = Random.Range(spec.MinMoveAttackSpeed, spec.MaxMoveAttackSpeed);
         var randomAttackDamage = Random.Range(spec.MinAttackDamage, spec.MaxAttackDamage);
         var randomHp = Random.Range(spec.MinHp, spec.MaxHp);
-        float wave = GameManager.Inst.Wave;
-        bool isFirstWave = GameManager.Inst.Wave == 1;
         
         // 이동/공격 속도
-        var moveAttackSpeedMul = isFirstWave ? randomMoveAttackSpeed : randomMoveAttackSpeed * Mathf.Pow(1f + spec.MoveAttackSpeedWeight, wave - 1f);
-        speedBV.Value = spec.MoveSpeed * moveAttackSpeedMul;
-        anim.SetFloat("AttackSpeed", spec.AttackSpeed * moveAttackSpeedMul);
+        speedBV.Value = spec.MoveSpeed * randomMoveAttackSpeed;
+        anim.SetFloat("AttackSpeed", spec.AttackSpeed * randomMoveAttackSpeed);
 
         // 공격 대미지
-        var attackDamageMul = isFirstWave ? randomAttackDamage : randomAttackDamage * Mathf.Pow(1f + spec.AttackDamageWeight, wave - 1f);
-        attackDamage = spec.AttackDamage * attackDamageMul;
+        attackDamage = spec.AttackDamage * randomAttackDamage;
         attackDistanceBV.Value = spec.AttackDistance;
 
         // 체력
-        var hpMul = isFirstWave ? randomHp : randomHp * Mathf.Pow(1f + spec.HpWeight, wave - 1f);
-        TotalHp = spec.Hp * hpMul;
+        TotalHp = spec.Hp * randomHp;
         CurrHp = TotalHp;
         rewardMultiplier = 1.0f;
         IsAlive = true;

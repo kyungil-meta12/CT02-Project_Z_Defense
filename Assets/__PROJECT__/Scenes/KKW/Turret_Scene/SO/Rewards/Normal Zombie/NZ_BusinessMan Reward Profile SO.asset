@@ -14,5 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ZombieRewardProfileSO
   rewards:
   - currencyType: 0
-    amount: 100
+    amount: 75
     dropChance: 1
+    minAmountMultiplier: 0.8
+    maxAmountMultiplier: 1.2
+  modifiers: []

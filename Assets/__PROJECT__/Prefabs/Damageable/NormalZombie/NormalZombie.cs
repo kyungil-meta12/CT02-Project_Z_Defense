@@ -245,7 +245,14 @@ public class NormalZombie : PoolObject, IDamageable
             }
             else
             {
-                Debug.LogError($"[NormalZombie] {attackTarget.gameObject.name}이 IDamageable을 상속하지 않음");
+                Debug.LogWarning($"[NormalZombie] {attackTarget.gameObject.name}은 피해 대상이 아니어서 공격 상태를 해제합니다.", this);
+                attackState = false;
+                attackTarget = null;
+                anim.SetBool("IsAttackState", false);
+                if (agent != null && agent.enabled)
+                {
+                    agent.isStopped = false;
+                }
             }
         }
     }

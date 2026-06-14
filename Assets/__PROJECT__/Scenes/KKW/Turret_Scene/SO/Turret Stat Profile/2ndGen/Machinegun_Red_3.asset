@@ -12,9 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 64086bcb185c80947a81b76bc4479622, type: 3}
   m_Name: Machinegun_Red_3
   m_EditorClassIdentifier: Assembly-CSharp::TurretStatProfileSO
-  damage: 480
+  damage: 2221.5
   range: 55
-  fireInterval: 0.1481
+  fireInterval: 0.4443
   projectileSpeed: 65
   projectileCount: 1
-  pierceCount: 0
+  pierceCount: 3

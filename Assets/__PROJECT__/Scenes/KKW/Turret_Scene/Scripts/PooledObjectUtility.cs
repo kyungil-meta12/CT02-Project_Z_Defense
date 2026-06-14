@@ -1,7 +1,11 @@
 using UnityEngine;
 
+/// <summary>
+/// 프로젝트 런타임에서 풀링 오브젝트, 투사체, 이펙트를 생성하고 반환 보조 컴포넌트를 보장한다.
+/// </summary>
 public static class PooledObjectUtility
 {
+    // 일반 풀링 오브젝트를 지정 위치와 회전으로 생성한다
     public static GameObject Spawn(GameObject prefab, Vector3 position, Quaternion rotation)
     {
         if (prefab == null)
@@ -19,6 +23,7 @@ public static class PooledObjectUtility
         return memoryPool.GetInstance(prefab, position, rotation);
     }
 
+    // 투사체를 생성하고 풀 반환 및 관통 보정 컴포넌트를 보장한다
     public static GameObject SpawnProjectile(GameObject prefab, Vector3 position, Quaternion rotation)
     {
         GameObject projectile = Spawn(prefab, position, rotation);
@@ -32,9 +37,15 @@ public static class PooledObjectUtility
             projectile.AddComponent<PooledProjectileReturner>();
         }
 
+        if (projectile.GetComponent<HovlProjectilePierceGuard>() == null)
+        {
+            projectile.AddComponent<HovlProjectilePierceGuard>();
+        }
+
         return projectile;
     }
 
+    // 이펙트를 생성하고 지정 시간 뒤 풀로 반환되도록 초기화한다
     public static GameObject SpawnEffect(GameObject prefab, Vector3 position, Quaternion rotation, float duration)
     {
         GameObject effect = Spawn(prefab, position, rotation);
@@ -71,6 +82,7 @@ public static class PooledObjectUtility
         UnityEngine.Object.Destroy(target);
     }
 
+    // 현재 활성화된 메모리 풀 인스턴스를 반환한다
     private static MemoryPool GetMemoryPool()
     {
         return MemoryPool.Inst;

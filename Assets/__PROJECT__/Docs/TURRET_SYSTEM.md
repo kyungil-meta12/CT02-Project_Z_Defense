@@ -99,14 +99,14 @@ Do not use display names as stable IDs.
 
 | Family | Lv1 damage | Lv1 range | Lv1 fire interval |
 | --- | --- | --- | --- |
-| Machinegun_Blue_1/2/3 | 72 / 144 / 288 | 49 / 53 / 57 | 0.15 / 0.1143 / 0.0889 |
-| Machinegun_Red_1/2/3 | 120 / 240 / 480 | 47 / 51 / 55 | 0.25 / 0.1905 / 0.1481 |
-| Laser_Blue_1/2/3 | 45 / 90 / 180 | 55 / 59 / 63 | 0.0938 / 0.0714 / 0.0556 |
-| Laser_Red_1/2/3 | 180 / 360 / 720 | 53 / 57 / 61 | 0.375 / 0.2857 / 0.2222 |
-| Lethal_Green_1/2/3 | 900 / 1800 / 3600 | 45 / 49 / 53 | 1.875 / 1.4286 / 1.1111 |
-| Lethal_Red_1/2/3 | 1500 / 3000 / 6000 | 43 / 47 / 51 | 3.125 / 2.381 / 1.8519 |
-| Plasma_Blue_1/2/3 | 600 / 1200 / 2400 | 51 / 55 / 59 | 1.25 / 0.9524 / 0.7407 |
-| Plasma_Yellow_1/2/3 | 2400 / 4800 / 9600 | 49 / 53 / 57 | 5 / 3.8095 / 2.963 |
+| Machinegun_Blue_1/2/3 | 365.63 / 771.38 / 1333.5 | 49 / 53 / 57 | 0.45 / 0.3429 / 0.2667 |
+| Machinegun_Red_1/2/3 | 609.38 / 1285.88 / 2221.5 | 47 / 51 / 55 | 0.75 / 0.5715 / 0.4443 |
+| Laser_Blue_1/2/3 | 152.5 / 321.25 / 556 | 55 / 59 / 63 | 0.0938 / 0.0714 / 0.0556 |
+| Laser_Red_1/2/3 | 609.5 / 1285.75 / 2222 | 53 / 57 / 61 | 0.375 / 0.2857 / 0.2222 |
+| Lethal_Green_1/2/3 | 3047 / 6428.75 / 11111 | 45 / 49 / 53 | 1.875 / 1.4286 / 1.1111 |
+| Lethal_Red_1/2/3 | 5078.25 / 10714.5 / 18519 | 43 / 47 / 51 | 3.125 / 2.381 / 1.8519 |
+| Plasma_Blue_1/2/3 | 2031.25 / 4285.75 / 7407 | 51 / 55 / 59 | 1.25 / 0.9524 / 0.7407 |
+| Plasma_Yellow_1/2/3 | 8125 / 17142.75 / 29630 | 49 / 53 / 57 | 5 / 3.8095 / 2.963 |
 
 ### Second-Generation Lv100 Range Targets
 
@@ -121,7 +121,7 @@ Do not use display names as stable IDs.
 | Plasma_Blue_1/2/3 | 64 / 66 / 66 |
 | Plasma_Yellow_1/2/3 | 62 / 64 / 66 |
 
-Second-generation fire interval progression uses a family baseline curve: `_1` starts slower, `_2` is slightly faster than baseline, and `_3` reaches the fastest form. Damage growth was not flattened after this fire interval pass, so second-generation forms may feel stronger than a strict equal-DPS table.
+Second-generation fire interval progression uses a family baseline curve: `_1` starts slower, `_2` is slightly faster than baseline, and `_3` reaches the fastest form. Non-machinegun families are balanced against the current fire intervals so each second-generation stage shares the same DPS targets across families: `_1` grows from about 1,625 to 4,250 DPS, `_2` grows from about 4,500 to 9,500 DPS, and `_3` grows from about 10,000 to 15,000 DPS. `Machinegun_Blue` and `Machinegun_Red` trade single-target DPS for lane clearing: their fire intervals are about 3x slower, damage is about 1.5x higher, single-target DPS is about half of the standard second-generation target, and pierce count is `_1 = 1`, `_2 = 2`, `_3 = 3`.
 
 ### Second-Generation Projectile Speed
 
@@ -200,6 +200,7 @@ Projectile speed is a feel differentiator from second generation onward. `Laser_
 - Projectile speed, damage, pierce count, target/collider state, and collision ignores must be refreshed every spawn.
 - `ProjectileComponentCache` caches frequently reused projectile components and colliders on pooled projectile instances to avoid repeated hierarchy scans during firing.
 - `ProjectileDamageDealer` allows colliders under the tracked target `IDamageable` even if the specific child collider is not on the damage layer; this prevents HOVL hit VFX from ending a projectile on a non-damage child collider without applying damage.
+- `HovlProjectilePierceGuard` prevents HOVL's own target-hit return flow from ending a projectile before `ProjectileDamageDealer` reaches its pierce limit.
 - Do not rely on prefab state or previous pooled state.
 - Evolution effects should spawn through `PooledObjectUtility.SpawnEffect`.
 - `ProjectileHitDetector` must clear target/collider state on reuse.

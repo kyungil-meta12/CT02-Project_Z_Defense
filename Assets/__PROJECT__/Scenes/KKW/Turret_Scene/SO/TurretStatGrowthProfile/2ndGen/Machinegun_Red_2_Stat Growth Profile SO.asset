@@ -12,15 +12,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5e18c5f48204fa04fb0e390cc01c28bf, type: 3}
   m_Name: Machinegun_Red_2_Stat Growth Profile SO
   m_EditorClassIdentifier: Assembly-CSharp::TurretStatGrowthProfileSO
-  damagePercentPerLevel: 0.66109
+  damagePercentPerLevel: 0.622
   rangePerLevel: 0.1111111
-  fireIntervalReductionPerLevel: 0.0002405
+  fireIntervalReductionPerLevel: 0.0007215
   projectileSpeedIntervalLevel: 20
   projectileSpeedPerInterval: 5
   projectileCountIntervalLevel: 0
   pierceCountIntervalLevel: 0
   maxRange: 66
-  minFireInterval: 0.1667
+  minFireInterval: 0.5001
   maxProjectileSpeed: 80
   maxProjectileCount: 1
-  maxPierceCount: 1
+  maxPierceCount: 2

@@ -315,6 +315,7 @@
  * - Applies damage through hitCollider.GetComponentInParent<IDamageable>().
  * - Allows colliders under the tracked target IDamageable even if the specific child collider is not on the damage layer.
  * - Keeps a per-projectile hit list so one projectile does not hit the same damageable repeatedly.
+ * - HovlProjectilePierceGuard prevents HOVL target-hit return from running before the ProjectileDamageDealer pierce limit is reached.
  * - Legacy DamageManager/Projectile components are not part of the active damage path.
  *
  * ProjectileHitDetector
@@ -389,21 +390,21 @@
  * Second Generation Tier Level 1 Balance
  *
  * - Machinegun_Blue_1/2/3:
- *   Damage 72/144/288, Range 49/53/57, Fire Interval 0.15/0.1143/0.0889.
+ *   Damage 365.63/771.38/1333.5, Range 49/53/57, Fire Interval 0.45/0.3429/0.2667, Pierce 1/2/3.
  * - Machinegun_Red_1/2/3:
- *   Damage 120/240/480, Range 47/51/55, Fire Interval 0.25/0.1905/0.1481.
+ *   Damage 609.38/1285.88/2221.5, Range 47/51/55, Fire Interval 0.75/0.5715/0.4443, Pierce 1/2/3.
  * - Laser_Blue_1/2/3:
- *   Damage 45/90/180, Range 55/59/63, Fire Interval 0.0938/0.0714/0.0556.
+ *   Damage 152.5/321.25/556, Range 55/59/63, Fire Interval 0.0938/0.0714/0.0556.
  * - Laser_Red_1/2/3:
- *   Damage 180/360/720, Range 53/57/61, Fire Interval 0.375/0.2857/0.2222.
+ *   Damage 609.5/1285.75/2222, Range 53/57/61, Fire Interval 0.375/0.2857/0.2222.
  * - Lethal_Green_1/2/3:
- *   Damage 900/1800/3600, Range 45/49/53, Fire Interval 1.875/1.4286/1.1111.
+ *   Damage 3047/6428.75/11111, Range 45/49/53, Fire Interval 1.875/1.4286/1.1111.
  * - Lethal_Red_1/2/3:
- *   Damage 1500/3000/6000, Range 43/47/51, Fire Interval 3.125/2.381/1.8519.
+ *   Damage 5078.25/10714.5/18519, Range 43/47/51, Fire Interval 3.125/2.381/1.8519.
  * - Plasma_Blue_1/2/3:
- *   Damage 600/1200/2400, Range 51/55/59, Fire Interval 1.25/0.9524/0.7407.
+ *   Damage 2031.25/4285.75/7407, Range 51/55/59, Fire Interval 1.25/0.9524/0.7407.
  * - Plasma_Yellow_1/2/3:
- *   Damage 2400/4800/9600, Range 49/53/57, Fire Interval 5/3.8095/2.963.
+ *   Damage 8125/17142.75/29630, Range 49/53/57, Fire Interval 5/3.8095/2.963.
  *
  * Second Generation Tier Level 100 Range Targets
  *
@@ -423,7 +424,8 @@
  *   _1 level 1 = 0.8x baseline attack speed, _1 level 100 = 0.95x baseline attack speed.
  *   _2 level 1 = 1.05x baseline attack speed, _2 level 100 = 1.2x baseline attack speed.
  *   _3 level 1 = 1.35x baseline attack speed, _3 level 100 = 1.5x baseline attack speed.
- * - Damage growth was not flattened after the fire interval rebalance, so higher forms may feel stronger than a strict equal-DPS table.
+ * - Non-machinegun damage is balanced against the current fire intervals so `_1` grows from about 1625 to 4250 DPS, `_2` from about 4500 to 9500 DPS, and `_3` from about 10000 to 15000 DPS.
+ * - Machinegun_Blue and Machinegun_Red use about 3x slower fire intervals and about 1.5x higher damage than the previous machinegun tuning, resulting in about half standard single-target DPS but gaining Pierce 1/2/3 through _1/_2/_3.
  *
  * Second Generation Projectile Speed Balance
  *
@@ -525,6 +527,7 @@
  *   TargetFinder.cs: stable target root resolution, configurable line-of-sight ignore options, and defense-line obstacle ignore support.
  *   Gun.cs: default projectile rotation follows muzzleObject forward direction.
  *   HS_ProjectileMover.cs: external hit handoff keeps HOVL hit VFX flow available for project-level hit correction.
+ *   HovlProjectilePierceGuard.cs: project-level guard disables HOVL target-hit return while ProjectileDamageDealer still has pierce capacity.
  * - Recent damage popup, projectile damage, turret placement, and runtime UI integration work is project-level where possible.
  */
 

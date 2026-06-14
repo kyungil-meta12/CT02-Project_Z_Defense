@@ -139,6 +139,7 @@
  *   Trigger/Collision 판정, 이동 구간 Raycast 판정을 함께 사용한다.
  * - 발사체는 이미 맞은 IDamageable을 중복 타격하지 않고, IsAlive == false 대상은 무시한다.
  * - pierceCount는 한 발사체가 추가로 관통 가능한 대상 수로 사용하며, 한계 도달 시 풀로 반환한다.
+ * - HovlProjectilePierceGuard는 ProjectileDamageDealer의 관통 여유가 남아 있으면 HOVL 자체 타겟 Hit/Return 흐름을 막는다.
  * - NormalZombie와 BossZombie는 IDamageable을 구현하고, 사망 시 타겟 후보에서 제외되도록 IsAlive를 갱신한다.
  * - 좀비 사망 후 남아 있던 콜라이더 문제를 줄이기 위해 사망 상태와 충돌 판정을 함께 정리한다.
  * - 일반 좀비 16종은 Weak, Basic, Fast, Tough, Attacker, Elite 6개 NormalZombieSpec 역할군으로 묶어 기본 전투 스탯을 관리한다.

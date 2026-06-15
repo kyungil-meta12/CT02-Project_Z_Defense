@@ -58,7 +58,8 @@ Do not use display names as stable IDs.
 | `TurretStatProfileSO` | Base combat values for tier level 1: damage, range, fire interval, projectile speed, projectile count, pierce count. |
 | `TurretStatGrowthProfileSO` | Tier-level-based growth calculation using completed growth steps. |
 | `TurretUpgradeCostProfileSO` | Calculates upgrade costs from current tier level to target tier level. |
-| `TurretVFXProfileSO` | Projectile visual data only: projectile prefab, muzzle VFX, muzzle duration. No balance values. Audio is intentionally removed until the project-level sound system is rebuilt. |
+| `TurretVFXProfileSO` | Attack VFX selection data: projectile prefab or beam prefab, optional beam attack profile reference, muzzle VFX, muzzle duration. Audio is intentionally removed until the project-level sound system is rebuilt. |
+| `BeamAttackProfileSO` | Beam-specific attack rules: damage tick interval, damage multiplier, DPS interpretation, target mode, pierce radius, max targets, damage layer mask, and Frost status values. |
 | `TurretVFXProgressionSO` | Selects active VFX profile by current tier level. |
 | `TurretProjectileScaleProgressionSO` | Selects projectile scale by current tier level. |
 | `TurretEvolutionProgressionSO` | Defines available evolutions, required tier levels, branch-specific costs, icons, and effects. |
@@ -70,12 +71,13 @@ Do not use display names as stable IDs.
 2. It clamps level by evolution requirements and max level.
 3. `TurretStatCalculator` calculates runtime stats from base and growth profiles.
 4. `TurretStatProfileApplier` applies combat stats to the runtime turret components.
-5. `TurretVFXProgressionSO` selects projectile and muzzle VFX data.
+5. `TurretVFXProgressionSO` selects projectile, beam, muzzle VFX data, and optional beam attack profile data.
 6. `TurretProjectileScaleProgressionSO` selects projectile scale.
-7. Firing logic applies projectile prefab, speed, damage, pierce count, scale, and collision ignore rules per spawn.
-8. `ProjectileDamageDealer` applies damage to `IDamageable` targets.
-9. `ProjectileHitDetector` handles tracked target, trigger/collision, and movement raycast hit paths.
-10. Damage receivers spawn damage popups where appropriate.
+7. Projectile firing logic applies projectile prefab, speed, damage, pierce count, scale, and collision ignore rules per spawn.
+8. Beam firing logic keeps the beam VFX alive between fire requests and applies damage by `BeamAttackProfileSO.damageTickInterval`.
+9. `ProjectileDamageDealer` applies projectile damage to `IDamageable` targets.
+10. `ProjectileHitDetector` handles tracked target, trigger/collision, and movement raycast hit paths.
+11. Damage receivers spawn damage popups where appropriate.
 
 ## Current Balance Direction
 

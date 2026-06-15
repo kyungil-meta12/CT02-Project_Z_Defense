@@ -419,9 +419,14 @@ public class TurretDefinitionRuntimeController : MonoBehaviour
             return;
         }
 
-        if (targetTurret != null && vfxProfile.projectilePrefab != null)
+        if (targetTurret != null && vfxProfile.attackVfxType == TurretAttackVfxType.Projectile && vfxProfile.projectilePrefab != null)
         {
             targetTurret.SetProjectilePrefab(vfxProfile.projectilePrefab, runtimeStat.projectileSpeed);
+            targetTurret.SetProjectileScale(GetProjectileScale());
+        }
+        else if (targetTurret != null && vfxProfile.attackVfxType == TurretAttackVfxType.Beam && vfxProfile.beamPrefab != null)
+        {
+            targetTurret.SetProjectilePrefab(vfxProfile.beamPrefab, runtimeStat.projectileSpeed);
             targetTurret.SetProjectileScale(GetProjectileScale());
         }
 
@@ -429,6 +434,14 @@ public class TurretDefinitionRuntimeController : MonoBehaviour
         {
             targetFiringEvent.muzzleVFX = vfxProfile.muzzleVFX;
             targetFiringEvent.muzzleVFXDuration = vfxProfile.muzzleVFXDuration;
+        }
+
+        BeamFiringEvent beamFiringEvent = targetFiringEvent as BeamFiringEvent;
+        if (beamFiringEvent != null)
+        {
+            beamFiringEvent.SetBeamPrefab(vfxProfile.attackVfxType == TurretAttackVfxType.Beam ? vfxProfile.beamPrefab : null);
+            beamFiringEvent.SetAttackProfile(vfxProfile.attackVfxType == TurretAttackVfxType.Beam ? vfxProfile.beamAttackProfile : null);
+            beamFiringEvent.SetProjectileScale(GetProjectileScale());
         }
     }
 

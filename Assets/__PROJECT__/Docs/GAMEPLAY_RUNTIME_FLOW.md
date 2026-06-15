@@ -187,7 +187,7 @@ Runtime behavior:
 7. Rescue survivors can spawn at wave start from `SurvivorRescueSpawner`; `SurvivorRescueSpawnProfileSO` decides whether the current wave attempts a spawn and which chance to use.
 8. Spawned rescue survivors move from zombie spawn points to the final rear point, wait for treatment, move to the hospital, hide for the treatment timer, return, and then wait for role selection.
 9. Treated survivors can become `constructionWorker` or `engineer` through `SurvivorInteractionController`.
-10. Engineers can be dragged onto a `TurretBaseSlot`; the target turret receives a stackable damage buff through `TurretEngineerBuffReceiver`.
+10. Engineers can be clicked first and then assigned by selecting a turret target button in the engineer buff target UI; the target turret receives a stackable damage buff through `TurretEngineerBuffReceiver`.
 
 Repair target policy:
 

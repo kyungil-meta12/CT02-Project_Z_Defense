@@ -43,6 +43,7 @@ public class Survivor : MonoBehaviour
     [SerializeField] private float minTargetSearchInterval = 0.25f;
     [SerializeField] private float destinationRefreshInterval = 0.5f;
     [SerializeField] private float moveTimeout = 8f;
+    [SerializeField, Min(0.1f)] private float defenseMoveWarningInterval = 2f;
 
     [Header("방어선 이동")]
     [SerializeField] private float defensePointStoppingDistance = 0.4f;
@@ -94,9 +95,11 @@ public class Survivor : MonoBehaviour
     private bool hasVaultParameter;
     private bool loggedMissingVaultParameter;
     private float treatmentTimer;
+    private float nextDefenseMoveWarningTime;
     private bool isInitializedAsRescueSurvivor;
     private TurretEngineerBuffReceiver assignedEngineerBuffReceiver;
     private TurretBaseSlot assignedTurretSlot;
+    private NavMeshPath reusableEngineerStandbyPath;
 
     public int ActiveDefenseLineIndex => activeDefenseLineIndex;
     public SurvivorRole Role => role;
@@ -113,6 +116,7 @@ public class Survivor : MonoBehaviour
         moveSpeedHash = Animator.StringToHash(moveSpeedParameter);
         repairHash = Animator.StringToHash(repairParameter);
         vaultHash = Animator.StringToHash(vaultTriggerParameter);
+        reusableEngineerStandbyPath = new NavMeshPath();
         hasMoveSpeedParameter = HasAnimatorParameter(moveSpeedHash);
         hasRepairParameter = HasAnimatorParameter(repairHash);
         hasVaultParameter = HasAnimatorParameter(vaultHash);
@@ -138,6 +142,7 @@ public class Survivor : MonoBehaviour
         vaultTimer = 0f;
         vaultDetectionTimer = 0f;
         defenseMoveRetryTimer = 0f;
+        nextDefenseMoveWarningTime = 0f;
     }
 
     // 시작 시 게임 매니저 등록 누락을 보완한다
@@ -302,7 +307,7 @@ public class Survivor : MonoBehaviour
         return true;
     }
 
-    // 엔지니어를 터렛 배치 드래그 상태로 전환한다
+    // 엔지니어를 터렛 버프 대상 선택 대기 상태로 전환한다
     public bool TryBeginEngineerAssignment()
     {
         if (!CanBeginEngineerAssignment)
@@ -328,6 +333,12 @@ public class Survivor : MonoBehaviour
             return false;
         }
 
+        if (standbyPoint != null && !CanMoveToEngineerStandbyPoint(standbyPoint))
+        {
+            Debug.LogWarning("[Survivor] 엔지니어가 터렛 대기 위치로 이동할 수 없어 버프 배치를 취소합니다.", this);
+            return false;
+        }
+
         if (!buffReceiver.TryRegisterEngineer(this))
         {
             return false;
@@ -337,14 +348,14 @@ public class Survivor : MonoBehaviour
         assignedTurretSlot = turretSlot;
         ClearRepairTarget();
 
-        if (standbyPoint != null)
+        if (standbyPoint == null)
         {
-            defenseMoveTarget = standbyPoint;
-            ChangeState(SurvivorState.MovingToEngineerStandby);
+            ChangeState(SurvivorState.EngineerReady);
         }
         else
         {
-            ChangeState(SurvivorState.EngineerReady);
+            defenseMoveTarget = standbyPoint;
+            ChangeState(SurvivorState.MovingToEngineerStandby);
         }
 
         return true;
@@ -566,6 +577,11 @@ public class Survivor : MonoBehaviour
             return;
         }
 
+        if (TryStartVault())
+        {
+            return;
+        }
+
         if (defensePointMoveTimeout > 0f && moveTimer >= defensePointMoveTimeout)
         {
             AbortDefensePointMove("[Survivor] 방어선 포인트까지 이동 시간이 초과되어 잠시 후 재시도합니다.", true);
@@ -575,11 +591,6 @@ public class Survivor : MonoBehaviour
         if (!agent.pathPending && agent.pathStatus == NavMeshPathStatus.PathInvalid)
         {
             AbortDefensePointMove("[Survivor] 방어선 포인트까지 유효한 경로가 없어 잠시 후 재시도합니다.", true);
-            return;
-        }
-
-        if (TryStartVault())
-        {
             return;
         }
 
@@ -721,6 +732,16 @@ public class Survivor : MonoBehaviour
     // 방어선 이동 실패 상황에서 명령을 해제한다
     private void AbortDefensePointMove(string message, bool retryMove)
     {
+        if (state == SurvivorState.MovingToEngineerStandby)
+        {
+            defenseMoveTarget = null;
+            ClearEngineerAssignment();
+            ChangeState(SurvivorState.EngineerReady);
+            searchTimer = GetTargetSearchInterval();
+            LogDefenseMoveWarning("[Survivor] 엔지니어가 터렛 대기 위치로 이동할 수 없어 버프 배치를 취소합니다.");
+            return;
+        }
+
         if (retryMove && defenseMoveTarget != null && IsAgentMoveState())
         {
             agent.isStopped = true;
@@ -728,14 +749,42 @@ public class Survivor : MonoBehaviour
             destinationRefreshTimer = 0f;
             vaultDetectionTimer = 0f;
             defenseMoveRetryTimer = Mathf.Max(0.05f, defensePointRetryInterval);
-            Debug.LogWarning(message, this);
+            LogDefenseMoveWarning(message);
             return;
         }
 
         defenseMoveTarget = null;
         ChangeState(GetIdleStateForRole());
         searchTimer = GetTargetSearchInterval();
+        LogDefenseMoveWarning(message);
+    }
+
+    // 방어선 이동 경고 로그를 일정 시간 간격으로 제한한다
+    private void LogDefenseMoveWarning(string message)
+    {
+        if (Time.time < nextDefenseMoveWarningTime)
+        {
+            return;
+        }
+
+        nextDefenseMoveWarningTime = Time.time + Mathf.Max(0.1f, defenseMoveWarningInterval);
         Debug.LogWarning(message, this);
+    }
+
+    // 엔지니어가 지정 대기 지점까지 NavMesh 경로로 이동할 수 있는지 확인한다
+    private bool CanMoveToEngineerStandbyPoint(Transform standbyPoint)
+    {
+        if (standbyPoint == null || agent == null || !agent.enabled || !agent.isOnNavMesh || reusableEngineerStandbyPath == null)
+        {
+            return false;
+        }
+
+        if (!agent.CalculatePath(standbyPoint.position, reusableEngineerStandbyPath))
+        {
+            return false;
+        }
+
+        return reusableEngineerStandbyPath.status == NavMeshPathStatus.PathComplete;
     }
 
     // 현재 상태에 맞는 이동 목적지가 비어 있으면 저장된 기준 지점으로 복구한다
@@ -852,6 +901,11 @@ public class Survivor : MonoBehaviour
 
         if (direction.sqrMagnitude <= 0.001f)
         {
+            direction = GetDirectionToDefenseMoveTarget();
+        }
+
+        if (direction.sqrMagnitude <= 0.001f)
+        {
             direction = transform.forward;
             direction.y = 0f;
         }
@@ -921,6 +975,19 @@ public class Survivor : MonoBehaviour
         }
 
         return false;
+    }
+
+    // 현재 방어선/역할 이동 목적지 방향을 반환한다
+    private Vector3 GetDirectionToDefenseMoveTarget()
+    {
+        if (defenseMoveTarget == null)
+        {
+            return Vector3.zero;
+        }
+
+        Vector3 direction = defenseMoveTarget.position - transform.position;
+        direction.y = 0f;
+        return direction;
     }
 
     // 장애물 넘기 착지 위치를 계산한다

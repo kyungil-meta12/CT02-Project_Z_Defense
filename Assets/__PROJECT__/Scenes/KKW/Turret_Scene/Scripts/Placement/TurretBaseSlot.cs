@@ -6,11 +6,11 @@
 [DisallowMultipleComponent]
 public class TurretBaseSlot : MonoBehaviour
 {
-    [Header("References")]
+    [Header("참조")]
     [SerializeField] private Transform buildPoint;
     [SerializeField] private Collider placementHitArea;
 
-    [Header("Runtime")]
+    [Header("런타임")]
     [SerializeField] private TurretDefinitionRuntimeController currentTurret;
     [SerializeField] private GameObject currentTurretObject;
 
@@ -44,6 +44,13 @@ public class TurretBaseSlot : MonoBehaviour
         {
             return buildPoint != null && currentTurret == null && currentTurretObject == null;
         }
+    }
+
+    // 현재 슬롯 하위 터렛 상태를 갱신하고 터렛 컨트롤러를 반환한다
+    public TurretDefinitionRuntimeController RefreshAndGetCurrentTurret()
+    {
+        RefreshCurrentTurret();
+        return currentTurret;
     }
 
     // 컴포넌트 추가 시 배치 기준 참조를 자동으로 연결한다
@@ -214,8 +221,24 @@ public class TurretBaseSlot : MonoBehaviour
     // 빌드 포인트 아래 이미 존재하는 터렛을 현재 점유 상태로 동기화한다
     private void RefreshCurrentTurret()
     {
-        if (currentTurret != null || buildPoint == null)
+        if (currentTurret != null)
         {
+            currentTurretObject = currentTurret.gameObject;
+            return;
+        }
+
+        if (currentTurretObject != null)
+        {
+            currentTurret = currentTurretObject.GetComponentInChildren<TurretDefinitionRuntimeController>(true);
+            if (currentTurret != null)
+            {
+                return;
+            }
+        }
+
+        if (buildPoint == null)
+        {
+            currentTurretObject = null;
             return;
         }
 

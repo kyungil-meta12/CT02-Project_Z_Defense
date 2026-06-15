@@ -1103,6 +1103,7 @@ MonoBehaviour:
   anim: {fileID: 3317958215391167824}
   agent: {fileID: 3250142583933110996}
   col: {fileID: 6951844493432217934}
+  rewardParticleScale: 4
   boneRoot: {fileID: 2016404133050458762}
   screamerSkillRadius: 10
   screamerSkillSpeedMultiplier: 1.5

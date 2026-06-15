@@ -1489,6 +1489,7 @@ MonoBehaviour:
   placementHitArea: {fileID: 710000023}
   currentObstacle: {fileID: 0}
   currentObstacleObject: {fileID: 0}
+  logPlacementResults: 1
 --- !u!1001 &36784809
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1802,6 +1803,7 @@ MonoBehaviour:
   placementHitArea: {fileID: 710000013}
   currentObstacle: {fileID: 0}
   currentObstacleObject: {fileID: 0}
+  logPlacementResults: 1
 --- !u!1 &44802945
 GameObject:
   m_ObjectHideFlags: 0
@@ -9658,6 +9660,7 @@ MonoBehaviour:
   placementHitArea: {fileID: 710000053}
   currentObstacle: {fileID: 0}
   currentObstacleObject: {fileID: 0}
+  logPlacementResults: 1
 --- !u!1001 &242774535
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -12332,6 +12335,7 @@ MonoBehaviour:
   placementHitArea: {fileID: 710000043}
   currentObstacle: {fileID: 0}
   currentObstacleObject: {fileID: 0}
+  logPlacementResults: 1
 --- !u!1001 &302559276
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -13710,6 +13714,7 @@ MonoBehaviour:
   placementHitArea: {fileID: 710000063}
   currentObstacle: {fileID: 0}
   currentObstacleObject: {fileID: 0}
+  logPlacementResults: 1
 --- !u!1001 &338097029
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -23085,6 +23090,63 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 30ba70d292dcc7f42b889c8be62d39fd, type: 3}
+--- !u!1001 &601386249
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 3789013703479059040, guid: d04491edbda01594681aac2514500441, type: 3}
+      propertyPath: m_Name
+      value: CoinParticleCreator
+      objectReference: {fileID: 0}
+    - target: {fileID: 8790677917204306891, guid: d04491edbda01594681aac2514500441, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8790677917204306891, guid: d04491edbda01594681aac2514500441, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8790677917204306891, guid: d04491edbda01594681aac2514500441, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8790677917204306891, guid: d04491edbda01594681aac2514500441, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8790677917204306891, guid: d04491edbda01594681aac2514500441, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8790677917204306891, guid: d04491edbda01594681aac2514500441, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8790677917204306891, guid: d04491edbda01594681aac2514500441, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8790677917204306891, guid: d04491edbda01594681aac2514500441, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8790677917204306891, guid: d04491edbda01594681aac2514500441, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8790677917204306891, guid: d04491edbda01594681aac2514500441, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: d04491edbda01594681aac2514500441, type: 3}
 --- !u!1001 &602482966
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -38595,6 +38657,7 @@ MonoBehaviour:
   placementHitArea: {fileID: 2097920983}
   currentObstacle: {fileID: 0}
   currentObstacleObject: {fileID: 0}
+  logPlacementResults: 1
 --- !u!1001 &1028059893
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -41864,6 +41927,7 @@ MonoBehaviour:
   previewLocalOffset: {x: 0, y: 0, z: 0}
   previewScaleMultiplier: 1
   createRuntimePreviewMaterials: 1
+  logPlacementResults: 1
 --- !u!4 &1109591907
 Transform:
   m_ObjectHideFlags: 0
@@ -51156,6 +51220,7 @@ MonoBehaviour:
   placementHitArea: {fileID: 162733011}
   currentObstacle: {fileID: 0}
   currentObstacleObject: {fileID: 0}
+  logPlacementResults: 1
 --- !u!1001 &1400594164
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -68860,6 +68925,7 @@ MonoBehaviour:
   placementHitArea: {fileID: 710000003}
   currentObstacle: {fileID: 0}
   currentObstacleObject: {fileID: 0}
+  logPlacementResults: 1
 --- !u!1001 &1920173658
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -69035,6 +69101,7 @@ MonoBehaviour:
   placementHitArea: {fileID: 565359405}
   currentObstacle: {fileID: 0}
   currentObstacleObject: {fileID: 0}
+  logPlacementResults: 1
 --- !u!1001 &1930091812
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -73550,6 +73617,7 @@ MonoBehaviour:
   placementHitArea: {fileID: 710000033}
   currentObstacle: {fileID: 0}
   currentObstacleObject: {fileID: 0}
+  logPlacementResults: 1
 --- !u!4 &2063791682 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 460636, guid: 4d4db3865f3e276479c2dbe7d1547e08, type: 3}
@@ -76628,6 +76696,7 @@ SceneRoots:
   - {fileID: 1002660677}
   - {fileID: 293100234}
   - {fileID: 1848747282}
+  - {fileID: 601386249}
   - {fileID: 1821289271}
   - {fileID: 1262826206}
   - {fileID: 459482903}

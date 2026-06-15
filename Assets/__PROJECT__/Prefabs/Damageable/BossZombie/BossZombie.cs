@@ -22,6 +22,8 @@ public class BossZombie : PoolObject, IDamageable
     public Animator anim;
     public NavMeshAgent agent;
     public Collider col;
+    [Header("보상 파티클 스케일")] public float rewardParticleScale;
+
     private Rigidbody rb;
     [SerializeField] private Transform boneRoot;
     
@@ -482,7 +484,7 @@ public class BossZombie : PoolObject, IDamageable
         // 코인 획득량에 따라 다른 코인 파티클을 생성한다.
         if (CoinParticleCreator.Inst)
         {
-            CoinParticleCreator.Inst.Create(ref rewardResult, transform.position, transform.localScale);
+            CoinParticleCreator.Inst.Create(ref rewardResult, transform.position, transform.localScale * rewardParticleScale);
         }
 
         hpUI.gameObject.SetActive(false); // hp UI 비활성화

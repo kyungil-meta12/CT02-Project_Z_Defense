@@ -1106,6 +1106,8 @@ MonoBehaviour:
   boneRoot: {fileID: 2016404133050458762}
   screamerSkillRadius: 10
   screamerSkillSpeedMultiplier: 1.5
+  navigationRotationSpeed: 2.5
+  movingRootMotionRotationWeight: 0.7
   logReceivedDamage: 1
   bossZombieEnum:
     GUID:

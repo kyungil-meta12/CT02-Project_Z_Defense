@@ -31,6 +31,9 @@ public class BossZombie : PoolObject, IDamageable
     private readonly List<Collider> colliders = new List<Collider>(4);
     [SerializeField] private float screamerSkillRadius = 10f;
     [SerializeField] private float screamerSkillSpeedMultiplier = 1.5f;
+    [Header("루트모션 회전 보정")]
+    [SerializeField, Min(0.0f)] private float navigationRotationSpeed = 2.5f;
+    [SerializeField, Range(0.0f, 1.0f)] private float movingRootMotionRotationWeight = 0.25f;
     [SerializeField] private bool logReceivedDamage = true;
     private Coroutine screamerSkillCoroutine;
     private readonly Dictionary<NormalZombie, Vector2> screamerOriginalSpeeds = new Dictionary<NormalZombie, Vector2>();
@@ -196,7 +199,7 @@ public class BossZombie : PoolObject, IDamageable
 
         destDir.Normalize();
         Quaternion targetRotation = Quaternion.LookRotation(destDir);
-        transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime * 2.5f);
+        transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime * navigationRotationSpeed);
     }
 
     // NavMeshAgent의 설정 속도를 애니메이터 이동 속도 파라미터에 반영한다
@@ -227,6 +230,10 @@ public class BossZombie : PoolObject, IDamageable
         if (agent.desiredVelocity.sqrMagnitude <= 0.1f)
         {
             transform.rotation *= anim.deltaRotation;
+        }
+        else if (movingRootMotionRotationWeight > 0.0f)
+        {
+            transform.rotation *= Quaternion.Slerp(Quaternion.identity, anim.deltaRotation, movingRootMotionRotationWeight);
         }
 
         Vector3 deltaPosition = anim.deltaPosition;

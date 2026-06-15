@@ -12,14 +12,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8b5dd47e07734b5ba982e898e372846a, type: 3}
   m_Name: GateDefinition
   m_EditorClassIdentifier: Assembly-CSharp::ObstacleDefinitionSO
-  obstacleId: 0
+  obstacleId: 00
   displayName: Gate
   icon: {fileID: 0}
   slotType: 1
-  obstacleSpec: {fileID: 0}
-  basePrefab: {fileID: 0}
+  obstacleSpec: {fileID: 11400000, guid: 7824d05712199cd43a6351f0a90b932e, type: 2}
+  basePrefab: {fileID: 4908843969338282300, guid: 45b01daa187860441962548cfe519c52, type: 3}
   previewPrefab: {fileID: 0}
   placementLocalEulerAngles: {x: 0, y: 0, z: 0}
-  maxLevel: 0
-  upgradeCostProfile: {fileID: 0}
-  prefabProgression: {fileID: 0}
+  maxLevel: 500
+  upgradeCostProfile: {fileID: 11400000, guid: 17111ea9480e5a34ca8fe2a70e9a6045, type: 2}
+  prefabProgression: {fileID: 11400000, guid: 2b1beda3898981b449d535cd8ecc35fe, type: 2}

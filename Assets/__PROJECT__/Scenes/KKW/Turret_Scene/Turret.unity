@@ -265,25 +265,9 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
-    - target: {fileID: 8538779154782827799, guid: c5531d7a9900bd5449481e7ab8b5d38e, type: 3}
-      propertyPath: muzzleObject
-      value: 
-      objectReference: {fileID: 1574764448}
     - target: {fileID: 8581458487753932061, guid: c5531d7a9900bd5449481e7ab8b5d38e, type: 3}
       propertyPath: m_Name
       value: Frost_Turret
-      objectReference: {fileID: 0}
-    - target: {fileID: 8961221714325612455, guid: c5531d7a9900bd5449481e7ab8b5d38e, type: 3}
-      propertyPath: m_LocalScale.x
-      value: 2
-      objectReference: {fileID: 0}
-    - target: {fileID: 8961221714325612455, guid: c5531d7a9900bd5449481e7ab8b5d38e, type: 3}
-      propertyPath: m_LocalScale.y
-      value: 2
-      objectReference: {fileID: 0}
-    - target: {fileID: 8961221714325612455, guid: c5531d7a9900bd5449481e7ab8b5d38e, type: 3}
-      propertyPath: m_LocalScale.z
-      value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 8961221714325612455, guid: c5531d7a9900bd5449481e7ab8b5d38e, type: 3}
       propertyPath: m_LocalPosition.x
@@ -324,10 +308,6 @@ PrefabInstance:
     - target: {fileID: 8961221714325612455, guid: c5531d7a9900bd5449481e7ab8b5d38e, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8961221714325612455, guid: c5531d7a9900bd5449481e7ab8b5d38e, type: 3}
-      propertyPath: m_ConstrainProportionsScale
-      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -2562,11 +2542,6 @@ PrefabInstance:
 Transform:
   m_CorrespondingSourceObject: {fileID: 3673139976782844499, guid: d141286c10718dc499b2807e41a25a9e, type: 3}
   m_PrefabInstance: {fileID: 1570037707}
-  m_PrefabAsset: {fileID: 0}
---- !u!1 &1574764448 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 2412428816443099788, guid: c5531d7a9900bd5449481e7ab8b5d38e, type: 3}
-  m_PrefabInstance: {fileID: 334053089}
   m_PrefabAsset: {fileID: 0}
 --- !u!1001 &1647603795
 PrefabInstance:

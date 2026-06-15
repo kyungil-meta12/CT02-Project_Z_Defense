@@ -319,7 +319,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: d92d70aa98a5713408d060d70ca3fbf1, type: 3}
       propertyPath: m_LocalScale.y
-      value: 1
+      value: 0.6
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: d92d70aa98a5713408d060d70ca3fbf1, type: 3}
       propertyPath: m_LocalScale.z
@@ -433,9 +433,20 @@ MonoBehaviour:
   closeRangePredictionDistance: 2
   closeRangeFireDistance: 2
   closeRangeTurretAngleAttack: 60
+  requireAimAngleBeforeFire: 0
   fireTick: 1
   targetSearchInterval: 0.1
   aimPointLerpSpeed: 18
+  targetVelocityLerpSpeed: 10
+  maxPredictionLeadTime: 0.25
+  useInterceptPrediction: 1
+  useProjectileSpeedBasedPrediction: 1
+  slowProjectileSpeedThreshold: 40
+  fastProjectileSpeedThreshold: 120
+  slowProjectileMaxLeadTime: 0.85
+  fastProjectileMaxLeadTime: 0.2
+  ignoreVerticalPrediction: 1
+  predictionVelocityDeadZone: 0.05
   showDebug: 0
 --- !u!114 &4343940118528154943
 MonoBehaviour:
@@ -461,6 +472,11 @@ MonoBehaviour:
   lineOfSightBlockingMask:
     serializedVersion: 2
     m_Bits: 64
+  ignoreObstacleBuildSlotColliders: 1
+  ignorePlacedObstacleColliders: 1
+  additionalLineOfSightIgnoreMask:
+    serializedVersion: 2
+    m_Bits: 0
   showRangeGizmo: 1
   drawRangeOnlyWhenSelected: 1
   rangeGizmoColor: {r: 0, g: 1, b: 0, a: 1}

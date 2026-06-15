@@ -17,7 +17,7 @@ MonoBehaviour:
     maxWave: 10
     spawnInterval: 1.6
     spawnCount: 8
-    spawnBossAsLastEnemy: 0
+    spawnBossAsLastEnemy: 1
     normalZombieEntries:
     - prefab: {fileID: 3408621799653841791, guid: 423d2cc959960cd4f9d4174d0642e39d, type: 3}
       weight: 1
@@ -52,7 +52,7 @@ MonoBehaviour:
     maxWave: 25
     spawnInterval: 1.45
     spawnCount: 12
-    spawnBossAsLastEnemy: 0
+    spawnBossAsLastEnemy: 1
     normalZombieEntries:
     - prefab: {fileID: 3408621799653841791, guid: 423d2cc959960cd4f9d4174d0642e39d, type: 3}
       weight: 7
@@ -103,7 +103,7 @@ MonoBehaviour:
     maxWave: 50
     spawnInterval: 1.3
     spawnCount: 16
-    spawnBossAsLastEnemy: 0
+    spawnBossAsLastEnemy: 1
     normalZombieEntries:
     - prefab: {fileID: 3408621799653841791, guid: 423d2cc959960cd4f9d4174d0642e39d, type: 3}
       weight: 45
@@ -508,7 +508,7 @@ MonoBehaviour:
     maxWave: 280
     spawnInterval: 0.76
     spawnCount: 44
-    spawnBossAsLastEnemy: 0
+    spawnBossAsLastEnemy: 1
     normalZombieEntries:
     - prefab: {fileID: 9179889507590658349, guid: e184adc49f6f3f74cbc19d4aa94e413c, type: 3}
       weight: 5

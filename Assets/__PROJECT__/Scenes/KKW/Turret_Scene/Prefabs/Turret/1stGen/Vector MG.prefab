@@ -758,15 +758,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 069723a5a664cfa4a83d609667cbf8fa, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -13.994309
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 069723a5a664cfa4a83d609667cbf8fa, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0.95594025
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 069723a5a664cfa4a83d609667cbf8fa, type: 3}
       propertyPath: m_LocalPosition.z
-      value: -1.1136208
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 069723a5a664cfa4a83d609667cbf8fa, type: 3}
       propertyPath: m_LocalRotation.w
@@ -861,9 +861,20 @@ MonoBehaviour:
   closeRangePredictionDistance: 2
   closeRangeFireDistance: 2
   closeRangeTurretAngleAttack: 60
+  requireAimAngleBeforeFire: 0
   fireTick: 2
   targetSearchInterval: 0.1
   aimPointLerpSpeed: 18
+  targetVelocityLerpSpeed: 10
+  maxPredictionLeadTime: 0.25
+  useInterceptPrediction: 1
+  useProjectileSpeedBasedPrediction: 1
+  slowProjectileSpeedThreshold: 40
+  fastProjectileSpeedThreshold: 120
+  slowProjectileMaxLeadTime: 0.85
+  fastProjectileMaxLeadTime: 0.2
+  ignoreVerticalPrediction: 1
+  predictionVelocityDeadZone: 0.05
   showDebug: 0
 --- !u!114 &6443846602863267145
 MonoBehaviour:
@@ -889,6 +900,11 @@ MonoBehaviour:
   lineOfSightBlockingMask:
     serializedVersion: 2
     m_Bits: 64
+  ignoreObstacleBuildSlotColliders: 1
+  ignorePlacedObstacleColliders: 1
+  additionalLineOfSightIgnoreMask:
+    serializedVersion: 2
+    m_Bits: 0
   showRangeGizmo: 1
   drawRangeOnlyWhenSelected: 1
   rangeGizmoColor: {r: 0, g: 1, b: 0, a: 1}

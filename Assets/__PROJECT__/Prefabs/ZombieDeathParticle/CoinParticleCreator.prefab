@@ -44,8 +44,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b0fafe46bda4236418dce1f17843821e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CoinParticleCreator
-  bronzeCoinParticle: {fileID: 5562945292595165231, guid: 6a33903d8840ada4b869826fec437b5b, type: 3}
-  silverCoinParticle: {fileID: 7286110470129178844, guid: 9a57cb464ff1dcf44844cee2db3e0266, type: 3}
-  goldCoinParticle: {fileID: 8451110377646851787, guid: 2f0ea911ba0aad548890974b1b198832, type: 3}
+  bronzeCoinParticle: {fileID: 3761652429698088218, guid: 6a33903d8840ada4b869826fec437b5b, type: 3}
+  silverCoinParticle: {fileID: 8287806977561527558, guid: 9a57cb464ff1dcf44844cee2db3e0266, type: 3}
+  goldCoinParticle: {fileID: 5382060342776160524, guid: 2f0ea911ba0aad548890974b1b198832, type: 3}
   minSilverRange: 90
   minGoldRange: 150

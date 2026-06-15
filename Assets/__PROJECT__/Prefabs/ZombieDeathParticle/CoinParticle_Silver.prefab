@@ -9932,7 +9932,7 @@ GameObject:
   - component: {fileID: 6794433393279479041}
   - component: {fileID: 6794433393279479043}
   - component: {fileID: 6794433393279479040}
-  - component: {fileID: 7286110470129178844}
+  - component: {fileID: 8287806977561527558}
   m_Layer: 0
   m_Name: CoinParticle_Silver
   m_TagString: Untagged
@@ -14764,7 +14764,7 @@ ParticleSystemRenderer:
   m_MeshWeighting1: 1
   m_MeshWeighting2: 1
   m_MeshWeighting3: 1
---- !u!114 &7286110470129178844
+--- !u!114 &8287806977561527558
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -14773,9 +14773,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 6794433393279479054}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d65abddcd666b1b46b9d5451e1a633d7, type: 3}
+  m_Script: {fileID: 11500000, guid: 5ce5bdf7b2fe61a44958c2977616f502, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::CoinParticle
+  m_EditorClassIdentifier: Assembly-CSharp::PoolParticle
 --- !u!1 &6794433393706180820
 GameObject:
   m_ObjectHideFlags: 0

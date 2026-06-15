@@ -6,6 +6,9 @@ public class DropItem : PoolObject, IPointerDownHandler
 {
     [HideInInspector] public RewardCurrencyType rewardType;
     [HideInInspector] public int dropCount;
+
+    public PoolParticle pickupParticlePrefab;
+
     private ParticleSystem particle;
 
     void Awake()
@@ -34,6 +37,12 @@ public class DropItem : PoolObject, IPointerDownHandler
 
                 // 아이템 매니저에 보상 개수만큼 추가
                 ItemManager.Inst.AddReward(rewardType, dropCount, false);
+
+                // 아이템 획득 파티클 추가
+                var pickupParticle = MemoryPool.Inst.GetInstance<PoolParticle>(pickupParticlePrefab);
+                pickupParticle.transform.position = transform.position;
+                pickupParticle.transform.localScale = transform.localScale;
+
                 ReturnInstance();
             }
         }

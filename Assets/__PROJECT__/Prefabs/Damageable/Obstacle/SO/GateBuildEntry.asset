@@ -10,15 +10,15 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 417ea8b0f63d4937af1ad737b48664bb, type: 3}
-  m_Name: ObstacleBuildEntry
+  m_Name: GateBuildEntry
   m_EditorClassIdentifier: Assembly-CSharp::ObstacleBuildEntrySO
-  displayName: Obstacle
+  displayName: Gate
   icon: {fileID: 0}
-  slotType: 0
-  obstacleDefinition: {fileID: 11400000, guid: 7babf586f05649341b1934eaae888810, type: 2}
-  obstaclePrefab: {fileID: 1242232213132576, guid: 93623804a1860b2409814746410da6bd, type: 3}
+  slotType: 1
+  obstacleDefinition: {fileID: 11400000, guid: 781046f2fb8889548978708f03c908fe, type: 2}
+  obstaclePrefab: {fileID: 4908843969338282300, guid: 45b01daa187860441962548cfe519c52, type: 3}
   previewPrefab: {fileID: 0}
-  placementLocalEulerAngles: {x: 0, y: 0, z: 0}
+  placementLocalEulerAngles: {x: 0, y: 90, z: 0}
   buildCosts:
   - currencyType: 0
     amount: 500

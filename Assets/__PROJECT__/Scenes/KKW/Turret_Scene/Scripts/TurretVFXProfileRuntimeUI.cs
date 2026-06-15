@@ -104,15 +104,25 @@ public class TurretVFXProfileRuntimeUI : MonoBehaviour
             return;
         }
 
-        if (targetTurret != null)
+        if (targetTurret != null && profile.attackVfxType == TurretAttackVfxType.Projectile)
         {
             targetTurret.SetProjectilePrefab(profile.projectilePrefab, 0.0f);
+        }
+        else if (targetTurret != null && profile.attackVfxType == TurretAttackVfxType.Beam)
+        {
+            targetTurret.SetProjectilePrefab(profile.beamPrefab, 0.0f);
         }
 
         if (targetFiringEvent != null)
         {
             targetFiringEvent.muzzleVFX = profile.muzzleVFX;
             targetFiringEvent.muzzleVFXDuration = profile.muzzleVFXDuration;
+        }
+
+        BeamFiringEvent beamFiringEvent = targetFiringEvent as BeamFiringEvent;
+        if (beamFiringEvent != null)
+        {
+            beamFiringEvent.SetBeamPrefab(profile.attackVfxType == TurretAttackVfxType.Beam ? profile.beamPrefab : null);
         }
 
         ApplyStatProfileApplier();

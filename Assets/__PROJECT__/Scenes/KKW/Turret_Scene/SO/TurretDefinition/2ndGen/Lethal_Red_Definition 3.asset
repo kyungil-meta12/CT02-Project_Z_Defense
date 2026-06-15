@@ -21,4 +21,4 @@ MonoBehaviour:
   upgradeCostProfile: {fileID: 11400000, guid: 596f62bedb05a5141b268af65ee4fce1, type: 2}
   vfxProgressionProfile: {fileID: 11400000, guid: dc75796ecb7cc3b4fb96902d56fef410, type: 2}
   projectileScaleProgressionProfile: {fileID: 11400000, guid: f2321b4a27d76f24f8c0414527deed6d, type: 2}
-  evolutionProgressionProfile: {fileID: 0}
+  evolutionProgressionProfile: {fileID: 11400000, guid: 387860400b2e8ad4289c3c9279caf49f, type: 2}

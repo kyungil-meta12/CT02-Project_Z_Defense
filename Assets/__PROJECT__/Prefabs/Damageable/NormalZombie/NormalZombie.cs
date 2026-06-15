@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.AI;
 using System.Collections;
-using System.Collections.Generic;
+using System;
 
 /// <summary>
 /// 일반 좀비의 웨이브 스탯 초기화, 이동/공격, 피격, 사망, 처치 보상 지급을 담당한다.
@@ -17,6 +17,7 @@ public class NormalZombie : PoolObject, IDamageable
     
     public HpUI hpUI;
     public Collider hitCollider;
+    public ItemDropper itemDropper;
 
     [HideInInspector] public Animator anim;
     [HideInInspector] public bool attackState;
@@ -58,12 +59,12 @@ public class NormalZombie : PoolObject, IDamageable
     // 풀에서 꺼낼 때 스펙 기반 스탯과 런타임 상태를 초기화한다
     public override void OnSpawn()
     {
-        float randomMoveAttackSpeed = Random.Range(spec.MinMoveAttackSpeed, spec.MaxMoveAttackSpeed);
-        float randomAttackDamage = Random.Range(spec.MinAttackDamage, spec.MaxAttackDamage);
-        float randomHp = Random.Range(spec.MinHp, spec.MaxHp);
+        float randomMoveAttackSpeed = UnityEngine.Random.Range(spec.MinMoveAttackSpeed, spec.MaxMoveAttackSpeed);
+        float randomAttackDamage = UnityEngine.Random.Range(spec.MinAttackDamage, spec.MaxAttackDamage);
+        float randomHp = UnityEngine.Random.Range(spec.MinHp, spec.MaxHp);
 
         // 애니메이터 랜덤 선택
-        anim.runtimeAnimatorController = animControllers[Random.Range(0, animControllers.Length)];
+        anim.runtimeAnimatorController = animControllers[UnityEngine.Random.Range(0, animControllers.Length)];
         anim.SetBool("IsAttackState", false);
 
         // 이동/공격 속도
@@ -306,10 +307,17 @@ public class NormalZombie : PoolObject, IDamageable
         GameManager.Inst.IncreaseKillCount();
         GrantKillReward();  // rewardResult를 이 메서드 내부에서 얻는다.
 
+        // 이외의 보상은 필드에 아이템 형식으로 드랍한다.
+        // 드랍하지 않을 수도 있다.
+        foreach (RewardCurrencyType type in Enum.GetValues(typeof(RewardCurrencyType)))
+        {
+            itemDropper.CreateDropItem(rewardResult, transform.position, type);
+        }
+
         // 코인 획득량에 따라 다른 코인 파티클을 생성한다.
         if (CoinParticleCreator.Inst)
         {
-            CoinParticleCreator.Inst.Create(ref rewardResult, transform.position, transform.localScale * rewardParticleScale);
+            CoinParticleCreator.Inst.Create(rewardResult, transform.position, transform.localScale * rewardParticleScale);
         }
 
         hpUI.gameObject.SetActive(false); // hp UI 비활성화

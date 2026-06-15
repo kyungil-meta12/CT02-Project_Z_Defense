@@ -28,11 +28,11 @@ public class CoinParticleCreator : MonoBehaviour
     /// <summary>
     /// 코인 파티클을 생성한다.
     /// </summary>
-    /// <param name="refResult"></param>
-    public void Create(ref RewardResult refResult, Vector3 createPosition, Vector3 createScale)
+    /// <param name="inputResult"></param>
+    public void Create(RewardResult inputResult, Vector3 createPosition, Vector3 createScale)
     {
         CoinParticle particle = null;
-        var dropCoinCount = refResult.dict[RewardCurrencyType.Coin];
+        var dropCoinCount = inputResult.dict[RewardCurrencyType.Coin];
 
         if (dropCoinCount < minSilverRange)  // 브론즈 코인 파티클 생성
         {

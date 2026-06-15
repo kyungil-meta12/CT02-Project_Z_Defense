@@ -484,7 +484,7 @@ public class BossZombie : PoolObject, IDamageable
         // 코인 획득량에 따라 다른 코인 파티클을 생성한다.
         if (CoinParticleCreator.Inst)
         {
-            CoinParticleCreator.Inst.Create(ref rewardResult, transform.position, transform.localScale * rewardParticleScale);
+            CoinParticleCreator.Inst.Create(rewardResult, transform.position, transform.localScale * rewardParticleScale);
         }
 
         hpUI.gameObject.SetActive(false); // hp UI 비활성화

@@ -12,7 +12,7 @@ public class CoinParticle : PoolObject
     public override void OnSpawn()
     {
         // 파티클 초기화 후 재생
-        particle.Simulate(0f, true);
+        particle.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
         particle.Play();
     }
 

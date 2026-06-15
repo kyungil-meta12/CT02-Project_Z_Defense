@@ -2239,6 +2239,7 @@ GameObject:
   - component: {fileID: 7326208106863662701}
   - component: {fileID: 3854332720377832996}
   - component: {fileID: 2198761140652240216}
+  - component: {fileID: 5687897227173672291}
   - component: {fileID: -888220476763322617}
   - component: {fileID: 3351056619506243608}
   - component: {fileID: 910046681025484354}
@@ -2362,11 +2363,29 @@ MonoBehaviour:
   logReceivedDamage: 1
   hpUI: {fileID: 8476630290883587589}
   hitCollider: {fileID: 660597126758215374}
+  itemDropper: {fileID: 5687897227173672291}
   anim: {fileID: 0}
   attackState: 0
   agent: {fileID: 0}
   attackTarget: {fileID: 0}
   attackTargetContactPoint: {x: 0, y: 0, z: 0}
+--- !u!114 &5687897227173672291
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2927825134225070825}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fd57f329a1d1f3744b4fc70f05b0ae8e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ItemDropper
+  drops:
+  - CurrencyType: 1
+    ItemPrefab: {fileID: 7299261853022007694, guid: 0d9a9cf12778f4c478cde9c355a04e4a, type: 3}
+  - CurrencyType: 2
+    ItemPrefab: {fileID: 1930757025630432659, guid: 89009a750bcbb434681a1039e01fd260, type: 3}
 --- !u!54 &-888220476763322617
 Rigidbody:
   m_ObjectHideFlags: 0

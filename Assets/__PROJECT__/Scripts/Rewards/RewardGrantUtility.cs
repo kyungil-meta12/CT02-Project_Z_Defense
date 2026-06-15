@@ -36,6 +36,7 @@ public static class RewardGrantUtility
     // 단일 보상 엔트리의 확률과 배율을 계산해 지급한다
     private static void GrantRewardEntry(RewardEntry reward, ZombieRewardContext context, ZombieRewardModifier[] modifiers, ref RewardResult refResult)
     {
+        
         if (reward == null || reward.amount <= 0)
         {
             return;
@@ -53,7 +54,11 @@ public static class RewardGrantUtility
             return;
         }
 
-        ItemManager.Inst.AddReward(reward.currencyType, finalAmount, true);
+        // 코인을 제외한 나머지 보상은 플레이어가 직접 터치하여 얻도록 한다.
+        if(reward.currencyType == RewardCurrencyType.Coin)
+        {
+            ItemManager.Inst.AddReward(reward.currencyType, finalAmount, true);
+        }
 
         // 레퍼런스 파라미터를 통해 최종 보상 결과값을 얻는다
         // dictionary에 각 currencyType에 해당하는 최종 보상 값을 저장한다.

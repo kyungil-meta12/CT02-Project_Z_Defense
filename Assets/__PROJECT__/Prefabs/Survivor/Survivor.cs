@@ -1,6 +1,9 @@
 using UnityEngine;
 using UnityEngine.AI;
 
+/// <summary>
+/// 생존자의 이동, 치료, 역할 전환, 수리, 엔지니어 배치를 관리한다.
+/// </summary>
 [RequireComponent(typeof(NavMeshAgent))]
 [RequireComponent(typeof(Animator))]
 public class Survivor : MonoBehaviour
@@ -12,6 +15,15 @@ public class Survivor : MonoBehaviour
         Repairing,
         Retreating,
         ReturningToDefensePoint,
+        RescueEntering,
+        TreatmentReady,
+        MovingToHospital,
+        InTreatment,
+        ReturningFromHospital,
+        RoleSelectionReady,
+        EngineerReady,
+        MovingToEngineerStandby,
+        EngineerAssigned,
         Vaulting
     }
 
@@ -35,6 +47,15 @@ public class Survivor : MonoBehaviour
     [Header("방어선 이동")]
     [SerializeField] private float defensePointStoppingDistance = 0.4f;
     [SerializeField] private float defensePointMoveTimeout = 12f;
+
+    [Header("구출 및 치료")]
+    [SerializeField] private SurvivorRole role = SurvivorRole.constructionWorker;
+    [SerializeField] private GameObject visibleRoot;
+    [SerializeField] private Collider interactionCollider;
+    [SerializeField, Min(0f)] private float defaultTreatmentDuration = 8f;
+    [SerializeField] private Transform hospitalPoint;
+    [SerializeField] private Transform finalRearPoint;
+    [SerializeField] private bool registerWithGameManagerOnEnable = true;
 
     [Header("장애물 넘기")]
     [SerializeField] private LayerMask vaultObstacleLayerMask;
@@ -69,8 +90,16 @@ public class Survivor : MonoBehaviour
     private bool hasRepairParameter;
     private bool hasVaultParameter;
     private bool loggedMissingVaultParameter;
+    private float treatmentTimer;
+    private bool isInitializedAsRescueSurvivor;
+    private TurretEngineerBuffReceiver assignedEngineerBuffReceiver;
 
     public int ActiveDefenseLineIndex => activeDefenseLineIndex;
+    public SurvivorRole Role => role;
+    public bool CanRepairObstacles => role == SurvivorRole.constructionWorker;
+    public bool CanRequestTreatment => role == SurvivorRole.survivor && state == SurvivorState.TreatmentReady;
+    public bool CanAssignRole => role == SurvivorRole.survivor && state == SurvivorState.RoleSelectionReady;
+    public bool CanBeginEngineerAssignment => role == SurvivorRole.engineer && (state == SurvivorState.EngineerReady || state == SurvivorState.EngineerAssigned);
 
     // 필요한 컴포넌트와 애니메이터 파라미터를 초기화한다
     private void Awake()
@@ -83,6 +112,7 @@ public class Survivor : MonoBehaviour
         hasMoveSpeedParameter = HasAnimatorParameter(moveSpeedHash);
         hasRepairParameter = HasAnimatorParameter(repairHash);
         hasVaultParameter = HasAnimatorParameter(vaultHash);
+        AutoBindInteractionReferences();
         ConfigureDefaultVaultLayerMask();
         ConfigureAgent(spec != null ? spec.repairRange : 0f);
     }
@@ -90,8 +120,12 @@ public class Survivor : MonoBehaviour
     // 활성화될 때 기본 대기 상태로 초기화한다
     private void OnEnable()
     {
-        RegisterWithGameManager();
-        ChangeState(SurvivorState.Idle);
+        if (registerWithGameManagerOnEnable)
+        {
+            RegisterWithGameManager();
+        }
+
+        ChangeState(isInitializedAsRescueSurvivor ? SurvivorState.RescueEntering : GetIdleStateForRole());
         defenseMoveTarget = null;
         activeDefenseLineIndex = NO_DEFENSE_LINE;
         searchTimer = 0f;
@@ -101,15 +135,20 @@ public class Survivor : MonoBehaviour
         vaultDetectionTimer = 0f;
     }
 
+    // 시작 시 게임 매니저 등록 누락을 보완한다
     private void Start()
     {
-        RegisterWithGameManager();
+        if (registerWithGameManagerOnEnable)
+        {
+            RegisterWithGameManager();
+        }
     }
 
     // 비활성화될 때 수리 예약과 게임 매니저 등록을 해제한다
     private void OnDisable()
     {
         ClearRepairTarget();
+        ClearEngineerAssignment();
         defenseMoveTarget = null;
 
         if (GameManager.Inst != null)
@@ -133,7 +172,7 @@ public class Survivor : MonoBehaviour
     }
 
     // 방어선 붕괴 시 생존자를 지정한 대피 포인트로 이동시킨다
-    public void StartDefenseLineRetreat(int defenseLineIndex, Transform retreatPoint)
+    public void StartDefenseLineRetreat(int defenseLineIndex, Transform retreatPoint, bool isGateBreached)
     {
         if (retreatPoint == null)
         {
@@ -141,9 +180,19 @@ public class Survivor : MonoBehaviour
             return;
         }
 
+        if (!isGateBreached && role != SurvivorRole.constructionWorker)
+        {
+            return;
+        }
+
         if (activeDefenseLineIndex > defenseLineIndex && state != SurvivorState.ReturningToDefensePoint)
         {
             return;
+        }
+
+        if (isGateBreached)
+        {
+            ClearEngineerAssignment();
         }
 
         activeDefenseLineIndex = defenseLineIndex;
@@ -161,6 +210,11 @@ public class Survivor : MonoBehaviour
             return;
         }
 
+        if (role != SurvivorRole.constructionWorker)
+        {
+            return;
+        }
+
         if (activeDefenseLineIndex > defenseLineIndex)
         {
             return;
@@ -170,6 +224,134 @@ public class Survivor : MonoBehaviour
         defenseMoveTarget = restoredPoint;
         ClearRepairTarget();
         ChangeState(SurvivorState.ReturningToDefensePoint);
+    }
+
+    // 구출 생존자의 이동 기준 지점과 치료 시간을 설정한다
+    public void ConfigureRescueFlow(Transform hospitalPoint_, Transform finalRearPoint_, float treatmentDuration)
+    {
+        hospitalPoint = hospitalPoint_;
+        finalRearPoint = finalRearPoint_;
+        defaultTreatmentDuration = Mathf.Max(0f, treatmentDuration);
+    }
+
+    // 지정 위치로 생존자를 즉시 이동시킨다
+    public void SetPosition(Transform target)
+    {
+        if (target == null)
+        {
+            return;
+        }
+
+        if (agent != null && agent.enabled && agent.isOnNavMesh)
+        {
+            agent.Warp(target.position);
+        }
+        else
+        {
+            transform.position = target.position;
+        }
+
+        transform.rotation = target.rotation;
+    }
+
+    // 스폰 지점에서 최후방 지점으로 뛰어오도록 시작한다
+    public void StartRescueRun(Transform finalRearPoint_)
+    {
+        role = SurvivorRole.survivor;
+        isInitializedAsRescueSurvivor = true;
+        finalRearPoint = finalRearPoint_;
+        defenseMoveTarget = finalRearPoint;
+        ClearRepairTarget();
+        ClearEngineerAssignment();
+        SetInteractionVisible(true);
+        ChangeState(SurvivorState.RescueEntering);
+    }
+
+    // 치료 버튼 입력으로 병원 이동을 시작한다
+    public bool TryStartTreatment()
+    {
+        if (!CanRequestTreatment || hospitalPoint == null)
+        {
+            return false;
+        }
+
+        defenseMoveTarget = hospitalPoint;
+        ClearRepairTarget();
+        ClearEngineerAssignment();
+        ChangeState(SurvivorState.MovingToHospital);
+        return true;
+    }
+
+    // 치료된 생존자에게 새 역할을 부여한다
+    public bool TryAssignRole(SurvivorRole nextRole)
+    {
+        if (!CanAssignRole || nextRole == SurvivorRole.survivor)
+        {
+            return false;
+        }
+
+        role = nextRole;
+        ClearRepairTarget();
+        ClearEngineerAssignment();
+        ChangeState(GetIdleStateForRole());
+        return true;
+    }
+
+    // 엔지니어를 터렛 배치 드래그 상태로 전환한다
+    public bool TryBeginEngineerAssignment()
+    {
+        if (!CanBeginEngineerAssignment)
+        {
+            return false;
+        }
+
+        ClearEngineerAssignment();
+        return true;
+    }
+
+    // 엔지니어를 지정 터렛 버프 수신기에 배치한다
+    public bool TryAssignEngineerToTurret(TurretEngineerBuffReceiver buffReceiver, Transform standbyPoint)
+    {
+        if (role != SurvivorRole.engineer || buffReceiver == null)
+        {
+            return false;
+        }
+
+        if (!buffReceiver.TryRegisterEngineer(this))
+        {
+            return false;
+        }
+
+        assignedEngineerBuffReceiver = buffReceiver;
+        ClearRepairTarget();
+
+        if (standbyPoint != null)
+        {
+            defenseMoveTarget = standbyPoint;
+            ChangeState(SurvivorState.MovingToEngineerStandby);
+        }
+        else
+        {
+            ChangeState(SurvivorState.EngineerReady);
+        }
+
+        return true;
+    }
+
+    // 배치된 터렛이 사라졌을 때 엔지니어 배치 상태를 해제한다
+    public void ReleaseEngineerAssignment(TurretEngineerBuffReceiver buffReceiver)
+    {
+        if (assignedEngineerBuffReceiver != buffReceiver)
+        {
+            return;
+        }
+
+        assignedEngineerBuffReceiver = null;
+        if (role == SurvivorRole.engineer)
+        {
+            defenseMoveTarget = null;
+            ChangeState(SurvivorState.EngineerReady);
+        }
     }
 
     // NavMeshAgent 이동 수치를 지정한 정지 거리로 맞춘다
@@ -202,7 +384,14 @@ public class Survivor : MonoBehaviour
                 break;
             case SurvivorState.Retreating:
             case SurvivorState.ReturningToDefensePoint:
+            case SurvivorState.RescueEntering:
+            case SurvivorState.MovingToHospital:
+            case SurvivorState.ReturningFromHospital:
+            case SurvivorState.MovingToEngineerStandby:
                 UpdateDefensePointMove();
+                break;
+            case SurvivorState.InTreatment:
+                UpdateTreatment();
                 break;
             case SurvivorState.Vaulting:
                 UpdateVaulting();
@@ -213,6 +402,11 @@ public class Survivor : MonoBehaviour
     // 대기 중 일정 주기로 수리 대상을 찾는다
     private void UpdateIdle()
     {
+        if (!CanRepairObstacles)
+        {
+            return;
+        }
+
         searchTimer -= Time.deltaTime;
         if (searchTimer > 0f)
         {
@@ -350,16 +544,37 @@ public class Survivor : MonoBehaviour
 
         if (HasReachedDefensePoint())
         {
-            bool wasReturning = state == SurvivorState.ReturningToDefensePoint;
+            SurvivorState completedState = state;
             defenseMoveTarget = null;
 
-            if (wasReturning)
+            if (completedState == SurvivorState.ReturningToDefensePoint)
             {
                 activeDefenseLineIndex = NO_DEFENSE_LINE;
             }
 
-            ChangeState(SurvivorState.Idle);
+            HandleDefensePointMoveCompleted(completedState);
         }
+    }
+
+    // 치료 대기 시간을 갱신하고 완료 시 최후방 복귀를 시작한다
+    private void UpdateTreatment()
+    {
+        treatmentTimer -= Time.deltaTime;
+        if (treatmentTimer > 0f)
+        {
+            return;
+        }
+
+        SetInteractionVisible(true);
+
+        if (finalRearPoint == null)
+        {
+            ChangeState(SurvivorState.RoleSelectionReady);
+            return;
+        }
+
+        defenseMoveTarget = finalRearPoint;
+        ChangeState(SurvivorState.ReturningFromHospital);
     }
 
     // 장애물 넘기 중 위치 보간을 갱신한다
@@ -409,7 +624,7 @@ public class Survivor : MonoBehaviour
     // GameManager에서 수리 대상을 가져온다
     private void TryFindRepairTarget()
     {
-        if (GameManager.Inst == null)
+        if (!CanRepairObstacles || GameManager.Inst == null)
         {
             return;
         }
@@ -679,7 +894,11 @@ public class Survivor : MonoBehaviour
     {
         return state == SurvivorState.MoveToTarget
             || state == SurvivorState.Retreating
-            || state == SurvivorState.ReturningToDefensePoint;
+            || state == SurvivorState.ReturningToDefensePoint
+            || state == SurvivorState.RescueEntering
+            || state == SurvivorState.MovingToHospital
+            || state == SurvivorState.ReturningFromHospital
+            || state == SurvivorState.MovingToEngineerStandby;
     }
 
     // 상태를 변경하고 진입 처리를 적용한다
@@ -713,6 +932,23 @@ public class Survivor : MonoBehaviour
             vaultDetectionTimer = 0f;
             moveTimer = 0f;
         }
+
+        if (state == SurvivorState.RescueEntering ||
+            state == SurvivorState.MovingToHospital ||
+            state == SurvivorState.ReturningFromHospital ||
+            state == SurvivorState.MovingToEngineerStandby)
+        {
+            ConfigureAgent(defensePointStoppingDistance);
+            destinationRefreshTimer = 0f;
+            vaultDetectionTimer = 0f;
+            moveTimer = 0f;
+        }
+
+        if (state == SurvivorState.InTreatment)
+        {
+            treatmentTimer = Mathf.Max(0f, defaultTreatmentDuration);
+            SetInteractionVisible(false);
+        }
     }
 
     // 현재 애니메이션 파라미터를 갱신한다
@@ -735,6 +971,80 @@ public class Survivor : MonoBehaviour
         if (hasRepairParameter)
         {
             anim.SetBool(repairHash, isRepairing);
+        }
+    }
+
+    // 이동 완료 상태에 맞는 후속 상태로 전환한다
+    private void HandleDefensePointMoveCompleted(SurvivorState completedState)
+    {
+        switch (completedState)
+        {
+            case SurvivorState.RescueEntering:
+                ChangeState(SurvivorState.TreatmentReady);
+                break;
+            case SurvivorState.MovingToEngineerStandby:
+                ChangeState(SurvivorState.EngineerAssigned);
+                break;
+            case SurvivorState.ReturningFromHospital:
+                ChangeState(SurvivorState.RoleSelectionReady);
+                break;
+            case SurvivorState.MovingToHospital:
+                ChangeState(SurvivorState.InTreatment);
+                break;
+            default:
+                ChangeState(GetIdleStateForRole());
+                break;
+        }
+    }
+
+    // 현재 역할에 맞는 대기 상태를 반환한다
+    private SurvivorState GetIdleStateForRole()
+    {
+        return role == SurvivorRole.engineer ? SurvivorState.EngineerReady : SurvivorState.Idle;
+    }
+
+    // 엔지니어 터렛 배치 등록을 해제한다
+    private void ClearEngineerAssignment()
+    {
+        if (assignedEngineerBuffReceiver == null)
+        {
+            return;
+        }
+
+        assignedEngineerBuffReceiver.UnregisterEngineer(this);
+        assignedEngineerBuffReceiver = null;
+    }
+
+    // 치료 중 시각 오브젝트와 상호작용 콜라이더 노출을 전환한다
+    private void SetInteractionVisible(bool visible)
+    {
+        if (visibleRoot != null)
+        {
+            visibleRoot.SetActive(visible);
+        }
+
+        if (interactionCollider != null)
+        {
+            interactionCollider.enabled = visible;
+        }
+
+        if (agent != null)
+        {
+            agent.enabled = visible;
+        }
+    }
+
+    // 상호작용 참조가 비어 있으면 기본 참조를 자동 연결한다
+    private void AutoBindInteractionReferences()
+    {
+        if (visibleRoot == null)
+        {
+            visibleRoot = transform.childCount > 0 ? transform.GetChild(0).gameObject : null;
+        }
+
+        if (interactionCollider == null)
+        {
+            interactionCollider = GetComponent<Collider>();
         }
     }
 

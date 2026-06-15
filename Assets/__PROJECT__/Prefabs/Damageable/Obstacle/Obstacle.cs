@@ -73,18 +73,6 @@ public class Obstacle : MonoBehaviour, IDamageable
         }
     }
 
-    //todo 레벨업시 호출, 레벨 가중치를 hp최대치에 추가
-    public void LevelUp()
-    {
-        if (!ValidateRequiredReferences())
-        {
-            return;
-        }
-
-        TotalHp = CalculateTotalHp(spec, runtimeLevel);
-        hpUI.InputTotalHp(TotalHp);
-    }
-
     // 지정 스펙과 레벨을 기준으로 체력 상태를 갱신한다
     public void ApplyRuntimeLevel(ObstacleSpec spec_, int level, bool preserveHpRatio)
     {

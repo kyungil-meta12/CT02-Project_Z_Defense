@@ -306,9 +306,11 @@ public class GameManager : MonoBehaviour
             return;
         }
 
+        bool isGateBreached = slot != null && slot.SlotType == ObstacleBuildSlotType.Gate;
+
         //Debug.Log($"[GameManager] 방어선 {defenseLineIndex} 붕괴! 생존자 대피 명령 전달");
         defenseLine.isBreached = true;
-        CommandSurvivorsToRetreat(defenseLineIndex, defenseLine.retreatPoint);
+        CommandSurvivorsToRetreat(defenseLineIndex, defenseLine.retreatPoint, isGateBreached);
     }
 
     // 외부 재건축 시스템이 방어선 복구 완료 시 생존자 복귀를 요청한다
@@ -348,7 +350,7 @@ public class GameManager : MonoBehaviour
     public bool TryGetRepairTarget(Vector3 requesterPosition, Survivor survivor, out Obstacle obstacle)
     {
         obstacle = null;
-        if (survivor == null || defenseLines == null)
+        if (survivor == null || !survivor.CanRepairObstacles || defenseLines == null)
         {
             return false;
         }
@@ -614,7 +616,7 @@ public class GameManager : MonoBehaviour
     }
 
     // 등록된 생존자에게 대피 명령을 전달한다
-    private void CommandSurvivorsToRetreat(int defenseLineIndex, Transform retreatPoint)
+    private void CommandSurvivorsToRetreat(int defenseLineIndex, Transform retreatPoint, bool isGateBreached)
     {
         if (retreatPoint == null)
         {
@@ -635,7 +637,7 @@ public class GameManager : MonoBehaviour
             }
 
             //Debug.Log($"[GameManager] {survivor.name}에게 방어선 {defenseLineIndex} 대피 명령 전달");
-            survivor.StartDefenseLineRetreat(defenseLineIndex, retreatPoint);
+            survivor.StartDefenseLineRetreat(defenseLineIndex, retreatPoint, isGateBreached);
             retreatedCount++;
         }
 

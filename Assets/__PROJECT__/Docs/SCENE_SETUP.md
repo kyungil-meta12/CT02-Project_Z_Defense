@@ -146,8 +146,10 @@ Each survivor should have:
 - `SurvivorSpec`
 - `NavMeshAgent`
 - `Animator`
+- A world collider for `SurvivorInteractionController` selection
 - Animator parameters matching configured names when animations are required
 - Valid `vaultObstacleLayerMask`, or an `Obstacle` layer available for fallback
+- Optional `visibleRoot` child if treatment should hide the visual while keeping the survivor controller alive
 
 Survivor movement depends on:
 
@@ -155,6 +157,15 @@ Survivor movement depends on:
 - Non-zero move speed
 - Positive repair range
 - Valid retreat/restored points for defense-line movement
+- Valid final rear point and hospital point for rescued survivor treatment flow
+
+Rescue and role UI setup:
+
+- Add `SurvivorRescueSpawner` to a scene object and assign `survivorPrefab`, zombie-side `spawnPoints`, `finalRearPoint`, `hospitalPoint`, `treatmentDuration`, and `spawnChancePerWave`.
+- Add `SurvivorInteractionController` to an editor-authored popup UI object and assign `popupPanel`, `TMP_Text` labels, and `Button` references.
+- UI button labels should be English, such as `Treat`, `Construction Worker`, and `Engineer`.
+- Assign survivor and turret slot layer masks so click selection and engineer drag use `Physics.RaycastNonAlloc` only against relevant layers.
+- Turrets can receive stackable engineer damage buffs through `TurretEngineerBuffReceiver`; the interaction controller adds it to the selected turret at runtime if it is missing.
 
 ## Zombie Spawner Setup
 

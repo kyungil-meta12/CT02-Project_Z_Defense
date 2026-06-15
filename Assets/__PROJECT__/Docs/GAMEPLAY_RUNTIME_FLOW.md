@@ -165,18 +165,32 @@ Survivor states:
 - `Repairing`
 - `Retreating`
 - `ReturningToDefensePoint`
+- `RescueEntering`
+- `TreatmentReady`
+- `MovingToHospital`
+- `InTreatment`
+- `ReturningFromHospital`
+- `RoleSelectionReady`
+- `EngineerReady`
+- `MovingToEngineerStandby`
+- `EngineerAssigned`
 - `Vaulting`
 
 Runtime behavior:
 
 1. `Survivor` registers with `GameManager` on enable/start and unregisters on disable.
-2. In `Idle`, survivor periodically asks `GameManager.TryGetRepairTarget` for a damaged obstacle.
-3. In `MoveToTarget`, survivor moves toward the reserved obstacle using `NavMeshAgent` and throttled destination refresh.
-4. In `Repairing`, survivor calls `Obstacle.Repair` until the obstacle is fully repaired or target becomes invalid.
-5. In `Retreating` or `ReturningToDefensePoint`, survivor moves to the configured defense point and may vault over `Obstacle` objects.
+2. Survivor role is stored as `SurvivorRole`: `survivor`, `constructionWorker`, or `engineer`.
+3. In `Idle`, only `constructionWorker` survivors periodically ask `GameManager.TryGetRepairTarget` for a damaged obstacle.
+4. In `MoveToTarget`, survivor moves toward the reserved obstacle using `NavMeshAgent` and throttled destination refresh.
+5. In `Repairing`, survivor calls `Obstacle.Repair` until the obstacle is fully repaired or target becomes invalid.
+6. In `Retreating` or `ReturningToDefensePoint`, survivor moves to the configured defense point and may vault over `Obstacle` objects.
+7. Rescue survivors can spawn at wave start from `SurvivorRescueSpawner`, move from zombie spawn points to the final rear point, wait for treatment, move to the hospital, hide for the treatment timer, return, and then wait for role selection.
+8. Treated survivors can become `constructionWorker` or `engineer` through `SurvivorInteractionController`.
+9. Engineers can be dragged onto a `TurretBaseSlot`; the target turret receives a stackable damage buff through `TurretEngineerBuffReceiver`.
 
 Repair target policy:
 
+- `GameManager.TryGetRepairTarget` rejects non-`constructionWorker` survivors.
 - Only damaged, alive, unreserved obstacles can be reserved.
 - Only obstacles currently occupying registered defense-line slots are considered.
 - If a survivor has retreated behind a defense line, obstacles at or before that active defense-line index are blocked as repair targets.
@@ -188,9 +202,11 @@ Breach flow:
 
 1. An obstacle fractures.
 2. `GameManager.NotifyObstacleFractured` marks the matching line breached.
-3. Survivors receive the line index and retreat point.
-4. Survivors clear repair targets and move to the retreat point.
-5. After arrival, survivors return to `Idle`, but their active defense-line index remains set.
+3. `Gate` slot breaches are marked separately from normal obstacle breaches.
+4. Normal obstacle breaches are only followed by `constructionWorker` survivors.
+5. `Gate` breaches force every survivor role to clear current work and move to the retreat point.
+6. Survivors clear repair targets and move to the retreat point.
+7. After arrival, survivors return to their role idle state, but their active defense-line index remains set for construction workers.
 
 Restore flow:
 

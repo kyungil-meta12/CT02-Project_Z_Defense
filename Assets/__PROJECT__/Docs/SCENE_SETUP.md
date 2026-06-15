@@ -122,6 +122,22 @@ Notes:
 - `ObstacleDefinitionSO` owns upgrade cost, max level, and level-based prefab progression. Rebuilding the same definition in the same slot inherits the slot's stored destroyed-obstacle level.
 - Level-based replacement prefabs must include `Obstacle`, `HpUI`, fracture setup, and compatible colliders because the slot may instantiate them directly during upgrade or rebuild.
 
+## Obstacle Upgrade UI Setup
+
+Obstacle upgrade UI can be placed from the Unity menu:
+
+- `Project Z Defense/UI/Create Obstacle Upgrade Popup UI`
+
+The menu creates an editable `ObstacleUpgradePopupCanvas` and `ObstacleUpgradePopup` hierarchy in the current scene, then attaches `ObstacleUpgradePopupUI` to the popup controller root and wires the serialized UI references. The visible background image, layout group, texts, and button live under `ObstacleUpgradePopup/Panel`; only `Panel` is hidden or shown at runtime so the controller object stays active for click detection. The runtime component does not create Canvas or popup objects, so layout and styling should be edited directly in the scene.
+
+Setup notes:
+
+- `ObstacleUpgradePopupUI.selectionLayerMask` must include the layers used by installed obstacle colliders.
+- Installed obstacles must have an `ObstacleUpgradeRuntimeController` with a valid `ObstacleDefinitionSO`.
+- The popup hides while `ObstaclePlacementController` is actively placing an obstacle.
+- The first-pass UI supports one-level upgrades, current HP display, next cost display, max-level state, repair-reserved state, and level-based prefab replacement notice.
+- If an older standalone `ObstacleUpgradePopupUI` object exists from the previous runtime-generated setup, run the menu again to create the editable hierarchy and remove the old component.
+
 ## Survivor Setup
 
 Each survivor should have:

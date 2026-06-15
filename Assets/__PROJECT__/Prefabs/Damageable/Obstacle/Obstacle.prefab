@@ -214,7 +214,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e8292160db174e5d82e9e6925be6d1b4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ObstacleUpgradeRuntimeController
-  obstacleDefinition: {fileID: 0}
+  obstacleDefinition: {fileID: 11400000, guid: 7babf586f05649341b1934eaae888810, type: 2}
   level: 1
   applyOnStart: 1
   targetObstacle: {fileID: 5835674188501093774}

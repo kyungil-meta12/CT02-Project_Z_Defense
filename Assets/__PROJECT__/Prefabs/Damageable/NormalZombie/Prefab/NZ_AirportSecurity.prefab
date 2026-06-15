@@ -2239,6 +2239,7 @@ GameObject:
   - component: {fileID: 7326208106863662701}
   - component: {fileID: 3854332720377832996}
   - component: {fileID: 2198761140652240216}
+  - component: {fileID: 5687897227173672291}
   - component: {fileID: -888220476763322617}
   - component: {fileID: 3351056619506243608}
   - component: {fileID: 910046681025484354}
@@ -2355,20 +2356,36 @@ MonoBehaviour:
   spec: {fileID: 11400000, guid: 9427b99aa7a4430c8ccbb5215f4d6c56, type: 2}
   rewardProfileOverride: {fileID: 11400000, guid: da80630286cb280468bd4a234d4f8265, type: 2}
   animControllers:
-  - {fileID: 9100000, guid: 7276f3537f9bae045910ac2ab627a9f6, type: 2}
-  - {fileID: 22100000, guid: 76ecaf9415f78914d9b61a8ef19bd17c, type: 2}
-  - {fileID: 22100000, guid: bab19bc558969094f9a7792c49a09f49, type: 2}
   - {fileID: 22100000, guid: c8ab4e27c8b2b2341b0a57f6fea44b8a, type: 2}
   - {fileID: 22100000, guid: 42499c0794d724f4396528ea423197b5, type: 2}
   - {fileID: 22100000, guid: 0b7c52e7343462241a8817465a95215c, type: 2}
+  rewardParticleScale: 2
   logReceivedDamage: 1
   hpUI: {fileID: 8476630290883587589}
   hitCollider: {fileID: 660597126758215374}
+  itemDropper: {fileID: 5687897227173672291}
   anim: {fileID: 0}
   attackState: 0
   agent: {fileID: 0}
   attackTarget: {fileID: 0}
   attackTargetContactPoint: {x: 0, y: 0, z: 0}
+--- !u!114 &5687897227173672291
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2927825134225070825}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fd57f329a1d1f3744b4fc70f05b0ae8e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ItemDropper
+  drops:
+  - CurrencyType: 1
+    ItemPrefab: {fileID: 7299261853022007694, guid: 0d9a9cf12778f4c478cde9c355a04e4a, type: 3}
+  - CurrencyType: 2
+    ItemPrefab: {fileID: 1930757025630432659, guid: 89009a750bcbb434681a1039e01fd260, type: 3}
 --- !u!54 &-888220476763322617
 Rigidbody:
   m_ObjectHideFlags: 0

@@ -167,6 +167,28 @@ Rescue and role UI setup:
 - Assign survivor and turret slot layer masks so click selection and engineer drag use `Physics.RaycastNonAlloc` only against relevant layers.
 - Turrets can receive stackable engineer damage buffs through `TurretEngineerBuffReceiver`; the interaction controller adds it to the selected turret at runtime if it is missing.
 
+## Game Over Panel Setup
+
+Create the UI from the editor menu:
+
+- `Project Z Defense > UI > Create Game Over Panel UI`
+
+The menu creates:
+
+- `GameOverPanelCanvas`
+- `GameOverPanelController`
+- `Panel`
+- `Title`
+- `Status`
+
+Scene wiring:
+
+- Assign the generated `GameOverPanelUI` to `GameManager.gameOverPanelUI`.
+- Keep `GameOverPanelController` active; the generated `Panel` is the object that fades in/out.
+- Set `GameManager.gameOverFadeInDuration` and `gameOverFadeOutDuration`; default runtime expectation is 10 seconds each.
+- Ensure `ZombieSpawner` exists in the scene so it can register with `GameManager` and participate in pause, despawn, previous-wave prepare, and resume.
+- Ensure obstacle slots have stored `ObstacleDefinitionSO` progress if they need to be rebuilt after gate destruction.
+
 ## Zombie Spawner Setup
 
 `ZombieSpawner` requires:

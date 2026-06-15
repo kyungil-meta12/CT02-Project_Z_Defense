@@ -1,6 +1,10 @@
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
+/// <summary>
+/// 웨이브별 좀비 스폰, 스폰 정지, 활성 좀비 디스폰, 웨이브 재시작 준비를 관리한다.
+/// </summary>
 public class ZombieSpawner : MonoBehaviour
 {
     [Header("신규 웨이브 스폰 프로필")] public ZombieWaveSpawnProfileSO waveSpawnProfile;
@@ -16,6 +20,8 @@ public class ZombieSpawner : MonoBehaviour
     private bool spawnEnabled = true; // 스폰 활성화 상태
     private bool currentSpawnBossAsLastEnemy = true; // 현재 웨이브 마지막 스폰 보스 여부
     private ZombieSpawnRuntimeModifiers currentRuntimeModifiers = ZombieSpawnRuntimeModifiers.Default; // 현재 웨이브 좀비 배율
+    private Coroutine waveWaitCoroutine;
+    private readonly List<PoolObject> spawnedZombies = new List<PoolObject>(64);
 
     // 시작 시 현재 웨이브의 스폰 설정을 초기화하고 웨이브 변경 이벤트를 구독한다
     void Start()
@@ -25,6 +31,7 @@ public class ZombieSpawner : MonoBehaviour
 
         if (GameManager.Inst != null)
         {
+            GameManager.Inst.RegisterZombieSpawner(this);
             GameManager.Inst.InputDestKillCount(currMaxSpawnCount);
             GameManager.Inst.OnWaveIncrease += OnWaveIncrease;
         }
@@ -36,6 +43,7 @@ public class ZombieSpawner : MonoBehaviour
         if(GameManager.Inst)
         {
             GameManager.Inst.OnWaveIncrease -= OnWaveIncrease;
+            GameManager.Inst.UnregisterZombieSpawner(this);
         }
     }
 
@@ -45,7 +53,7 @@ public class ZombieSpawner : MonoBehaviour
         ApplyWaveSpawnSettings(wave);
         GameManager.Inst.InputDestKillCount(currMaxSpawnCount);
         currSpawnCount = 0;
-        StartCoroutine(WaveWaitCoroutine());
+        waveWaitCoroutine = StartCoroutine(WaveWaitCoroutine());
     }
 
     // 웨이브가 증가할 때 5초간 스폰하지 않는다.
@@ -55,6 +63,49 @@ public class ZombieSpawner : MonoBehaviour
         spawnEnabled = false;
         yield return new WaitForSeconds(5f);
         spawnEnabled = true;
+        waveWaitCoroutine = null;
+    }
+
+    // 게임오버 또는 일시 정지 중 추가 스폰을 멈춘다
+    public void PauseSpawning()
+    {
+        spawnEnabled = false;
+        StopWaveWaitCoroutine();
+    }
+
+    // 준비된 웨이브의 스폰을 다시 시작한다
+    public void ResumeSpawning()
+    {
+        currTime = 0f;
+        spawnEnabled = true;
+    }
+
+    // 지정 웨이브를 처음부터 다시 스폰할 수 있도록 준비하고 목표 스폰 수를 반환한다
+    public int PrepareWaveForRestart(int wave)
+    {
+        StopWaveWaitCoroutine();
+        ApplyWaveSpawnSettings(wave);
+        currSpawnCount = 0;
+        currTime = 0f;
+        spawnEnabled = false;
+        return currMaxSpawnCount;
+    }
+
+    // 이 스포너가 생성한 활성 좀비를 모두 풀로 반환한다
+    public void DespawnAllSpawnedZombies()
+    {
+        for (int i = spawnedZombies.Count - 1; i >= 0; i--)
+        {
+            PoolObject zombie = spawnedZombies[i];
+            spawnedZombies.RemoveAt(i);
+
+            if (zombie == null || !zombie.gameObject.activeInHierarchy)
+            {
+                continue;
+            }
+
+            zombie.ReturnToPool();
+        }
     }
 
     // 현재 웨이브에 맞는 스폰 프로필 설정을 적용한다
@@ -206,6 +257,7 @@ public class ZombieSpawner : MonoBehaviour
 
         zombie.SetPosition(spawnPoint);
         zombie.SetDestination(destination);
+        RegisterSpawnedZombie(zombie);
     }
 
     // 지정한 프리팹으로 보스 좀비를 스폰하고 웨이브 배율을 적용한다
@@ -235,6 +287,30 @@ public class ZombieSpawner : MonoBehaviour
 
         bossZombie.SetPosition(spawnPoint);
         bossZombie.SetDestination(destination);
+        RegisterSpawnedZombie(bossZombie);
+    }
+
+    // 웨이브 대기 코루틴이 실행 중이면 중단한다
+    private void StopWaveWaitCoroutine()
+    {
+        if (waveWaitCoroutine == null)
+        {
+            return;
+        }
+
+        StopCoroutine(waveWaitCoroutine);
+        waveWaitCoroutine = null;
+    }
+
+    // 스폰된 좀비를 디스폰 추적 목록에 등록한다
+    private void RegisterSpawnedZombie(PoolObject zombie)
+    {
+        if (zombie == null || spawnedZombies.Contains(zombie))
+        {
+            return;
+        }
+
+        spawnedZombies.Add(zombie);
     }
 
     // 등록된 스폰 위치 중 하나를 반환한다

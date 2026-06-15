@@ -93,6 +93,7 @@ public class Survivor : MonoBehaviour
     private float treatmentTimer;
     private bool isInitializedAsRescueSurvivor;
     private TurretEngineerBuffReceiver assignedEngineerBuffReceiver;
+    private TurretBaseSlot assignedTurretSlot;
 
     public int ActiveDefenseLineIndex => activeDefenseLineIndex;
     public SurvivorRole Role => role;
@@ -312,6 +313,12 @@ public class Survivor : MonoBehaviour
     // 엔지니어를 지정 터렛 버프 수신기에 배치한다
     public bool TryAssignEngineerToTurret(TurretEngineerBuffReceiver buffReceiver, Transform standbyPoint)
     {
+        return TryAssignEngineerToTurret(buffReceiver, null, standbyPoint);
+    }
+
+    // 엔지니어를 지정 터렛 슬롯의 버프 수신기에 배치한다
+    public bool TryAssignEngineerToTurret(TurretEngineerBuffReceiver buffReceiver, TurretBaseSlot turretSlot, Transform standbyPoint)
+    {
         if (role != SurvivorRole.engineer || buffReceiver == null)
         {
             return false;
@@ -323,6 +330,7 @@ public class Survivor : MonoBehaviour
         }
 
         assignedEngineerBuffReceiver = buffReceiver;
+        assignedTurretSlot = turretSlot;
         ClearRepairTarget();
 
         if (standbyPoint != null)
@@ -336,6 +344,23 @@ public class Survivor : MonoBehaviour
         }
 
         return true;
+    }
+
+    // 마지막으로 배치됐던 터렛 슬롯에 엔지니어를 다시 등록한다
+    public bool TryReassignEngineerToStoredTurret()
+    {
+        if (role != SurvivorRole.engineer || assignedTurretSlot == null || assignedTurretSlot.CurrentTurret == null)
+        {
+            return false;
+        }
+
+        TurretEngineerBuffReceiver buffReceiver = assignedTurretSlot.CurrentTurret.GetComponent<TurretEngineerBuffReceiver>();
+        if (buffReceiver == null)
+        {
+            buffReceiver = assignedTurretSlot.CurrentTurret.gameObject.AddComponent<TurretEngineerBuffReceiver>();
+        }
+
+        return TryAssignEngineerToTurret(buffReceiver, assignedTurretSlot, assignedTurretSlot.BuildPoint);
     }
 
     // 배치된 터렛이 사라졌을 때 엔지니어 배치 상태를 해제한다

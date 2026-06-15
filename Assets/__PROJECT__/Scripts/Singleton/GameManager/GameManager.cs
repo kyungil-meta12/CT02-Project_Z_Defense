@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -35,8 +36,17 @@ public class GameManager : MonoBehaviour
     [Header("방어선")]
     [SerializeField] private List<DefenseLineEntry> defenseLines = new List<DefenseLineEntry>(DEFAULT_DEFENSE_LINE_COUNT);
 
+    [Header("게임오버")]
+    [SerializeField] private GameOverPanelUI gameOverPanelUI;
+    [SerializeField, Min(0.0f)] private float gameOverFadeInDuration = 10.0f;
+    [SerializeField, Min(0.0f)] private float gameOverFadeOutDuration = 10.0f;
+
     public event Action<int> OnWaveIncrease; // 웨이브 증가 이벤트
     private readonly List<Survivor> survivors = new List<Survivor>(16);
+    private readonly List<ZombieSpawner> zombieSpawners = new List<ZombieSpawner>(2);
+    private Coroutine gameOverCoroutine;
+    private bool isWaveProgressionPaused;
+    private bool suppressDefenseLineRestore;
 
     public int Wave{ get; private set; } = 1;
     public int KillCount{ get; private set; }= 0; // 현재 킬 카운트
@@ -49,6 +59,7 @@ public class GameManager : MonoBehaviour
 
     public float StartTimeScale => startTimeScale;
     public float CurrentTimeScale => Time.timeScale;
+    public bool IsWaveProgressionPaused => isWaveProgressionPaused;
 
     // 인스펙터 값이 유효 범위를 벗어나지 않도록 보정한다
     private void OnValidate()
@@ -89,8 +100,13 @@ public class GameManager : MonoBehaviour
     // 목표 킬 수 달성 여부를 확인하고 다음 웨이브로 진행한다
     private void Update()
     {
+        if (isWaveProgressionPaused)
+        {
+            return;
+        }
+
         // 킬 카운트가 목표 킬 카운트에 도달할 시 웨이브를 증가시킨다
-        if(KillCount == DestKillCount)
+        if(DestKillCount > 0 && KillCount == DestKillCount)
         {
             KillCount = 0;
             Wave++;
@@ -147,6 +163,28 @@ public class GameManager : MonoBehaviour
         }
 
         survivors.Remove(survivor);
+    }
+
+    // 좀비 스포너를 게임오버 리셋 대상으로 등록한다
+    public void RegisterZombieSpawner(ZombieSpawner zombieSpawner)
+    {
+        if (zombieSpawner == null || zombieSpawners.Contains(zombieSpawner))
+        {
+            return;
+        }
+
+        zombieSpawners.Add(zombieSpawner);
+    }
+
+    // 좀비 스포너를 게임오버 리셋 대상에서 해제한다
+    public void UnregisterZombieSpawner(ZombieSpawner zombieSpawner)
+    {
+        if (zombieSpawner == null)
+        {
+            return;
+        }
+
+        zombieSpawners.Remove(zombieSpawner);
     }
 
     // 장애물이 속한 설치 슬롯을 슬롯 기준 방어선 목록과 동기화한다
@@ -266,6 +304,11 @@ public class GameManager : MonoBehaviour
         bool isFullyBuilt = IsDefenseLineFullyBuilt(defenseLineIndex);
         //Debug.Log($"[GameManager] 장애물 배치됨 - 방어선 {defenseLineIndex}, 붕괴 상태: {isBreached}, 완전 건설: {isFullyBuilt}");
 
+        if (suppressDefenseLineRestore)
+        {
+            return;
+        }
+
         if (isBreached && isFullyBuilt)
         {
             NotifyDefenseLineRestored(defenseLineIndex);
@@ -311,6 +354,22 @@ public class GameManager : MonoBehaviour
         //Debug.Log($"[GameManager] 방어선 {defenseLineIndex} 붕괴! 생존자 대피 명령 전달");
         defenseLine.isBreached = true;
         CommandSurvivorsToRetreat(defenseLineIndex, defenseLine.retreatPoint, isGateBreached);
+
+        if (isGateBreached)
+        {
+            StartGameOverSequence();
+        }
+    }
+
+    // 게이트 파괴 이후 게임오버 복구 시퀀스를 시작한다
+    public void StartGameOverSequence()
+    {
+        if (gameOverCoroutine != null)
+        {
+            return;
+        }
+
+        gameOverCoroutine = StartCoroutine(GameOverSequence());
     }
 
     // 외부 재건축 시스템이 방어선 복구 완료 시 생존자 복귀를 요청한다
@@ -613,6 +672,172 @@ public class GameManager : MonoBehaviour
         }
 
         return left.SlotIndex.CompareTo(right.SlotIndex);
+    }
+
+    // 게임오버 페이드, 리셋, 이전 웨이브 재시작을 순서대로 처리한다
+    private IEnumerator GameOverSequence()
+    {
+        isWaveProgressionPaused = true;
+        PauseAllZombieSpawners();
+
+        yield return FadeGameOverPanelIn();
+
+        DespawnAllZombies();
+        RebuildAllDefenseLines();
+        ReassignAllEngineers();
+        PreparePreviousWaveRestart();
+
+        yield return FadeGameOverPanelOut();
+
+        ResumeAllZombieSpawners();
+        isWaveProgressionPaused = false;
+        gameOverCoroutine = null;
+    }
+
+    // 게임오버 패널을 불투명하게 페이드한다
+    private IEnumerator FadeGameOverPanelIn()
+    {
+        if (gameOverPanelUI == null)
+        {
+            Debug.LogWarning("[GameManager] 게임오버 패널 UI가 없어 페이드 인을 건너뜁니다.", this);
+            yield break;
+        }
+
+        yield return gameOverPanelUI.FadeIn(gameOverFadeInDuration);
+    }
+
+    // 게임오버 패널을 투명하게 페이드한다
+    private IEnumerator FadeGameOverPanelOut()
+    {
+        if (gameOverPanelUI == null)
+        {
+            yield break;
+        }
+
+        yield return gameOverPanelUI.FadeOut(gameOverFadeOutDuration);
+    }
+
+    // 모든 좀비 스포너의 추가 스폰을 멈춘다
+    private void PauseAllZombieSpawners()
+    {
+        for (int i = zombieSpawners.Count - 1; i >= 0; i--)
+        {
+            ZombieSpawner zombieSpawner = zombieSpawners[i];
+            if (zombieSpawner == null)
+            {
+                zombieSpawners.RemoveAt(i);
+                continue;
+            }
+
+            zombieSpawner.PauseSpawning();
+        }
+    }
+
+    // 모든 좀비 스포너의 활성 좀비를 풀로 반환한다
+    private void DespawnAllZombies()
+    {
+        for (int i = zombieSpawners.Count - 1; i >= 0; i--)
+        {
+            ZombieSpawner zombieSpawner = zombieSpawners[i];
+            if (zombieSpawner == null)
+            {
+                zombieSpawners.RemoveAt(i);
+                continue;
+            }
+
+            zombieSpawner.DespawnAllSpawnedZombies();
+        }
+    }
+
+    // 저장된 슬롯 진행도를 기준으로 모든 방어선을 다시 배치한다
+    private void RebuildAllDefenseLines()
+    {
+        suppressDefenseLineRestore = true;
+
+        for (int i = 0; i < defenseLines.Count; i++)
+        {
+            DefenseLineEntry defenseLine = defenseLines[i];
+            if (defenseLine == null)
+            {
+                continue;
+            }
+
+            defenseLine.isBreached = false;
+
+            if (defenseLine.obstacleSlots == null)
+            {
+                continue;
+            }
+
+            for (int j = defenseLine.obstacleSlots.Count - 1; j >= 0; j--)
+            {
+                ObstacleBuildSlot slot = defenseLine.obstacleSlots[j];
+                if (slot == null)
+                {
+                    defenseLine.obstacleSlots.RemoveAt(j);
+                    continue;
+                }
+
+                slot.TryRebuildStoredObstacleWithoutCost(out _);
+            }
+        }
+
+        suppressDefenseLineRestore = false;
+    }
+
+    // 엔지니어 생존자를 마지막 터렛 슬롯에 다시 배치한다
+    private void ReassignAllEngineers()
+    {
+        for (int i = survivors.Count - 1; i >= 0; i--)
+        {
+            Survivor survivor = survivors[i];
+            if (survivor == null)
+            {
+                survivors.RemoveAt(i);
+                continue;
+            }
+
+            survivor.TryReassignEngineerToStoredTurret();
+        }
+    }
+
+    // 현재 웨이브의 이전 웨이브를 처음부터 다시 시작할 수 있도록 준비한다
+    private void PreparePreviousWaveRestart()
+    {
+        Wave = Mathf.Max(1, Wave - 1);
+        KillCount = 0;
+        DestKillCount = 0;
+
+        int totalSpawnCount = 0;
+        for (int i = zombieSpawners.Count - 1; i >= 0; i--)
+        {
+            ZombieSpawner zombieSpawner = zombieSpawners[i];
+            if (zombieSpawner == null)
+            {
+                zombieSpawners.RemoveAt(i);
+                continue;
+            }
+
+            totalSpawnCount += zombieSpawner.PrepareWaveForRestart(Wave);
+        }
+
+        InputDestKillCount(totalSpawnCount);
+    }
+
+    // 준비된 좀비 스포너를 다시 실행한다
+    private void ResumeAllZombieSpawners()
+    {
+        for (int i = zombieSpawners.Count - 1; i >= 0; i--)
+        {
+            ZombieSpawner zombieSpawner = zombieSpawners[i];
+            if (zombieSpawner == null)
+            {
+                zombieSpawners.RemoveAt(i);
+                continue;
+            }
+
+            zombieSpawner.ResumeSpawning();
+        }
     }
 
     // 등록된 생존자에게 대피 명령을 전달한다

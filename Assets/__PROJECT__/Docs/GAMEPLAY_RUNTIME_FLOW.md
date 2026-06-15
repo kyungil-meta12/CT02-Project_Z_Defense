@@ -215,6 +215,28 @@ Restore flow:
 3. Survivors receive the restored point.
 4. Survivors move back and clear their active defense-line index after arrival.
 
+## Game Over Restart Flow
+
+Gate breach flow:
+
+1. `Obstacle` fracture notifies `GameManager.NotifyObstacleFractured`.
+2. If the fractured slot type is `Gate`, `GameManager.StartGameOverSequence` starts once and pauses wave progression.
+3. Registered `ZombieSpawner` instances pause spawning immediately.
+4. `GameOverPanelUI` fades in from transparent to opaque.
+5. After fade-in, registered spawners return their tracked active zombies to `MemoryPool`.
+6. `GameManager` rebuilds registered defense-line slots from stored obstacle definition/level and restores surviving obstacles to full HP.
+7. Engineer survivors attempt to re-register their buff to the last stored turret slot.
+8. `GameManager` prepares `max(1, currentWave - 1)`, resets kill count, and asks spawners to prepare that wave from the beginning.
+9. `GameOverPanelUI` fades out from opaque to transparent.
+10. Registered spawners resume spawning.
+
+Runtime policy:
+
+- Game-over reset must not award zombie kill rewards or increase kill count.
+- `ZombieSpawner` despawns only zombies it spawned and tracks, avoiding full-scene searches during reset.
+- Defense-line rebuild is cost-free and uses `ObstacleBuildSlot` stored progress.
+- Gate breach can still issue survivor retreat, but the restart sequence is responsible for restoring obstacles and engineer buffs.
+
 ## Edge Cases To Check
 
 - `GameManager.Inst` missing when prefabs enable.
@@ -226,3 +248,8 @@ Restore flow:
 - Obstacle reaches full HP while survivor is moving or repairing.
 - Multiple survivors attempting to reserve the same obstacle.
 - Boss or normal zombie death state not updated before target selection.
+- Game-over panel reference missing when the gate breaks.
+- Multiple gate fracture notifications in the same frame.
+- Spawner wait coroutine running when game over starts.
+- Destroyed or missing stored obstacle definition during defense-line rebuild.
+- Engineer assigned turret slot missing or empty during reassign.

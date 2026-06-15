@@ -216,7 +216,7 @@ public class SurvivorInteractionController : MonoBehaviour
             buffReceiver = targetSlot.CurrentTurret.gameObject.AddComponent<TurretEngineerBuffReceiver>();
         }
 
-        engineer.TryAssignEngineerToTurret(buffReceiver, targetSlot.BuildPoint);
+        engineer.TryAssignEngineerToTurret(buffReceiver, targetSlot, targetSlot.BuildPoint);
     }
 
     // 엔지니어 드래그 상태를 취소한다

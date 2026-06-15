@@ -519,6 +519,87 @@ public class ObstacleBuildSlot : MonoBehaviour
         return true;
     }
 
+    // 저장된 장애물 진행도를 사용해 비용 없이 빈 슬롯을 다시 설치한다
+    public bool TryRebuildStoredObstacleWithoutCost(out Obstacle rebuiltObstacle)
+    {
+        rebuiltObstacle = null;
+        RefreshCurrentObstacleReference();
+
+        if (CurrentObstacle != null)
+        {
+            rebuiltObstacle = CurrentObstacle;
+            RestoreCurrentObstacleHealth(rebuiltObstacle);
+            return true;
+        }
+
+        if (!hasStoredProgress || storedObstacleDefinition == null || buildPoint == null)
+        {
+            return false;
+        }
+
+        int rebuildLevel = Mathf.Max(1, storedLevel);
+        GameObject obstaclePrefab = storedObstacleDefinition.GetPrefabForLevel(rebuildLevel);
+        if (obstaclePrefab == null)
+        {
+            Debug.LogWarning("[ObstacleBuildSlot] 저장된 장애물 프리팹이 없어 재배치할 수 없습니다.", this);
+            return false;
+        }
+
+        GameObject obstacleObject = Instantiate(obstaclePrefab, buildPoint);
+        obstacleObject.transform.localPosition = Vector3.zero;
+        obstacleObject.transform.localRotation = storedObstacleDefinition.GetPlacementLocalRotationForLevel(rebuildLevel);
+
+        rebuiltObstacle = obstacleObject.GetComponent<Obstacle>();
+        if (rebuiltObstacle == null)
+        {
+            Debug.LogError("[ObstacleBuildSlot] 재배치 프리팹에 Obstacle 컴포넌트가 없습니다.", this);
+            Destroy(obstacleObject);
+            return false;
+        }
+
+        ObstacleUpgradeRuntimeController upgradeController = obstacleObject.GetComponent<ObstacleUpgradeRuntimeController>();
+        if (upgradeController == null)
+        {
+            upgradeController = obstacleObject.AddComponent<ObstacleUpgradeRuntimeController>();
+        }
+
+        upgradeController.SetDefinition(storedObstacleDefinition, rebuildLevel);
+        rebuiltObstacle.ApplyRuntimeLevel(storedObstacleDefinition.ObstacleSpec, rebuildLevel, 1.0f);
+        currentObstacle = rebuiltObstacle;
+        currentObstacleObject = obstacleObject;
+
+        if (GameManager.Inst != null)
+        {
+            GameManager.Inst.NotifyObstaclePlaced(this, rebuiltObstacle);
+        }
+
+        return true;
+    }
+
+    // 현재 점유 장애물을 저장 진행도 기준으로 full HP 상태로 복구한다
+    private void RestoreCurrentObstacleHealth(Obstacle obstacle)
+    {
+        if (obstacle == null)
+        {
+            return;
+        }
+
+        ObstacleUpgradeRuntimeController upgradeController = obstacle.GetComponent<ObstacleUpgradeRuntimeController>();
+        if (upgradeController != null && upgradeController.CurrentDefinition != null)
+        {
+            int currentLevel = Mathf.Max(1, upgradeController.CurrentLevel);
+            StoreObstacleProgress(upgradeController.CurrentDefinition, currentLevel);
+            upgradeController.SetLevel(currentLevel, false);
+            obstacle.ApplyRuntimeLevel(upgradeController.CurrentDefinition.ObstacleSpec, currentLevel, 1.0f);
+            return;
+        }
+
+        if (obstacle.spec != null)
+        {
+            obstacle.ApplyRuntimeLevel(obstacle.spec, Mathf.Max(1, obstacle.spec.level), 1.0f);
+        }
+    }
+
     // 슬롯 하위 오브젝트에서 유효한 현재 장애물 참조를 다시 찾는다
     public void RefreshCurrentObstacleReference()
     {

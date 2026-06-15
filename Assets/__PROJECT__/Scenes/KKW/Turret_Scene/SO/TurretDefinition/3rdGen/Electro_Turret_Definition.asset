@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 28db854c229931b498137181f212c559, type: 3}
+  m_Name: Electro_Turret_Definition
+  m_EditorClassIdentifier: Assembly-CSharp::TurretDefinitionSO
+  turretId: electro_turret
+  displayName: Electro_Turret
+  basePrefab: {fileID: 5855034555855745900, guid: d80bebd108608de49a18f9fb18fc4a75, type: 3}
+  baseStatProfile: {fileID: 11400000, guid: 8ac27e6c9b40bae4facb314e59801ce5, type: 2}
+  maxLevel: 0
+  statGrowthProfile: {fileID: 11400000, guid: a7121c669286c69469e2895371d31692, type: 2}
+  upgradeCostProfile: {fileID: 11400000, guid: cc14518111b1b094697a9e0fba74fdee, type: 2}
+  vfxProgressionProfile: {fileID: 11400000, guid: a28b87f76f587d94e8461dfde4f86045, type: 2}
+  projectileScaleProgressionProfile: {fileID: 11400000, guid: 036a3d94f0588a647bbc0dc71f10a6b2, type: 2}
+  evolutionProgressionProfile: {fileID: 0}

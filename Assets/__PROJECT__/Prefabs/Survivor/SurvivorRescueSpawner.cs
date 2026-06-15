@@ -7,6 +7,7 @@ public class SurvivorRescueSpawner : MonoBehaviour
 {
     [Header("생존자 스폰")]
     [SerializeField] private Survivor survivorPrefab;
+    [SerializeField] private SurvivorRescueSpawnProfileSO spawnProfile;
     [SerializeField, Range(0f, 1f)] private float spawnChancePerWave = 0.2f;
     [SerializeField] private bool spawnOnStartWave;
 
@@ -26,7 +27,8 @@ public class SurvivorRescueSpawner : MonoBehaviour
 
         if (spawnOnStartWave)
         {
-            TrySpawnSurvivor();
+            int wave = GameManager.Inst == null ? 1 : GameManager.Inst.Wave;
+            TrySpawnSurvivor(wave);
         }
     }
 
@@ -42,13 +44,13 @@ public class SurvivorRescueSpawner : MonoBehaviour
     // 웨이브 증가 시 생존자 스폰을 확률적으로 시도한다
     private void OnWaveIncrease(int wave)
     {
-        TrySpawnSurvivor();
+        TrySpawnSurvivor(wave);
     }
 
     // 스폰 확률과 참조 유효성을 확인한 뒤 생존자를 생성한다
-    private void TrySpawnSurvivor()
+    private void TrySpawnSurvivor(int wave)
     {
-        if (survivorPrefab == null || finalRearPoint == null || Random.value > spawnChancePerWave)
+        if (survivorPrefab == null || finalRearPoint == null || !ShouldSpawnSurvivor(wave))
         {
             return;
         }
@@ -69,6 +71,25 @@ public class SurvivorRescueSpawner : MonoBehaviour
         survivor.ConfigureRescueFlow(hospitalPoint, finalRearPoint, treatmentDuration);
         survivor.SetPosition(spawnPoint);
         survivor.StartRescueRun(finalRearPoint);
+    }
+
+    // 현재 웨이브의 프로필 확률을 기준으로 스폰 여부를 결정한다
+    private bool ShouldSpawnSurvivor(int wave)
+    {
+        float spawnChance;
+        if (spawnProfile != null)
+        {
+            if (!spawnProfile.TryGetSpawnChance(wave, out spawnChance))
+            {
+                return false;
+            }
+        }
+        else
+        {
+            spawnChance = spawnChancePerWave;
+        }
+
+        return Random.value <= Mathf.Clamp01(spawnChance);
     }
 
     // 등록된 스폰 위치 중 하나를 반환한다

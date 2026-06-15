@@ -47,6 +47,8 @@ public class Survivor : MonoBehaviour
     [Header("방어선 이동")]
     [SerializeField] private float defensePointStoppingDistance = 0.4f;
     [SerializeField] private float defensePointMoveTimeout = 12f;
+    [SerializeField, Min(0.05f)] private float defensePointRetryInterval = 0.5f;
+    [SerializeField, Min(0.1f)] private float navMeshRecoverySampleDistance = 1.5f;
 
     [Header("구출 및 치료")]
     [SerializeField] private SurvivorRole role = SurvivorRole.constructionWorker;
@@ -82,6 +84,7 @@ public class Survivor : MonoBehaviour
     private float vaultTimer;
     private float vaultDetectionTimer;
     private float nextVaultTime;
+    private float defenseMoveRetryTimer;
     private int moveSpeedHash;
     private int repairHash;
     private int vaultHash;
@@ -134,6 +137,7 @@ public class Survivor : MonoBehaviour
         moveTimer = 0f;
         vaultTimer = 0f;
         vaultDetectionTimer = 0f;
+        defenseMoveRetryTimer = 0f;
     }
 
     // 시작 시 게임 매니저 등록 누락을 보완한다
@@ -523,9 +527,19 @@ public class Survivor : MonoBehaviour
     // 방어선 대피 또는 복귀 포인트까지 이동한다
     private void UpdateDefensePointMove()
     {
+        if (defenseMoveRetryTimer > 0f)
+        {
+            defenseMoveRetryTimer -= Time.deltaTime;
+            return;
+        }
+
         if (defenseMoveTarget == null)
         {
-            AbortDefensePointMove("[Survivor] 방어선 이동 포인트가 사라져 이동을 중단합니다.");
+            if (!TryRestoreDefenseMoveTarget())
+            {
+                AbortDefensePointMove("[Survivor] 방어선 이동 포인트가 사라져 이동을 중단합니다.", false);
+            }
+
             return;
         }
 
@@ -536,7 +550,11 @@ public class Survivor : MonoBehaviour
 
         if (!agent.isOnNavMesh)
         {
-            AbortDefensePointMove("[Survivor] NavMesh 위에 없어 방어선 이동을 중단합니다.");
+            if (!TryRecoverAgentToNavMesh())
+            {
+                AbortDefensePointMove("[Survivor] NavMesh 위에 없어 방어선 이동을 잠시 후 재시도합니다.", true);
+            }
+
             return;
         }
 
@@ -544,19 +562,19 @@ public class Survivor : MonoBehaviour
 
         if (!RefreshDefenseDestinationIfNeeded())
         {
-            AbortDefensePointMove("[Survivor] 방어선 포인트까지 경로를 만들 수 없어 이동을 중단합니다.");
+            AbortDefensePointMove("[Survivor] 방어선 포인트까지 경로를 만들 수 없어 잠시 후 재시도합니다.", true);
             return;
         }
 
         if (defensePointMoveTimeout > 0f && moveTimer >= defensePointMoveTimeout)
         {
-            AbortDefensePointMove("[Survivor] 방어선 포인트까지 이동 시간이 초과되었습니다.");
+            AbortDefensePointMove("[Survivor] 방어선 포인트까지 이동 시간이 초과되어 잠시 후 재시도합니다.", true);
             return;
         }
 
         if (!agent.pathPending && agent.pathStatus == NavMeshPathStatus.PathInvalid)
         {
-            AbortDefensePointMove("[Survivor] 방어선 포인트까지 유효한 경로가 없습니다.");
+            AbortDefensePointMove("[Survivor] 방어선 포인트까지 유효한 경로가 없어 잠시 후 재시도합니다.", true);
             return;
         }
 
@@ -701,12 +719,64 @@ public class Survivor : MonoBehaviour
     }
 
     // 방어선 이동 실패 상황에서 명령을 해제한다
-    private void AbortDefensePointMove(string message)
+    private void AbortDefensePointMove(string message, bool retryMove)
     {
+        if (retryMove && defenseMoveTarget != null && IsAgentMoveState())
+        {
+            agent.isStopped = true;
+            moveTimer = 0f;
+            destinationRefreshTimer = 0f;
+            vaultDetectionTimer = 0f;
+            defenseMoveRetryTimer = Mathf.Max(0.05f, defensePointRetryInterval);
+            Debug.LogWarning(message, this);
+            return;
+        }
+
         defenseMoveTarget = null;
-        ChangeState(SurvivorState.Idle);
+        ChangeState(GetIdleStateForRole());
         searchTimer = GetTargetSearchInterval();
         Debug.LogWarning(message, this);
+    }
+
+    // 현재 상태에 맞는 이동 목적지가 비어 있으면 저장된 기준 지점으로 복구한다
+    private bool TryRestoreDefenseMoveTarget()
+    {
+        switch (state)
+        {
+            case SurvivorState.RescueEntering:
+            case SurvivorState.ReturningFromHospital:
+                defenseMoveTarget = finalRearPoint;
+                break;
+            case SurvivorState.MovingToHospital:
+                defenseMoveTarget = hospitalPoint;
+                break;
+            case SurvivorState.MovingToEngineerStandby:
+                defenseMoveTarget = assignedTurretSlot == null ? null : assignedTurretSlot.BuildPoint;
+                break;
+        }
+
+        return defenseMoveTarget != null;
+    }
+
+    // 에이전트가 NavMesh 밖으로 밀려난 경우 가까운 NavMesh 위치로 복구한다
+    private bool TryRecoverAgentToNavMesh()
+    {
+        if (agent == null || !agent.enabled)
+        {
+            return false;
+        }
+
+        if (!NavMesh.SamplePosition(transform.position, out NavMeshHit navMeshHit, Mathf.Max(0.1f, navMeshRecoverySampleDistance), NavMesh.AllAreas))
+        {
+            return false;
+        }
+
+        agent.Warp(navMeshHit.position);
+        transform.position = navMeshHit.position;
+        agent.nextPosition = transform.position;
+        destinationRefreshTimer = 0f;
+        moveTimer = 0f;
+        return true;
     }
 
     // 현재 수리 대상이 유효한지 확인한다

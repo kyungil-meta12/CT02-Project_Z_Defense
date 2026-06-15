@@ -15,9 +15,10 @@ MonoBehaviour:
   displayName: Obstacle
   icon: {fileID: 0}
   slotType: 0
+  obstacleDefinition: {fileID: 11400000, guid: 7babf586f05649341b1934eaae888810, type: 2}
   obstaclePrefab: {fileID: 1242232213132576, guid: 93623804a1860b2409814746410da6bd, type: 3}
   previewPrefab: {fileID: 0}
-  placementLocalEulerAngles: {x: 0, y: -90, z: 0}
+  placementLocalEulerAngles: {x: 0, y: 0, z: 0}
   buildCosts:
   - currencyType: 0
     amount: 500

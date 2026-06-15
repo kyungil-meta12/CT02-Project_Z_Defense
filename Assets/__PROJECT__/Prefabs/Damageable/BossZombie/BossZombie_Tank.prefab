@@ -1103,9 +1103,12 @@ MonoBehaviour:
   anim: {fileID: 3317958215391167824}
   agent: {fileID: 3250142583933110996}
   col: {fileID: 6951844493432217934}
+  rewardParticleScale: 4
   boneRoot: {fileID: 2016404133050458762}
   screamerSkillRadius: 10
   screamerSkillSpeedMultiplier: 1.5
+  navigationRotationSpeed: 2.5
+  movingRootMotionRotationWeight: 0.7
   logReceivedDamage: 1
   bossZombieEnum:
     GUID:
@@ -2719,7 +2722,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1847657382218322912, guid: 38f8e62c8151e14438f8e5b0fb9484a7, type: 3}
       propertyPath: m_AnchorMax.y
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 2539923636683628352, guid: 38f8e62c8151e14438f8e5b0fb9484a7, type: 3}
       propertyPath: m_Name
@@ -2727,7 +2730,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2539923636683628352, guid: 38f8e62c8151e14438f8e5b0fb9484a7, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 4775573691278992367, guid: 38f8e62c8151e14438f8e5b0fb9484a7, type: 3}
       propertyPath: m_PresetInfoIsWorld
@@ -2766,6 +2769,14 @@ PrefabInstance:
       value: 100
       objectReference: {fileID: 0}
     - target: {fileID: 5937000280255024400, guid: 38f8e62c8151e14438f8e5b0fb9484a7, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 0.04
+      objectReference: {fileID: 0}
+    - target: {fileID: 5937000280255024400, guid: 38f8e62c8151e14438f8e5b0fb9484a7, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 0.03
+      objectReference: {fileID: 0}
+    - target: {fileID: 5937000280255024400, guid: 38f8e62c8151e14438f8e5b0fb9484a7, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
       objectReference: {fileID: 0}
@@ -2799,7 +2810,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5937000280255024400, guid: 38f8e62c8151e14438f8e5b0fb9484a7, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: 2.3
+      value: 11
       objectReference: {fileID: 0}
     - target: {fileID: 5937000280255024400, guid: 38f8e62c8151e14438f8e5b0fb9484a7, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x

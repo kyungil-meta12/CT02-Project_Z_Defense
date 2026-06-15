@@ -8,21 +8,28 @@ using UnityEngine;
 [DisallowMultipleComponent]
 public class ObstacleBuildSlot : MonoBehaviour
 {
-    [Header("Defense Line")]
+    [Header("방어선")]
     [SerializeField, Min(0)] private int defenseLineIndex;
     [SerializeField, Min(0)] private int slotIndex;
     [SerializeField] private ObstacleBuildSlotType slotType;
 
-    [Header("References")]
+    [Header("참조")]
     [SerializeField] private Transform buildPoint;
     [SerializeField] private Collider placementHitArea;
 
-    [Header("Runtime")]
+    [Header("런타임")]
     [SerializeField] private Obstacle currentObstacle;
     [SerializeField] private GameObject currentObstacleObject;
     [SerializeField] private bool logPlacementResults = true;
 
+    [Header("저장 진행도")]
+    [SerializeField] private ObstacleBuildEntrySO storedBuildEntry;
+    [SerializeField] private ObstacleDefinitionSO storedObstacleDefinition;
+    [SerializeField, Min(1)] private int storedLevel = 1;
+    [SerializeField] private bool hasStoredProgress;
+
     private readonly List<Obstacle> obstacleCandidates = new List<Obstacle>(4);
+    private bool isCreatingSlotObstacle;
 
     public int DefenseLineIndex
     {
@@ -88,6 +95,20 @@ public class ObstacleBuildSlot : MonoBehaviour
         {
             return buildPoint != null && CurrentObstacle == null;
         }
+    }
+
+    public int StoredLevel
+    {
+        get
+        {
+            return Mathf.Max(1, storedLevel);
+        }
+    }
+
+    // 배치 항목과 저장된 진행 상태를 기준으로 외부 UI가 사용할 설치 레벨을 반환한다
+    public int GetPlacementLevelForEntry(ObstacleBuildEntrySO buildEntry)
+    {
+        return GetPlacementLevel(buildEntry);
     }
 
     // 컴포넌트를 추가하거나 리셋할 때 기본 슬롯 참조를 자동 연결한다
@@ -175,24 +196,23 @@ public class ObstacleBuildSlot : MonoBehaviour
             return false;
         }
 
-        GameObject obstacleObject = Instantiate(buildEntry.ObstaclePrefab, buildPoint);
-        obstacleObject.transform.localPosition = Vector3.zero;
-        obstacleObject.transform.localRotation = buildEntry.PlacementLocalRotation;
-
-        placedObstacle = obstacleObject.GetComponent<Obstacle>();
-        if (placedObstacle == null)
+        int placementLevel = GetPlacementLevel(buildEntry);
+        Quaternion placementLocalRotation = GetPlacementLocalRotation(buildEntry, buildEntry.ObstacleDefinition, placementLevel);
+        if (!TryCreatePlacedObstacle(
+                buildEntry.GetObstaclePrefabForLevel(placementLevel),
+                placementLocalRotation,
+                buildEntry.ObstacleDefinition,
+                placementLevel,
+                1.0f,
+                out placedObstacle))
         {
-            Debug.LogError("[ObstacleBuildSlot] 설치한 프리팹에 Obstacle 컴포넌트가 없습니다.", this);
-            Destroy(obstacleObject);
-
             // 이미 지불한 배치 비용을 환불한다
             ItemManager.Inst.Refund(buildCosts);
             LogPlacementFailed(buildEntry, $"생성된 프리팹에 Obstacle 컴포넌트가 없어 비용을 환불했습니다. 필요 컴포넌트: Obstacle, 프리팹: {buildEntry.ObstaclePrefab.name}");
             return false;
         }
 
-        currentObstacle = placedObstacle;
-        currentObstacleObject = obstacleObject;
+        StoreObstacleProgress(buildEntry, placementLevel);
 
         LogPlacementSucceeded(buildEntry, placedObstacle, buildCosts);
 
@@ -212,7 +232,8 @@ public class ObstacleBuildSlot : MonoBehaviour
             return "배치 항목이 비어 있습니다.";
         }
 
-        if (buildEntry.ObstaclePrefab == null)
+        int placementLevel = GetPlacementLevel(buildEntry);
+        if (buildEntry.GetObstaclePrefabForLevel(placementLevel) == null)
         {
             return $"배치 항목 '{buildEntry.DisplayName}'에 장애물 프리팹이 없습니다.";
         }
@@ -250,7 +271,13 @@ public class ObstacleBuildSlot : MonoBehaviour
     // 프리뷰 갱신 중 문자열 할당 없이 배치 가능 여부만 확인한다
     private bool CanPlaceEntryInternal(ObstacleBuildEntrySO buildEntry)
     {
-        if (buildEntry == null || buildEntry.ObstaclePrefab == null)
+        if (buildEntry == null)
+        {
+            return false;
+        }
+
+        int placementLevel = GetPlacementLevel(buildEntry);
+        if (buildEntry.GetObstaclePrefabForLevel(placementLevel) == null)
         {
             return false;
         }
@@ -367,6 +394,11 @@ public class ObstacleBuildSlot : MonoBehaviour
             return;
         }
 
+        if (obstacle.HasFractured)
+        {
+            StoreObstacleProgress(obstacle);
+        }
+
         GameObject obstacleObject = obstacle.gameObject;
         if (currentObstacle == obstacle || currentObstacleObject == obstacleObject)
         {
@@ -387,6 +419,232 @@ public class ObstacleBuildSlot : MonoBehaviour
 
         currentObstacle = obstacle;
         currentObstacleObject = obstacle.gameObject;
+
+        if (!isCreatingSlotObstacle)
+        {
+            StoreObstacleProgress(obstacle);
+        }
+    }
+
+    // 현재 슬롯의 저장 레벨과 정의를 지정 값으로 갱신한다
+    public void StoreObstacleProgress(ObstacleDefinitionSO definition, int level)
+    {
+        StoreObstacleProgress(null, definition, level);
+    }
+
+    // 현재 슬롯의 저장 빌드 항목과 설치 진행 상태를 지정 값으로 갱신한다
+    public void StoreObstacleProgress(ObstacleBuildEntrySO buildEntry, int level)
+    {
+        if (buildEntry == null)
+        {
+            return;
+        }
+
+        StoreObstacleProgress(buildEntry, buildEntry.ObstacleDefinition, level);
+    }
+
+    // 현재 슬롯의 저장 빌드 항목, 정의, 레벨을 갱신한다
+    private void StoreObstacleProgress(ObstacleBuildEntrySO buildEntry, ObstacleDefinitionSO definition, int level)
+    {
+        if (definition == null)
+        {
+            return;
+        }
+
+        if (buildEntry != null)
+        {
+            storedBuildEntry = buildEntry;
+        }
+
+        storedObstacleDefinition = definition;
+        storedLevel = Mathf.Max(1, level);
+        hasStoredProgress = true;
+    }
+
+    // 현재 슬롯의 저장 레벨과 정의를 장애물 런타임 컨트롤러에서 가져와 갱신한다
+    public void StoreObstacleProgress(Obstacle obstacle)
+    {
+        if (obstacle == null)
+        {
+            return;
+        }
+
+        ObstacleUpgradeRuntimeController upgradeController = obstacle.GetComponent<ObstacleUpgradeRuntimeController>();
+        if (upgradeController == null || upgradeController.CurrentDefinition == null)
+        {
+            return;
+        }
+
+        StoreObstacleProgress(null, upgradeController.CurrentDefinition, upgradeController.CurrentLevel);
+    }
+
+    // 현재 장애물에 업그레이드 레벨을 적용하고 필요하면 레벨별 프리팹으로 교체한다
+    public bool TryApplyObstacleUpgrade(ObstacleUpgradeRuntimeController upgradeController, int targetLevel, ResourceCost[] spentCosts, out Obstacle upgradedObstacle)
+    {
+        upgradedObstacle = null;
+        if (upgradeController == null || upgradeController.CurrentDefinition == null)
+        {
+            return false;
+        }
+
+        Obstacle obstacle = upgradeController.GetComponent<Obstacle>();
+        if (obstacle == null || CurrentObstacle != obstacle || buildPoint == null)
+        {
+            return false;
+        }
+
+        ObstacleDefinitionSO definition = upgradeController.CurrentDefinition;
+        int safeTargetLevel = Mathf.Max(1, targetLevel);
+        GameObject targetPrefab = definition.GetPrefabForLevel(safeTargetLevel);
+        if (targetPrefab == null)
+        {
+            return false;
+        }
+
+        GameObject currentLevelPrefab = definition.GetPrefabForLevel(upgradeController.CurrentLevel);
+        if (currentLevelPrefab == targetPrefab)
+        {
+            upgradeController.SetLevel(safeTargetLevel, true);
+            upgradedObstacle = obstacle;
+            StoreObstacleProgress(null, definition, safeTargetLevel);
+            Debug.Log($"[ObstacleBuildSlot] 업그레이드 성공 - 슬롯: {name}, 대상: {definition.DisplayName}, 레벨: {safeTargetLevel}, 비용: {FormatCosts(spentCosts)}, 남은 재화: {FormatWallet()}", this);
+            return true;
+        }
+
+        float hpRatio = obstacle.TotalHp > 0.0f ? Mathf.Clamp01(obstacle.CurrHp / obstacle.TotalHp) : 1.0f;
+        Quaternion placementLocalRotation = GetPlacementLocalRotation(storedBuildEntry, definition, safeTargetLevel);
+        if (!TryCreatePlacedObstacle(targetPrefab, placementLocalRotation, definition, safeTargetLevel, hpRatio, out upgradedObstacle))
+        {
+            return false;
+        }
+        
+        StoreObstacleProgress(null, definition, safeTargetLevel);
+
+        Destroy(obstacle.gameObject);
+        Debug.Log($"[ObstacleBuildSlot] 업그레이드 프리팹 교체 성공 - 슬롯: {name}, 대상: {definition.DisplayName}, 레벨: {safeTargetLevel}, 비용: {FormatCosts(spentCosts)}, 남은 재화: {FormatWallet()}", this);
+        return true;
+    }
+
+    // 저장된 장애물 진행도를 사용해 비용 없이 빈 슬롯을 다시 설치한다
+    public bool TryRebuildStoredObstacleWithoutCost(out Obstacle rebuiltObstacle)
+    {
+        rebuiltObstacle = null;
+        RefreshCurrentObstacleReference();
+
+        if (CurrentObstacle != null)
+        {
+            rebuiltObstacle = CurrentObstacle;
+            RestoreCurrentObstacleHealth(rebuiltObstacle);
+            return true;
+        }
+
+        if (!hasStoredProgress || storedObstacleDefinition == null || buildPoint == null)
+        {
+            return false;
+        }
+
+        int rebuildLevel = Mathf.Max(1, storedLevel);
+        GameObject obstaclePrefab = GetStoredObstaclePrefab(rebuildLevel);
+        if (obstaclePrefab == null)
+        {
+            Debug.LogWarning("[ObstacleBuildSlot] 저장된 장애물 프리팹이 없어 재배치할 수 없습니다.", this);
+            return false;
+        }
+
+        if (!TryCreatePlacedObstacle(
+                obstaclePrefab,
+                GetPlacementLocalRotation(storedBuildEntry, storedObstacleDefinition, rebuildLevel),
+                storedObstacleDefinition,
+                rebuildLevel,
+                1.0f,
+                out rebuiltObstacle))
+        {
+            return false;
+        }
+
+        if (GameManager.Inst != null)
+        {
+            GameManager.Inst.NotifyObstaclePlaced(this, rebuiltObstacle);
+        }
+
+        return true;
+    }
+
+    // 설치와 재배치가 같은 방식으로 프리팹 생성, 로컬 회전 적용, 런타임 진행도 적용, 슬롯 점유 갱신을 수행한다
+    private bool TryCreatePlacedObstacle(GameObject obstaclePrefab, Quaternion placementLocalRotation, ObstacleDefinitionSO definition, int level, float hpRatio, out Obstacle placedObstacle)
+    {
+        placedObstacle = null;
+        if (obstaclePrefab == null || buildPoint == null)
+        {
+            return false;
+        }
+
+        isCreatingSlotObstacle = true;
+        GameObject obstacleObject = Instantiate(obstaclePrefab, buildPoint);
+        obstacleObject.transform.localPosition = Vector3.zero;
+        obstacleObject.transform.localRotation = placementLocalRotation;
+
+        placedObstacle = obstacleObject.GetComponent<Obstacle>();
+        if (placedObstacle == null)
+        {
+            isCreatingSlotObstacle = false;
+            Debug.LogError("[ObstacleBuildSlot] 배치 프리팹에 Obstacle 컴포넌트가 없습니다.", this);
+            Destroy(obstacleObject);
+            return false;
+        }
+
+        ApplyPlacedObstacleProgress(definition, level, placedObstacle, hpRatio);
+        currentObstacle = placedObstacle;
+        currentObstacleObject = obstacleObject;
+        isCreatingSlotObstacle = false;
+        return true;
+    }
+
+    // 저장된 빌드 항목 또는 정의를 기준으로 재배치할 프리팹을 반환한다
+    private GameObject GetStoredObstaclePrefab(int level)
+    {
+        if (storedBuildEntry != null)
+        {
+            return storedBuildEntry.GetObstaclePrefabForLevel(level);
+        }
+
+        return storedObstacleDefinition == null ? null : storedObstacleDefinition.GetPrefabForLevel(level);
+    }
+
+    // 현재 점유 장애물을 저장 진행도 기준으로 full HP 상태로 복구한다
+    private void RestoreCurrentObstacleHealth(Obstacle obstacle)
+    {
+        if (obstacle == null)
+        {
+            return;
+        }
+
+        ObstacleUpgradeRuntimeController upgradeController = obstacle.GetComponent<ObstacleUpgradeRuntimeController>();
+        if (upgradeController != null && upgradeController.CurrentDefinition != null)
+        {
+            int currentLevel = Mathf.Max(1, upgradeController.CurrentLevel);
+            StoreObstacleProgress(null, upgradeController.CurrentDefinition, currentLevel);
+            upgradeController.SetLevel(currentLevel, false);
+            obstacle.transform.localRotation = GetPlacementLocalRotation(storedBuildEntry, upgradeController.CurrentDefinition, currentLevel);
+            obstacle.ApplyRuntimeLevel(upgradeController.CurrentDefinition.ObstacleSpec, currentLevel, 1.0f);
+            return;
+        }
+
+        if (obstacle.spec != null)
+        {
+            obstacle.ApplyRuntimeLevel(obstacle.spec, Mathf.Max(1, obstacle.spec.level), 1.0f);
+        }
+    }
+
+    // 저장된 빌드 항목 또는 정의를 기준으로 고정 배치 로컬 회전을 반환한다
+    private static Quaternion GetPlacementLocalRotation(ObstacleBuildEntrySO buildEntry, ObstacleDefinitionSO definition, int level)
+    {
+        if (buildEntry != null)
+        {
+            return buildEntry.GetPlacementLocalRotationForLevel(level);
+        }
+
+        return definition == null ? Quaternion.identity : definition.GetPlacementLocalRotationForLevel(level);
     }
 
     // 슬롯 하위 오브젝트에서 유효한 현재 장애물 참조를 다시 찾는다
@@ -468,5 +726,49 @@ public class ObstacleBuildSlot : MonoBehaviour
                 placementHitArea = foundHitArea.GetComponent<Collider>();
             }
         }
+    }
+
+    // 배치 항목과 저장된 진행 상태를 기준으로 설치 레벨을 결정한다
+    private int GetPlacementLevel(ObstacleBuildEntrySO buildEntry)
+    {
+        if (buildEntry == null || buildEntry.ObstacleDefinition == null)
+        {
+            return 1;
+        }
+
+        if (!hasStoredProgress || storedObstacleDefinition != buildEntry.ObstacleDefinition)
+        {
+            return 1;
+        }
+
+        return Mathf.Max(1, storedLevel);
+    }
+
+    // 설치된 장애물에 정의와 계승 레벨, 체력 비율을 적용한다
+    private void ApplyPlacedObstacleProgress(ObstacleDefinitionSO definition, int level, Obstacle placedObstacle, float hpRatio)
+    {
+        if (placedObstacle == null)
+        {
+            return;
+        }
+
+        if (definition == null)
+        {
+            if (placedObstacle.spec != null)
+            {
+                placedObstacle.ApplyRuntimeLevel(placedObstacle.spec, Mathf.Max(1, placedObstacle.spec.level), hpRatio);
+            }
+
+            return;
+        }
+
+        ObstacleUpgradeRuntimeController upgradeController = placedObstacle.GetComponent<ObstacleUpgradeRuntimeController>();
+        if (upgradeController == null)
+        {
+            upgradeController = placedObstacle.gameObject.AddComponent<ObstacleUpgradeRuntimeController>();
+        }
+
+        upgradeController.SetDefinition(definition, level);
+        placedObstacle.ApplyRuntimeLevel(definition.ObstacleSpec, level, hpRatio);
     }
 }

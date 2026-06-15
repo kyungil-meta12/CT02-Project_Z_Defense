@@ -99,12 +99,14 @@ Rules:
 - `ObstaclePlacementUI.rebuildOnStart` should stay disabled unless runtime-generated buttons are intentionally needed.
 - Runtime rebuild is optional and should not be required for manually placed buttons.
 - If a preview appears rotated, adjust the `ObstacleBuildEntrySO.placementLocalEulerAngles` value; preview and actual placement use the same rotation.
+- When using obstacle upgrades, assign `ObstacleBuildEntrySO.obstacleDefinition`; the definition can override the entry's prefab, preview, slot type, display name, icon, and level-based prefab progression.
 
 ## Obstacle Setup
 
 Each runtime obstacle should have:
 
 - `Obstacle`
+- `ObstacleUpgradeRuntimeController` when it participates in upgrade or rebuild-level inheritance
 - `ObstacleSpec`
 - `HpUI`
 - DinoFracture `PreFracturedGeometry` when fracture is expected
@@ -117,6 +119,24 @@ Notes:
 - Broken obstacles are not repaired by `Repair`; a separate rebuild flow is needed if destroyed defense lines should come back.
 - Runtime obstacle/gate rebuilding should use `ObstaclePlacementController` and `ObstacleBuildSlot`.
 - HP UI may be hidden at runtime after initialization.
+- `ObstacleDefinitionSO` owns upgrade cost, max level, and level-based prefab progression. Rebuilding the same definition in the same slot inherits the slot's stored destroyed-obstacle level.
+- Level-based replacement prefabs must include `Obstacle`, `HpUI`, fracture setup, and compatible colliders because the slot may instantiate them directly during upgrade or rebuild.
+
+## Obstacle Upgrade UI Setup
+
+Obstacle upgrade UI can be placed from the Unity menu:
+
+- `Project Z Defense/UI/Create Obstacle Upgrade Popup UI`
+
+The menu creates an editable `ObstacleUpgradePopupCanvas` and `ObstacleUpgradePopup` hierarchy in the current scene, then attaches `ObstacleUpgradePopupUI` to the popup controller root and wires the serialized UI references. The visible background image, layout group, texts, and button live under `ObstacleUpgradePopup/Panel`; only `Panel` is hidden or shown at runtime so the controller object stays active for click detection. The runtime component does not create Canvas or popup objects, so layout and styling should be edited directly in the scene.
+
+Setup notes:
+
+- `ObstacleUpgradePopupUI.selectionLayerMask` must include the layers used by installed obstacle colliders.
+- Installed obstacles must have an `ObstacleUpgradeRuntimeController` with a valid `ObstacleDefinitionSO`.
+- The popup hides while `ObstaclePlacementController` is actively placing an obstacle.
+- The first-pass UI supports one-level upgrades, current HP display, next cost display, max-level state, repair-reserved state, and level-based prefab replacement notice.
+- If an older standalone `ObstacleUpgradePopupUI` object exists from the previous runtime-generated setup, run the menu again to create the editable hierarchy and remove the old component.
 
 ## Survivor Setup
 
@@ -126,8 +146,10 @@ Each survivor should have:
 - `SurvivorSpec`
 - `NavMeshAgent`
 - `Animator`
+- A world collider for `SurvivorInteractionController` selection
 - Animator parameters matching configured names when animations are required
 - Valid `vaultObstacleLayerMask`, or an `Obstacle` layer available for fallback
+- Optional `visibleRoot` child if treatment should hide the visual while keeping the survivor controller alive
 
 Survivor movement depends on:
 
@@ -135,6 +157,39 @@ Survivor movement depends on:
 - Non-zero move speed
 - Positive repair range
 - Valid retreat/restored points for defense-line movement
+- Valid final rear point and hospital point for rescued survivor treatment flow
+
+Rescue and role UI setup:
+
+- Create a `SurvivorRescueSpawnProfileSO` asset from `Project Z Defense/Survivor Rescue Spawn Profile` and configure single wave numbers plus spawn chances.
+- Add `SurvivorRescueSpawner` to a scene object and assign `survivorPrefab`, `spawnProfile`, zombie-side `spawnPoints`, `finalRearPoint`, `hospitalPoint`, and `treatmentDuration`.
+- If `spawnProfile` is missing, `SurvivorRescueSpawner.spawnChancePerWave` is used as a legacy fallback.
+- Add `SurvivorInteractionController` to an editor-authored popup UI object and assign `popupPanel`, `TMP_Text` labels, and `Button` references.
+- UI button labels should be English, such as `Treat`, `Construction Worker`, and `Engineer`.
+- Assign survivor and turret slot layer masks so click selection and engineer drag use `Physics.RaycastNonAlloc` only against relevant layers.
+- Turrets can receive stackable engineer damage buffs through `TurretEngineerBuffReceiver`; the interaction controller adds it to the selected turret at runtime if it is missing.
+
+## Game Over Panel Setup
+
+Create the UI from the editor menu:
+
+- `Project Z Defense > UI > Create Game Over Panel UI`
+
+The menu creates:
+
+- `GameOverPanelCanvas`
+- `GameOverPanelController`
+- `Panel`
+- `Title`
+- `Status`
+
+Scene wiring:
+
+- Assign the generated `GameOverPanelUI` to `GameManager.gameOverPanelUI`.
+- Keep `GameOverPanelController` active; the generated `Panel` is the object that fades in/out.
+- Set `GameManager.gameOverFadeInDuration` and `gameOverFadeOutDuration`; default runtime expectation is 10 seconds each.
+- Ensure `ZombieSpawner` exists in the scene so it can register with `GameManager` and participate in pause, despawn, previous-wave prepare, and resume.
+- Ensure obstacle slots have stored `ObstacleDefinitionSO` progress if they need to be rebuilt after gate destruction.
 
 ## Zombie Spawner Setup
 

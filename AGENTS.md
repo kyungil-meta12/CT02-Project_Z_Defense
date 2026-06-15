@@ -31,9 +31,10 @@ Task-specific examples:
 
 - Follow `Assets/__PROJECT__/Docs/TEAM_CODING_CONVENTION.md` for all code changes.
 - Follow the documentation rules in the "Code Documentation Rules" section below for all classes and methods.
+- Write Unity Inspector headers (`[Header]`) in Korean.
 - Write debugging logs in Korean.
 - When generating code, consider optimizations appropriate for an idle mobile game.
-- After generating code, simulate and inspect possible edge cases before finishing.
+- After generating code, simulate and inspect possible edge cases and optimization risks before finishing.
 - For turret, combat, projectile, placement, and damage popup work, consult `Assets/__PROJECT__/Docs/TURRET_SYSTEM.md` first.
 - For survivor, obstacle, zombie spawn, defense-line, scene setup, and shared runtime system work, consult the relevant document under `Assets/__PROJECT__/Docs` first.
 - When design intent or responsibility boundaries are unclear, use `Assets/__PROJECT__/Docs/PROJECT_OVERVIEW.md` as the source of truth.
@@ -89,8 +90,10 @@ Before writing a new script:
 After writing or modifying a script, verify:
 - [ ] Class has summary comment
 - [ ] Every method (including Unity lifecycle, private, static) has a Korean purpose comment
+- [ ] Inspector headers (`[Header]`) are written in Korean
 - [ ] Runtime logs are written in Korean
 - [ ] No GC allocation, `Find*`, or LINQ in hot paths
+- [ ] Optimization risks checked, including garbage allocation, memory-heavy call frequency, and many-in-scene object scaling
 - [ ] Edge cases considered (null, disabled, destroyed, duplicate registration, etc.)
 - [ ] Related Docs updated if needed
 - [ ] Build passes with `dotnet build Assembly-CSharp.csproj --no-restore`
@@ -112,12 +115,14 @@ After writing or modifying a script, verify:
 - Use throttled polling, event registration, object pooling, and NonAlloc Unity APIs for idle-mobile gameplay loops.
 - Use `Destroy` instead of `DestroyImmediate` during runtime.
 - Runtime debug logs must be actionable and written in Korean; avoid logs that can spam every frame.
+- Inspector headers (`[Header]`) must be written in Korean so designers can understand serialized field groups quickly.
 - Prefer squared-distance checks over `Vector3.Distance` when only comparing distance.
 - Keep ScriptableObject data as configuration and runtime mutable state inside runtime controllers or instances.
 
 ## Edge Case Checklist
 
 - After code changes, mentally simulate null references, disabled objects, destroyed objects, duplicate registration, repeated enable/disable, empty collections, unreachable NavMesh paths, invalid animator parameters, and zero or negative inspector values.
+- During the same review, check optimization risks: garbage allocation, memory-heavy method call frequency, repeated component or object searches, string formatting in repeated paths, and whether the code remains safe when many copies of the object exist in the scene.
 - For pooled objects, verify `OnEnable`, `OnDisable`, reset, reservation, and event subscription cleanup paths.
 - For UI and health systems, verify max/current value clamping, missing UI references, death-state behavior, and repeated damage or repair calls.
 - For AI and targeting, verify target loss, target death, blocked paths, timeout behavior, and multiple actors selecting the same target.

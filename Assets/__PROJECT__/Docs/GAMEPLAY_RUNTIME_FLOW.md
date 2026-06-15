@@ -101,12 +101,14 @@ Important policy:
 2. `ObstaclePlacementSlotUI` starts placement by drag or click.
 3. `ObstaclePlacementController` raycasts against `ObstacleBuildSlot` hit areas.
 4. Preview snaps to the slot `BuildPoint`.
-5. Placement is valid only when the slot is empty, the entry type matches the slot type, and `ItemManager` can afford the entry's `ResourceCost[] buildCosts`.
-6. `ObstacleBuildSlot.CanPlaceEntry` checks slot availability, type match, and build cost availability through `ItemManager.CanAfford`.
-7. `ObstacleBuildSlot.TryPlace` deducts the build costs using `ItemManager.TrySpend` before instantiating the obstacle under `BuildPoint`.
-8. If the obstacle prefab is invalid and placement fails after spending, the deducted costs are refunded.
-9. The placed obstacle is assigned to the slot and `GameManager.NotifyObstaclePlaced` is called.
-10. If the line was breached and all required slots are occupied again, `GameManager.NotifyDefenseLineRestored` restores that defense line.
+5. If the slot has stored destroyed-obstacle progress for the same `ObstacleDefinitionSO`, preview and placement use the inherited level's prefab.
+6. Placement is valid only when the slot is empty, the entry type matches the slot type, and `ItemManager` can afford the entry's `ResourceCost[] buildCosts`.
+7. `ObstacleBuildSlot.CanPlaceEntry` checks slot availability, type match, and build cost availability through `ItemManager.CanAfford`.
+8. `ObstacleBuildSlot.TryPlace` deducts the build costs using `ItemManager.TrySpend` before instantiating the obstacle under `BuildPoint`.
+9. If the obstacle prefab is invalid and placement fails after spending, the deducted costs are refunded.
+10. The placed obstacle receives its `ObstacleDefinitionSO` and inherited or initial level through `ObstacleUpgradeRuntimeController`.
+11. The placed obstacle is assigned to the slot and `GameManager.NotifyObstaclePlaced` is called.
+12. If the line was breached and all required slots are occupied again, `GameManager.NotifyDefenseLineRestored` restores that defense line.
 
 `ObstaclePlacementUI` remains available as an optional runtime rebuild helper, but manual scene buttons are the default setup.
 
@@ -125,6 +127,28 @@ Cost policy:
 - Obstacle placement now uses the same multi-currency cost contract as turret placement, turret upgrade, and turret evolution.
 - Do not reintroduce `AddCoinCount`, `CanUseCoin`, or `TryUseCoin` for obstacle rebuilds; use `AddReward`, `CanAfford`, `TrySpend`, and `Refund`.
 
+## Obstacle Upgrade And Rebuild Level Flow
+
+Obstacle progression is slot-centered rather than instance-centered:
+
+1. `ObstacleDefinitionSO` defines the obstacle identity, slot type, spec, max level, upgrade cost profile, and level-based prefab progression.
+2. `ObstacleUpgradeCostProfileSO` calculates `ResourceCost[]` upgrade costs from the current level to the target level.
+3. `ObstaclePrefabProgressionSO` selects the prefab and placement rotation for the current level.
+4. `ObstacleUpgradeRuntimeController` stores the currently installed obstacle's definition and level.
+5. `ObstacleBuildSlot` stores the latest known definition and level for that slot.
+6. When a live obstacle upgrades, `ItemManager.TrySpend` consumes the upgrade costs before the level is applied.
+7. If the target level uses a different prefab, `ObstacleBuildSlot` instantiates the target prefab under `BuildPoint`, applies the same definition and target level, preserves the previous HP ratio, updates slot occupancy, and destroys the old obstacle.
+8. When an obstacle fractures, `ObstacleBuildSlot.ClearCurrentObstacle` stores the fractured obstacle's definition and level before clearing occupancy.
+9. Rebuilding the same `ObstacleDefinitionSO` in that slot inherits the stored level and immediately uses the prefab for that level.
+10. Rebuilding a different definition starts at level 1. Obstacle and gate definitions do not inherit progress from each other.
+
+Upgrade policy:
+
+- Destroyed or fractured obstacles cannot be upgraded; they must be rebuilt through placement.
+- Obstacles reserved by a survivor for repair cannot be upgraded in the first-pass implementation.
+- Upgrade HP changes preserve the current HP ratio instead of fully healing the obstacle.
+- Rebuild placement cost remains `ObstacleBuildEntrySO.BuildCosts`; inherited level does not add an extra rebuild surcharge in the first pass.
+
 Debug policy:
 
 - `ObstacleBuildSlot.CanPlaceEntry` is called continuously during placement preview refresh, so it must stay quiet and avoid debug string formatting.
@@ -141,18 +165,33 @@ Survivor states:
 - `Repairing`
 - `Retreating`
 - `ReturningToDefensePoint`
+- `RescueEntering`
+- `TreatmentReady`
+- `MovingToHospital`
+- `InTreatment`
+- `ReturningFromHospital`
+- `RoleSelectionReady`
+- `EngineerReady`
+- `MovingToEngineerStandby`
+- `EngineerAssigned`
 - `Vaulting`
 
 Runtime behavior:
 
 1. `Survivor` registers with `GameManager` on enable/start and unregisters on disable.
-2. In `Idle`, survivor periodically asks `GameManager.TryGetRepairTarget` for a damaged obstacle.
-3. In `MoveToTarget`, survivor moves toward the reserved obstacle using `NavMeshAgent` and throttled destination refresh.
-4. In `Repairing`, survivor calls `Obstacle.Repair` until the obstacle is fully repaired or target becomes invalid.
-5. In `Retreating` or `ReturningToDefensePoint`, survivor moves to the configured defense point and may vault over `Obstacle` objects.
+2. Survivor role is stored as `SurvivorRole`: `survivor`, `constructionWorker`, or `engineer`.
+3. In `Idle`, only `constructionWorker` survivors periodically ask `GameManager.TryGetRepairTarget` for a damaged obstacle.
+4. In `MoveToTarget`, survivor moves toward the reserved obstacle using `NavMeshAgent` and throttled destination refresh.
+5. In `Repairing`, survivor calls `Obstacle.Repair` until the obstacle is fully repaired or target becomes invalid.
+6. In `Retreating` or `ReturningToDefensePoint`, survivor moves to the configured defense point and may vault over `Obstacle` objects.
+7. Rescue survivors can spawn at wave start from `SurvivorRescueSpawner`; `SurvivorRescueSpawnProfileSO` decides whether the current wave attempts a spawn and which chance to use.
+8. Spawned rescue survivors move from zombie spawn points to the final rear point, wait for treatment, move to the hospital, hide for the treatment timer, return, and then wait for role selection.
+9. Treated survivors can become `constructionWorker` or `engineer` through `SurvivorInteractionController`.
+10. Engineers can be clicked first and then assigned by selecting a turret target button in the engineer buff target UI; the target turret receives a stackable damage buff through `TurretEngineerBuffReceiver`.
 
 Repair target policy:
 
+- `GameManager.TryGetRepairTarget` rejects non-`constructionWorker` survivors.
 - Only damaged, alive, unreserved obstacles can be reserved.
 - Only obstacles currently occupying registered defense-line slots are considered.
 - If a survivor has retreated behind a defense line, obstacles at or before that active defense-line index are blocked as repair targets.
@@ -164,9 +203,11 @@ Breach flow:
 
 1. An obstacle fractures.
 2. `GameManager.NotifyObstacleFractured` marks the matching line breached.
-3. Survivors receive the line index and retreat point.
-4. Survivors clear repair targets and move to the retreat point.
-5. After arrival, survivors return to `Idle`, but their active defense-line index remains set.
+3. `Gate` slot breaches are marked separately from normal obstacle breaches.
+4. Normal obstacle breaches are only followed by `constructionWorker` survivors.
+5. `Gate` breaches force every survivor role to clear current work and move to the retreat point.
+6. Survivors clear repair targets and move to the retreat point.
+7. After arrival, survivors return to their role idle state, but their active defense-line index remains set for construction workers.
 
 Restore flow:
 
@@ -174,6 +215,28 @@ Restore flow:
 2. `GameManager` marks the line not breached.
 3. Survivors receive the restored point.
 4. Survivors move back and clear their active defense-line index after arrival.
+
+## Game Over Restart Flow
+
+Gate breach flow:
+
+1. `Obstacle` fracture notifies `GameManager.NotifyObstacleFractured`.
+2. If the fractured slot type is `Gate`, `GameManager.StartGameOverSequence` starts once and pauses wave progression.
+3. Registered `ZombieSpawner` instances pause spawning immediately.
+4. `GameOverPanelUI` fades in from transparent to opaque.
+5. After fade-in, registered spawners return their tracked active zombies to `MemoryPool`.
+6. `GameManager` rebuilds registered defense-line slots from stored obstacle definition/level and restores surviving obstacles to full HP.
+7. Engineer survivors attempt to re-register their buff to the last stored turret slot.
+8. `GameManager` prepares `max(1, currentWave - 1)`, resets kill count, and asks spawners to prepare that wave from the beginning.
+9. `GameOverPanelUI` fades out from opaque to transparent.
+10. Registered spawners resume spawning.
+
+Runtime policy:
+
+- Game-over reset must not award zombie kill rewards or increase kill count.
+- `ZombieSpawner` despawns only zombies it spawned and tracks, avoiding full-scene searches during reset.
+- Defense-line rebuild is cost-free and uses `ObstacleBuildSlot` stored progress.
+- Gate breach can still issue survivor retreat, but the restart sequence is responsible for restoring obstacles and engineer buffs.
 
 ## Edge Cases To Check
 
@@ -186,3 +249,8 @@ Restore flow:
 - Obstacle reaches full HP while survivor is moving or repairing.
 - Multiple survivors attempting to reserve the same obstacle.
 - Boss or normal zombie death state not updated before target selection.
+- Game-over panel reference missing when the gate breaks.
+- Multiple gate fracture notifications in the same frame.
+- Spawner wait coroutine running when game over starts.
+- Destroyed or missing stored obstacle definition during defense-line rebuild.
+- Engineer assigned turret slot missing or empty during reassign.

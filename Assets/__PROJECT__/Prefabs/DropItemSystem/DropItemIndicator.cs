@@ -23,7 +23,7 @@ public class DropItemIndicator : MonoBehaviour
     void Update()
     {
         // 항상 카메라를 바라본다
-        rt.rotation = cam.transform.rotation;
+        BillboardUtil.SetBillboard(ref rt, ref cam);
 
         // 위 아래로 왕복한다.
         sinValue += Time.deltaTime * tripSpeed;

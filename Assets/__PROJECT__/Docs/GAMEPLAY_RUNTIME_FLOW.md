@@ -101,12 +101,14 @@ Important policy:
 2. `ObstaclePlacementSlotUI` starts placement by drag or click.
 3. `ObstaclePlacementController` raycasts against `ObstacleBuildSlot` hit areas.
 4. Preview snaps to the slot `BuildPoint`.
-5. Placement is valid only when the slot is empty, the entry type matches the slot type, and `ItemManager` can afford the entry's `ResourceCost[] buildCosts`.
-6. `ObstacleBuildSlot.CanPlaceEntry` checks slot availability, type match, and build cost availability through `ItemManager.CanAfford`.
-7. `ObstacleBuildSlot.TryPlace` deducts the build costs using `ItemManager.TrySpend` before instantiating the obstacle under `BuildPoint`.
-8. If the obstacle prefab is invalid and placement fails after spending, the deducted costs are refunded.
-9. The placed obstacle is assigned to the slot and `GameManager.NotifyObstaclePlaced` is called.
-10. If the line was breached and all required slots are occupied again, `GameManager.NotifyDefenseLineRestored` restores that defense line.
+5. If the slot has stored destroyed-obstacle progress for the same `ObstacleDefinitionSO`, preview and placement use the inherited level's prefab.
+6. Placement is valid only when the slot is empty, the entry type matches the slot type, and `ItemManager` can afford the entry's `ResourceCost[] buildCosts`.
+7. `ObstacleBuildSlot.CanPlaceEntry` checks slot availability, type match, and build cost availability through `ItemManager.CanAfford`.
+8. `ObstacleBuildSlot.TryPlace` deducts the build costs using `ItemManager.TrySpend` before instantiating the obstacle under `BuildPoint`.
+9. If the obstacle prefab is invalid and placement fails after spending, the deducted costs are refunded.
+10. The placed obstacle receives its `ObstacleDefinitionSO` and inherited or initial level through `ObstacleUpgradeRuntimeController`.
+11. The placed obstacle is assigned to the slot and `GameManager.NotifyObstaclePlaced` is called.
+12. If the line was breached and all required slots are occupied again, `GameManager.NotifyDefenseLineRestored` restores that defense line.
 
 `ObstaclePlacementUI` remains available as an optional runtime rebuild helper, but manual scene buttons are the default setup.
 
@@ -124,6 +126,28 @@ Cost policy:
 - Legacy `int cost`, `Cost`, and Coin-only spend/refund fallback paths are intentionally removed for obstacle placement.
 - Obstacle placement now uses the same multi-currency cost contract as turret placement, turret upgrade, and turret evolution.
 - Do not reintroduce `AddCoinCount`, `CanUseCoin`, or `TryUseCoin` for obstacle rebuilds; use `AddReward`, `CanAfford`, `TrySpend`, and `Refund`.
+
+## Obstacle Upgrade And Rebuild Level Flow
+
+Obstacle progression is slot-centered rather than instance-centered:
+
+1. `ObstacleDefinitionSO` defines the obstacle identity, slot type, spec, max level, upgrade cost profile, and level-based prefab progression.
+2. `ObstacleUpgradeCostProfileSO` calculates `ResourceCost[]` upgrade costs from the current level to the target level.
+3. `ObstaclePrefabProgressionSO` selects the prefab and placement rotation for the current level.
+4. `ObstacleUpgradeRuntimeController` stores the currently installed obstacle's definition and level.
+5. `ObstacleBuildSlot` stores the latest known definition and level for that slot.
+6. When a live obstacle upgrades, `ItemManager.TrySpend` consumes the upgrade costs before the level is applied.
+7. If the target level uses a different prefab, `ObstacleBuildSlot` instantiates the target prefab under `BuildPoint`, applies the same definition and target level, preserves the previous HP ratio, updates slot occupancy, and destroys the old obstacle.
+8. When an obstacle fractures, `ObstacleBuildSlot.ClearCurrentObstacle` stores the fractured obstacle's definition and level before clearing occupancy.
+9. Rebuilding the same `ObstacleDefinitionSO` in that slot inherits the stored level and immediately uses the prefab for that level.
+10. Rebuilding a different definition starts at level 1. Obstacle and gate definitions do not inherit progress from each other.
+
+Upgrade policy:
+
+- Destroyed or fractured obstacles cannot be upgraded; they must be rebuilt through placement.
+- Obstacles reserved by a survivor for repair cannot be upgraded in the first-pass implementation.
+- Upgrade HP changes preserve the current HP ratio instead of fully healing the obstacle.
+- Rebuild placement cost remains `ObstacleBuildEntrySO.BuildCosts`; inherited level does not add an extra rebuild surcharge in the first pass.
 
 Debug policy:
 

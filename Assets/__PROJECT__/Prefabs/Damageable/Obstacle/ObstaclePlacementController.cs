@@ -27,6 +27,7 @@ public class ObstaclePlacementController : MonoBehaviour
     private TurretPlacementPreview preview;
     private ObstacleBuildEntrySO activeBuildEntry;
     private ObstacleBuildSlot hoveredSlot;
+    private GameObject currentPreviewPrefab;
     private Material runtimeValidPreviewMaterial;
     private Material runtimeInvalidPreviewMaterial;
 
@@ -97,7 +98,8 @@ public class ObstaclePlacementController : MonoBehaviour
 
         activeBuildEntry = buildEntry;
         EnsurePreview();
-        preview.Show(buildEntry.PreviewPrefab);
+        currentPreviewPrefab = buildEntry.PreviewPrefab;
+        preview.Show(currentPreviewPrefab);
         UpdatePlacement(screenPosition);
     }
 
@@ -119,8 +121,16 @@ public class ObstaclePlacementController : MonoBehaviour
             return;
         }
 
+        int previewLevel = hoveredSlot.GetPlacementLevelForEntry(activeBuildEntry);
+        GameObject previewPrefab = activeBuildEntry.GetPreviewPrefabForLevel(previewLevel);
+        if (previewPrefab != currentPreviewPrefab)
+        {
+            currentPreviewPrefab = previewPrefab;
+            preview.Show(currentPreviewPrefab);
+        }
+
         preview.SetVisible(true);
-        preview.SnapTo(hoveredSlot.BuildPoint, previewLocalOffset, activeBuildEntry.PlacementLocalRotation, previewScaleMultiplier);
+        preview.SnapTo(hoveredSlot.BuildPoint, previewLocalOffset, activeBuildEntry.GetPlacementLocalRotationForLevel(previewLevel), previewScaleMultiplier);
         preview.SetVisualState(canPlace, GetValidPreviewMaterial(), GetInvalidPreviewMaterial(), validPreviewColor, invalidPreviewColor);
     }
 
@@ -151,6 +161,7 @@ public class ObstaclePlacementController : MonoBehaviour
     {
         activeBuildEntry = null;
         hoveredSlot = null;
+        currentPreviewPrefab = null;
         if (preview != null)
         {
             preview.Hide();

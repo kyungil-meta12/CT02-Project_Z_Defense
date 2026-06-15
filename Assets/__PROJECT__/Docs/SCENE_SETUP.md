@@ -99,12 +99,14 @@ Rules:
 - `ObstaclePlacementUI.rebuildOnStart` should stay disabled unless runtime-generated buttons are intentionally needed.
 - Runtime rebuild is optional and should not be required for manually placed buttons.
 - If a preview appears rotated, adjust the `ObstacleBuildEntrySO.placementLocalEulerAngles` value; preview and actual placement use the same rotation.
+- When using obstacle upgrades, assign `ObstacleBuildEntrySO.obstacleDefinition`; the definition can override the entry's prefab, preview, slot type, display name, icon, and level-based prefab progression.
 
 ## Obstacle Setup
 
 Each runtime obstacle should have:
 
 - `Obstacle`
+- `ObstacleUpgradeRuntimeController` when it participates in upgrade or rebuild-level inheritance
 - `ObstacleSpec`
 - `HpUI`
 - DinoFracture `PreFracturedGeometry` when fracture is expected
@@ -117,6 +119,8 @@ Notes:
 - Broken obstacles are not repaired by `Repair`; a separate rebuild flow is needed if destroyed defense lines should come back.
 - Runtime obstacle/gate rebuilding should use `ObstaclePlacementController` and `ObstacleBuildSlot`.
 - HP UI may be hidden at runtime after initialization.
+- `ObstacleDefinitionSO` owns upgrade cost, max level, and level-based prefab progression. Rebuilding the same definition in the same slot inherits the slot's stored destroyed-obstacle level.
+- Level-based replacement prefabs must include `Obstacle`, `HpUI`, fracture setup, and compatible colliders because the slot may instantiate them directly during upgrade or rebuild.
 
 ## Survivor Setup
 

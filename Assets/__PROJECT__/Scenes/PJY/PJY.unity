@@ -1113,7 +1113,9 @@ MonoBehaviour:
     obstacleSlots: []
     retreatPoint: {fileID: 0}
     restoredPoint: {fileID: 0}
-  startWave: 0
+  startWave: 1
+  startTimeScale: 1
+  baseFixedDeltaTime: 0.02
 --- !u!4 &1990417941
 Transform:
   m_ObjectHideFlags: 0
@@ -1189,6 +1191,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d408cf298a66bce4daff9085b6a6f1c6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ItemManager
+  applyInitialWalletOnAwake: 1
+  applyInitialWalletOnlyWhenEmpty: 1
+  logInitialWalletApply: 1
+  initialWalletCurrencies:
+  - currencyType: 0
+    amount: 50
 --- !u!4 &2061540997
 Transform:
   m_ObjectHideFlags: 0
@@ -1235,6 +1243,63 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1001 &5641457515217668544
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 3789013703479059040, guid: d04491edbda01594681aac2514500441, type: 3}
+      propertyPath: m_Name
+      value: CoinParticleCreator
+      objectReference: {fileID: 0}
+    - target: {fileID: 8790677917204306891, guid: d04491edbda01594681aac2514500441, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 10.49966
+      objectReference: {fileID: 0}
+    - target: {fileID: 8790677917204306891, guid: d04491edbda01594681aac2514500441, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8790677917204306891, guid: d04491edbda01594681aac2514500441, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -2.24982
+      objectReference: {fileID: 0}
+    - target: {fileID: 8790677917204306891, guid: d04491edbda01594681aac2514500441, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8790677917204306891, guid: d04491edbda01594681aac2514500441, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8790677917204306891, guid: d04491edbda01594681aac2514500441, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8790677917204306891, guid: d04491edbda01594681aac2514500441, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8790677917204306891, guid: d04491edbda01594681aac2514500441, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8790677917204306891, guid: d04491edbda01594681aac2514500441, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8790677917204306891, guid: d04491edbda01594681aac2514500441, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: d04491edbda01594681aac2514500441, type: 3}
 --- !u!1001 &5731637992209636144
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1389,3 +1454,4 @@ SceneRoots:
   - {fileID: 1565238740}
   - {fileID: 371656703}
   - {fileID: 1390693564}
+  - {fileID: 5641457515217668544}

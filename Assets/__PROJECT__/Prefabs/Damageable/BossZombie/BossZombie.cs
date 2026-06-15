@@ -47,6 +47,9 @@ public class BossZombie : PoolObject, IDamageable
     public float CurrHp { get; private set; }
     public bool IsAlive { get; private set; }
 
+    // 최종 보상값을 저장하는 구조체
+    private RewardResult rewardResult = new();
+
     // 필요한 컴포넌트와 비헤이비어 블랙보드 변수를 초기화한다
     public void Awake()
     {
@@ -474,7 +477,13 @@ public class BossZombie : PoolObject, IDamageable
     {
         IsAlive = false; // 생존 상태 비활성화
         GameManager.Inst.IncreaseKillCount();
-        GrantKillReward();
+        GrantKillReward(); // 이 메서드 내부에서 rewardResult를 얻는다.
+
+        // 코인 획득량에 따라 다른 코인 파티클을 생성한다.
+        if (CoinParticleCreator.Inst)
+        {
+            CoinParticleCreator.Inst.Create(ref rewardResult, transform.position, transform.localScale);
+        }
 
         hpUI.gameObject.SetActive(false); // hp UI 비활성화
 
@@ -504,7 +513,9 @@ public class BossZombie : PoolObject, IDamageable
 
         int wave = GameManager.Inst == null ? 1 : GameManager.Inst.Wave;
         ZombieRewardContext rewardContext = ZombieRewardContext.CreateBossZombie(wave, spec, transform.position).WithRewardMultiplier(rewardMultiplier);
-        RewardGrantUtility.GrantZombieReward(GetRewardProfile(), rewardContext, this);
+
+        // ref rewardResult를 통해 최종 보상값을 얻는다.
+        RewardGrantUtility.GrantZombieReward(GetRewardProfile(), rewardContext, this, ref rewardResult);
     }
 
     // 프리팹별 Override가 있으면 우선 사용하고 없으면 스펙 기본 보상 프로필을 반환한다

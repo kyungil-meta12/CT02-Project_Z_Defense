@@ -11,6 +11,8 @@ public class NormalZombie : PoolObject, IDamageable
     [Header("일반 좀비 기본 스펙")] public NormalZombieSpec spec;
     [Header("프리팹별 처치 보상 Override")] [SerializeField] private ZombieRewardProfileSO rewardProfileOverride;
     [Header("애니메이터 컨트롤러 목록")] public RuntimeAnimatorController[] animControllers;
+    [Header("보상 파티클 스케일")] public float rewardParticleScale;
+    [Space(10)]
     [SerializeField] private bool logReceivedDamage = true;
     
     public HpUI hpUI;
@@ -37,6 +39,9 @@ public class NormalZombie : PoolObject, IDamageable
     private Collider[] cachedColliders;
     private bool originalUseGravity;
     private bool originalIsKinematic;
+
+    // 사망 시 최종 보상값을 저장하는 구조체
+    private RewardResult rewardResult = new();
 
     // 필요한 컴포넌트를 캐시하고 NavMeshAgent 루트모션 동작 방식을 설정한다
     private void Awake()
@@ -299,7 +304,13 @@ public class NormalZombie : PoolObject, IDamageable
     {
         IsAlive = false; // 생존 상태 비활성화
         GameManager.Inst.IncreaseKillCount();
-        GrantKillReward();
+        GrantKillReward();  // rewardResult를 이 메서드 내부에서 얻는다.
+
+        // 코인 획득량에 따라 다른 코인 파티클을 생성한다.
+        if (CoinParticleCreator.Inst)
+        {
+            CoinParticleCreator.Inst.Create(ref rewardResult, transform.position, transform.localScale * rewardParticleScale);
+        }
 
         hpUI.gameObject.SetActive(false); // hp UI 비활성화
         attackState = false; // 공격 상태 초기화
@@ -323,7 +334,9 @@ public class NormalZombie : PoolObject, IDamageable
 
         int wave = GameManager.Inst == null ? 1 : GameManager.Inst.Wave;
         ZombieRewardContext rewardContext = ZombieRewardContext.CreateNormalZombie(wave, spec, transform.position).WithRewardMultiplier(rewardMultiplier);
-        RewardGrantUtility.GrantZombieReward(rewardProfileOverride, rewardContext, this);
+
+        // ref rewardResult를 통해 최종 보상값을 얻는다.
+        RewardGrantUtility.GrantZombieReward(rewardProfileOverride, rewardContext, this, ref rewardResult);
     }
 
     /// <summary>

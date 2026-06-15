@@ -79,6 +79,107 @@ Do not use display names as stable IDs.
 10. `ProjectileHitDetector` handles tracked target, trigger/collision, and movement raycast hit paths.
 11. Damage receivers spawn damage popups where appropriate.
 
+## Beam Attack Runtime Flow
+
+Beam attacks are project-level adapters around external VFX prefabs. Do not edit Private Assets originals directly; duplicate or wrap beam prefabs under the turret scene folder.
+
+Current implementation:
+
+- `BeamFiringEvent` inherits the existing Modular Turrets `FiringEvent` contract so it can be assigned to `TurretDefinitionRuntimeController.targetFiringEvent`.
+- `TurretVFXProfileSO.attackVfxType = Beam` selects beam mode.
+- `TurretVFXProfileSO.beamPrefab` provides the visual prefab used by `BeamFiringEvent`.
+- `TurretVFXProfileSO.beamAttackProfile` provides the beam-specific attack profile.
+- `TurretDefinitionRuntimeController.ApplyVFX` passes the selected beam prefab, beam attack profile, and projectile scale to `BeamFiringEvent`.
+- The base `Turret` component still requires a projectile prefab reference to pass its firing gate. For beam VFX profiles, the controller assigns the beam prefab as the turret projectile prefab only to satisfy that gate; `BeamFiringEvent` does not instantiate a projectile.
+- `Turret.fireTick` still controls how often the base turret calls `FiringEvent.Fire`. For beam turrets, set the turret stat `fireInterval` low enough for responsive target acquisition and beam startup, usually `0.1` to `0.2`.
+- Actual beam damage cadence is controlled by `BeamAttackProfileSO.damageTickInterval`, not by projectile fire interval.
+
+`BeamFiringEvent` runtime behavior:
+
+- Creates one beam instance per configured `gunPrefabs` entry.
+- Uses `Gun.muzzleObject` as the start point. If this reference is wrong, the beam starts from the turret base or mesh instead of the real muzzle.
+- Keeps the beam VFX active between fire requests while the current target remains alive and in range.
+- Updates beam start, direction, length, beam target, and hit effect every frame.
+- Uses `TargetFinder.radius` and `TargetFinder.useHorizontalDistance` to validate whether the current beam target is still in range.
+- Applies damage ticks through `BeamAttackProfileSO`.
+- Uses non-alloc physics buffers for pierce-line damage checks.
+
+Current target modes:
+
+| Mode | Current Behavior | Intended Use |
+| --- | --- | --- |
+| `CurrentTarget` | Damages only the current turret target. | Simple continuous beam or drain beam. |
+| `PierceLine` | Sphere-casts from muzzle to current target and damages up to `maxTargets` along that line. | Frost beam, lance, piercing ray. |
+| `ChainNearest` | Currently falls back to current-target damage. | Reserved for future chain-lightning or spreading beam behavior. |
+
+Damage interpretation:
+
+- If `BeamAttackProfileSO.treatTurretDamageAsDps` is enabled, the runtime tick damage is `turretDamage * damageTickInterval * damageMultiplier`.
+- If it is disabled, each tick applies `turretDamage * damageMultiplier`.
+- For continuous beams, keep `treatTurretDamageAsDps` enabled unless the design explicitly wants per-tick burst damage.
+
+Frost status handling:
+
+- `BeamAttackProfileSO` stores `slowRatio`, `slowDuration`, and `freezeDuration`.
+- `BeamFiringEvent` only forwards these values to targets implementing `IFrostStatusEffectReceiver`.
+- `NormalZombie` and `BossZombie` do not currently implement `IFrostStatusEffectReceiver`, so slow and freeze values are data-ready but not active until enemy-side status handling is added.
+- `slowDuration <= 0` means slow is inactive even if `slowRatio` is greater than zero.
+
+## Frost Beam Setup
+
+Current Frost beam assets:
+
+| Asset | Role |
+| --- | --- |
+| `Prefabs/Turret/3rdGen/Frost_Turret.prefab` | Runtime turret prefab. |
+| `Prefabs/Beam/FrostRay/FrostRay_TurretBeam.prefab` | Project-owned duplicated/adapted FrostRay beam VFX prefab. |
+| `SO/TurretDefinition/3rdGen/Frost_Turret_Definition.asset` | Frost turret definition. |
+| `SO/TurretVfxProgresstion/3rdGen/Forst_Turret_VFX Progression SO.asset` | Selects the FrostRay VFX profile. |
+| `SO/VFXProfiles/Beam/VFX_ForstRay/New Turret VFX Profile SO.asset` | Beam VFX profile for FrostRay. |
+| `SO/AttackProfiles/Frost_BeamAttackProfile.asset` | Beam attack rules for Frost. |
+
+Required Frost prefab wiring:
+
+- `Frost_Turret` root has `Turret`, `TargetFinder`, `TurretStatProfileApplier`, `TurretDefinitionRuntimeController`, `BeamFiringEvent`, and `Gun`.
+- `TurretDefinitionRuntimeController.targetFiringEvent` points to `BeamFiringEvent`.
+- `TurretDefinitionRuntimeController.turretDefinition` points to `Frost_Turret_Definition`.
+- `BeamFiringEvent.gunPrefabs` can point to the root if the root has the `Gun` component.
+- `Gun.muzzleObject` must point to the actual `FireNozzle` object. If it points to the turret mesh, such as `SM_Laser_Gun_Base`, the beam starts from the wrong position and may appear to aim downward.
+- `TargetFinder.pivotObject` should point to a rotating head or muzzle-related object so range and line-of-sight checks use a sensible origin.
+- `Frost_Turret` stat `fireInterval` should be near `0.1` to `0.2` for responsive continuous beam startup.
+
+Required VFX Profile wiring:
+
+- `Attack Vfx Type`: `Beam`
+- `Beam Prefab`: `FrostRay_TurretBeam`
+- `Beam Attack Profile`: `Frost_BeamAttackProfile`
+- `Projectile Prefab`: empty is allowed.
+
+Recommended Frost Beam Attack Profile values for first testing:
+
+| Field | Suggested Value | Note |
+| --- | ---: | --- |
+| `damageTickInterval` | `0.2` | Five damage ticks per second. |
+| `damageMultiplier` | `1` | Keep neutral until balance pass. |
+| `treatTurretDamageAsDps` | enabled | Prevents low `fireInterval` from multiplying DPS. |
+| `targetMode` | `PierceLine` | Matches piercing frost ray behavior. |
+| `maxTargets` | `4` | Temporary lane-clearing value. |
+| `pierceRadius` | `0.35` | Tune by enemy collider size and visual width. |
+| `damageBufferSize` | `16` | Must be at least `maxTargets`; increase only if needed. |
+| `slowRatio` | `0.2` | Data-ready until enemy status receiver exists. |
+| `slowDuration` | `1.0` | Must be greater than zero to apply slow later. |
+| `freezeDuration` | `0` | Reserve for future freeze behavior. |
+
+FrostRay VFX notes:
+
+- `FrostRay_TurretBeam` uses `PilotoStudio.BeamEmitter`.
+- The actual line target is `BeamEmitter.beamTarget`; there are several objects named `holder`, so name-based lookup is not reliable.
+- The hit effect is `BeamEmitter.beamTargetHitFX`, currently `Hit_Spikes`.
+- `BeamFiringEvent` resolves those `BeamEmitter` references at runtime and moves them to the current target position every frame.
+- The FrostRay beam visual is authored around a base length of `5`. `BeamFiringEvent.scaleBeamLengthAlongLocalX` scales local X by `targetDistance / beamBaseLength`.
+- To reduce only the hit effect size, scale the `Hit_Spikes` object or its children, not the root `FrostRay_TurretBeam` object. Scaling the root changes the whole beam length and width.
+- If VFX density or particle emission looks wrong after length scaling, tune the duplicated `FrostRay_TurretBeam` prefab under the project folder, not the Private Assets original.
+
 ## Current Balance Direction
 
 - Current turret forms are balanced around tier level `100` evolution gates.

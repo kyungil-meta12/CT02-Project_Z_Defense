@@ -37,6 +37,7 @@ This document is the shortest map for finding where project code, scenes, prefab
 | A prefab-specific behavior | Near the prefab under `Assets/__PROJECT__/Prefabs/...` |
 | Obstacle/gate placement and defense-line slot behavior | `Assets/__PROJECT__/Prefabs/Damageable/Obstacle` |
 | Turret, projectile, placement, skill, or turret SO work | `Assets/__PROJECT__/Scenes/KKW/Turret_Scene/...` until the turret module is moved to a shared folder |
+| Turret special attack profiles | `Assets/__PROJECT__/Scenes/KKW/Turret_Scene/SO/AttackProfiles/...` |
 | Runtime-loaded UI settings or prefabs | `Assets/__PROJECT__/Resources/UI` only when `Resources.Load` is required |
 | Documentation | `Assets/__PROJECT__/Docs` |
 | External asset adaptation | Project wrapper/profile first; avoid editing `Private Assets` originals |

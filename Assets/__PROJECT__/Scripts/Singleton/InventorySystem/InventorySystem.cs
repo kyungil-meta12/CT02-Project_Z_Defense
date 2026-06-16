@@ -3,16 +3,35 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
+/// <summary>
+/// 실제로 저장되는 아이템 정보
+/// </summary>
 public class ItemInfo
 {
+    public RewardCurrencyType Type;
     public string Name;
-    public string CountString;
+    public string InfoText;
     public Incremental Count;
+    public string CountString;
+}
+
+/// <summary>
+/// 아이템 추가 시 지정될 이름(인스펙터에서 설정)
+/// </summary>
+[Serializable]
+public class ItemAttribute
+{
+    [Header("아이템 타입")] public RewardCurrencyType Type;
+    [Header("표시할 아이템 이름 텍스트")] public string Name;
+    [Header("표시할 아이템 설명 텍스트")] public string InfoText;
 }
 
 public class InventorySystem : MonoBehaviour
 {
     public static InventorySystem Inst;
+
+    public ItemAttribute[] itemAttributes;
+
     private Dictionary<RewardCurrencyType, ItemInfo> itemDict = new();
 
     // 아이템 개수 변경 이벤트
@@ -48,7 +67,7 @@ public class InventorySystem : MonoBehaviour
 
     public string GetString(RewardCurrencyType itemType)
     {
-        return itemDict.ContainsKey(itemType) ? "" : itemDict[itemType].Count.ToString();
+        return itemDict.ContainsKey(itemType) ? "" : itemDict[itemType].CountString;
     }
 
 
@@ -104,20 +123,18 @@ public class InventorySystem : MonoBehaviour
         if(!HasItem(itemType))
         {
             ItemInfo newInfo = new();
-            switch (itemType)
+
+            // itemAttributes에서 타입을 찾아 해당되는 타입과 이름을 새 아이템 데이터에 적용한다.
+            foreach(var attr in itemAttributes)
             {
-                case RewardCurrencyType.FirePart:
-                    newInfo.Name = "일반 기계 부품";
-                    break;
-                case RewardCurrencyType.SpecialPart:
-                    newInfo.Name = "정밀 기계 부품";
-                    break;
-                case RewardCurrencyType.Coin:
-                    newInfo.Name = "코인";
-                    break;
-                default:
-                    return;
+                if(attr.Type == itemType)
+                {
+                    newInfo.Type = attr.Type;
+                    newInfo.Name = attr.Name;
+                    newInfo.InfoText = attr.InfoText;
+                }
             }
+
             newInfo.Count = amount;
             newInfo.CountString = newInfo.Count.ToString();
             itemDict.Add(itemType, newInfo);
@@ -138,20 +155,21 @@ public class InventorySystem : MonoBehaviour
 
     /// <summary>
     ///  count 만큼 아이템을 소비한다. <para/>
-    ///  만약 아이템이 없을 경우 동작을 건너뛰고, 아이템을 모두 소모할 경우 딕셔너리에서 제거한다.
+    ///  만약 아이템이 없을 경우 동작을 건너뛰고, 아이템을 모두 소모할 경우 딕셔너리에서 제거한다.<para/>
+    ///  소비에 성공하면 true를 리턴한다.
     /// </summary>
     /// <param name="itemType"></param>
     /// <param name="amount"></param>
-    public void UseItem(RewardCurrencyType itemType, Incremental amount)
+    public bool UseItem(RewardCurrencyType itemType, Incremental amount)
     {
         if (amount <= 0)
         {
-            return;
+            return false;
         }
         if (!HasItem(itemType))
         {
             print($"[InventorySystem] 아이템이 없어 사용할 수 없음 | 사용 시도 타입: {itemType} | 사용 시도 개수: {amount}");
-            return;
+            return false;
         }
         else
         {
@@ -160,6 +178,7 @@ public class InventorySystem : MonoBehaviour
             if (!CanUseItem(itemType, amount))
             {
                 print($"[InventorySystem] 아이템이 부족하여 사용할 수 없음 | 사용 시도 타입: {itemType} | 사용 시도 개수: {amount}");
+                return false;
             }
             else
             {
@@ -176,6 +195,8 @@ public class InventorySystem : MonoBehaviour
                     OnItemCountChange?.Invoke(itemType, 0);
                     print($"아이템이 모두 사용 되어 인벤토리에서 제거됨 | 제거 타입: {itemType}");
                 }
+
+                return true;
             }
         }
     }
@@ -183,22 +204,26 @@ public class InventorySystem : MonoBehaviour
 
 
     /// <summary>
-    /// 기본적인 동작은 UseItem과 같으나, count보다 아이템 개수가 부족할 경우 남아있는 아이템들을 우선 사용한다.<para/>
-    /// 실제로 사용된 아이템 개수를 리턴한다.
+    /// 기본적인 동작은 UseItem과 같으나, count보다 아이템 개수가 부족할 경우 남아있는 아이템들을 우선 소비한다.<para/>
+    /// 실제로 사용된 아이템 개수를 리턴한다.<para/>
+    /// 소비에 성공하면 true를 리턴한다.<para/>
+    /// refUsedAmount 레퍼런스 파라미터를 통해 소비된 개수를 얻을 수 있다.
     /// </summary>
     /// <param name="itemType"></param>
     /// <param name="amount"></param>
     /// <returns></returns>
-    public Incremental ForceUseItem(RewardCurrencyType itemType, Incremental amount)
+    public bool ForceUseItem(RewardCurrencyType itemType, Incremental amount, ref Incremental refUsedAmount)
     {
         if (amount <= 0)
         {
-            return 0;
+            refUsedAmount = 0;
+            return false;
         }
         if (!HasItem(itemType))
         {
             print($"[InventorySystem] 아이템이 없어 사용할 수 없음 | 사용 시도 타입: {itemType} | 사용 시도 개수: {amount}");
-            return 0;
+            refUsedAmount = 0;
+            return false;
         }
         else
         {
@@ -207,10 +232,11 @@ public class InventorySystem : MonoBehaviour
             if (!CanUseItem(itemType, amount))
             {
                 print($"[InventorySystem] 아이템 개수가 부족하여 남아있는 아이템을 모두 사용함 | 사용 타입: {itemType} | 실제 개수: {item.Count} | 사용 시도 개수: {amount}");
-                var retCount = item.Count;
+                Incremental copyIncremental = new(item.Count);
+                refUsedAmount = copyIncremental;
                 item.Count = 0;
                 OnItemCountChange?.Invoke(itemType, 0);
-                return retCount;
+                return true;
             }
             else
             {
@@ -221,15 +247,17 @@ public class InventorySystem : MonoBehaviour
                     item.CountString = item.Count.ToString();
                     OnItemCountChange?.Invoke(itemType, item.Count);
                     print($"아이템 사용됨 | 사용 타입: {itemType} | 사용 개수: {amount}");
+                    refUsedAmount = amount;
                 }
                 else
                 {
                     itemDict.Remove(itemType);
                     OnItemCountChange?.Invoke(itemType, 0);
+                    refUsedAmount = amount;
                     print($"아이템이 모두 사용 되어 인벤토리에서 제거됨 | 제거 타입: {itemType}");
                 }
 
-                return amount;
+                return true;
             }
         }
     }

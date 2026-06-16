@@ -23,7 +23,7 @@ public class ItemAttribute
 {
     [Header("아이템 타입")] public RewardCurrencyType Type;
     [Header("표시할 아이템 이름 텍스트")] public string Name;
-    [Header("표시할 아이템 설명 텍스트")] public string InfoText;
+    [Header("표시할 아이템 설명 텍스트")][TextArea(5, 10)] public string InfoText;
 }
 
 public class InventorySystem : MonoBehaviour

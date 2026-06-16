@@ -444,7 +444,7 @@ public class BossZombie : PoolObject, IDamageable
     public void StoreDamage(float damage)
     {
         storeDamage += damage;
-        float hitCountDamageThreshold = TotalHp / 3f;
+        float hitCountDamageThreshold = TotalHp / 2f;
         if (storeDamage >= hitCountDamageThreshold)
         {
             hitCountBV.Value++;

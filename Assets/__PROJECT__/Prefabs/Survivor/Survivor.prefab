@@ -199,8 +199,12 @@ MonoBehaviour:
   minTargetSearchInterval: 0.25
   destinationRefreshInterval: 0.5
   moveTimeout: 8
+  defenseMoveWarningInterval: 2
   defensePointStoppingDistance: 0.4
   defensePointMoveTimeout: 12
+  defensePointRetryInterval: 0.5
+  navMeshRecoverySampleDistance: 1.5
+  engineerStandbyArriveDistance: 3
   role: 0
   visibleRoot: {fileID: 4304630370760601805}
   interactionCollider: {fileID: 8690338942676780397}

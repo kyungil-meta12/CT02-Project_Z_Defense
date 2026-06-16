@@ -32,7 +32,7 @@ public class DropItem : PoolObject, IPointerDownHandler
         print($"[DropItem] 아이템 회수 됨 | 아이템: {gameObject.name} | 획득량: {dropCount}");
 
         // 아이템 매니저에 보상 개수만큼 추가
-        ItemManager.Inst.AddReward(rewardType, dropCount, false);
+        InventorySystem.Inst.AddItem(rewardType, dropCount);
 
         // 아이템 획득 파티클 추가
         var pickupParticle = MemoryPool.Inst.GetInstance<PoolParticle>(pickupParticlePrefab);

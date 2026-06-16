@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Text;
 using UnityEngine;
@@ -182,15 +183,15 @@ public class ObstacleBuildSlot : MonoBehaviour
             return false;
         }
 
-        if (ItemManager.Inst == null)
+        if (InventorySystem.Inst == null)
         {
-            Debug.LogError("[ObstacleBuildSlot] ItemManager가 없어 장애물을 배치할 수 없습니다.", this);
+            Debug.LogError("[ObstacleBuildSlot] InventorySystem이 없어 장애물을 배치할 수 없습니다.", this);
             return false;
         }
 
         ResourceCost[] buildCosts = buildEntry.BuildCosts;
         // 장애물 배치도 터렛 경제와 같은 ResourceCost[] 파이프라인을 사용한다. Coin 전용 fallback은 검증 혼선을 만들기 때문에 사용하지 않는다.
-        if (!ItemManager.Inst.TrySpend(buildCosts))
+        if (!InventorySystem.Inst.TrySpend(buildCosts))
         {
             LogPlacementFailed(buildEntry, $"배치 비용 지불에 실패했습니다. 필요 비용: {FormatCosts(buildCosts)}, 보유 재화: {FormatWallet()}");
             return false;
@@ -207,7 +208,7 @@ public class ObstacleBuildSlot : MonoBehaviour
                 out placedObstacle))
         {
             // 이미 지불한 배치 비용을 환불한다
-            ItemManager.Inst.Refund(buildCosts);
+            InventorySystem.Inst.Refund(buildCosts);
             LogPlacementFailed(buildEntry, $"생성된 프리팹에 Obstacle 컴포넌트가 없어 비용을 환불했습니다. 필요 컴포넌트: Obstacle, 프리팹: {buildEntry.ObstaclePrefab.name}");
             return false;
         }
@@ -254,13 +255,13 @@ public class ObstacleBuildSlot : MonoBehaviour
             return $"설치 장소에 이미 '{GetObstacleName(obstacle)}'이 있습니다.";
         }
 
-        if (ItemManager.Inst == null)
+        if (InventorySystem.Inst == null)
         {
             return "ItemManager가 없어 재화 보유량을 확인할 수 없습니다.";
         }
 
         ResourceCost[] buildCosts = buildEntry.BuildCosts;
-        if (!ItemManager.Inst.CanAfford(buildCosts))
+        if (!InventorySystem.Inst.CanAfford(buildCosts))
         {
             return $"재화가 부족합니다. 필요 비용: {FormatCosts(buildCosts)}, 보유 재화: {FormatWallet()}";
         }
@@ -287,12 +288,12 @@ public class ObstacleBuildSlot : MonoBehaviour
             return false;
         }
 
-        if (CurrentObstacle != null || ItemManager.Inst == null)
+        if (CurrentObstacle != null || InventorySystem.Inst == null)
         {
             return false;
         }
 
-        return ItemManager.Inst.CanAfford(buildEntry.BuildCosts);
+        return InventorySystem.Inst.CanAfford(buildEntry.BuildCosts);
     }
 
     // 장애물 배치 실패 사유를 콘솔에 출력한다
@@ -362,12 +363,22 @@ public class ObstacleBuildSlot : MonoBehaviour
     // 현재 지갑 상태를 로그에 표시할 문자열로 변환한다
     private static string FormatWallet()
     {
-        if (ItemManager.Inst == null)
+        if (InventorySystem.Inst == null)
         {
-            return "ItemManager 없음";
+            return "InventorySystem 없음";
         }
 
-        return $"Coin {ItemManager.Inst.CoinCount}, Fire {ItemManager.Inst.FirePartCount}, Special {ItemManager.Inst.SpecialPartCount}";
+        // 현재 존재하는 재화에 대해서만 출력한다.
+        string fmt = "";
+        foreach(RewardCurrencyType type in InventorySystem.Inst.Types)
+        {
+            if(InventorySystem.Inst.HasItem(type))
+            {
+                fmt += InventorySystem.Inst.GetFormatString(type) + "\n";
+            }
+        }
+
+        return fmt;
     }
 
     // 재화 종류를 로그 표시용 짧은 이름으로 변환한다

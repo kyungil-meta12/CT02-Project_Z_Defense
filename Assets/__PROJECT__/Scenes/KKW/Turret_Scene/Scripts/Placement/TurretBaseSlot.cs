@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 
 /// <summary>
 /// 터렛 배치 지점의 점유 상태와 실제 터렛 설치 처리를 관리한다.
@@ -150,24 +150,24 @@ public class TurretBaseSlot : MonoBehaviour
             return true;
         }
 
-        if (ItemManager.Inst == null)
+        if (InventorySystem.Inst == null)
         {
             Debug.LogError("[TurretBaseSlot] ItemManager가 없어 터렛 배치 비용을 사용할 수 없습니다.", this);
             return false;
         }
 
-        return ItemManager.Inst.TrySpend(placementCosts);
+        return InventorySystem.Inst.TrySpend(placementCosts);
     }
 
     // 터렛 배치 실패 시 이미 지불한 배치 비용을 돌려준다
     private void RefundPlacementCosts(ResourceCost[] placementCosts)
     {
-        if (!HasPayableCosts(placementCosts) || ItemManager.Inst == null)
+        if (!HasPayableCosts(placementCosts) || InventorySystem.Inst == null)
         {
             return;
         }
 
-        ItemManager.Inst.Refund(placementCosts);
+        InventorySystem.Inst.Refund(placementCosts);
     }
 
     // 실제 소모할 비용 항목이 하나 이상 있는지 확인한다

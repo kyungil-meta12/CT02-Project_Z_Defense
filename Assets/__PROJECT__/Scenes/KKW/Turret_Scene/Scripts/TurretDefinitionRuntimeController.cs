@@ -477,12 +477,12 @@ public class TurretDefinitionRuntimeController : MonoBehaviour
             return true;
         }
 
-        if (ItemManager.Inst == null)
+        if (InventorySystem.Inst == null)
         {
             return false;
         }
 
-        return ItemManager.Inst.CanAfford(costs);
+        return InventorySystem.Inst.CanAfford(costs);
     }
 
     // 비용 배열을 실제 재화에서 차감한다
@@ -493,24 +493,24 @@ public class TurretDefinitionRuntimeController : MonoBehaviour
             return true;
         }
 
-        if (ItemManager.Inst == null)
+        if (InventorySystem.Inst == null)
         {
             Debug.LogWarning("[TurretDefinitionRuntimeController] ItemManager가 없어 터렛 비용을 소모할 수 없습니다.", this);
             return false;
         }
 
-        return ItemManager.Inst.TrySpend(costs);
+        return InventorySystem.Inst.TrySpend(costs);
     }
 
     // 이미 소모한 비용 배열을 환불한다
     private void RefundCosts(ResourceCost[] costs)
     {
-        if (!HasPayableCosts(costs) || ItemManager.Inst == null)
+        if (!HasPayableCosts(costs) || InventorySystem.Inst == null)
         {
             return;
         }
 
-        ItemManager.Inst.Refund(costs);
+        InventorySystem.Inst.Refund(costs);
     }
 
     // 실제 지불해야 하는 비용이 하나 이상 있는지 확인한다

@@ -96,7 +96,7 @@ public class ObstacleUpgradeRuntimeController : MonoBehaviour
         }
 
         ResourceCost[] costs = GetUpgradeCosts(levelAmount);
-        return ItemManager.Inst != null && ItemManager.Inst.CanAfford(costs);
+        return InventorySystem.Inst != null && InventorySystem.Inst.CanAfford(costs);
     }
 
     // 비용을 소모한 뒤 지정한 수량만큼 업그레이드한다
@@ -129,7 +129,7 @@ public class ObstacleUpgradeRuntimeController : MonoBehaviour
         }
 
         ResourceCost[] costs = obstacleDefinition.GetUpgradeCosts(level, targetLevel);
-        if (ItemManager.Inst == null || !ItemManager.Inst.TrySpend(costs))
+        if (InventorySystem.Inst == null || !InventorySystem.Inst.TrySpend(costs))
         {
             Debug.LogWarning("[장애물 업그레이드] 재화가 부족하거나 ItemManager가 없어 업그레이드할 수 없습니다.", this);
             return false;
@@ -143,7 +143,7 @@ public class ObstacleUpgradeRuntimeController : MonoBehaviour
                 return true;
             }
 
-            ItemManager.Inst.Refund(costs);
+            InventorySystem.Inst.Refund(costs);
             Debug.LogWarning("[장애물 업그레이드] 슬롯 교체 처리에 실패해 비용을 환불했습니다.", this);
             return false;
         }

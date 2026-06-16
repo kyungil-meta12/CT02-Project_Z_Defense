@@ -8,7 +8,7 @@ public static class RewardGrantUtility
     // 좀비 처치 보상 프로필을 실제 재화 지급으로 변환한다
     public static void GrantZombieReward(ZombieRewardProfileSO rewardProfile, ZombieRewardContext context, Object logContext, ref RewardResult refResult)
     {
-        if (ItemManager.Inst == null)
+        if (InventorySystem.Inst == null)
         {
             Debug.LogWarning("[RewardGrantUtility] ItemManager가 없어 좀비 처치 보상을 지급할 수 없습니다.", logContext);
             return;
@@ -57,7 +57,7 @@ public static class RewardGrantUtility
         // 코인을 제외한 나머지 보상은 플레이어가 직접 터치하여 얻도록 한다.
         if(reward.currencyType == RewardCurrencyType.Coin)
         {
-            ItemManager.Inst.AddReward(reward.currencyType, finalAmount, true);
+            InventorySystem.Inst.AddItem(reward.currencyType, finalAmount);
         }
 
         // 레퍼런스 파라미터를 통해 최종 보상 결과값을 얻는다

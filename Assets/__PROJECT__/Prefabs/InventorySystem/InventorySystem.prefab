@@ -44,15 +44,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 552019367d745f841bcccea067b7532f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::InventorySystem
-  itemAttributes:
-  - Type: 0
-    Name: "\uCF54\uC778"
-    InfoText: "\uCF54\uC778\uC774\uB2E4."
-  - Type: 1
-    Name: "\uC77C\uBC18 \uAE30\uACC4 \uBD80\uD488"
-    InfoText: "\uD130\uB81B\uC744 \uBC30\uCE58\uD558\uAC70\uB098 \uC5C5\uADF8\uB808\uC774\uB4DC
-      \uD560 \uB54C \uC0AC\uC6A9\uD55C\uB2E4."
-  - Type: 2
-    Name: "\uACE0\uAE09 \uAE30\uACC4 \uBD80\uD488"
-    InfoText: "\uD130\uB81B\uC744 \uB2E4\uC74C \uC138\uB300\uB85C \uC5C5\uADF8\uB808\uC774\uB4DC
-      \uD560 \uB54C \uC0AC\uC6A9\uD55C\uB2E4."
+  applyInitialWalletOnAwake: 1
+  applyInitialWalletOnlyWhenEmpty: 1
+  logInitialWalletApply: 1
+  initialWalletCurrencies:
+  - currencyType: 0
+    amount: 500
+  itemMetaDataSo: {fileID: 11400000, guid: 7651a33dce019a4428811b924fc542c5, type: 2}

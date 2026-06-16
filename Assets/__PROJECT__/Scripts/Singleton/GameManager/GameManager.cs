@@ -110,6 +110,7 @@ public class GameManager : MonoBehaviour
         {
             KillCount = 0;
             Wave++;
+            InventorySystem.Inst.AddCoinBouns(20);
             OnWaveIncrease?.Invoke(Wave);
         }
     }

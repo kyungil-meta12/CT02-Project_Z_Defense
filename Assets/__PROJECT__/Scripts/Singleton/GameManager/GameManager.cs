@@ -698,7 +698,8 @@ public class GameManager : MonoBehaviour
         RebuildAllDefenseLines();
         ReassignAllEngineers();
         PreparePreviousWaveRestart();
-
+        
+        yield return fadeWait;
         yield return FadeGameOverPanelOut();
 
         ResumeAllZombieSpawners();
@@ -706,6 +707,7 @@ public class GameManager : MonoBehaviour
         gameOverCoroutine = null;
     }
 
+    private WaitForSeconds fadeWait = new WaitForSeconds(3f);
     // 게임오버 패널을 불투명하게 페이드한다
     private IEnumerator FadeGameOverPanelIn()
     {

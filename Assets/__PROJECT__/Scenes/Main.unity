@@ -12434,7 +12434,7 @@ MonoBehaviour:
   gameOverPanelUI: {fileID: 1722935819}
   gameOverFadeInDuration: 5
   gameOverFadeOutDuration: 3
-  startWave: 1
+  startWave: 499
   startTimeScale: 1
   baseFixedDeltaTime: 0.02
 --- !u!4 &293100234
@@ -34540,7 +34540,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 0, g: 0, b: 0, a: 0.92}
+  m_Color: {r: 0, g: 0, b: 0, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1

@@ -10,19 +10,23 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 2198761140652240216, guid: 4696f3a76ac50b74dba3cd8982cf1807, type: 3}
       propertyPath: spec
-      value:
+      value: 
       objectReference: {fileID: 11400000, guid: edfa7b0002e345d09f77095fdb3657e7, type: 2}
     - target: {fileID: 2198761140652240216, guid: 4696f3a76ac50b74dba3cd8982cf1807, type: 3}
       propertyPath: rewardProfileOverride
-      value:
+      value: 
       objectReference: {fileID: 11400000, guid: 66ed0c5297c565e4e8f9d3c24df92e79, type: 2}
     - target: {fileID: 2927825134225070825, guid: 4696f3a76ac50b74dba3cd8982cf1807, type: 3}
       propertyPath: m_Name
       value: NZ_Mechanic
       objectReference: {fileID: 0}
+    - target: {fileID: 3949661855499317430, guid: 4696f3a76ac50b74dba3cd8982cf1807, type: 3}
+      propertyPath: 'frostTargetRenderers.Array.data[0]'
+      value: 
+      objectReference: {fileID: 8102179244895104402}
     - target: {fileID: 5692015833206973953, guid: 4696f3a76ac50b74dba3cd8982cf1807, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
-      value:
+      value: 
       objectReference: {fileID: 2100000, guid: 008316033fc5cb54e9df91755a34fb2f, type: 2}
     - target: {fileID: 5764995620041688112, guid: 4696f3a76ac50b74dba3cd8982cf1807, type: 3}
       propertyPath: m_IsActive
@@ -85,3 +89,8 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 4696f3a76ac50b74dba3cd8982cf1807, type: 3}
+--- !u!137 &8102179244895104402 stripped
+SkinnedMeshRenderer:
+  m_CorrespondingSourceObject: {fileID: 5692015833206973953, guid: 4696f3a76ac50b74dba3cd8982cf1807, type: 3}
+  m_PrefabInstance: {fileID: 4507719663679998867}
+  m_PrefabAsset: {fileID: 0}

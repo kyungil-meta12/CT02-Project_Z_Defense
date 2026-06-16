@@ -14,20 +14,24 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2198761140652240216, guid: 4696f3a76ac50b74dba3cd8982cf1807, type: 3}
       propertyPath: spec
-      value:
+      value: 
       objectReference: {fileID: 11400000, guid: 9ac7d38b87a544afa9f4b6c22ed80040, type: 2}
     - target: {fileID: 2198761140652240216, guid: 4696f3a76ac50b74dba3cd8982cf1807, type: 3}
       propertyPath: rewardProfileOverride
-      value:
+      value: 
       objectReference: {fileID: 11400000, guid: 5e84a2bc71a4eee459c267378cce91cd, type: 2}
     - target: {fileID: 2733474668478069711, guid: 4696f3a76ac50b74dba3cd8982cf1807, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
-      value:
+      value: 
       objectReference: {fileID: 2100000, guid: d1e26b3a3707be744b01eb7df7046c87, type: 2}
     - target: {fileID: 2927825134225070825, guid: 4696f3a76ac50b74dba3cd8982cf1807, type: 3}
       propertyPath: m_Name
       value: NZ_FireFighter
       objectReference: {fileID: 0}
+    - target: {fileID: 3949661855499317430, guid: 4696f3a76ac50b74dba3cd8982cf1807, type: 3}
+      propertyPath: 'frostTargetRenderers.Array.data[0]'
+      value: 
+      objectReference: {fileID: 5800607716156218274}
     - target: {fileID: 5764995620041688112, guid: 4696f3a76ac50b74dba3cd8982cf1807, type: 3}
       propertyPath: m_IsActive
       value: 0
@@ -77,3 +81,8 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 4696f3a76ac50b74dba3cd8982cf1807, type: 3}
+--- !u!137 &5800607716156218274 stripped
+SkinnedMeshRenderer:
+  m_CorrespondingSourceObject: {fileID: 2733474668478069711, guid: 4696f3a76ac50b74dba3cd8982cf1807, type: 3}
+  m_PrefabInstance: {fileID: 8471452620690055277}
+  m_PrefabAsset: {fileID: 0}

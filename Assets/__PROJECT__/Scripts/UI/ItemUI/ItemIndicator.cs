@@ -37,24 +37,19 @@ public class ItemIndicator : MonoBehaviour
     }
     void Start()
     {
-        // ItemManager 값 변경 이벤트 구독
-        // string 가비지 발생을 줄이기 위해 값이 변경되었을 때만 인디케이터의 텍스트에 반영한다.
-        ItemManager.Inst.OnCoinValueChange += OnCoinValueChanged;
-        ItemManager.Inst.OnFirePartValueChange += OnFirePartValueChanged;
-        ItemManager.Inst.OnSpecialPartValueChange += OnSpecialPartValueChanged;
+        // 인벤토리 시스템 이벤트 구독
+        InventorySystem.Inst.OnItemCountChange += OnValueChanged;
 
-        coinText.text = ItemManager.Inst.CoinCountString;
-        firePartText.text = ItemManager.Inst.FirePartCountString;
-        specialPartText.text = ItemManager.Inst.SpecialPartCountString;
+        coinText.text = InventorySystem.Inst.GetCountString(RewardCurrencyType.Coin);
+        firePartText.text = InventorySystem.Inst.GetCountString(RewardCurrencyType.FirePart);
+        specialPartText.text = InventorySystem.Inst.GetCountString(RewardCurrencyType.SpecialPart);
     }
 
     void OnDestroy()
     {
-        if(ItemManager.Inst)
+        if(InventorySystem.Inst)
         {
-            ItemManager.Inst.OnCoinValueChange -= OnCoinValueChanged;
-            ItemManager.Inst.OnFirePartValueChange -= OnFirePartValueChanged;
-            ItemManager.Inst.OnSpecialPartValueChange -= OnSpecialPartValueChanged;
+            InventorySystem.Inst.OnItemCountChange -= OnValueChanged;
         }
     }
 
@@ -87,5 +82,21 @@ public class ItemIndicator : MonoBehaviour
     {
         specialPartText.text = str;
         specialPartTextScale = originSpecialPartTextScale * animValue.OnValueChangeScale;
+    }
+
+    public void OnValueChanged(ItemData data)
+    {
+        if(data.Type == RewardCurrencyType.Coin)
+        {
+            OnCoinValueChanged(data.String);
+        } 
+        else if(data.Type == RewardCurrencyType.FirePart)
+        {
+            OnFirePartValueChanged(data.String);
+        }
+        else if(data.Type == RewardCurrencyType.SpecialPart)
+        {
+            OnSpecialPartValueChanged(data.String);
+        }
     }
 }

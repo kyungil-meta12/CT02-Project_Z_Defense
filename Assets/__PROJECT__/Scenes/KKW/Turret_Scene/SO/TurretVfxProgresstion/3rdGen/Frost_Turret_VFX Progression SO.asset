@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 3bdc0c7b9357a70449f6f4bff47f2e82, type: 3}
-  m_Name: Forst_Turret_VFX Progression SO
+  m_Name: Frost_Turret_VFX Progression SO
   m_EditorClassIdentifier: Assembly-CSharp::TurretVFXProgressionSO
   defaultProfile: {fileID: 11400000, guid: 1f4618be3872ff04db6ea227877d68a9, type: 2}
   levelEntries:

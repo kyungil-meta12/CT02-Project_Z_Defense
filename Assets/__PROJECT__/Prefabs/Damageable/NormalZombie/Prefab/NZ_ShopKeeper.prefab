@@ -10,11 +10,11 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 2198761140652240216, guid: 4696f3a76ac50b74dba3cd8982cf1807, type: 3}
       propertyPath: spec
-      value:
+      value: 
       objectReference: {fileID: 11400000, guid: 5c3b3312c7bc4ec1acaed282d107cf34, type: 2}
     - target: {fileID: 2198761140652240216, guid: 4696f3a76ac50b74dba3cd8982cf1807, type: 3}
       propertyPath: rewardProfileOverride
-      value:
+      value: 
       objectReference: {fileID: 11400000, guid: c893909046cd9a043b4005d973feb8b1, type: 2}
     - target: {fileID: 2927825134225070825, guid: 4696f3a76ac50b74dba3cd8982cf1807, type: 3}
       propertyPath: m_Name
@@ -24,6 +24,10 @@ PrefabInstance:
       propertyPath: m_IsActive
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 3949661855499317430, guid: 4696f3a76ac50b74dba3cd8982cf1807, type: 3}
+      propertyPath: 'frostTargetRenderers.Array.data[0]'
+      value: 
+      objectReference: {fileID: 1112521432030440077}
     - target: {fileID: 5764995620041688112, guid: 4696f3a76ac50b74dba3cd8982cf1807, type: 3}
       propertyPath: m_IsActive
       value: 0
@@ -70,7 +74,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8427991729622540254, guid: 4696f3a76ac50b74dba3cd8982cf1807, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
-      value:
+      value: 
       objectReference: {fileID: 2100000, guid: e664cf1b7f35039489da18a0f2e0b8fb, type: 2}
     - target: {fileID: 9175698223646993104, guid: 4696f3a76ac50b74dba3cd8982cf1807, type: 3}
       propertyPath: m_AnchorMax.x
@@ -85,3 +89,8 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 4696f3a76ac50b74dba3cd8982cf1807, type: 3}
+--- !u!137 &1112521432030440077 stripped
+SkinnedMeshRenderer:
+  m_CorrespondingSourceObject: {fileID: 8427991729622540254, guid: 4696f3a76ac50b74dba3cd8982cf1807, type: 3}
+  m_PrefabInstance: {fileID: 8900878172673422675}
+  m_PrefabAsset: {fileID: 0}

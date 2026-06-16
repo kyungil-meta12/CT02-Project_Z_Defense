@@ -9,7 +9,7 @@ using Random = UnityEngine.Random;
 /// <summary>
 /// 보스 좀비의 웨이브 스탯 초기화, 스킬, 피격, 사망, 처치 보상 지급을 담당한다.
 /// </summary>
-public class BossZombie : PoolObject, IDamageable
+public class BossZombie : PoolObject, IDamageable, IFrostStatusEffectReceiver, IPoisonStatusEffectReceiver
 {
     private static readonly int SpeedHash = Animator.StringToHash("speed");
 
@@ -22,6 +22,7 @@ public class BossZombie : PoolObject, IDamageable
     public NavMeshAgent agent;
     public Collider col;
     [Header("보상 파티클 스케일")] public float rewardParticleScale;
+    [Header("상태이상 비주얼")] [SerializeField] private StatusEffectVisualController statusEffectVisualController;
 
     private Rigidbody rb;
     
@@ -45,6 +46,18 @@ public class BossZombie : PoolObject, IDamageable
     private BlackboardVariable<int> hitCountBV;
     private BlackboardVariable<int> curAttackCountBV;
     private BlackboardVariable<float> speedBV;
+    private float baseMoveSpeed;
+    private float baseAttackSpeed;
+    private float frostSlowRatio;
+    private float frostExposureTimer;
+    private float frostHoldTimer;
+    private bool frostStatusDirty;
+    private bool frostStatusActive;
+    private PoisonStatusPayload poisonStatusPayload;
+    private float poisonRemainingDuration;
+    private float poisonTickTimer;
+    private int poisonStackCount;
+    private bool poisonStatusActive;
     
     public float TotalHp { get; private set; }
     public float CurrHp { get; private set; }
@@ -61,6 +74,7 @@ public class BossZombie : PoolObject, IDamageable
         agent = GetComponent<NavMeshAgent>();
         col = GetComponent<Collider>();
         rb = GetComponent<Rigidbody>();
+        CacheStatusEffectVisualController();
         GetComponentsInChildren(false, colliders);
 
         ConfigureBehaviorNavigation();
@@ -85,8 +99,10 @@ public class BossZombie : PoolObject, IDamageable
         var randomHp = Random.Range(spec.MinHp, spec.MaxHp);
         
         // 이동/공격 속도
-        speedBV.Value = spec.MoveSpeed * randomMoveAttackSpeed;
-        anim.SetFloat("AttackSpeed", spec.AttackSpeed * randomMoveAttackSpeed);
+        baseMoveSpeed = spec.MoveSpeed * randomMoveAttackSpeed;
+        baseAttackSpeed = spec.AttackSpeed * randomMoveAttackSpeed;
+        speedBV.Value = baseMoveSpeed;
+        anim.SetFloat("AttackSpeed", baseAttackSpeed);
 
         // 공격 대미지
         attackDamage = spec.AttackDamage * randomAttackDamage;
@@ -101,6 +117,8 @@ public class BossZombie : PoolObject, IDamageable
         hitCountBV.Value = 0;
         curAttackCountBV.Value = 0;
         attackTargetBV.Value = null;
+        ResetFrostStatus();
+        ResetPoisonStatus();
 
         // 체력 UI 슬라이더 값 지정
         hpUI.gameObject.SetActive(true);
@@ -130,11 +148,13 @@ public class BossZombie : PoolObject, IDamageable
         if (speedBV != null)
         {
             speedBV.Value *= safeModifiers.moveAttackSpeedMultiplier;
+            baseMoveSpeed = speedBV.Value;
         }
 
         if (anim != null)
         {
             anim.SetFloat("AttackSpeed", anim.GetFloat("AttackSpeed") * safeModifiers.moveAttackSpeedMultiplier);
+            baseAttackSpeed = anim.GetFloat("AttackSpeed");
         }
 
         if (hpUI != null)
@@ -154,12 +174,16 @@ public class BossZombie : PoolObject, IDamageable
         }
 
         RestoreAllScreamerSpeedBuffs();
+        ResetFrostStatus();
+        ResetPoisonStatus();
     }
 
     // 매 프레임 사망 처리와 루트모션 이동 방향을 갱신한다
     // 매 프레임 사망 처리와 루트모션 이동 방향을 갱신한다
     void Update()
     {
+        UpdateFrostStatus(Time.deltaTime);
+        UpdatePoisonStatus(Time.deltaTime);
         UpdateDeath();
         UpdateRootMotionNavigation();
         UpdateMoveAnimatorSpeed();
@@ -349,31 +373,28 @@ public class BossZombie : PoolObject, IDamageable
     //노말좀비 스피드 버프
     private void ApplyScreamerSpeedBuff(NormalZombie zombie)
     {
-        if (!zombie || !zombie.anim)
+        if (!zombie)
         {
             return;
         }
 
         if (!screamerOriginalSpeeds.ContainsKey(zombie))
         {
-            screamerOriginalSpeeds[zombie] = new Vector2(
-                zombie.anim.GetFloat("MoveSpeed"),
-                zombie.anim.GetFloat("AttackSpeed")
-            );
+            screamerOriginalSpeeds[zombie] = zombie.GetRuntimeBaseSpeeds();
         }
 
         var originalSpeeds = screamerOriginalSpeeds[zombie];
-        zombie.anim.SetFloat("MoveSpeed", originalSpeeds.x * screamerSkillSpeedMultiplier);
-        zombie.anim.SetFloat("AttackSpeed", originalSpeeds.y * screamerSkillSpeedMultiplier);
+        zombie.SetRuntimeBaseSpeeds(
+            originalSpeeds.x * screamerSkillSpeedMultiplier,
+            originalSpeeds.y * screamerSkillSpeedMultiplier);
     }
 
     //노말좀비 버프 해제
     private void RestoreScreamerSpeedBuff(NormalZombie zombie)
     {
-        if (zombie && zombie.anim && screamerOriginalSpeeds.TryGetValue(zombie, out var originalSpeeds))
+        if (zombie && screamerOriginalSpeeds.TryGetValue(zombie, out var originalSpeeds))
         {
-            zombie.anim.SetFloat("MoveSpeed", originalSpeeds.x);
-            zombie.anim.SetFloat("AttackSpeed", originalSpeeds.y);
+            zombie.SetRuntimeBaseSpeeds(originalSpeeds.x, originalSpeeds.y);
         }
 
         screamerOriginalSpeeds.Remove(zombie);
@@ -437,6 +458,213 @@ public class BossZombie : PoolObject, IDamageable
         }
     }
 
+    // Frost 빔으로 전달된 누적 슬로우 데이터를 갱신한다
+    public void ApplyFrostStatus(FrostStatusPayload payload)
+    {
+        if (!IsAlive)
+        {
+            return;
+        }
+
+        float safeMaxSlowRatio = Mathf.Clamp01(payload.maxSlowRatio);
+        float safeBuildUpDuration = Mathf.Max(0.0f, payload.slowBuildUpDuration);
+        float safeTickInterval = Mathf.Max(0.0f, payload.tickInterval);
+
+        if (safeMaxSlowRatio > 0.0f)
+        {
+            frostExposureTimer += safeTickInterval > 0.0f ? safeTickInterval : Time.deltaTime;
+            float buildUpRatio = safeBuildUpDuration > 0.0f ? Mathf.Clamp01(frostExposureTimer / safeBuildUpDuration) : 1.0f;
+            frostSlowRatio = Mathf.Max(frostSlowRatio, safeMaxSlowRatio * buildUpRatio);
+            frostHoldTimer = Mathf.Max(frostHoldTimer, payload.slowHoldDuration);
+            frostStatusDirty = true;
+        }
+
+        // 보스는 Frost 슬로우만 받고 빙결 폭발은 적용하지 않는다.
+    }
+
+    // Poison 투사체로 전달된 중독 틱데미지 데이터를 갱신한다
+    public void ApplyPoisonStatus(PoisonStatusPayload payload)
+    {
+        if (!IsAlive || !payload.hasPoisonStatus)
+        {
+            return;
+        }
+
+        poisonStatusPayload = payload;
+        int safeMaxStackCount = Mathf.Max(1, payload.maxStackCount);
+
+        if (poisonStackCount <= 0)
+        {
+            poisonStackCount = 1;
+        }
+        else if (payload.stackRefreshMode == PoisonStackRefreshMode.AddStackAndRefreshDuration)
+        {
+            poisonStackCount = Mathf.Min(safeMaxStackCount, poisonStackCount + 1);
+        }
+
+        poisonRemainingDuration = Mathf.Max(poisonRemainingDuration, payload.duration);
+        if (poisonTickTimer <= 0.0f)
+        {
+            poisonTickTimer = Mathf.Max(0.01f, payload.tickInterval);
+        }
+
+        poisonStatusActive = true;
+        SetPoisonVisualActive(true);
+    }
+
+    // Frost 상태 타이머를 감소시키고 이동/공격 속도를 갱신한다
+    private void UpdateFrostStatus(float deltaTime)
+    {
+        if (!frostStatusActive && !frostStatusDirty)
+        {
+            return;
+        }
+
+        if (frostHoldTimer > 0.0f)
+        {
+            frostHoldTimer = Mathf.Max(0.0f, frostHoldTimer - deltaTime);
+        }
+
+        if (frostHoldTimer <= 0.0f)
+        {
+            frostSlowRatio = 0.0f;
+            frostExposureTimer = 0.0f;
+        }
+
+        ApplyFrostSpeedModifier();
+    }
+
+    // Poison 상태 타이머를 감소시키고 틱마다 보스 보정 체력비례 데미지를 적용한다
+    private void UpdatePoisonStatus(float deltaTime)
+    {
+        if (!poisonStatusActive)
+        {
+            return;
+        }
+
+        if (!IsAlive)
+        {
+            ResetPoisonStatus();
+            return;
+        }
+
+        poisonRemainingDuration = Mathf.Max(0.0f, poisonRemainingDuration - deltaTime);
+        poisonTickTimer -= deltaTime;
+
+        if (poisonTickTimer <= 0.0f && poisonRemainingDuration > 0.0f)
+        {
+            ApplyPoisonTickDamage();
+            poisonTickTimer = Mathf.Max(0.01f, poisonStatusPayload.tickInterval);
+        }
+
+        if (poisonRemainingDuration <= 0.0f)
+        {
+            ResetPoisonStatus();
+        }
+    }
+
+    // 현재 중독 중첩 수와 보스 보정 배율에 맞는 최대체력 비례 틱데미지를 적용한다
+    private void ApplyPoisonTickDamage()
+    {
+        if (!IsAlive || poisonStackCount <= 0 || poisonStatusPayload.maxHpDamageRatioPerTick <= 0.0f)
+        {
+            return;
+        }
+
+        float damage = TotalHp * Mathf.Clamp01(poisonStatusPayload.maxHpDamageRatioPerTick) * poisonStackCount * Mathf.Max(0.0f, poisonStatusPayload.bossDamageMultiplier);
+        TakeDamage(damage);
+    }
+
+    // 현재 Frost 상태에 맞춰 비헤이비어 이동 속도와 공격 속도를 반영한다
+    private void ApplyFrostSpeedModifier()
+    {
+        float speedMultiplier = 1.0f;
+        if (frostHoldTimer > 0.0f)
+        {
+            speedMultiplier = Mathf.Clamp01(1.0f - frostSlowRatio);
+        }
+
+        if (speedBV != null)
+        {
+            speedBV.Value = baseMoveSpeed * speedMultiplier;
+        }
+
+        if (anim != null)
+        {
+            anim.SetFloat("AttackSpeed", baseAttackSpeed * speedMultiplier);
+        }
+
+        frostStatusActive = speedMultiplier < 1.0f;
+        SetFrostVisualActive(frostStatusActive);
+        frostStatusDirty = false;
+    }
+
+    // 풀 재사용이나 사망 시 Frost 상태를 초기화하고 원래 속도를 복구한다
+    private void ResetFrostStatus()
+    {
+        frostSlowRatio = 0.0f;
+        frostExposureTimer = 0.0f;
+        frostHoldTimer = 0.0f;
+        frostStatusDirty = false;
+        frostStatusActive = false;
+
+        if (speedBV != null)
+        {
+            speedBV.Value = baseMoveSpeed;
+        }
+
+        if (anim != null)
+        {
+            anim.SetFloat("AttackSpeed", baseAttackSpeed);
+        }
+
+        SetFrostVisualActive(false);
+    }
+
+    // 풀 재사용이나 사망 시 Poison 상태를 초기화하고 비주얼을 끈다
+    private void ResetPoisonStatus()
+    {
+        poisonStatusPayload = default;
+        poisonRemainingDuration = 0.0f;
+        poisonTickTimer = 0.0f;
+        poisonStackCount = 0;
+        poisonStatusActive = false;
+        SetPoisonVisualActive(false);
+    }
+
+    // 상태이상 비주얼 컨트롤러를 자식까지 포함해 캐시한다
+    private void CacheStatusEffectVisualController()
+    {
+        if (statusEffectVisualController != null)
+        {
+            return;
+        }
+
+        statusEffectVisualController = GetComponentInChildren<StatusEffectVisualController>(true);
+    }
+
+    // 프로스트 상태 활성 여부에 맞춰 비주얼 컨트롤러를 갱신한다
+    private void SetFrostVisualActive(bool isActive)
+    {
+        if (statusEffectVisualController == null)
+        {
+            return;
+        }
+
+        statusEffectVisualController.SetFrostSlowActive(isActive);
+    }
+
+    // 포이즌 상태 활성 여부에 맞춰 비주얼 컨트롤러를 갱신한다
+    private void SetPoisonVisualActive(bool isActive)
+    {
+        if (statusEffectVisualController == null)
+        {
+            return;
+        }
+
+        statusEffectVisualController.SetPoisonActive(isActive);
+    }
+
     float storeDamage = 0;
     //데미지 축적 및 넉백 호출 메서드
     public void StoreDamage(float damage)
@@ -493,6 +721,8 @@ public class BossZombie : PoolObject, IDamageable
         }
 
         hpUI.gameObject.SetActive(false); // hp UI 비활성화
+        ResetFrostStatus();
+        ResetPoisonStatus();
 
         if (agent.enabled)
         {

@@ -54,12 +54,14 @@ Do not use display names as stable IDs.
 
 | Type | Role |
 | --- | --- |
-| `TurretDefinitionSO` | Top-level turret identity, prefab, base stat profile, growth, upgrade cost profile, VFX progression, projectile scale progression, evolution progression, max level. |
+| `TurretDefinitionSO` | Top-level turret identity, prefab, base stat profile, growth, upgrade cost profile, VFX progression, projectile scale progression, status profile, evolution progression, max level. |
 | `TurretStatProfileSO` | Base combat values for tier level 1: damage, range, fire interval, projectile speed, projectile count, pierce count. |
 | `TurretStatGrowthProfileSO` | Tier-level-based growth calculation using completed growth steps. |
 | `TurretUpgradeCostProfileSO` | Calculates upgrade costs from current tier level to target tier level. |
 | `TurretVFXProfileSO` | Attack VFX selection data: projectile prefab or beam prefab, optional beam attack profile reference, muzzle VFX, muzzle duration. Audio is intentionally removed until the project-level sound system is rebuilt. |
-| `BeamAttackProfileSO` | Beam-specific attack rules: damage tick interval, damage multiplier, DPS interpretation, target mode, pierce radius, max targets, damage layer mask, and Frost status values. |
+| `BeamAttackProfileSO` | Beam-specific attack rules: damage tick interval, damage multiplier, DPS interpretation, target mode, pierce radius, max targets, and damage layer mask. |
+| `FrostStatusProfileSO` | Frost-specific status rules: slow buildup, max slow, freeze timing, freeze explosion, max-HP damage, secondary explosion slow, related VFX references, and optional primary-target max-HP damage growth. |
+| `PoisonStatusProfileSO` | Poison-specific status rules: max-HP tick damage ratio, tick interval, duration, stack limit, stack refresh mode, and boss damage multiplier. |
 | `TurretVFXProgressionSO` | Selects active VFX profile by current tier level. |
 | `TurretProjectileScaleProgressionSO` | Selects projectile scale by current tier level. |
 | `TurretEvolutionProgressionSO` | Defines available evolutions, required tier levels, branch-specific costs, icons, and effects. |
@@ -72,12 +74,14 @@ Do not use display names as stable IDs.
 3. `TurretStatCalculator` calculates runtime stats from base and growth profiles.
 4. `TurretStatProfileApplier` applies combat stats to the runtime turret components.
 5. `TurretVFXProgressionSO` selects projectile, beam, muzzle VFX data, and optional beam attack profile data.
-6. `TurretProjectileScaleProgressionSO` selects projectile scale.
-7. Projectile firing logic applies projectile prefab, speed, damage, pierce count, scale, and collision ignore rules per spawn.
-8. Beam firing logic keeps the beam VFX alive between fire requests and applies damage by `BeamAttackProfileSO.damageTickInterval`.
-9. `ProjectileDamageDealer` applies projectile damage to `IDamageable` targets.
-10. `ProjectileHitDetector` handles tracked target, trigger/collision, and movement raycast hit paths.
-11. Damage receivers spawn damage popups where appropriate.
+6. `TurretDefinitionSO.frostStatusProfile` provides Frost-specific status values when the selected attack is a beam Frost turret.
+7. `TurretDefinitionSO.poisonStatusProfile` provides Poison-specific status values when the selected attack is a projectile Poison turret.
+8. `TurretProjectileScaleProgressionSO` selects projectile scale.
+9. Projectile firing logic applies projectile prefab, speed, damage, pierce count, scale, collision ignore rules, and optional Poison payload per spawn.
+10. Beam firing logic keeps the beam VFX alive between fire requests and applies damage by `BeamAttackProfileSO.damageTickInterval`.
+11. `ProjectileDamageDealer` applies projectile damage to `IDamageable` targets and forwards Poison payloads to `IPoisonStatusEffectReceiver`.
+12. `ProjectileHitDetector` handles tracked target, trigger/collision, and movement raycast hit paths.
+13. Damage receivers spawn damage popups where appropriate.
 
 ## Beam Attack Runtime Flow
 
@@ -89,10 +93,12 @@ Current implementation:
 - `TurretVFXProfileSO.attackVfxType = Beam` selects beam mode.
 - `TurretVFXProfileSO.beamPrefab` provides the visual prefab used by `BeamFiringEvent`.
 - `TurretVFXProfileSO.beamAttackProfile` provides the beam-specific attack profile.
-- `TurretDefinitionRuntimeController.ApplyVFX` passes the selected beam prefab, beam attack profile, and projectile scale to `BeamFiringEvent`.
+- `TurretDefinitionSO.frostStatusProfile` provides Frost-specific status values separately from the beam attack profile.
+- `TurretDefinitionRuntimeController.ApplyVFX` passes the selected beam prefab, beam attack profile, Frost status profile, current level, and projectile scale to `BeamFiringEvent`.
 - The base `Turret` component still requires a projectile prefab reference to pass its firing gate. For beam VFX profiles, the controller assigns the beam prefab as the turret projectile prefab only to satisfy that gate; `BeamFiringEvent` does not instantiate a projectile.
 - `Turret.fireTick` still controls how often the base turret calls `FiringEvent.Fire`. For beam turrets, set the turret stat `fireInterval` low enough for responsive target acquisition and beam startup, usually `0.1` to `0.2`.
 - Actual beam damage cadence is controlled by `BeamAttackProfileSO.damageTickInterval`, not by projectile fire interval.
+- `TurretStatProfileSO.projectileSpeed` is still passed through the shared turret API for beam profiles, but `BeamFiringEvent` does not use it as travel speed because the beam connects to the target immediately. Keep a safe non-zero value for shared reports, validators, and compatibility, but tune beam feel through beam VFX/profile values instead.
 
 `BeamFiringEvent` runtime behavior:
 
@@ -120,10 +126,96 @@ Damage interpretation:
 
 Frost status handling:
 
-- `BeamAttackProfileSO` stores `slowRatio`, `slowDuration`, and `freezeDuration`.
-- `BeamFiringEvent` only forwards these values to targets implementing `IFrostStatusEffectReceiver`.
-- `NormalZombie` and `BossZombie` do not currently implement `IFrostStatusEffectReceiver`, so slow and freeze values are data-ready but not active until enemy-side status handling is added.
-- `slowDuration <= 0` means slow is inactive even if `slowRatio` is greater than zero.
+- `FrostStatusProfileSO` stores Frost values (`freezeDuration`, `slowBuildUpDuration`, `maxSlowRatio`, `slowHoldDuration`, `freezeTriggerRatio`, `freezeEffectPrefab`, `freezeEffectDuration`, `freezeExplosionDamageDelay`, `freezeExplosionRadius`, `freezeExplosionDamage`, `freezePrimaryTargetMaxHpDamageRatio`, `freezeExplosionLayerMask`, `freezeCooldownPerTarget`, `freezeExplosionSlowRatio`, `freezeExplosionSlowDuration`) and optional primary-target max-HP damage ratio growth.
+- `BeamFiringEvent` asks `FrostStatusProfileSO` for a level-scaled `FrostStatusPayload` and forwards it to targets implementing `IFrostStatusEffectReceiver`.
+- `NormalZombie` and `BossZombie` implement `IFrostStatusEffectReceiver`.
+- `NormalZombie` accumulates Frost exposure, scales cached `MoveSpeed` and `AttackSpeed` animator parameters, and triggers freeze explosion effects when buildup reaches the configured threshold.
+- `BossZombie` accumulates Frost exposure and scales the cached behavior blackboard `speed` value plus the `AttackSpeed` animator parameter, but does not trigger freeze explosion effects. Boss Frost is slow-only by design.
+- `FrostStatusEffectUtility` owns freeze effect spawning and non-alloc overlap explosion damage so future Frost skills can reuse the same explosion behavior.
+- `FrostFreezeExplosionDamageTimer` keeps `Ice_Cubes_Explosion` following the original frozen target while it is alive and delays explosion damage so the damage lands at the current effect position when the visual burst happens.
+- `NormalZombie` keeps the active `Ice_Cubes_Explosion` handle and cancels the effect plus pending explosion damage when the original frozen target dies or is reset for pooling.
+- `StatusEffectVisualController` owns enemy-side status VFX slots. It can spawn one `MeshFX_Frozen 1` instance per configured target renderer, inject the renderer into `OverlayFX`, and remove the runtime overlay material when Frost slow ends.
+- `NormalZombie` and `BossZombie` only report Frost active/inactive state to `StatusEffectVisualController`; they do not directly instantiate or configure mesh VFX.
+- `NormalZombie` exposes runtime base speed setters so external buffs such as Screamer speed buffs can change the non-Frost base speed without overwriting the active Frost multiplier.
+- `maxSlowRatio` is interpreted as a maximum reduction ratio, so `0.9` means the target keeps `10%` speed when Frost buildup reaches the cap.
+- `slowBuildUpDuration` controls how long continuous Frost exposure takes to reach `maxSlowRatio`.
+- `slowHoldDuration` controls how long the slow remains after Frost exposure stops.
+- `freezeTriggerRatio` controls when the freeze explosion branch should trigger after slow buildup reaches the configured ratio.
+- `freezeEffectDuration` controls how long the freeze VFX remains alive before returning to the pool.
+- `freezeExplosionDamageDelay` controls when radius damage is applied after the freeze VFX starts.
+- `freezePrimaryTargetMaxHpDamageRatio` applies max-HP ratio damage only to the original target that triggered `Ice_Cubes_Explosion`; that original target is excluded from the fixed radius explosion damage so it is damaged once.
+- `freezeExplosionSlowRatio` and `freezeExplosionSlowDuration` apply a short secondary slow only to targets damaged by the freeze explosion. This secondary slow cannot trigger another freeze explosion by itself.
+
+Frost pooling and optimization follow-up:
+
+- `Ice_Cubes_Explosion` should be verified as a project-owned PoolObject-compatible prefab before multiple Frost turrets become common in production waves.
+- `PooledObjectUtility.SpawnEffect` currently provides a safe fallback if the pool is missing, but repeated Frost freeze explosions should not depend on fallback `Instantiate/Destroy` in normal gameplay.
+- Add or tune a MemoryPool prewarm count after profiling expected simultaneous frozen targets.
+- `FrostFreezeExplosionDamageTimer` must reset payload, primary target, target transform, damage-pending state, timer, and cached position every time the effect is returned or reused.
+- Confirm cancelled effects never apply delayed explosion damage after the original target dies or returns to the zombie pool.
+- Future optimization should avoid repeated hierarchy scans while the freeze effect follows a target. Prefer a cached collider, cached aim transform, or enemy-provided status-effect anchor instead of resolving child colliders every frame.
+- Profile Frost beams with many zombies for GC allocation, `OverlapSphereNonAlloc` buffer pressure, particle count, and damage tick CPU cost.
+- If Frost explosion VFX becomes common, make configured pooling mandatory and remove fallback instantiation from the expected runtime path.
+
+Enemy Frost visual setup:
+
+- Add `StatusEffectVisualController` to each zombie prefab that should show Frost slow visuals.
+- Assign `MeshFX_Frozen 1` to the controller's `Frost Slow Visual Prefab` field.
+- Assign only body renderers that should receive the frost overlay into `Frost Target Renderers`.
+- For normal zombies, usually assign the active body `SkinnedMeshRenderer`.
+- For boss zombies, assign a boss-specific Frost visual prefab to the same `Frost Slow Visual Prefab` slot when `MeshFX_Frozen 1` is too visually noisy or incorrectly scaled.
+- For boss zombies, assign body and attachment renderers selectively so hair, eyes, or props can be excluded if needed.
+- If boss Frost particles look too large, lower `Frost Particle Scale Multiplier` on the boss `StatusEffectVisualController` instead of scaling the source MeshFX prefab.
+- Do not modify the original `OverlayFX` script from Private Assets; project-side lifecycle and material cleanup are handled by `StatusEffectVisualController`.
+- `freezeCooldownPerTarget` must prevent the same target from triggering freeze explosions every damage tick.
+- `freezeDuration > 0` temporarily applies a `0` speed multiplier and overrides slow until the freeze timer expires.
+- `freezeEffectPrefab` is owned by the attack/status profile, not by every zombie prefab. Zombies only provide receiver logic and effect position.
+- Frost timers are updated from each zombie's existing `Update` path and reset on spawn, despawn, and death.
+
+Poison status handling:
+
+- `PoisonStatusProfileSO` stores Poison values (`maxHpDamageRatioPerTick`, `tickInterval`, `duration`, `maxStackCount`, `stackRefreshMode`, `bossDamageMultiplier`).
+- `TurretDefinitionRuntimeController.ApplyVFX` creates a level-bound Poison payload only for projectile VFX profiles and passes it to the runtime `Turret`.
+- The base projectile firing path carries the Poison payload from `Turret` to `FiringEvent`, `Gun`, and `ProjectileDamageDealer`.
+- `ProjectileDamageDealer` applies direct projectile damage first, then forwards Poison to targets implementing `IPoisonStatusEffectReceiver`.
+- `NormalZombie` and `BossZombie` implement `IPoisonStatusEffectReceiver`.
+- `NormalZombie` applies Poison tick damage as `TotalHp * maxHpDamageRatioPerTick * stackCount`.
+- `BossZombie` applies Poison tick damage as `TotalHp * maxHpDamageRatioPerTick * stackCount * bossDamageMultiplier`.
+- `RefreshDurationOnly` refreshes Poison duration without increasing stack count after the first stack.
+- `AddStackAndRefreshDuration` increases stack count up to `maxStackCount` and refreshes duration.
+- Poison ticks start after `tickInterval`; direct projectile hit damage remains separate from Poison tick damage.
+- Poison status resets on spawn, despawn, and death.
+- `StatusEffectVisualController` owns Poison visual slots separately from Frost visual slots.
+
+## Poison Projectile Setup
+
+Current Poison projectile assets:
+
+| Asset | Role |
+| --- | --- |
+| `Prefabs/Turret/3rdGen/Poison_Turret.prefab` | Runtime turret prefab. |
+| `SO/TurretDefinition/3rdGen/Poison_Turret_Definition.asset` | Poison turret definition. |
+| `SO/TurretVfxProgresstion/3rdGen/Poison_Turret_VFX Progression SO.asset` | Selects the Poison projectile VFX profile. |
+| `SO/VFXProfiles/Projectile/VFX_Nova Orange/VFX_Nova Orange 1.asset` | Current projectile VFX profile reused by Poison. |
+
+Required Poison wiring:
+
+- `Poison_Turret_Definition.poisonStatusProfile` must point to a Poison status profile asset.
+- `Poison_Turret_Definition.vfxProgressionProfile` must select a projectile VFX profile, not a beam profile.
+- The selected projectile prefab must have or receive `ProjectileDamageDealer` through the existing projectile spawn path.
+- The selected projectile prefab should already be registered in the MemoryPool prewarm list if it is used frequently.
+- Normal and boss zombie prefabs should have `StatusEffectVisualController` Poison fields configured only when Poison visuals are required.
+
+Recommended Poison Status Profile values for first testing:
+
+| Field | Suggested Value | Note |
+| --- | ---: | --- |
+| `maxHpDamageRatioPerTick` | `0.01` | 1% max HP per tick per stack. |
+| `tickInterval` | `1.0` | One tick per second. |
+| `duration` | `4.0` | Lasts long enough for several ticks. |
+| `maxStackCount` | `3` | Allows repeated hits to matter without unbounded scaling. |
+| `stackRefreshMode` | `AddStackAndRefreshDuration` | Repeated hits increase stacks and refresh duration. |
+| `bossDamageMultiplier` | `0.5` | First-pass boss resistance value. |
 
 ## Frost Beam Setup
 
@@ -143,10 +235,12 @@ Required Frost prefab wiring:
 - `Frost_Turret` root has `Turret`, `TargetFinder`, `TurretStatProfileApplier`, `TurretDefinitionRuntimeController`, `BeamFiringEvent`, and `Gun`.
 - `TurretDefinitionRuntimeController.targetFiringEvent` points to `BeamFiringEvent`.
 - `TurretDefinitionRuntimeController.turretDefinition` points to `Frost_Turret_Definition`.
+- `Frost_Turret_Definition.frostStatusProfile` points to the Frost status profile asset that owns slow, freeze, explosion, and optional primary-target max-HP damage growth values.
 - `BeamFiringEvent.gunPrefabs` can point to the root if the root has the `Gun` component.
 - `Gun.muzzleObject` must point to the actual `FireNozzle` object. If it points to the turret mesh, such as `SM_Laser_Gun_Base`, the beam starts from the wrong position and may appear to aim downward.
 - `TargetFinder.pivotObject` should point to a rotating head or muzzle-related object so range and line-of-sight checks use a sensible origin.
 - `Frost_Turret` stat `fireInterval` should be near `0.1` to `0.2` for responsive continuous beam startup.
+- `Frost_Turret` stat `projectileSpeed` has little runtime impact because Frost uses `BeamFiringEvent` instead of a moving projectile. Do not delete or zero it; keep it as a compatibility/stat-report value.
 
 Required VFX Profile wiring:
 
@@ -166,9 +260,53 @@ Recommended Frost Beam Attack Profile values for first testing:
 | `maxTargets` | `4` | Temporary lane-clearing value. |
 | `pierceRadius` | `0.35` | Tune by enemy collider size and visual width. |
 | `damageBufferSize` | `16` | Must be at least `maxTargets`; increase only if needed. |
-| `slowRatio` | `0.2` | Data-ready until enemy status receiver exists. |
-| `slowDuration` | `1.0` | Must be greater than zero to apply slow later. |
-| `freezeDuration` | `0` | Reserve for future freeze behavior. |
+
+Recommended Frost Status Profile values for first testing:
+
+| Field | Suggested Value | Note |
+| --- | ---: | --- |
+| `slowBuildUpDuration` | `1.0` | Continuous exposure time to reach maximum slow. |
+| `maxSlowRatio` | `0.9` | Target keeps 10% movement/attack speed at full buildup. |
+| `slowHoldDuration` | `1.0` | Slow retention time after beam exposure stops. |
+| `freezeTriggerRatio` | `0.9` | Trigger freeze branch when slow reaches the cap. |
+| `freezeEffectPrefab` | `IceCubesExplosion` | Assign in editor when the project-owned effect prefab is available. |
+| `freezeEffectDuration` | `5.5` | Keep long enough for `Ice_Cubes_Explosion` particles with 5s lifetime to finish. |
+| `freezeExplosionDamageDelay` | `2.2` | Delay radius damage until the visual cube burst moment. |
+| `freezeExplosionRadius` | `2.5` | First test radius for freeze explosion damage. |
+| `freezeExplosionDamage` | `0` | Keep zero until explosion damage balance is decided. |
+| `freezePrimaryTargetMaxHpDamageRatio` | `0.1` | Original frozen target takes 10% max HP damage instead of the fixed radius explosion damage. |
+| `freezePrimaryTargetMaxHpDamageRatioPerLevel` | `0.00202` | Optional level growth for max-HP ratio damage only. Set `0` when Frost status should not scale by level. |
+| `maxFreezePrimaryTargetMaxHpDamageRatio` | `1.0` | Upper cap for level-scaled max-HP ratio damage. |
+| `freezeExplosionLayerMask` | damage layers | Should match zombie damageable layers for overlap damage. |
+| `freezeExplosionSlowRatio` | `0.3` | Targets damaged by the freeze explosion lose 30% speed briefly. |
+| `freezeExplosionSlowDuration` | `1.0` | Duration of the secondary explosion slow. |
+| `freezeCooldownPerTarget` | `2.0` | Prevent repeated explosions from the same target every tick. |
+
+Current `Frost_BeamAttackProfile` test values:
+
+- `targetMode = PierceLine`
+- `maxTargets = 4`
+- `damageTickInterval = 0.2`
+- `damageMultiplier = 1`
+- `treatTurretDamageAsDps = true`
+
+Current Frost status profile test values:
+
+- `slowBuildUpDuration = 1.5`
+- `maxSlowRatio = 0.9`
+- `slowHoldDuration = 1.0`
+- `freezeTriggerRatio = 0.9`
+- `freezeDuration = 3.8`
+- `freezeEffectDuration = 5.0`
+- `freezeExplosionDamageDelay = 2.8`
+- `freezeExplosionRadius = 2.5`
+- `freezeExplosionDamage = 1`
+- `freezePrimaryTargetMaxHpDamageRatio = 0.8`
+- `freezePrimaryTargetMaxHpDamageRatioPerLevel = 0.00202` if Lv1 80% should grow toward Lv100 100%.
+- `maxFreezePrimaryTargetMaxHpDamageRatio = 1.0`
+- `freezeExplosionSlowRatio = 0.3`
+- `freezeExplosionSlowDuration = 1.0`
+- `freezeCooldownPerTarget = 8.0`
 
 FrostRay VFX notes:
 
@@ -177,7 +315,9 @@ FrostRay VFX notes:
 - The hit effect is `BeamEmitter.beamTargetHitFX`, currently `Hit_Spikes`.
 - `BeamFiringEvent` resolves those `BeamEmitter` references at runtime and moves them to the current target position every frame.
 - The FrostRay beam visual is authored around a base length of `5`. `BeamFiringEvent.scaleBeamLengthAlongLocalX` scales local X by `targetDistance / beamBaseLength`.
+- `BeamFiringEvent.keepWorldScaleChildNames` preserves configured child particle sizes after root beam length scaling. Current Frost turret excludes `Smoke_Twirly_Add` and `Flecks_Shiny_Alpha` so muzzle/fleck particles keep their original size at long range.
 - To reduce only the hit effect size, scale the `Hit_Spikes` object or its children, not the root `FrostRay_TurretBeam` object. Scaling the root changes the whole beam length and width.
+- Current duplicated `Hit_Spikes` transform scale is `0.2, 0.2, 0.2` for the Frost turret test prefab.
 - If VFX density or particle emission looks wrong after length scaling, tune the duplicated `FrostRay_TurretBeam` prefab under the project folder, not the Private Assets original.
 
 ## Current Balance Direction
@@ -337,6 +477,7 @@ A complete path from Sentinel-01 tier level 1 to a second-generation `_3` tier l
 - `HovlProjectilePierceGuard` prevents HOVL's own target-hit return flow from ending a projectile before `ProjectileDamageDealer` reaches its pierce limit.
 - Do not rely on prefab state or previous pooled state.
 - Evolution effects should spawn through `PooledObjectUtility.SpawnEffect`.
+- Frost freeze explosion effects should spawn through `PooledObjectUtility.SpawnEffect` and should use a real pool when repeated frequently.
 - `ProjectileHitDetector` must clear target/collider state on reuse.
 - `DamagePopup.Init` must receive settings every spawn because pooled text objects retain previous state.
 
@@ -350,6 +491,8 @@ The validator checks:
 - empty `baseCostsPerLevel` arrays on upgrade cost profiles.
 - empty `evolutionCosts` arrays on evolution entries with a target definition.
 - missing `placementCosts` on turret placement entries.
+- missing `frostStatusProfile` on the Frost turret definition.
+- missing `poisonStatusProfile` on the Poison turret definition.
 - negative cost amounts in upgrade, evolution, and placement cost arrays.
 - upgrade cost ramp mismatches against the current form rules.
 - evolution cost ramp mismatches against the current branch-entry rules.

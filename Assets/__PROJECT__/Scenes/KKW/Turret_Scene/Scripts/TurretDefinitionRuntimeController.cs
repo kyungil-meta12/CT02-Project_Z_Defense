@@ -423,11 +423,13 @@ public class TurretDefinitionRuntimeController : MonoBehaviour
         {
             targetTurret.SetProjectilePrefab(vfxProfile.projectilePrefab, runtimeStat.projectileSpeed);
             targetTurret.SetProjectileScale(GetProjectileScale());
+            targetTurret.SetPoisonStatusPayload(CreatePoisonStatusPayload());
         }
         else if (targetTurret != null && vfxProfile.attackVfxType == TurretAttackVfxType.Beam && vfxProfile.beamPrefab != null)
         {
             targetTurret.SetProjectilePrefab(vfxProfile.beamPrefab, runtimeStat.projectileSpeed);
             targetTurret.SetProjectileScale(GetProjectileScale());
+            targetTurret.SetPoisonStatusPayload(default);
         }
 
         if (targetFiringEvent != null)
@@ -439,8 +441,10 @@ public class TurretDefinitionRuntimeController : MonoBehaviour
         BeamFiringEvent beamFiringEvent = targetFiringEvent as BeamFiringEvent;
         if (beamFiringEvent != null)
         {
-            beamFiringEvent.SetBeamPrefab(vfxProfile.attackVfxType == TurretAttackVfxType.Beam ? vfxProfile.beamPrefab : null);
-            beamFiringEvent.SetAttackProfile(vfxProfile.attackVfxType == TurretAttackVfxType.Beam ? vfxProfile.beamAttackProfile : null);
+            bool isBeamProfile = vfxProfile.attackVfxType == TurretAttackVfxType.Beam;
+            beamFiringEvent.SetBeamPrefab(isBeamProfile ? vfxProfile.beamPrefab : null);
+            beamFiringEvent.SetAttackProfile(isBeamProfile ? vfxProfile.beamAttackProfile : null);
+            beamFiringEvent.SetFrostStatusProfile(isBeamProfile ? turretDefinition.frostStatusProfile : null, level);
             beamFiringEvent.SetProjectileScale(GetProjectileScale());
         }
     }
@@ -454,6 +458,17 @@ public class TurretDefinitionRuntimeController : MonoBehaviour
         }
 
         return turretDefinition.projectileScaleProgressionProfile.GetScaleForLevel(level);
+    }
+
+    // 현재 터렛 정의와 레벨에 맞는 Poison 상태 payload를 생성한다
+    private PoisonStatusPayload CreatePoisonStatusPayload()
+    {
+        if (turretDefinition == null || turretDefinition.poisonStatusProfile == null || !turretDefinition.poisonStatusProfile.HasPoisonStatus)
+        {
+            return default;
+        }
+
+        return turretDefinition.poisonStatusProfile.CreatePayload(level);
     }
 
     // 진화 엔트리에 설정된 연출 효과를 재생한다
@@ -477,12 +492,12 @@ public class TurretDefinitionRuntimeController : MonoBehaviour
             return true;
         }
 
-        if (ItemManager.Inst == null)
+        if (InventorySystem.Inst == null)
         {
             return false;
         }
 
-        return ItemManager.Inst.CanAfford(costs);
+        return InventorySystem.Inst.CanAfford(costs);
     }
 
     // 비용 배열을 실제 재화에서 차감한다
@@ -493,24 +508,24 @@ public class TurretDefinitionRuntimeController : MonoBehaviour
             return true;
         }
 
-        if (ItemManager.Inst == null)
+        if (InventorySystem.Inst == null)
         {
             Debug.LogWarning("[TurretDefinitionRuntimeController] ItemManager가 없어 터렛 비용을 소모할 수 없습니다.", this);
             return false;
         }
 
-        return ItemManager.Inst.TrySpend(costs);
+        return InventorySystem.Inst.TrySpend(costs);
     }
 
     // 이미 소모한 비용 배열을 환불한다
     private void RefundCosts(ResourceCost[] costs)
     {
-        if (!HasPayableCosts(costs) || ItemManager.Inst == null)
+        if (!HasPayableCosts(costs) || InventorySystem.Inst == null)
         {
             return;
         }
 
-        ItemManager.Inst.Refund(costs);
+        InventorySystem.Inst.Refund(costs);
     }
 
     // 실제 지불해야 하는 비용이 하나 이상 있는지 확인한다

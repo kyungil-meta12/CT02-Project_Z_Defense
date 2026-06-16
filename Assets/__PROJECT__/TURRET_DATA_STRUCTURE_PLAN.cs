@@ -113,7 +113,7 @@
  *
  * 1. TurretDefinitionSO
  * - Top-level definition for a turret.
- * - Holds identity, base prefab, stat growth, VFX progression, projectile scale progression, evolution progression, and optional max level.
+ * - Holds identity, base prefab, stat growth, upgrade costs, VFX progression, projectile scale progression, optional status profile, evolution progression, and optional max level.
  *
  * Current fields:
  * public string turretId;
@@ -122,8 +122,11 @@
  * public TurretStatProfileSO baseStatProfile;
  * public int maxLevel;
  * public TurretStatGrowthProfileSO statGrowthProfile;
+ * public TurretUpgradeCostProfileSO upgradeCostProfile;
  * public TurretVFXProgressionSO vfxProgressionProfile;
  * public TurretProjectileScaleProgressionSO projectileScaleProgressionProfile;
+ * public FrostStatusProfileSO frostStatusProfile;
+ * public PoisonStatusProfileSO poisonStatusProfile;
  * public TurretEvolutionProgressionSO evolutionProgressionProfile;
  *
  * Recommended turretId format:
@@ -150,9 +153,10 @@
  * - Example: level 300 means 299 completed growth steps.
  *
  * 4. TurretVFXProfileSO
- * - Holds projectile visual data only.
- * - Projectile prefab, muzzle VFX, and muzzle duration.
+ * - Holds attack visual selection data.
+ * - Projectile prefab or beam prefab, optional beam attack profile, muzzle VFX, and muzzle duration.
  * - It should not contain balance values such as damage, range, fire interval, or projectile speed.
+ * - Beam status values, such as Frost slow and freeze settings, should live in a status profile referenced by TurretDefinitionSO.
  * - Audio data is intentionally removed until the project-level sound system is rebuilt.
  * - It should not be duplicated just to represent projectile size.
  *
@@ -210,6 +214,23 @@
  * private GameObject previewPrefab;
  * private ResourceCost[] placementCosts;
  *
+ * 10. BeamAttackProfileSO
+ * - Holds beam attack mechanics only.
+ * - Current responsibilities: damage tick interval, damage multiplier, DPS interpretation, target mode, pierce radius, max targets, damage buffer size, damage layer mask, and trigger interaction.
+ * - It should not own Frost slow, freeze, explosion, or status growth values.
+ * - Frost beam uses this profile for how the beam hits targets, then uses FrostStatusProfileSO for what Frost status does to those targets.
+ *
+ * 11. FrostStatusProfileSO
+ * - Holds Frost-specific status values referenced from TurretDefinitionSO.
+ * - Current responsibilities: slow buildup, max slow ratio, slow hold duration, freeze trigger ratio, freeze duration, freeze VFX prefab/duration, explosion damage delay, explosion radius/damage, primary-target max-HP damage ratio, explosion slow, cooldown, and layer mask.
+ * - Current growth responsibility is intentionally limited to primary-target max-HP damage ratio growth.
+ * - Slow ratio, freeze timing, explosion timing, radius, cooldown, and secondary explosion slow are treated as fixed feel values unless a future balance pass explicitly reopens them.
+ *
+ * 12. PoisonStatusProfileSO
+ * - Holds Poison-specific status values referenced from TurretDefinitionSO.
+ * - Current responsibilities: max-HP tick damage ratio, tick interval, duration, max stack count, stack refresh mode, and boss damage multiplier.
+ * - Poison uses the normal projectile attack path, so direct hit damage stays in TurretStatProfileSO/TurretStatGrowthProfileSO and only the damage-over-time status behavior lives here.
+ *
  * Evolution Runtime Flow
  *
  * 1. TurretDefinitionRuntimeController checks the current turret's evolutionProgressionProfile using current tier level.
@@ -233,12 +254,16 @@
  * 3. It calculates runtime stats using TurretStatCalculator.
  * 4. It applies combat stats through TurretStatProfileApplier.
  * 5. It selects projectile prefab and muzzle VFX through TurretVFXProgressionSO.
- * 6. It selects projectile scale through TurretProjectileScaleProgressionSO.
- * 7. Turret stores the selected projectile prefab, projectile speed, damage, pierce count, and scale.
- * 8. Gun/RocketFire applies damage, speed, scale, pooling reset, and collision ignore rules to each spawned projectile.
- * 9. ProjectileDamageDealer refreshes damage, pierce count, logging state, and hit detector state on spawn.
- * 10. ProjectileHitDetector applies damage to tracked targets, trigger/collision hits, or movement raycast hits.
- * 11. DamagePopupSpawner displays damage values when IDamageable implementations report damage.
+ * 6. Beam VFX profiles can provide BeamAttackProfileSO for beam-specific hit rules.
+ * 7. TurretDefinitionSO can provide FrostStatusProfileSO for Frost-specific slow, freeze, and explosion rules.
+ * 8. TurretDefinitionSO can provide PoisonStatusProfileSO for Poison-specific max-HP tick damage rules.
+ * 9. It selects projectile scale through TurretProjectileScaleProgressionSO.
+ * 10. Turret stores the selected projectile prefab, projectile speed, damage, pierce count, scale, and optional Poison payload.
+ * 11. Gun/RocketFire applies damage, speed, scale, pooling reset, collision ignore rules, and optional Poison payload to each spawned projectile.
+ * 12. BeamFiringEvent applies beam damage ticks and forwards Frost status payloads when configured.
+ * 13. ProjectileDamageDealer refreshes damage, pierce count, logging state, hit detector state, and optional Poison payload on spawn.
+ * 14. ProjectileHitDetector applies damage to tracked targets, trigger/collision hits, or movement raycast hits.
+ * 15. DamagePopupSpawner displays damage values when IDamageable implementations report damage.
  *
  * Second Generation VFX Mapping
  *
@@ -296,6 +321,21 @@
  * - DamagePopup instances are pooled through MemoryPool and prewarmed using DamagePopupSettings.InitialPoolSize.
  * - DamagePopup.Init must receive DamagePopupSettings every spawn because pooled text objects retain previous state.
  * - ProjectileHitDetector clears target/collider state through Init whenever a projectile is reused.
+ * - Frost freeze explosion effects should also spawn through PooledObjectUtility.SpawnEffect.
+ * - If Ice_Cubes_Explosion is used frequently, its duplicated project prefab should inherit or include PoolObject so SpawnEffect does not fall back to Instantiate/Destroy.
+ * - Long-lived followed VFX, such as Ice_Cubes_Explosion following a frozen target, must clear target, timer, damage-pending, payload, and cached position state on disable or pool return.
+ * - Pooled particle effects must restart particle systems and clear old particle/trail state on reuse.
+ * - Frost freeze explosion cancellation must stay connected to zombie death and pool reset paths: NormalZombie.ResetFrostStatus -> CancelActiveFrostFreezeEffect -> FrostStatusEffectUtility.CancelFreezeExplosionEffect.
+ *
+ * Frost Pooling / Optimization Follow-Up
+ *
+ * - TODO: Verify the project-owned Ice_Cubes_Explosion prefab has a PoolObject-compatible setup before many Frost turrets are allowed in production waves.
+ * - TODO: Decide a MemoryPool prewarm count for Frost freeze explosion effects after profiling expected simultaneous frozen targets.
+ * - TODO: Profile FrostFreezeExplosionDamageTimer when many freeze effects follow targets at once.
+ * - TODO: Avoid repeated hierarchy scans while following frozen targets. Current follow position uses TurretAimPointUtility.GetAimPosition, which can query child colliders; future optimization should cache a target collider, aim transform, or enemy-provided status-effect anchor.
+ * - TODO: Confirm PooledEffectReturner and FrostFreezeExplosionDamageTimer reset order is safe when an effect is cancelled before its delayed explosion damage fires.
+ * - TODO: Play-mode profile Frost beams with many zombies and multiple Frost turrets for GC allocation, physics overlap cost, particle count, and damage tick CPU spikes.
+ * - TODO: If Frost explosion VFX becomes common, move one-off fallback instantiation out of the normal runtime path and require a configured pool.
  *
  * Damage And Targeting Integration
  *
@@ -313,6 +353,7 @@
  * ProjectileDamageDealer
  * - Owns damage and pierce count for each projectile instance.
  * - Applies damage through hitCollider.GetComponentInParent<IDamageable>().
+ * - For Poison projectile turrets, forwards the current PoisonStatusPayload to targets implementing IPoisonStatusEffectReceiver after direct hit damage succeeds.
  * - Allows colliders under the tracked target IDamageable even if the specific child collider is not on the damage layer.
  * - Keeps a per-projectile hit list so one projectile does not hit the same damageable repeatedly.
  * - HovlProjectilePierceGuard prevents HOVL target-hit return from running before the ProjectileDamageDealer pierce limit is reached.
@@ -466,8 +507,11 @@
  * - basePrefab is assigned.
  * - baseStatProfile is assigned.
  * - statGrowthProfile is assigned if the turret grows.
+ * - upgradeCostProfile is assigned if player-facing upgrades should spend currency.
  * - vfxProgressionProfile is assigned.
  * - projectileScaleProgressionProfile is assigned.
+ * - frostStatusProfile is assigned only for Frost or other turret definitions that own Frost status behavior.
+ * - poisonStatusProfile is assigned only for Poison or other turret definitions that own Poison status behavior.
  * - evolutionProgressionProfile is assigned only if the turret can evolve.
  * - maxLevel is 0 unless the turret is intended to stop leveling forever.
  * - If the turret should stop only to wait for an evolution choice, use EvolutionProgressionSO.requiredLevel instead of maxLevel.

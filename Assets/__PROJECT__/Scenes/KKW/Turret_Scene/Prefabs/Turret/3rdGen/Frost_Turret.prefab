@@ -319,6 +319,9 @@ MonoBehaviour:
   minBeamDistance: 0.1
   targetValidationInterval: 0.1
   useTargetAimPoint: 1
+  keepWorldScaleChildNames:
+  - Smoke_Twirly_Add
+  - Flecks_Shiny_Alpha
 --- !u!114 &8538779154782827799
 MonoBehaviour:
   m_ObjectHideFlags: 0

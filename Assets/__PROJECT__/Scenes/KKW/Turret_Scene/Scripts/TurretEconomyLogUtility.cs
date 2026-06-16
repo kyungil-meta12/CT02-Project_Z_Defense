@@ -1,11 +1,12 @@
-﻿using System.Text;
+using System;
+using System.Text;
 using UnityEngine;
 
 // 터렛 설치, 업그레이드, 진화의 재화 소모 결과 로그를 공통 형식으로 출력한다
 internal static class TurretEconomyLogUtility
 {
     // 터렛 경제 액션의 성공 또는 실패 결과를 현재 보유 재화와 함께 출력한다
-    public static void LogResult(string actionName, string targetName, ResourceCost[] costs, bool success, Object context, string reason = null)
+    public static void LogResult(string actionName, string targetName, ResourceCost[] costs, bool success, UnityEngine.Object context, string reason = null)
     {
         StringBuilder builder = new StringBuilder(192);
         builder.Append("[터렛 재화] ");
@@ -71,19 +72,22 @@ internal static class TurretEconomyLogUtility
     // 현재 ItemManager 보유 재화를 로그용 문자열로 변환한다
     private static string FormatCurrentWallet()
     {
-        if (ItemManager.Inst == null)
+        if (InventorySystem.Inst == null)
         {
-            return "ItemManager 없음";
+            return "InventorySystem 없음";
+        }
+           
+        // 현재 존재하는 아이템에 대해서만 출력한다.
+        string fmt = "";
+        foreach(RewardCurrencyType type in InventorySystem.Inst.Types)
+        {
+            if(InventorySystem.Inst.HasItem(type))
+            {
+                fmt += InventorySystem.Inst.GetFormatString(type) + "\n";
+            }
         }
 
-        StringBuilder builder = new StringBuilder(96);
-        builder.Append("Coin ");
-        builder.Append(ItemManager.Inst.CoinCountString);
-        builder.Append(", Fire ");
-        builder.Append(ItemManager.Inst.FirePartCountString);
-        builder.Append(", Special ");
-        builder.Append(ItemManager.Inst.SpecialPartCountString);
-        return builder.ToString();
+        return fmt;
     }
 
     // 실제 소모할 비용 항목이 하나 이상 있는지 확인한다
@@ -109,16 +113,6 @@ internal static class TurretEconomyLogUtility
     // 재화 타입을 로그용 짧은 라벨로 변환한다
     private static string GetCurrencyLabel(RewardCurrencyType currencyType)
     {
-        switch (currencyType)
-        {
-            case RewardCurrencyType.Coin:
-                return "Coin";
-            case RewardCurrencyType.FirePart:
-                return "Fire";
-            case RewardCurrencyType.SpecialPart:
-                return "Special";
-            default:
-                return currencyType.ToString();
-        }
+        return currencyType.ToString();
     }
 }

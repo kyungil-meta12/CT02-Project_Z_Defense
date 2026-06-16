@@ -8,6 +8,26 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 739942121587218643, guid: bb3feed03de6ffc478b034fa5b6ed38f, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1290904329782082554, guid: bb3feed03de6ffc478b034fa5b6ed38f, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 5
+      objectReference: {fileID: 0}
+    - target: {fileID: 1290904329782082554, guid: bb3feed03de6ffc478b034fa5b6ed38f, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 5
+      objectReference: {fileID: 0}
+    - target: {fileID: 1290904329782082554, guid: bb3feed03de6ffc478b034fa5b6ed38f, type: 3}
+      propertyPath: m_LocalScale.z
+      value: 5
+      objectReference: {fileID: 0}
+    - target: {fileID: 1290904329782082554, guid: bb3feed03de6ffc478b034fa5b6ed38f, type: 3}
+      propertyPath: m_ConstrainProportionsScale
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 3317958215391167824, guid: bb3feed03de6ffc478b034fa5b6ed38f, type: 3}
       propertyPath: m_Controller
       value: 
@@ -15,6 +35,26 @@ PrefabInstance:
     - target: {fileID: 3703631398934292930, guid: bb3feed03de6ffc478b034fa5b6ed38f, type: 3}
       propertyPath: m_Name
       value: BossZombie_Boomer
+      objectReference: {fileID: 0}
+    - target: {fileID: 4355897377959615391, guid: bb3feed03de6ffc478b034fa5b6ed38f, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 5
+      objectReference: {fileID: 0}
+    - target: {fileID: 4355897377959615391, guid: bb3feed03de6ffc478b034fa5b6ed38f, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 5
+      objectReference: {fileID: 0}
+    - target: {fileID: 4355897377959615391, guid: bb3feed03de6ffc478b034fa5b6ed38f, type: 3}
+      propertyPath: m_LocalScale.z
+      value: 5
+      objectReference: {fileID: 0}
+    - target: {fileID: 4355897377959615391, guid: bb3feed03de6ffc478b034fa5b6ed38f, type: 3}
+      propertyPath: m_ConstrainProportionsScale
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4438115022583013663, guid: bb3feed03de6ffc478b034fa5b6ed38f, type: 3}
+      propertyPath: m_IsActive
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 5342234238531594550, guid: bb3feed03de6ffc478b034fa5b6ed38f, type: 3}
       propertyPath: m_IsActive
@@ -35,6 +75,22 @@ PrefabInstance:
     - target: {fileID: 5496418273564551380, guid: bb3feed03de6ffc478b034fa5b6ed38f, type: 3}
       propertyPath: bossZombieEnum.m_Value
       value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 6279379998178352565, guid: bb3feed03de6ffc478b034fa5b6ed38f, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 5
+      objectReference: {fileID: 0}
+    - target: {fileID: 6279379998178352565, guid: bb3feed03de6ffc478b034fa5b6ed38f, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 5
+      objectReference: {fileID: 0}
+    - target: {fileID: 6279379998178352565, guid: bb3feed03de6ffc478b034fa5b6ed38f, type: 3}
+      propertyPath: m_LocalScale.z
+      value: 5
+      objectReference: {fileID: 0}
+    - target: {fileID: 6279379998178352565, guid: bb3feed03de6ffc478b034fa5b6ed38f, type: 3}
+      propertyPath: m_ConstrainProportionsScale
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 6826328001050502462, guid: bb3feed03de6ffc478b034fa5b6ed38f, type: 3}
       propertyPath: 'managedReferences[2874150998530588761]'
@@ -104,6 +160,30 @@ PrefabInstance:
     - target: {fileID: 6838670774652095222, guid: bb3feed03de6ffc478b034fa5b6ed38f, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7149047473969755507, guid: bb3feed03de6ffc478b034fa5b6ed38f, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7198645621534361129, guid: bb3feed03de6ffc478b034fa5b6ed38f, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7248233727830515590, guid: bb3feed03de6ffc478b034fa5b6ed38f, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 5
+      objectReference: {fileID: 0}
+    - target: {fileID: 7248233727830515590, guid: bb3feed03de6ffc478b034fa5b6ed38f, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 5
+      objectReference: {fileID: 0}
+    - target: {fileID: 7248233727830515590, guid: bb3feed03de6ffc478b034fa5b6ed38f, type: 3}
+      propertyPath: m_LocalScale.z
+      value: 5
+      objectReference: {fileID: 0}
+    - target: {fileID: 7248233727830515590, guid: bb3feed03de6ffc478b034fa5b6ed38f, type: 3}
+      propertyPath: m_ConstrainProportionsScale
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7736492236827914615, guid: bb3feed03de6ffc478b034fa5b6ed38f, type: 3}
       propertyPath: m_IsActive

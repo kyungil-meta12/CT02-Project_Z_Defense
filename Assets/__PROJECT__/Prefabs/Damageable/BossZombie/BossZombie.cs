@@ -11,7 +11,6 @@ using Random = UnityEngine.Random;
 /// </summary>
 public class BossZombie : PoolObject, IDamageable
 {
-    private const string RootMotionScaleRootName = "Root";
     private static readonly int SpeedHash = Animator.StringToHash("speed");
 
     public BossZombieSpec spec;
@@ -25,7 +24,6 @@ public class BossZombie : PoolObject, IDamageable
     [Header("보상 파티클 스케일")] public float rewardParticleScale;
 
     private Rigidbody rb;
-    [SerializeField] private Transform boneRoot;
     
     private float attackDamage;
     private float rewardMultiplier = 1.0f;
@@ -224,7 +222,7 @@ public class BossZombie : PoolObject, IDamageable
         anim.SetFloat(SpeedHash, agent.speed);
     }
 
-    // 애니메이터 루트모션 이동량에 본 루트 스케일을 반영해 최상위 트랜스폼과 NavMeshAgent에 적용한다
+    // 애니메이터 루트모션 이동량을 최상위 트랜스폼과 NavMeshAgent에 적용한다
     private void OnAnimatorMove()
     {
         if (!IsAlive || !anim || !agent || !agent.enabled || !agent.isOnNavMesh)
@@ -232,28 +230,28 @@ public class BossZombie : PoolObject, IDamageable
             return;
         }
 
-        if (agent.desiredVelocity.sqrMagnitude <= 0.1f)
+        if (HasAgentMoveIntent())
+        {
+            if (movingRootMotionRotationWeight > 0.0f)
+            {
+                transform.rotation *= Quaternion.Slerp(Quaternion.identity, anim.deltaRotation, movingRootMotionRotationWeight);
+            }
+        }
+        else
         {
             transform.rotation *= anim.deltaRotation;
         }
-        else if (movingRootMotionRotationWeight > 0.0f)
-        {
-            transform.rotation *= Quaternion.Slerp(Quaternion.identity, anim.deltaRotation, movingRootMotionRotationWeight);
-        }
 
         Vector3 deltaPosition = anim.deltaPosition;
-        if (boneRoot)
-        {
-            Vector3 rootScale = boneRoot.localScale;
-            Vector3 localDelta = transform.InverseTransformVector(deltaPosition);
-            localDelta.x *= rootScale.x;
-            localDelta.z *= rootScale.z;
-            deltaPosition = transform.TransformVector(localDelta);
-        }
-
         agent.Move(deltaPosition);
         transform.position = agent.nextPosition;
         agent.nextPosition = transform.position;
+    }
+
+    // NavMeshAgent가 실제 이동 의도를 가지고 있는지 확인한다
+    private bool HasAgentMoveIntent()
+    {
+        return agent != null && !agent.isStopped && agent.desiredVelocity.sqrMagnitude > 0.1f;
     }
     
     // 사망 애니메이션이 충분히 진행되면 풀 반환 코루틴을 시작한다

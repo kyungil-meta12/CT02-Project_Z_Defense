@@ -17,6 +17,7 @@ public class ProjectileDamageDealer : MonoBehaviour
     private readonly List<IDamageable> hitDamageables = new List<IDamageable>(4);
     private IDamageable trackedTargetDamageable;
     private ProjectileHitDetector hitDetector;
+    private PoisonStatusPayload poisonStatusPayload;
 
     public bool HasReachedPierceLimit
     {
@@ -49,9 +50,16 @@ public class ProjectileDamageDealer : MonoBehaviour
     // 데미지 처리 상태와 추적 타겟 정보를 초기화한다
     public void Init(float damage_, int pierceCount_, bool logDamage_, GameObject target)
     {
+        Init(damage_, pierceCount_, logDamage_, target, default);
+    }
+
+    // 데미지 처리 상태, 추적 타겟, Poison 상태 정보를 초기화한다
+    public void Init(float damage_, int pierceCount_, bool logDamage_, GameObject target, PoisonStatusPayload poisonStatusPayload_)
+    {
         damage = Mathf.Max(0.0f, damage_);
         pierceCount = Mathf.Max(0, pierceCount_);
         logDamage = logDamage_;
+        poisonStatusPayload = poisonStatusPayload_;
         hitDamageables.Clear();
         trackedTargetDamageable = ResolveDamageable(target);
         enabled = true;
@@ -75,6 +83,7 @@ public class ProjectileDamageDealer : MonoBehaviour
 
         damageable.TakeDamage(damage);
         hitDamageables.Add(damageable);
+        ApplyPoisonStatus(damageable);
 
         if (logDamage)
         {
@@ -82,6 +91,23 @@ public class ProjectileDamageDealer : MonoBehaviour
         }
 
         return true;
+    }
+
+    // 데미지가 적용된 대상에게 Poison 상태 효과를 전달한다
+    private void ApplyPoisonStatus(IDamageable damageable)
+    {
+        if (!poisonStatusPayload.hasPoisonStatus || damageable == null || !damageable.IsAlive)
+        {
+            return;
+        }
+
+        IPoisonStatusEffectReceiver poisonReceiver = damageable as IPoisonStatusEffectReceiver;
+        if (poisonReceiver == null)
+        {
+            return;
+        }
+
+        poisonReceiver.ApplyPoisonStatus(poisonStatusPayload);
     }
 
     // 지정 레이어가 데미지 레이어 마스크에 포함되는지 확인한다

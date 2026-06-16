@@ -61,6 +61,7 @@ Do not use display names as stable IDs.
 | `TurretVFXProfileSO` | Attack VFX selection data: projectile prefab or beam prefab, optional beam attack profile reference, muzzle VFX, muzzle duration. Audio is intentionally removed until the project-level sound system is rebuilt. |
 | `BeamAttackProfileSO` | Beam-specific attack rules: damage tick interval, damage multiplier, DPS interpretation, target mode, pierce radius, max targets, and damage layer mask. |
 | `FrostStatusProfileSO` | Frost-specific status rules: slow buildup, max slow, freeze timing, freeze explosion, max-HP damage, secondary explosion slow, related VFX references, and optional primary-target max-HP damage growth. |
+| `PoisonStatusProfileSO` | Poison-specific status rules: max-HP tick damage ratio, tick interval, duration, stack limit, stack refresh mode, and boss damage multiplier. |
 | `TurretVFXProgressionSO` | Selects active VFX profile by current tier level. |
 | `TurretProjectileScaleProgressionSO` | Selects projectile scale by current tier level. |
 | `TurretEvolutionProgressionSO` | Defines available evolutions, required tier levels, branch-specific costs, icons, and effects. |
@@ -74,12 +75,13 @@ Do not use display names as stable IDs.
 4. `TurretStatProfileApplier` applies combat stats to the runtime turret components.
 5. `TurretVFXProgressionSO` selects projectile, beam, muzzle VFX data, and optional beam attack profile data.
 6. `TurretDefinitionSO.frostStatusProfile` provides Frost-specific status values when the selected attack is a beam Frost turret.
-7. `TurretProjectileScaleProgressionSO` selects projectile scale.
-8. Projectile firing logic applies projectile prefab, speed, damage, pierce count, scale, and collision ignore rules per spawn.
-9. Beam firing logic keeps the beam VFX alive between fire requests and applies damage by `BeamAttackProfileSO.damageTickInterval`.
-10. `ProjectileDamageDealer` applies projectile damage to `IDamageable` targets.
-11. `ProjectileHitDetector` handles tracked target, trigger/collision, and movement raycast hit paths.
-12. Damage receivers spawn damage popups where appropriate.
+7. `TurretDefinitionSO.poisonStatusProfile` provides Poison-specific status values when the selected attack is a projectile Poison turret.
+8. `TurretProjectileScaleProgressionSO` selects projectile scale.
+9. Projectile firing logic applies projectile prefab, speed, damage, pierce count, scale, collision ignore rules, and optional Poison payload per spawn.
+10. Beam firing logic keeps the beam VFX alive between fire requests and applies damage by `BeamAttackProfileSO.damageTickInterval`.
+11. `ProjectileDamageDealer` applies projectile damage to `IDamageable` targets and forwards Poison payloads to `IPoisonStatusEffectReceiver`.
+12. `ProjectileHitDetector` handles tracked target, trigger/collision, and movement raycast hit paths.
+13. Damage receivers spawn damage popups where appropriate.
 
 ## Beam Attack Runtime Flow
 
@@ -169,6 +171,51 @@ Enemy Frost visual setup:
 - `freezeDuration > 0` temporarily applies a `0` speed multiplier and overrides slow until the freeze timer expires.
 - `freezeEffectPrefab` is owned by the attack/status profile, not by every zombie prefab. Zombies only provide receiver logic and effect position.
 - Frost timers are updated from each zombie's existing `Update` path and reset on spawn, despawn, and death.
+
+Poison status handling:
+
+- `PoisonStatusProfileSO` stores Poison values (`maxHpDamageRatioPerTick`, `tickInterval`, `duration`, `maxStackCount`, `stackRefreshMode`, `bossDamageMultiplier`).
+- `TurretDefinitionRuntimeController.ApplyVFX` creates a level-bound Poison payload only for projectile VFX profiles and passes it to the runtime `Turret`.
+- The base projectile firing path carries the Poison payload from `Turret` to `FiringEvent`, `Gun`, and `ProjectileDamageDealer`.
+- `ProjectileDamageDealer` applies direct projectile damage first, then forwards Poison to targets implementing `IPoisonStatusEffectReceiver`.
+- `NormalZombie` and `BossZombie` implement `IPoisonStatusEffectReceiver`.
+- `NormalZombie` applies Poison tick damage as `TotalHp * maxHpDamageRatioPerTick * stackCount`.
+- `BossZombie` applies Poison tick damage as `TotalHp * maxHpDamageRatioPerTick * stackCount * bossDamageMultiplier`.
+- `RefreshDurationOnly` refreshes Poison duration without increasing stack count after the first stack.
+- `AddStackAndRefreshDuration` increases stack count up to `maxStackCount` and refreshes duration.
+- Poison ticks start after `tickInterval`; direct projectile hit damage remains separate from Poison tick damage.
+- Poison status resets on spawn, despawn, and death.
+- `StatusEffectVisualController` owns Poison visual slots separately from Frost visual slots.
+
+## Poison Projectile Setup
+
+Current Poison projectile assets:
+
+| Asset | Role |
+| --- | --- |
+| `Prefabs/Turret/3rdGen/Poison_Turret.prefab` | Runtime turret prefab. |
+| `SO/TurretDefinition/3rdGen/Poison_Turret_Definition.asset` | Poison turret definition. |
+| `SO/TurretVfxProgresstion/3rdGen/Poison_Turret_VFX Progression SO.asset` | Selects the Poison projectile VFX profile. |
+| `SO/VFXProfiles/Projectile/VFX_Nova Orange/VFX_Nova Orange 1.asset` | Current projectile VFX profile reused by Poison. |
+
+Required Poison wiring:
+
+- `Poison_Turret_Definition.poisonStatusProfile` must point to a Poison status profile asset.
+- `Poison_Turret_Definition.vfxProgressionProfile` must select a projectile VFX profile, not a beam profile.
+- The selected projectile prefab must have or receive `ProjectileDamageDealer` through the existing projectile spawn path.
+- The selected projectile prefab should already be registered in the MemoryPool prewarm list if it is used frequently.
+- Normal and boss zombie prefabs should have `StatusEffectVisualController` Poison fields configured only when Poison visuals are required.
+
+Recommended Poison Status Profile values for first testing:
+
+| Field | Suggested Value | Note |
+| --- | ---: | --- |
+| `maxHpDamageRatioPerTick` | `0.01` | 1% max HP per tick per stack. |
+| `tickInterval` | `1.0` | One tick per second. |
+| `duration` | `4.0` | Lasts long enough for several ticks. |
+| `maxStackCount` | `3` | Allows repeated hits to matter without unbounded scaling. |
+| `stackRefreshMode` | `AddStackAndRefreshDuration` | Repeated hits increase stacks and refresh duration. |
+| `bossDamageMultiplier` | `0.5` | First-pass boss resistance value. |
 
 ## Frost Beam Setup
 
@@ -445,6 +492,7 @@ The validator checks:
 - empty `evolutionCosts` arrays on evolution entries with a target definition.
 - missing `placementCosts` on turret placement entries.
 - missing `frostStatusProfile` on the Frost turret definition.
+- missing `poisonStatusProfile` on the Poison turret definition.
 - negative cost amounts in upgrade, evolution, and placement cost arrays.
 - upgrade cost ramp mismatches against the current form rules.
 - evolution cost ramp mismatches against the current branch-entry rules.

@@ -10,19 +10,28 @@ public class StatusEffectVisualController : MonoBehaviour
     [SerializeField] private Renderer[] frostTargetRenderers;
     [SerializeField, Min(0.01f)] private float frostParticleScaleMultiplier = 1.0f;
 
+    [Header("포이즌 비주얼")]
+    [SerializeField] private GameObject poisonVisualPrefab;
+    [SerializeField] private Renderer[] poisonTargetRenderers;
+    [SerializeField, Min(0.01f)] private float poisonParticleScaleMultiplier = 1.0f;
+
     private GameObject[] frostSlowVisualInstances;
     private bool frostSlowVisualActive;
+    private GameObject[] poisonVisualInstances;
+    private bool poisonVisualActive;
 
     // 컴포넌트가 비활성화될 때 상태이상 비주얼과 임시 머티리얼을 정리한다
     private void OnDisable()
     {
         SetFrostSlowActive(false);
+        SetPoisonActive(false);
     }
 
     // 오브젝트가 파괴될 때 상태이상 비주얼과 임시 머티리얼을 정리한다
     private void OnDestroy()
     {
         SetFrostSlowActive(false);
+        SetPoisonActive(false);
     }
 
     // 프로스트 슬로우 상태에 맞춰 얼음 메시 이펙트를 활성화하거나 비활성화한다
@@ -44,6 +53,28 @@ public class StatusEffectVisualController : MonoBehaviour
         if (!isActive)
         {
             StripRuntimeOverlayMaterials();
+        }
+    }
+
+    // 포이즌 상태에 맞춰 독 메시 이펙트를 활성화하거나 비활성화한다
+    public void SetPoisonActive(bool isActive)
+    {
+        if (poisonVisualActive == isActive)
+        {
+            return;
+        }
+
+        if (isActive)
+        {
+            EnsurePoisonVisualInstances();
+        }
+
+        SetPoisonInstancesActive(isActive);
+        poisonVisualActive = isActive;
+
+        if (!isActive)
+        {
+            StripRuntimeOverlayMaterials(poisonTargetRenderers, GetPoisonOverlayMaterialName());
         }
     }
 
@@ -75,8 +106,43 @@ public class StatusEffectVisualController : MonoBehaviour
             visualInstance.transform.localRotation = Quaternion.identity;
             visualInstance.transform.localScale = Vector3.one;
             ConfigureOverlayFx(visualInstance, targetRenderer);
+            ApplyFrostParticleScaleMultiplier(visualInstance);
             visualInstance.SetActive(false);
             frostSlowVisualInstances[i] = visualInstance;
+        }
+    }
+
+    // 연결된 대상 렌더러 수에 맞춰 포이즌 비주얼 인스턴스를 준비한다
+    private void EnsurePoisonVisualInstances()
+    {
+        if (poisonVisualPrefab == null || poisonTargetRenderers == null)
+        {
+            return;
+        }
+
+        if (poisonVisualInstances == null || poisonVisualInstances.Length != poisonTargetRenderers.Length)
+        {
+            ClearPoisonVisualInstances();
+            poisonVisualInstances = new GameObject[poisonTargetRenderers.Length];
+        }
+
+        for (int i = 0; i < poisonTargetRenderers.Length; i++)
+        {
+            Renderer targetRenderer = poisonTargetRenderers[i];
+            if (targetRenderer == null || poisonVisualInstances[i] != null)
+            {
+                continue;
+            }
+
+            GameObject visualInstance = Instantiate(poisonVisualPrefab, transform);
+            visualInstance.name = poisonVisualPrefab.name + "_" + targetRenderer.name;
+            visualInstance.transform.localPosition = Vector3.zero;
+            visualInstance.transform.localRotation = Quaternion.identity;
+            visualInstance.transform.localScale = Vector3.one;
+            ConfigureOverlayFx(visualInstance, targetRenderer);
+            ApplyParticleScaleMultiplier(visualInstance, poisonParticleScaleMultiplier);
+            visualInstance.SetActive(false);
+            poisonVisualInstances[i] = visualInstance;
         }
     }
 
@@ -143,17 +209,39 @@ public class StatusEffectVisualController : MonoBehaviour
             }
 
             visualInstance.SetActive(isActive);
-            if (isActive)
+        }
+    }
+
+    // 준비된 포이즌 비주얼 인스턴스들을 활성화하거나 비활성화한다
+    private void SetPoisonInstancesActive(bool isActive)
+    {
+        if (poisonVisualInstances == null)
+        {
+            return;
+        }
+
+        for (int i = 0; i < poisonVisualInstances.Length; i++)
+        {
+            GameObject visualInstance = poisonVisualInstances[i];
+            if (visualInstance == null)
             {
-                ApplyFrostParticleScaleMultiplier(visualInstance);
+                continue;
             }
+
+            visualInstance.SetActive(isActive);
         }
     }
 
     // OverlayFX가 대상 크기로 맞춘 파티클 크기에 프리팹별 보정 배율을 적용한다
     private void ApplyFrostParticleScaleMultiplier(GameObject visualInstance)
     {
-        if (Mathf.Approximately(frostParticleScaleMultiplier, 1.0f))
+        ApplyParticleScaleMultiplier(visualInstance, frostParticleScaleMultiplier);
+    }
+
+    // OverlayFX가 대상 크기로 맞춘 파티클 크기에 프리팹별 보정 배율을 적용한다
+    private static void ApplyParticleScaleMultiplier(GameObject visualInstance, float particleScaleMultiplier)
+    {
+        if (Mathf.Approximately(particleScaleMultiplier, 1.0f))
         {
             return;
         }
@@ -173,7 +261,7 @@ public class StatusEffectVisualController : MonoBehaviour
             }
 
             ParticleSystem.MainModule main = particleSystem.main;
-            main.startSizeMultiplier *= frostParticleScaleMultiplier;
+            main.startSizeMultiplier *= particleScaleMultiplier;
         }
     }
 
@@ -198,18 +286,44 @@ public class StatusEffectVisualController : MonoBehaviour
         }
     }
 
-    // OverlayFX가 주입한 런타임 머티리얼 슬롯을 대상 렌더러에서 제거한다
-    private void StripRuntimeOverlayMaterials()
+    // 생성된 포이즌 비주얼 인스턴스를 모두 제거한다
+    private void ClearPoisonVisualInstances()
     {
-        if (frostTargetRenderers == null)
+        if (poisonVisualInstances == null)
         {
             return;
         }
 
-        string overlayMaterialName = GetFrostOverlayMaterialName();
-        for (int i = 0; i < frostTargetRenderers.Length; i++)
+        for (int i = 0; i < poisonVisualInstances.Length; i++)
         {
-            Renderer targetRenderer = frostTargetRenderers[i];
+            GameObject visualInstance = poisonVisualInstances[i];
+            if (visualInstance == null)
+            {
+                continue;
+            }
+
+            Destroy(visualInstance);
+            poisonVisualInstances[i] = null;
+        }
+    }
+
+    // OverlayFX가 주입한 런타임 머티리얼 슬롯을 대상 렌더러에서 제거한다
+    private void StripRuntimeOverlayMaterials()
+    {
+        StripRuntimeOverlayMaterials(frostTargetRenderers, GetFrostOverlayMaterialName());
+    }
+
+    // 지정한 렌더러 배열에서 지정한 OverlayFX 런타임 머티리얼 슬롯을 제거한다
+    private static void StripRuntimeOverlayMaterials(Renderer[] targetRenderers, string overlayMaterialName)
+    {
+        if (targetRenderers == null)
+        {
+            return;
+        }
+
+        for (int i = 0; i < targetRenderers.Length; i++)
+        {
+            Renderer targetRenderer = targetRenderers[i];
             if (targetRenderer == null)
             {
                 continue;
@@ -223,6 +337,18 @@ public class StatusEffectVisualController : MonoBehaviour
     private string GetFrostOverlayMaterialName()
     {
         OverlayFX overlayFx = frostSlowVisualPrefab == null ? null : frostSlowVisualPrefab.GetComponent<OverlayFX>();
+        if (overlayFx == null || overlayFx.overlayMaterial == null)
+        {
+            return string.Empty;
+        }
+
+        return overlayFx.overlayMaterial.name;
+    }
+
+    // 포이즌 비주얼 프리팹에서 제거할 OverlayFX 머티리얼 이름을 얻는다
+    private string GetPoisonOverlayMaterialName()
+    {
+        OverlayFX overlayFx = poisonVisualPrefab == null ? null : poisonVisualPrefab.GetComponent<OverlayFX>();
         if (overlayFx == null || overlayFx.overlayMaterial == null)
         {
             return string.Empty;

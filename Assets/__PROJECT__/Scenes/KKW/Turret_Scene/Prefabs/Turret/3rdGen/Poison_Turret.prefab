@@ -1,5 +1,36 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
+--- !u!1 &1554523122684958870
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 709335756828598386}
+  m_Layer: 0
+  m_Name: FireNozzle
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &709335756828598386
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1554523122684958870}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0.82, z: 0.469}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 6500333604571201724}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &8686595904299829357
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -8,6 +39,18 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: -8679921383154817045, guid: b27aa1b7fa8d19348b4695c715aff35f, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: b27aa1b7fa8d19348b4695c715aff35f, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: b27aa1b7fa8d19348b4695c715aff35f, type: 3}
+      propertyPath: m_LocalScale.z
+      value: 2
+      objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: b27aa1b7fa8d19348b4695c715aff35f, type: 3}
       propertyPath: m_LocalPosition.x
       value: 6
@@ -48,6 +91,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: b27aa1b7fa8d19348b4695c715aff35f, type: 3}
+      propertyPath: m_ConstrainProportionsScale
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: -2626082859470542830, guid: b27aa1b7fa8d19348b4695c715aff35f, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
@@ -70,7 +117,7 @@ PrefabInstance:
       objectReference: {fileID: 2100000, guid: a590a3a9f321c1e448e39cf642472eb5, type: 2}
     - target: {fileID: 919132149155446097, guid: b27aa1b7fa8d19348b4695c715aff35f, type: 3}
       propertyPath: m_Name
-      value: SM_Quad_Barrel_Gun
+      value: Poison_Turret
       objectReference: {fileID: 0}
     - target: {fileID: 6477097153001917824, guid: b27aa1b7fa8d19348b4695c715aff35f, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
@@ -90,6 +137,169 @@ PrefabInstance:
       objectReference: {fileID: 2100000, guid: b1be06abad05a9c4395f795212931225, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
-    m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedGameObjects:
+    - targetCorrespondingSourceObject: {fileID: 2502081690900875473, guid: b27aa1b7fa8d19348b4695c715aff35f, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 709335756828598386}
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: b27aa1b7fa8d19348b4695c715aff35f, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 3244784469658414930}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: b27aa1b7fa8d19348b4695c715aff35f, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 6883436253254128978}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: b27aa1b7fa8d19348b4695c715aff35f, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 2207578071670153833}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: b27aa1b7fa8d19348b4695c715aff35f, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1090972513722217055}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: b27aa1b7fa8d19348b4695c715aff35f, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 7880926379036967498}
   m_SourcePrefab: {fileID: 100100000, guid: b27aa1b7fa8d19348b4695c715aff35f, type: 3}
+--- !u!1 &3523282777213805162 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 5217925906146994695, guid: b27aa1b7fa8d19348b4695c715aff35f, type: 3}
+  m_PrefabInstance: {fileID: 8686595904299829357}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &6500333604571201724 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 2502081690900875473, guid: b27aa1b7fa8d19348b4695c715aff35f, type: 3}
+  m_PrefabInstance: {fileID: 8686595904299829357}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &8380518456665748796 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: b27aa1b7fa8d19348b4695c715aff35f, type: 3}
+  m_PrefabInstance: {fileID: 8686595904299829357}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &3244784469658414930
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8380518456665748796}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: be3681d4c0e9f644d851459332a10c61, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ProjectZima.PolygonModularTurretsPack.Turret
+  rotatorMesh: {fileID: 3523282777213805162}
+  headMesh: {fileID: 3523282777213805162}
+  projectilePrefab: {fileID: 0}
+  canRotateXRotator: 1
+  canRotateHeadSeparately: 1
+  rotateSpeed: 500
+  turretAngleAttack: 5
+  closeRangePredictionDistance: 2
+  closeRangeFireDistance: 2
+  closeRangeTurretAngleAttack: 60
+  requireAimAngleBeforeFire: 0
+  fireTick: 0.1
+  targetSearchInterval: 0.1
+  aimPointLerpSpeed: 18
+  targetVelocityLerpSpeed: 10
+  maxPredictionLeadTime: 0.25
+  useInterceptPrediction: 1
+  useProjectileSpeedBasedPrediction: 1
+  slowProjectileSpeedThreshold: 40
+  fastProjectileSpeedThreshold: 120
+  slowProjectileMaxLeadTime: 0.85
+  fastProjectileMaxLeadTime: 0.2
+  ignoreVerticalPrediction: 1
+  predictionVelocityDeadZone: 0.05
+  showDebug: 0
+--- !u!114 &6883436253254128978
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8380518456665748796}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a31afd3a38f12d846bcc57f9abf2944d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ProjectZima.PolygonModularTurretsPack.TargetFinder
+  radius: 10
+  targetTag: Enemy
+  targetLayer:
+    serializedVersion: 2
+    m_Bits: 128
+  pivotObject: {fileID: 3523282777213805162}
+  showDebug: 0
+  useHorizontalDistance: 1
+  requireLineOfSight: 1
+  lineOfSightBlockingMask:
+    serializedVersion: 2
+    m_Bits: 576
+  ignoreObstacleBuildSlotColliders: 1
+  ignorePlacedObstacleColliders: 1
+  additionalLineOfSightIgnoreMask:
+    serializedVersion: 2
+    m_Bits: 0
+  showRangeGizmo: 1
+  drawRangeOnlyWhenSelected: 1
+  rangeGizmoColor: {r: 0, g: 1, b: 0, a: 1}
+--- !u!114 &2207578071670153833
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8380518456665748796}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 17296b2ce492c0d469b41f99c4838a6b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TurretStatProfileApplier
+  statProfile: {fileID: 11400000, guid: e45aa381bc7fb8d4fa34a2c13dd8af2e, type: 2}
+  targetTurret: {fileID: 3244784469658414930}
+  targetFinder: {fileID: 6883436253254128978}
+  targetGuns: []
+  applyOnStart: 1
+  applyOnInspectorChange: 1
+  damageMultiplier: 1
+--- !u!114 &1090972513722217055
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8380518456665748796}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a87f91c13a2143e4aa6e691bd2b48bc7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TurretDefinitionRuntimeController
+  turretDefinition: {fileID: 11400000, guid: 9ed0a462473ebe84e8781e5d2e8891dd, type: 2}
+  level: 1
+  totalLevel: 1
+  applyOnStart: 1
+  applyOnInspectorChange: 1
+  applyStatsToTurret: 1
+  applyVFXToTurret: 1
+  logRuntimeStat: 1
+  logProjectileDamage: 1
+  statProfileApplier: {fileID: 2207578071670153833}
+  targetTurret: {fileID: 3244784469658414930}
+  targetFiringEvent: {fileID: 0}
+  currentTurretName: 
+  availableEvolutionNames: 
+--- !u!114 &7880926379036967498
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8380518456665748796}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f89ead4bf227d574e9d1fafefd001433, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ProjectZima.PolygonModularTurretsPack.Gun
+  muzzleObject: {fileID: 1554523122684958870}
+  burstFireCount: 1
+  useMuzzleForwardDirection: 1
+  extraCollisionIgnoreRoots: []

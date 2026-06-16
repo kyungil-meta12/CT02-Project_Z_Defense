@@ -126,6 +126,7 @@
  * public TurretVFXProgressionSO vfxProgressionProfile;
  * public TurretProjectileScaleProgressionSO projectileScaleProgressionProfile;
  * public FrostStatusProfileSO frostStatusProfile;
+ * public PoisonStatusProfileSO poisonStatusProfile;
  * public TurretEvolutionProgressionSO evolutionProgressionProfile;
  *
  * Recommended turretId format:
@@ -225,6 +226,11 @@
  * - Current growth responsibility is intentionally limited to primary-target max-HP damage ratio growth.
  * - Slow ratio, freeze timing, explosion timing, radius, cooldown, and secondary explosion slow are treated as fixed feel values unless a future balance pass explicitly reopens them.
  *
+ * 12. PoisonStatusProfileSO
+ * - Holds Poison-specific status values referenced from TurretDefinitionSO.
+ * - Current responsibilities: max-HP tick damage ratio, tick interval, duration, max stack count, stack refresh mode, and boss damage multiplier.
+ * - Poison uses the normal projectile attack path, so direct hit damage stays in TurretStatProfileSO/TurretStatGrowthProfileSO and only the damage-over-time status behavior lives here.
+ *
  * Evolution Runtime Flow
  *
  * 1. TurretDefinitionRuntimeController checks the current turret's evolutionProgressionProfile using current tier level.
@@ -250,13 +256,14 @@
  * 5. It selects projectile prefab and muzzle VFX through TurretVFXProgressionSO.
  * 6. Beam VFX profiles can provide BeamAttackProfileSO for beam-specific hit rules.
  * 7. TurretDefinitionSO can provide FrostStatusProfileSO for Frost-specific slow, freeze, and explosion rules.
- * 8. It selects projectile scale through TurretProjectileScaleProgressionSO.
- * 9. Turret stores the selected projectile prefab, projectile speed, damage, pierce count, and scale.
- * 10. Gun/RocketFire applies damage, speed, scale, pooling reset, and collision ignore rules to each spawned projectile.
- * 11. BeamFiringEvent applies beam damage ticks and forwards Frost status payloads when configured.
- * 12. ProjectileDamageDealer refreshes damage, pierce count, logging state, and hit detector state on spawn.
- * 13. ProjectileHitDetector applies damage to tracked targets, trigger/collision hits, or movement raycast hits.
- * 14. DamagePopupSpawner displays damage values when IDamageable implementations report damage.
+ * 8. TurretDefinitionSO can provide PoisonStatusProfileSO for Poison-specific max-HP tick damage rules.
+ * 9. It selects projectile scale through TurretProjectileScaleProgressionSO.
+ * 10. Turret stores the selected projectile prefab, projectile speed, damage, pierce count, scale, and optional Poison payload.
+ * 11. Gun/RocketFire applies damage, speed, scale, pooling reset, collision ignore rules, and optional Poison payload to each spawned projectile.
+ * 12. BeamFiringEvent applies beam damage ticks and forwards Frost status payloads when configured.
+ * 13. ProjectileDamageDealer refreshes damage, pierce count, logging state, hit detector state, and optional Poison payload on spawn.
+ * 14. ProjectileHitDetector applies damage to tracked targets, trigger/collision hits, or movement raycast hits.
+ * 15. DamagePopupSpawner displays damage values when IDamageable implementations report damage.
  *
  * Second Generation VFX Mapping
  *
@@ -346,6 +353,7 @@
  * ProjectileDamageDealer
  * - Owns damage and pierce count for each projectile instance.
  * - Applies damage through hitCollider.GetComponentInParent<IDamageable>().
+ * - For Poison projectile turrets, forwards the current PoisonStatusPayload to targets implementing IPoisonStatusEffectReceiver after direct hit damage succeeds.
  * - Allows colliders under the tracked target IDamageable even if the specific child collider is not on the damage layer.
  * - Keeps a per-projectile hit list so one projectile does not hit the same damageable repeatedly.
  * - HovlProjectilePierceGuard prevents HOVL target-hit return from running before the ProjectileDamageDealer pierce limit is reached.
@@ -503,6 +511,7 @@
  * - vfxProgressionProfile is assigned.
  * - projectileScaleProgressionProfile is assigned.
  * - frostStatusProfile is assigned only for Frost or other turret definitions that own Frost status behavior.
+ * - poisonStatusProfile is assigned only for Poison or other turret definitions that own Poison status behavior.
  * - evolutionProgressionProfile is assigned only if the turret can evolve.
  * - maxLevel is 0 unless the turret is intended to stop leveling forever.
  * - If the turret should stop only to wait for an evolution choice, use EvolutionProgressionSO.requiredLevel instead of maxLevel.

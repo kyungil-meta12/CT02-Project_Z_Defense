@@ -62,6 +62,7 @@ internal static class TurretEconomyValidator
             ValidateDefinitionEvolutionCostRamp(definition, path, stats);
             ValidateDefinitionCostRamp(definition, path, stats);
             ValidateFrostStatusProfile(definition, path, stats);
+            ValidatePoisonStatusProfile(definition, path, stats);
         }
     }
 
@@ -96,6 +97,39 @@ internal static class TurretEconomyValidator
         }
 
         return definition.displayName == "Frost_Turret";
+    }
+
+    // Poison 터렛 정의에 Poison 상태 프로필이 연결되어 있는지 검사한다
+    private static void ValidatePoisonStatusProfile(TurretDefinitionSO definition, string path, ValidationStats stats)
+    {
+        if (!IsPoisonTurretDefinition(definition))
+        {
+            return;
+        }
+
+        if (definition.poisonStatusProfile != null)
+        {
+            return;
+        }
+
+        stats.MissingPoisonStatusProfileCount++;
+        LogIssue("Poison 터렛 정의에 poisonStatusProfile이 연결되지 않았습니다. 중독 체력비례 틱데미지가 적용되지 않습니다.", path, definition);
+    }
+
+    // 터렛 정의가 Poison 터렛인지 안정적인 ID와 표시명으로 확인한다
+    private static bool IsPoisonTurretDefinition(TurretDefinitionSO definition)
+    {
+        if (definition == null)
+        {
+            return false;
+        }
+
+        if (definition.turretId == "poison_turret")
+        {
+            return true;
+        }
+
+        return definition.displayName == "Poison_Turret";
     }
 
     // 터렛 정의의 진화 엔트리가 자기 자신을 목표로 가리키는지 검사한다
@@ -559,6 +593,7 @@ internal static class TurretEconomyValidator
         builder.AppendLine($"maxLevel/진화 프로필 충돌: {stats.MaxLevelEvolutionConflictCount}개");
         builder.AppendLine($"자기 자신 진화 Target: {stats.SelfTargetEvolutionCount}개");
         builder.AppendLine($"누락된 Frost 상태 프로필: {stats.MissingFrostStatusProfileCount}개");
+        builder.AppendLine($"누락된 Poison 상태 프로필: {stats.MissingPoisonStatusProfileCount}개");
 
         if (issueCount > 0)
         {
@@ -586,7 +621,8 @@ internal static class TurretEconomyValidator
         public int MaxLevelEvolutionConflictCount;
         public int SelfTargetEvolutionCount;
         public int MissingFrostStatusProfileCount;
+        public int MissingPoisonStatusProfileCount;
 
-        public int TotalIssueCount => MissingUpgradeCostProfileCount + EmptyUpgradeCostProfileCount + MissingEvolutionCostCount + MissingPlacementCostCount + NegativeCostCount + CostRampMismatchCount + EvolutionCostRampMismatchCount + MaxLevelEvolutionConflictCount + SelfTargetEvolutionCount + MissingFrostStatusProfileCount;
+        public int TotalIssueCount => MissingUpgradeCostProfileCount + EmptyUpgradeCostProfileCount + MissingEvolutionCostCount + MissingPlacementCostCount + NegativeCostCount + CostRampMismatchCount + EvolutionCostRampMismatchCount + MaxLevelEvolutionConflictCount + SelfTargetEvolutionCount + MissingFrostStatusProfileCount + MissingPoisonStatusProfileCount;
     }
 }

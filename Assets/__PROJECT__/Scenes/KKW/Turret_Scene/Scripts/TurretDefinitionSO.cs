@@ -26,6 +26,7 @@ public class TurretDefinitionSO : ScriptableObject
 
     [Header("상태이상")]
     public FrostStatusProfileSO frostStatusProfile;
+    public PoisonStatusProfileSO poisonStatusProfile;
 
     // 인스펙터 입력값을 유효한 터렛 정의 범위로 보정한다
     private void OnValidate()

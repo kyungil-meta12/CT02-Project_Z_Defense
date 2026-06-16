@@ -423,11 +423,13 @@ public class TurretDefinitionRuntimeController : MonoBehaviour
         {
             targetTurret.SetProjectilePrefab(vfxProfile.projectilePrefab, runtimeStat.projectileSpeed);
             targetTurret.SetProjectileScale(GetProjectileScale());
+            targetTurret.SetPoisonStatusPayload(CreatePoisonStatusPayload());
         }
         else if (targetTurret != null && vfxProfile.attackVfxType == TurretAttackVfxType.Beam && vfxProfile.beamPrefab != null)
         {
             targetTurret.SetProjectilePrefab(vfxProfile.beamPrefab, runtimeStat.projectileSpeed);
             targetTurret.SetProjectileScale(GetProjectileScale());
+            targetTurret.SetPoisonStatusPayload(default);
         }
 
         if (targetFiringEvent != null)
@@ -456,6 +458,17 @@ public class TurretDefinitionRuntimeController : MonoBehaviour
         }
 
         return turretDefinition.projectileScaleProgressionProfile.GetScaleForLevel(level);
+    }
+
+    // 현재 터렛 정의와 레벨에 맞는 Poison 상태 payload를 생성한다
+    private PoisonStatusPayload CreatePoisonStatusPayload()
+    {
+        if (turretDefinition == null || turretDefinition.poisonStatusProfile == null || !turretDefinition.poisonStatusProfile.HasPoisonStatus)
+        {
+            return default;
+        }
+
+        return turretDefinition.poisonStatusProfile.CreatePayload(level);
     }
 
     // 진화 엔트리에 설정된 연출 효과를 재생한다

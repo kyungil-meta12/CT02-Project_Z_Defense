@@ -9,7 +9,7 @@ using Random = UnityEngine.Random;
 /// <summary>
 /// 보스 좀비의 웨이브 스탯 초기화, 스킬, 피격, 사망, 처치 보상 지급을 담당한다.
 /// </summary>
-public class BossZombie : PoolObject, IDamageable, IFrostStatusEffectReceiver
+public class BossZombie : PoolObject, IDamageable, IFrostStatusEffectReceiver, IPoisonStatusEffectReceiver
 {
     private const string RootMotionScaleRootName = "Root";
     private static readonly int SpeedHash = Animator.StringToHash("speed");
@@ -55,6 +55,11 @@ public class BossZombie : PoolObject, IDamageable, IFrostStatusEffectReceiver
     private float frostHoldTimer;
     private bool frostStatusDirty;
     private bool frostStatusActive;
+    private PoisonStatusPayload poisonStatusPayload;
+    private float poisonRemainingDuration;
+    private float poisonTickTimer;
+    private int poisonStackCount;
+    private bool poisonStatusActive;
     
     public float TotalHp { get; private set; }
     public float CurrHp { get; private set; }
@@ -115,6 +120,7 @@ public class BossZombie : PoolObject, IDamageable, IFrostStatusEffectReceiver
         curAttackCountBV.Value = 0;
         attackTargetBV.Value = null;
         ResetFrostStatus();
+        ResetPoisonStatus();
 
         // 체력 UI 슬라이더 값 지정
         hpUI.gameObject.SetActive(true);
@@ -171,6 +177,7 @@ public class BossZombie : PoolObject, IDamageable, IFrostStatusEffectReceiver
 
         RestoreAllScreamerSpeedBuffs();
         ResetFrostStatus();
+        ResetPoisonStatus();
     }
 
     // 매 프레임 사망 처리와 루트모션 이동 방향을 갱신한다
@@ -178,6 +185,7 @@ public class BossZombie : PoolObject, IDamageable, IFrostStatusEffectReceiver
     void Update()
     {
         UpdateFrostStatus(Time.deltaTime);
+        UpdatePoisonStatus(Time.deltaTime);
         UpdateDeath();
         UpdateRootMotionNavigation();
         UpdateMoveAnimatorSpeed();
@@ -476,6 +484,36 @@ public class BossZombie : PoolObject, IDamageable, IFrostStatusEffectReceiver
         // 보스는 Frost 슬로우만 받고 빙결 폭발은 적용하지 않는다.
     }
 
+    // Poison 투사체로 전달된 중독 틱데미지 데이터를 갱신한다
+    public void ApplyPoisonStatus(PoisonStatusPayload payload)
+    {
+        if (!IsAlive || !payload.hasPoisonStatus)
+        {
+            return;
+        }
+
+        poisonStatusPayload = payload;
+        int safeMaxStackCount = Mathf.Max(1, payload.maxStackCount);
+
+        if (poisonStackCount <= 0)
+        {
+            poisonStackCount = 1;
+        }
+        else if (payload.stackRefreshMode == PoisonStackRefreshMode.AddStackAndRefreshDuration)
+        {
+            poisonStackCount = Mathf.Min(safeMaxStackCount, poisonStackCount + 1);
+        }
+
+        poisonRemainingDuration = Mathf.Max(poisonRemainingDuration, payload.duration);
+        if (poisonTickTimer <= 0.0f)
+        {
+            poisonTickTimer = Mathf.Max(0.01f, payload.tickInterval);
+        }
+
+        poisonStatusActive = true;
+        SetPoisonVisualActive(true);
+    }
+
     // Frost 상태 타이머를 감소시키고 이동/공격 속도를 갱신한다
     private void UpdateFrostStatus(float deltaTime)
     {
@@ -496,6 +534,47 @@ public class BossZombie : PoolObject, IDamageable, IFrostStatusEffectReceiver
         }
 
         ApplyFrostSpeedModifier();
+    }
+
+    // Poison 상태 타이머를 감소시키고 틱마다 보스 보정 체력비례 데미지를 적용한다
+    private void UpdatePoisonStatus(float deltaTime)
+    {
+        if (!poisonStatusActive)
+        {
+            return;
+        }
+
+        if (!IsAlive)
+        {
+            ResetPoisonStatus();
+            return;
+        }
+
+        poisonRemainingDuration = Mathf.Max(0.0f, poisonRemainingDuration - deltaTime);
+        poisonTickTimer -= deltaTime;
+
+        if (poisonTickTimer <= 0.0f && poisonRemainingDuration > 0.0f)
+        {
+            ApplyPoisonTickDamage();
+            poisonTickTimer = Mathf.Max(0.01f, poisonStatusPayload.tickInterval);
+        }
+
+        if (poisonRemainingDuration <= 0.0f)
+        {
+            ResetPoisonStatus();
+        }
+    }
+
+    // 현재 중독 중첩 수와 보스 보정 배율에 맞는 최대체력 비례 틱데미지를 적용한다
+    private void ApplyPoisonTickDamage()
+    {
+        if (!IsAlive || poisonStackCount <= 0 || poisonStatusPayload.maxHpDamageRatioPerTick <= 0.0f)
+        {
+            return;
+        }
+
+        float damage = TotalHp * Mathf.Clamp01(poisonStatusPayload.maxHpDamageRatioPerTick) * poisonStackCount * Mathf.Max(0.0f, poisonStatusPayload.bossDamageMultiplier);
+        TakeDamage(damage);
     }
 
     // 현재 Frost 상태에 맞춰 비헤이비어 이동 속도와 공격 속도를 반영한다
@@ -544,6 +623,17 @@ public class BossZombie : PoolObject, IDamageable, IFrostStatusEffectReceiver
         SetFrostVisualActive(false);
     }
 
+    // 풀 재사용이나 사망 시 Poison 상태를 초기화하고 비주얼을 끈다
+    private void ResetPoisonStatus()
+    {
+        poisonStatusPayload = default;
+        poisonRemainingDuration = 0.0f;
+        poisonTickTimer = 0.0f;
+        poisonStackCount = 0;
+        poisonStatusActive = false;
+        SetPoisonVisualActive(false);
+    }
+
     // 상태이상 비주얼 컨트롤러를 자식까지 포함해 캐시한다
     private void CacheStatusEffectVisualController()
     {
@@ -564,6 +654,17 @@ public class BossZombie : PoolObject, IDamageable, IFrostStatusEffectReceiver
         }
 
         statusEffectVisualController.SetFrostSlowActive(isActive);
+    }
+
+    // 포이즌 상태 활성 여부에 맞춰 비주얼 컨트롤러를 갱신한다
+    private void SetPoisonVisualActive(bool isActive)
+    {
+        if (statusEffectVisualController == null)
+        {
+            return;
+        }
+
+        statusEffectVisualController.SetPoisonActive(isActive);
     }
 
     float storeDamage = 0;
@@ -623,6 +724,7 @@ public class BossZombie : PoolObject, IDamageable, IFrostStatusEffectReceiver
 
         hpUI.gameObject.SetActive(false); // hp UI 비활성화
         ResetFrostStatus();
+        ResetPoisonStatus();
 
         if (agent.enabled)
         {

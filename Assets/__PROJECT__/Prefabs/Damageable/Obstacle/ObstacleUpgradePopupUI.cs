@@ -274,9 +274,9 @@ public class ObstacleUpgradePopupUI : MonoBehaviour
             return "Max level reached.";
         }
 
-        if (ItemManager.Inst == null)
+        if (InventorySystem.Inst == null)
         {
-            return "Missing ItemManager.";
+            return "Missing InventorySystem.";
         }
 
         if (!selectedUpgradeController.CanUpgrade(levelUpAmount))

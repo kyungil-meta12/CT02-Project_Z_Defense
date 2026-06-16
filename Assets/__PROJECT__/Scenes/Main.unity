@@ -10699,6 +10699,50 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 485724, guid: 40e0dcf591e1c984786583fc615d3512, type: 3}
   m_PrefabInstance: {fileID: 261612106}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &262665605
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 262665607}
+  - component: {fileID: 262665606}
+  m_Layer: 0
+  m_Name: DropItemManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &262665606
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 262665605}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 42ddf52093c778f4caf4e609f6b35dc7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::DropItemManager
+--- !u!4 &262665607
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 262665605}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &263991203
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -48533,6 +48577,67 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1230834164}
   m_CullTransparentMesh: 1
+--- !u!1001 &1234528626
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 1057609490946825435, guid: 5447a8e65cc5c35478f930cdecc0f4a8, type: 3}
+      propertyPath: initialWalletCurrencies.Array.data[0].amount
+      value: 500
+      objectReference: {fileID: 0}
+    - target: {fileID: 1599074175276728605, guid: 5447a8e65cc5c35478f930cdecc0f4a8, type: 3}
+      propertyPath: m_Name
+      value: InventorySystem
+      objectReference: {fileID: 0}
+    - target: {fileID: 8596321612379840447, guid: 5447a8e65cc5c35478f930cdecc0f4a8, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8596321612379840447, guid: 5447a8e65cc5c35478f930cdecc0f4a8, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8596321612379840447, guid: 5447a8e65cc5c35478f930cdecc0f4a8, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8596321612379840447, guid: 5447a8e65cc5c35478f930cdecc0f4a8, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8596321612379840447, guid: 5447a8e65cc5c35478f930cdecc0f4a8, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8596321612379840447, guid: 5447a8e65cc5c35478f930cdecc0f4a8, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8596321612379840447, guid: 5447a8e65cc5c35478f930cdecc0f4a8, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8596321612379840447, guid: 5447a8e65cc5c35478f930cdecc0f4a8, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8596321612379840447, guid: 5447a8e65cc5c35478f930cdecc0f4a8, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8596321612379840447, guid: 5447a8e65cc5c35478f930cdecc0f4a8, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 5447a8e65cc5c35478f930cdecc0f4a8, type: 3}
 --- !u!1001 &1235160764
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -72114,56 +72219,6 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 441334, guid: b5a1b3175b653e14cbb08b49897cb8f1, type: 3}
   m_PrefabInstance: {fileID: 1847369581}
   m_PrefabAsset: {fileID: 0}
---- !u!1 &1848747280
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1848747282}
-  - component: {fileID: 1848747281}
-  m_Layer: 0
-  m_Name: ItemManager
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &1848747281
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1848747280}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d408cf298a66bce4daff9085b6a6f1c6, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::ItemManager
-  applyInitialWalletOnAwake: 1
-  applyInitialWalletOnlyWhenEmpty: 1
-  logInitialWalletApply: 1
-  initialWalletCurrencies:
-  - currencyType: 0
-    amount: 500
---- !u!4 &1848747282
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1848747280}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 5.67515, y: 0, z: -2.32814}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &1849800615
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -83597,8 +83652,9 @@ SceneRoots:
   - {fileID: 926738442}
   - {fileID: 623599695}
   - {fileID: 1002660677}
+  - {fileID: 1234528626}
+  - {fileID: 262665607}
   - {fileID: 293100234}
-  - {fileID: 1848747282}
   - {fileID: 601386249}
   - {fileID: 1821289271}
   - {fileID: 1262826206}

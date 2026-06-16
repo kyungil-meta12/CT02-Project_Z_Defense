@@ -166,6 +166,7 @@ Rescue and role UI setup:
 - If `spawnProfile` is missing, `SurvivorRescueSpawner.spawnChancePerWave` is used as a legacy fallback.
 - Add `SurvivorInteractionController` to an editor-authored popup UI object and assign `popupPanel`, `TMP_Text` labels, and `Button` references.
 - UI button labels should be English, such as `Treat`, `Construction Worker`, and `Engineer`.
+- `EngineerBuffTargetPanelUI` should keep eight target buttons and eight `TurretBaseSlot` references; buttons stay visible and become interactable only when the mapped slot has a placed turret.
 - Assign survivor and turret slot layer masks so click selection and engineer drag use `Physics.RaycastNonAlloc` only against relevant layers.
 - Turrets can receive stackable engineer damage buffs through `TurretEngineerBuffReceiver`; the interaction controller adds it to the selected turret at runtime if it is missing.
 

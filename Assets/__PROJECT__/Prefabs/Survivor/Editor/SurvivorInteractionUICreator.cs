@@ -10,6 +10,7 @@ internal static class SurvivorInteractionUICreator
     private const string MENU_PATH = "Project Z Defense/UI/Create Survivor Interaction UI";
     private const string CANVAS_NAME = "SurvivorInteractionCanvas";
     private const string ROOT_NAME = "SurvivorInteractionPopup";
+    private const int ENGINEER_TARGET_SLOT_COUNT = 8;
 
     [MenuItem(MENU_PATH)]
     // 메뉴 실행 시 생존자 상호작용 Canvas와 하위 UI를 현재 씬에 생성하거나 기존 UI를 선택한다
@@ -89,7 +90,7 @@ internal static class SurvivorInteractionUICreator
         return true;
     }
 
-    // 기존 엔지니어 패널의 터렛 베이스와 대상 버튼 배열이 비어 있으면 현재 씬 슬롯으로 채운다
+    // 기존 엔지니어 패널의 터렛 베이스와 대상 버튼 배열을 고정 슬롯 수에 맞춘다
     private static bool TryFillMissingEngineerTargetSlots(SurvivorInteractionController controller)
     {
         if (controller == null)
@@ -108,26 +109,61 @@ internal static class SurvivorInteractionUICreator
         SerializedObject panelObject = new SerializedObject(panel);
         SerializedProperty targetSlotsProperty = panelObject.FindProperty("targetSlots");
         SerializedProperty targetButtonsProperty = panelObject.FindProperty("targetButtons");
-        SerializedProperty buttonContainerProperty = panelObject.FindProperty("buttonContainer");
         if (targetSlotsProperty == null || targetButtonsProperty == null)
         {
             return false;
         }
 
         TurretBaseSlot[] targetSlots = FindSceneTurretSlots();
-        if (targetSlotsProperty.arraySize == targetSlots.Length && targetButtonsProperty.arraySize == targetSlots.Length)
+        if (!NeedsEngineerTargetRefresh(targetSlotsProperty, targetButtonsProperty))
         {
             return false;
         }
 
-        Transform buttonContainer = buttonContainerProperty == null ? null : buttonContainerProperty.objectReferenceValue as Transform;
+        Transform buttonContainer = FindEngineerTargetButtonContainer(panel.transform);
+        if (buttonContainer == null)
+        {
+            return false;
+        }
+
         EnsureGridLayout(buttonContainer);
-        EngineerBuffTargetButton[] targetButtons = EnsureEditorTargetButtons(buttonContainer, targetSlots.Length);
+        EngineerBuffTargetButton[] targetButtons = EnsureEditorTargetButtons(buttonContainer, ENGINEER_TARGET_SLOT_COUNT);
         AssignObjectArray(targetSlotsProperty, targetSlots);
         AssignObjectArray(targetButtonsProperty, targetButtons);
         panelObject.ApplyModifiedPropertiesWithoutUndo();
         EditorSceneManager.MarkSceneDirty(panel.gameObject.scene);
         return true;
+    }
+
+    // 엔지니어 대상 슬롯이나 버튼 배열을 다시 채워야 하는지 확인한다
+    private static bool NeedsEngineerTargetRefresh(SerializedProperty targetSlotsProperty, SerializedProperty targetButtonsProperty)
+    {
+        if (targetSlotsProperty.arraySize != ENGINEER_TARGET_SLOT_COUNT || targetButtonsProperty.arraySize != ENGINEER_TARGET_SLOT_COUNT)
+        {
+            return true;
+        }
+
+        for (int i = 0; i < ENGINEER_TARGET_SLOT_COUNT; i++)
+        {
+            if (targetButtonsProperty.GetArrayElementAtIndex(i).objectReferenceValue == null)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    // 엔지니어 대상 버튼 컨테이너를 하위 경로에서 찾는다
+    private static Transform FindEngineerTargetButtonContainer(Transform panelTransform)
+    {
+        if (panelTransform == null)
+        {
+            return null;
+        }
+
+        Transform found = panelTransform.Find("TargetScrollView/Viewport/TargetButtonContainer");
+        return found != null ? found : panelTransform;
     }
 
     // 생존자 상호작용 UI를 담을 Screen Space Overlay Canvas를 생성한다
@@ -242,7 +278,7 @@ internal static class SurvivorInteractionUICreator
         contentSizeFitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
 
         TurretBaseSlot[] targetSlots = FindSceneTurretSlots();
-        EngineerBuffTargetButton[] targetButtons = CreateTargetButtons(buttonContainerObject.transform, targetSlots.Length);
+        EngineerBuffTargetButton[] targetButtons = CreateTargetButtons(buttonContainerObject.transform, ENGINEER_TARGET_SLOT_COUNT);
 
         Button closeButton = CreateButton("CloseButton", panelObject.transform, "Cancel", new Color(0.35f, 0.35f, 0.38f, 0.95f));
         EngineerBuffTargetPanelUI panel = panelObject.AddComponent<EngineerBuffTargetPanelUI>();
@@ -252,7 +288,6 @@ internal static class SurvivorInteractionUICreator
         serializedObject.FindProperty("titleText").objectReferenceValue = titleText;
         serializedObject.FindProperty("statusText").objectReferenceValue = statusText;
         serializedObject.FindProperty("closeButton").objectReferenceValue = closeButton;
-        serializedObject.FindProperty("buttonContainer").objectReferenceValue = buttonContainerObject.transform;
         AssignObjectArray(serializedObject.FindProperty("targetSlots"), targetSlots);
         AssignObjectArray(serializedObject.FindProperty("targetButtons"), targetButtons);
         serializedObject.ApplyModifiedPropertiesWithoutUndo();
@@ -264,7 +299,25 @@ internal static class SurvivorInteractionUICreator
     // 현재 씬의 터렛 베이스 슬롯을 찾는다
     private static TurretBaseSlot[] FindSceneTurretSlots()
     {
-        return Object.FindObjectsByType<TurretBaseSlot>(FindObjectsInactive.Exclude, FindObjectsSortMode.None);
+        TurretBaseSlot[] foundSlots = Object.FindObjectsByType<TurretBaseSlot>(FindObjectsInactive.Exclude, FindObjectsSortMode.None);
+        System.Array.Sort(foundSlots, CompareTurretBaseSlotName);
+
+        TurretBaseSlot[] targetSlots = new TurretBaseSlot[ENGINEER_TARGET_SLOT_COUNT];
+        int count = Mathf.Min(foundSlots.Length, ENGINEER_TARGET_SLOT_COUNT);
+        for (int i = 0; i < count; i++)
+        {
+            targetSlots[i] = foundSlots[i];
+        }
+
+        return targetSlots;
+    }
+
+    // 터렛 베이스 이름 기준으로 슬롯 표시 순서를 정렬한다
+    private static int CompareTurretBaseSlotName(TurretBaseSlot left, TurretBaseSlot right)
+    {
+        string leftName = left == null ? string.Empty : left.name;
+        string rightName = right == null ? string.Empty : right.name;
+        return string.CompareOrdinal(leftName, rightName);
     }
 
     // 터렛 베이스 수만큼 대상 버튼을 미리 생성한다

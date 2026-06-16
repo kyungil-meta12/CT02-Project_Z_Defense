@@ -8,6 +8,8 @@ using UnityEngine.UI;
 [DisallowMultipleComponent]
 public class EngineerBuffTargetPanelUI : MonoBehaviour
 {
+    private const int TARGET_BUTTON_COUNT = 8;
+
     [Header("패널")]
     [SerializeField] private GameObject panelRoot;
     [SerializeField] private TMP_Text titleText;
@@ -15,8 +17,6 @@ public class EngineerBuffTargetPanelUI : MonoBehaviour
     [SerializeField] private Button closeButton;
 
     [Header("버튼 목록")]
-    [SerializeField] private Transform buttonContainer;
-    [SerializeField] private EngineerBuffTargetButton targetButtonPrefab;
     [SerializeField] private EngineerBuffTargetButton[] targetButtons = System.Array.Empty<EngineerBuffTargetButton>();
 
     [Header("터렛 베이스")]
@@ -36,9 +36,7 @@ public class EngineerBuffTargetPanelUI : MonoBehaviour
     private void Awake()
     {
         AutoBindReferences();
-        AutoBindTargetButtons();
         BindCloseButton();
-        DisableTemplateButton();
     }
 
     // 파괴될 때 버튼 이벤트를 해제한다
@@ -111,13 +109,11 @@ public class EngineerBuffTargetPanelUI : MonoBehaviour
             titleText.text = "Select Buff Target";
         }
 
-        int visibleButtonCount = RefreshTargetButtons();
-        HideUnmappedButtons();
-        DisableTemplateButton();
+        int availableButtonCount = RefreshTargetButtons();
 
         if (statusText != null)
         {
-            statusText.text = visibleButtonCount > 0 ? "Choose a turret to buff." : "No turret available.";
+            statusText.text = availableButtonCount > 0 ? "Choose a turret to buff." : "No turret available.";
         }
     }
 
@@ -133,7 +129,7 @@ public class EngineerBuffTargetPanelUI : MonoBehaviour
         TurretDefinitionRuntimeController currentTurret = slot == null ? null : slot.RefreshAndGetCurrentTurret();
         if (currentTurret == null)
         {
-            return "Empty";
+            return "Target " + displayIndex + " - Empty";
         }
 
         string turretName = currentTurret.CurrentTurretName;
@@ -148,8 +144,8 @@ public class EngineerBuffTargetPanelUI : MonoBehaviour
     // 등록된 터렛 베이스와 버튼을 1:1로 갱신한다
     private int RefreshTargetButtons()
     {
-        int visibleButtonCount = 0;
-        int count = Mathf.Min(targetSlots.Length, targetButtons.Length);
+        int availableButtonCount = 0;
+        int count = Mathf.Min(TARGET_BUTTON_COUNT, targetButtons.Length);
         for (int i = 0; i < count; i++)
         {
             EngineerBuffTargetButton targetButton = targetButtons[i];
@@ -158,26 +154,18 @@ public class EngineerBuffTargetPanelUI : MonoBehaviour
                 continue;
             }
 
-            TurretBaseSlot slot = targetSlots[i];
-            if (!IsValidTargetSlot(slot))
-            {
-                targetButton.Clear();
-                targetButton.gameObject.SetActive(false);
-                continue;
-            }
-
-            targetButton.Configure(this, slot, CreateTargetLabel(slot, i + 1), true);
+            TurretBaseSlot slot = i < targetSlots.Length ? targetSlots[i] : null;
+            bool isInteractable = IsValidTargetSlot(slot);
+            targetButton.Configure(this, slot, CreateTargetLabel(slot, i + 1), isInteractable);
             targetButton.gameObject.SetActive(true);
-            visibleButtonCount++;
+
+            if (isInteractable)
+            {
+                availableButtonCount++;
+            }
         }
 
-        return visibleButtonCount;
-    }
-
-    // 슬롯 배열에 매핑되지 않은 버튼을 숨긴다
-    private void HideUnmappedButtons()
-    {
-        for (int i = targetSlots.Length; i < targetButtons.Length; i++)
+        for (int i = count; i < targetButtons.Length; i++)
         {
             if (targetButtons[i] != null)
             {
@@ -185,18 +173,8 @@ public class EngineerBuffTargetPanelUI : MonoBehaviour
                 targetButtons[i].gameObject.SetActive(false);
             }
         }
-    }
 
-    // 템플릿 버튼이 실제 대상 버튼처럼 클릭되지 않도록 비활성화한다
-    private void DisableTemplateButton()
-    {
-        if (targetButtonPrefab == null)
-        {
-            return;
-        }
-
-        targetButtonPrefab.Clear();
-        targetButtonPrefab.gameObject.SetActive(false);
+        return availableButtonCount;
     }
 
     // 필요한 패널 참조를 비어 있는 경우 자동으로 보완한다
@@ -206,22 +184,6 @@ public class EngineerBuffTargetPanelUI : MonoBehaviour
         {
             panelRoot = gameObject;
         }
-
-        if (buttonContainer == null)
-        {
-            buttonContainer = transform;
-        }
-    }
-
-    // 직렬화된 버튼 배열이 없으면 컨테이너 하위 버튼을 수집한다
-    private void AutoBindTargetButtons()
-    {
-        if ((targetButtons != null && targetButtons.Length > 0) || buttonContainer == null)
-        {
-            return;
-        }
-
-        targetButtons = buttonContainer.GetComponentsInChildren<EngineerBuffTargetButton>(true);
     }
 
     // 닫기 버튼 이벤트를 중복 없이 연결한다

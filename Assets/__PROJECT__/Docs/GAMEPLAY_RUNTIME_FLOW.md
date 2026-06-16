@@ -181,7 +181,7 @@ Runtime behavior:
 1. `Survivor` registers with `GameManager` on enable/start and unregisters on disable.
 2. Survivor role is stored as `SurvivorRole`: `survivor`, `constructionWorker`, or `engineer`.
 3. In `Idle`, only `constructionWorker` survivors periodically ask `GameManager.TryGetRepairTarget` for a damaged obstacle.
-4. In `MoveToTarget`, survivor moves toward the reserved obstacle using `NavMeshAgent` and throttled destination refresh.
+4. In `MoveToTarget`, survivor moves toward the reserved obstacle using `NavMeshAgent` and throttled destination refresh, and may vault over detected `Obstacle` objects along the path.
 5. In `Repairing`, survivor calls `Obstacle.Repair` until the obstacle is fully repaired or target becomes invalid.
 6. In `Retreating` or `ReturningToDefensePoint`, survivor moves to the configured defense point and may vault over `Obstacle` objects.
 7. Rescue survivors can spawn at wave start from `SurvivorRescueSpawner`; `SurvivorRescueSpawnProfileSO` decides whether the current wave attempts a spawn and which chance to use.
@@ -194,8 +194,10 @@ Repair target policy:
 - `GameManager.TryGetRepairTarget` rejects non-`constructionWorker` survivors.
 - Only damaged, alive, unreserved obstacles can be reserved.
 - Only obstacles currently occupying registered defense-line slots are considered.
+- Breached defense lines are excluded from repair target search.
 - If a survivor has retreated behind a defense line, obstacles at or before that active defense-line index are blocked as repair targets.
-- Repair target movement does not trigger vaulting. Vaulting is only for defense-line retreat/return movement.
+- Repair target movement and defense-line retreat/return movement can trigger vaulting when an `Obstacle` is detected in the current move direction.
+- During construction worker repair movement, obstacles on the repair target's defense line are not vaulted to prevent repeated crossing around the restored point. Unassigned survivors and engineers are not restricted by this repair movement rule.
 
 ## Defense Line Retreat And Return
 

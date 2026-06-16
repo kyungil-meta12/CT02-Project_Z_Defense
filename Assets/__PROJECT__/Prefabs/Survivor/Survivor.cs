@@ -90,6 +90,7 @@ public class Survivor : MonoBehaviour
     private int repairHash;
     private int vaultHash;
     private int activeDefenseLineIndex = NO_DEFENSE_LINE;
+    private int repairTargetDefenseLineIndex = NO_DEFENSE_LINE;
     private bool hasMoveSpeedParameter;
     private bool hasRepairParameter;
     private bool hasVaultParameter;
@@ -470,6 +471,7 @@ public class Survivor : MonoBehaviour
         agent.isStopped = false;
         moveTimer += Time.deltaTime;
         destinationRefreshTimer -= Time.deltaTime;
+        vaultDetectionTimer -= Time.deltaTime;
 
         if (!agent.isOnNavMesh)
         {
@@ -482,6 +484,11 @@ public class Survivor : MonoBehaviour
         if (!RefreshRepairDestinationIfNeeded())
         {
             AbortRepairTarget("[Survivor] 수리 대상까지 경로를 만들 수 없어 예약을 해제합니다.");
+            return;
+        }
+
+        if (TryStartVault())
+        {
             return;
         }
 
@@ -686,6 +693,7 @@ public class Survivor : MonoBehaviour
         if (GameManager.Inst.TryGetRepairTarget(transform.position, this, out Obstacle obstacle))
         {
             repairTarget = obstacle;
+            repairTargetDefenseLineIndex = TryGetObstacleDefenseLineIndex(obstacle, out int defenseLineIndex) ? defenseLineIndex : NO_DEFENSE_LINE;
             ChangeState(SurvivorState.MoveToTarget);
         }
     }
@@ -886,7 +894,7 @@ public class Survivor : MonoBehaviour
         transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime * spec.rotationSpeed);
     }
 
-    // 대피 또는 복귀 중 전방 장애물을 감지해 넘기 상태로 전환한다
+    // 현재 이동 경로의 전방 장애물을 감지해 넘기 상태로 전환한다
     private bool TryStartVault()
     {
         if (Time.time < nextVaultTime || vaultDetectionTimer > 0f || vaultObstacleLayerMask.value == 0)
@@ -901,7 +909,7 @@ public class Survivor : MonoBehaviour
 
         if (direction.sqrMagnitude <= 0.001f)
         {
-            direction = GetDirectionToDefenseMoveTarget();
+            direction = GetDirectionToCurrentMoveTarget();
         }
 
         if (direction.sqrMagnitude <= 0.001f)
@@ -917,13 +925,8 @@ public class Survivor : MonoBehaviour
 
         direction.Normalize();
 
-        // 목적지 방향 계산 (대피 중인지 복귀 중인지 확인용)
-        Vector3 toTarget = Vector3.zero;
-        if (defenseMoveTarget != null)
-        {
-            toTarget = defenseMoveTarget.position - transform.position;
-            toTarget.y = 0f;
-        }
+        // 현재 목적지 방향을 기준으로 넘어야 할 장애물인지 확인한다
+        Vector3 toTarget = GetDirectionToCurrentMoveTarget();
 
         Vector3 origin = transform.position + Vector3.up * 0.5f;
         int hitCount = Physics.SphereCastNonAlloc(
@@ -945,6 +948,11 @@ public class Survivor : MonoBehaviour
 
             Obstacle obstacle = hitCollider.GetComponentInParent<Obstacle>();
             if (obstacle == null)
+            {
+                continue;
+            }
+
+            if (ShouldSkipVaultObstacle(obstacle))
             {
                 continue;
             }
@@ -977,9 +985,44 @@ public class Survivor : MonoBehaviour
         return false;
     }
 
-    // 현재 방어선/역할 이동 목적지 방향을 반환한다
-    private Vector3 GetDirectionToDefenseMoveTarget()
+    // 수리 이동 중 넘으면 안 되는 방어선 장애물인지 확인한다
+    private bool ShouldSkipVaultObstacle(Obstacle obstacle)
     {
+        if (role != SurvivorRole.constructionWorker || state != SurvivorState.MoveToTarget)
+        {
+            return false;
+        }
+
+        if (obstacle == null || repairTarget == null || repairTargetDefenseLineIndex < 0)
+        {
+            return false;
+        }
+
+        if (!TryGetObstacleDefenseLineIndex(obstacle, out int obstacleDefenseLineIndex))
+        {
+            return false;
+        }
+
+        return obstacleDefenseLineIndex == repairTargetDefenseLineIndex;
+    }
+
+    // 장애물이 속한 방어선 인덱스를 GameManager에서 조회한다
+    private bool TryGetObstacleDefenseLineIndex(Obstacle obstacle, out int defenseLineIndex)
+    {
+        defenseLineIndex = NO_DEFENSE_LINE;
+        return GameManager.Inst != null && GameManager.Inst.TryGetDefenseLineIndex(obstacle, out defenseLineIndex);
+    }
+
+    // 현재 이동 상태에 맞는 목적지 방향을 반환한다
+    private Vector3 GetDirectionToCurrentMoveTarget()
+    {
+        if (state == SurvivorState.MoveToTarget && repairTarget != null)
+        {
+            Vector3 repairDirection = repairTarget.transform.position - transform.position;
+            repairDirection.y = 0f;
+            return repairDirection;
+        }
+
         if (defenseMoveTarget == null)
         {
             return Vector3.zero;
@@ -1084,6 +1127,7 @@ public class Survivor : MonoBehaviour
         {
             ConfigureAgent(spec != null ? spec.repairRange : 0f);
             destinationRefreshTimer = 0f;
+            vaultDetectionTimer = 0f;
             moveTimer = 0f;
         }
 
@@ -1218,6 +1262,8 @@ public class Survivor : MonoBehaviour
             repairTarget.ClearRepairReservation(this);
             repairTarget = null;
         }
+
+        repairTargetDefenseLineIndex = NO_DEFENSE_LINE;
     }
 
     // 애니메이터에 지정한 파라미터가 있는지 확인한다

@@ -424,6 +424,11 @@ public class GameManager : MonoBehaviour
                 continue;
             }
 
+            if (defenseLine.isBreached)
+            {
+                continue;
+            }
+
             for (int j = defenseLine.obstacleSlots.Count - 1; j >= 0; j--)
             {
                 ObstacleBuildSlot slot = defenseLine.obstacleSlots[j];
@@ -454,6 +459,13 @@ public class GameManager : MonoBehaviour
         }
 
         return obstacle != null && obstacle.TryReserveRepair(survivor);
+    }
+
+    // 장애물이 속한 방어선 인덱스를 외부 시스템에 제공한다
+    public bool TryGetDefenseLineIndex(Obstacle obstacle, out int defenseLineIndex)
+    {
+        defenseLineIndex = FindDefenseLineIndex(obstacle);
+        return defenseLineIndex >= 0;
     }
 
     // 지정 방어선의 모든 필수 슬롯이 점유되었는지 확인한다

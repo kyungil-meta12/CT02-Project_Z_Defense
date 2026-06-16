@@ -42,7 +42,7 @@ public class ItemDropper : MonoBehaviour
                 itemComp.transform.position = spawnPosition;
                 itemComp.rewardType = rewardType;
                 itemComp.dropCount = dropCount;
-                print($"[ItemDropper] 아이템 드롭 완료 | 타입: {rewardType} | 개수: {dropCount} | 위치: {spawnPosition}");
+                //print($"[ItemDropper] 아이템 드롭 완료 | 타입: {rewardType} | 개수: {dropCount} | 위치: {spawnPosition}");
                 return;
             }
         }

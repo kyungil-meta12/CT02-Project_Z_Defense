@@ -33,7 +33,7 @@ public class DropItem : PoolObject, IPointerDownHandler
         {
             if (eventData.pointerCurrentRaycast.gameObject == this.gameObject)
             {
-                print($"[DropItem] 아이템 회수 됨 | 아이템: {gameObject.name} | 획득량: {dropCount}");
+                //print($"[DropItem] 아이템 회수 됨 | 아이템: {gameObject.name} | 획득량: {dropCount}");
 
                 // 아이템 매니저에 보상 개수만큼 추가
                 ItemManager.Inst.AddReward(rewardType, dropCount, false);

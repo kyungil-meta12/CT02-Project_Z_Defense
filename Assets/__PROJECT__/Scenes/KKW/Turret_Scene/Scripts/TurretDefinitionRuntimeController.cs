@@ -439,8 +439,10 @@ public class TurretDefinitionRuntimeController : MonoBehaviour
         BeamFiringEvent beamFiringEvent = targetFiringEvent as BeamFiringEvent;
         if (beamFiringEvent != null)
         {
-            beamFiringEvent.SetBeamPrefab(vfxProfile.attackVfxType == TurretAttackVfxType.Beam ? vfxProfile.beamPrefab : null);
-            beamFiringEvent.SetAttackProfile(vfxProfile.attackVfxType == TurretAttackVfxType.Beam ? vfxProfile.beamAttackProfile : null);
+            bool isBeamProfile = vfxProfile.attackVfxType == TurretAttackVfxType.Beam;
+            beamFiringEvent.SetBeamPrefab(isBeamProfile ? vfxProfile.beamPrefab : null);
+            beamFiringEvent.SetAttackProfile(isBeamProfile ? vfxProfile.beamAttackProfile : null);
+            beamFiringEvent.SetFrostStatusProfile(isBeamProfile ? turretDefinition.frostStatusProfile : null, level);
             beamFiringEvent.SetProjectileScale(GetProjectileScale());
         }
     }

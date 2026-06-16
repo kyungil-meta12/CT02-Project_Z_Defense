@@ -32,7 +32,8 @@ MonoBehaviour:
   freezeEffectDuration: 5
   freezeExplosionDamageDelay: 2.8
   freezeExplosionRadius: 2.5
-  freezeExplosionDamage: 22
+  freezeExplosionDamage: 1
+  freezePrimaryTargetMaxHpDamageRatio: 0.8
   freezeExplosionLayerMask:
     serializedVersion: 2
     m_Bits: 1152

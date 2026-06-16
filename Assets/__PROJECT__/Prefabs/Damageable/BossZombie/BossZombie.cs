@@ -53,8 +53,6 @@ public class BossZombie : PoolObject, IDamageable, IFrostStatusEffectReceiver
     private float frostSlowRatio;
     private float frostExposureTimer;
     private float frostHoldTimer;
-    private float frostFreezeTimer;
-    private float frostFreezeCooldownTimer;
     private bool frostStatusDirty;
     private bool frostStatusActive;
     
@@ -454,7 +452,7 @@ public class BossZombie : PoolObject, IDamageable, IFrostStatusEffectReceiver
         }
     }
 
-    // Frost 빔으로 전달된 누적 슬로우와 빙결 폭발 데이터를 갱신한다
+    // Frost 빔으로 전달된 누적 슬로우 데이터를 갱신한다
     public void ApplyFrostStatus(FrostStatusPayload payload)
     {
         if (!IsAlive)
@@ -475,20 +473,12 @@ public class BossZombie : PoolObject, IDamageable, IFrostStatusEffectReceiver
             frostStatusDirty = true;
         }
 
-        if (payload.canTriggerFreeze && frostFreezeCooldownTimer <= 0.0f && frostSlowRatio >= payload.freezeTriggerRatio)
-        {
-            TriggerFrostFreeze(payload);
-        }
+        // 보스는 Frost 슬로우만 받고 빙결 폭발은 적용하지 않는다.
     }
 
     // Frost 상태 타이머를 감소시키고 이동/공격 속도를 갱신한다
     private void UpdateFrostStatus(float deltaTime)
     {
-        if (frostFreezeCooldownTimer > 0.0f)
-        {
-            frostFreezeCooldownTimer = Mathf.Max(0.0f, frostFreezeCooldownTimer - deltaTime);
-        }
-
         if (!frostStatusActive && !frostStatusDirty)
         {
             return;
@@ -499,12 +489,7 @@ public class BossZombie : PoolObject, IDamageable, IFrostStatusEffectReceiver
             frostHoldTimer = Mathf.Max(0.0f, frostHoldTimer - deltaTime);
         }
 
-        if (frostFreezeTimer > 0.0f)
-        {
-            frostFreezeTimer = Mathf.Max(0.0f, frostFreezeTimer - deltaTime);
-        }
-
-        if (frostHoldTimer <= 0.0f && frostFreezeTimer <= 0.0f)
+        if (frostHoldTimer <= 0.0f)
         {
             frostSlowRatio = 0.0f;
             frostExposureTimer = 0.0f;
@@ -517,11 +502,7 @@ public class BossZombie : PoolObject, IDamageable, IFrostStatusEffectReceiver
     private void ApplyFrostSpeedModifier()
     {
         float speedMultiplier = 1.0f;
-        if (frostFreezeTimer > 0.0f)
-        {
-            speedMultiplier = 0.0f;
-        }
-        else if (frostHoldTimer > 0.0f)
+        if (frostHoldTimer > 0.0f)
         {
             speedMultiplier = Mathf.Clamp01(1.0f - frostSlowRatio);
         }
@@ -547,8 +528,6 @@ public class BossZombie : PoolObject, IDamageable, IFrostStatusEffectReceiver
         frostSlowRatio = 0.0f;
         frostExposureTimer = 0.0f;
         frostHoldTimer = 0.0f;
-        frostFreezeTimer = 0.0f;
-        frostFreezeCooldownTimer = 0.0f;
         frostStatusDirty = false;
         frostStatusActive = false;
 
@@ -585,17 +564,6 @@ public class BossZombie : PoolObject, IDamageable, IFrostStatusEffectReceiver
         }
 
         statusEffectVisualController.SetFrostSlowActive(isActive);
-    }
-
-    // Frost 누적치가 빙결 조건에 도달했을 때 이펙트와 폭발 데미지를 실행한다
-    private void TriggerFrostFreeze(FrostStatusPayload payload)
-    {
-        frostFreezeCooldownTimer = Mathf.Max(0.0f, payload.freezeCooldownPerTarget);
-        frostFreezeTimer = Mathf.Max(frostFreezeTimer, payload.freezeDuration);
-        frostStatusDirty = true;
-
-        Vector3 effectPosition = TurretAimPointUtility.GetAimPosition(gameObject);
-        FrostStatusEffectUtility.TriggerFreezeExplosion(payload, effectPosition);
     }
 
     float storeDamage = 0;

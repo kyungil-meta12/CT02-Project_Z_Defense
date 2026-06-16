@@ -17,6 +17,7 @@ public struct FrostStatusPayload
     public float freezeExplosionDamageDelay;
     public float freezeExplosionRadius;
     public float freezeExplosionDamage;
+    public float freezePrimaryTargetMaxHpDamageRatio;
     public LayerMask freezeExplosionLayerMask;
     public float freezeCooldownPerTarget;
     public float freezeExplosionSlowRatio;

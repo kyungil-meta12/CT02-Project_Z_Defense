@@ -50,6 +50,7 @@ public class NormalZombie : PoolObject, IDamageable, IFrostStatusEffectReceiver
     private float frostFreezeCooldownTimer;
     private bool frostStatusDirty;
     private bool frostStatusActive;
+    private GameObject activeFrostFreezeEffect;
 
     // 사망 시 최종 보상값을 저장하는 구조체
     private RewardResult rewardResult = new();
@@ -112,6 +113,12 @@ public class NormalZombie : PoolObject, IDamageable, IFrostStatusEffectReceiver
 
         // 테스트용 코루틴
        // StartCoroutine(AutoDeathCoroutine());
+    }
+
+    // 풀로 반환될 때 남아있는 Frost 상태와 빙결 이펙트를 정리한다
+    public override void OnDespawn()
+    {
+        ResetFrostStatus();
     }
 
     // 스폰 프로필에서 전달한 HP, 공격력, 이동/공격 속도, 보상 배율을 적용한다
@@ -415,6 +422,7 @@ public class NormalZombie : PoolObject, IDamageable, IFrostStatusEffectReceiver
     // 풀 재사용이나 사망 시 Frost 상태를 초기화하고 원래 속도를 복구한다
     private void ResetFrostStatus()
     {
+        CancelActiveFrostFreezeEffect();
         frostSlowRatio = 0.0f;
         frostExposureTimer = 0.0f;
         frostHoldTimer = 0.0f;
@@ -461,8 +469,21 @@ public class NormalZombie : PoolObject, IDamageable, IFrostStatusEffectReceiver
         frostFreezeTimer = Mathf.Max(frostFreezeTimer, payload.freezeDuration);
         frostStatusDirty = true;
 
+        CancelActiveFrostFreezeEffect();
         Vector3 effectPosition = TurretAimPointUtility.GetAimPosition(gameObject);
-        FrostStatusEffectUtility.TriggerFreezeExplosion(payload, effectPosition);
+        activeFrostFreezeEffect = FrostStatusEffectUtility.TriggerFreezeExplosion(payload, effectPosition, this);
+    }
+
+    // 현재 좀비에게 묶인 빙결 이펙트와 예약 폭발 데미지를 취소한다
+    private void CancelActiveFrostFreezeEffect()
+    {
+        if (activeFrostFreezeEffect == null)
+        {
+            return;
+        }
+
+        FrostStatusEffectUtility.CancelFreezeExplosionEffect(activeFrostFreezeEffect, this);
+        activeFrostFreezeEffect = null;
     }
 
     /// <summary>

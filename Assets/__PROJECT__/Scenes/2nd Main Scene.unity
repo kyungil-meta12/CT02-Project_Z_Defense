@@ -10099,7 +10099,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4672393858745932496, guid: e413d47f110c2694fbfb33e7712ccd89, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 5448368020507639914, guid: e413d47f110c2694fbfb33e7712ccd89, type: 3}
       propertyPath: m_LocalScale.x
@@ -11392,7 +11392,7 @@ MonoBehaviour:
   gameOverPanelUI: {fileID: 0}
   gameOverFadeInDuration: 10
   gameOverFadeOutDuration: 10
-  startWave: 1
+  startWave: 444
   startTimeScale: 1
   baseFixedDeltaTime: 0.02
 --- !u!4 &270030000

@@ -2,12 +2,13 @@ using ProjectZima.PolygonModularTurretsPack;
 using UnityEngine;
 
 /// <summary>
-/// 투사체를 생성하지 않고 총구와 타겟 사이에 빔 VFX를 유지하며 BeamAttackProfileSO 기준으로 데미지를 적용한다.
+/// 투사체를 생성하지 않고 총구와 타겟 사이에 빔 VFX를 유지하며 빔 공격 규칙과 선택적 Frost 상태 효과를 적용한다.
 /// </summary>
 public class BeamFiringEvent : FiringEvent
 {
     [SerializeField] private GameObject beamPrefab;
     [SerializeField] private BeamAttackProfileSO attackProfile;
+    [SerializeField] private FrostStatusProfileSO frostStatusProfile;
     [SerializeField] private bool scaleBeamLengthAlongLocalX = true;
     [SerializeField, Min(0.01f)] private float beamBaseLength = 5.0f;
     [SerializeField, Min(0.01f)] private float beamVisibleDuration = 0.15f;
@@ -28,6 +29,7 @@ public class BeamFiringEvent : FiringEvent
     private float projectileScale = 1.0f;
     private float currentProjectileDamage;
     private bool currentLogProjectileDamage;
+    private int frostStatusLevel = 1;
 
     // 외부 VFX 프로필에서 사용할 빔 프리팹을 설정한다
     public void SetBeamPrefab(GameObject beamPrefab_)
@@ -46,6 +48,13 @@ public class BeamFiringEvent : FiringEvent
     {
         attackProfile = attackProfile_;
         EnsureDamageBuffers();
+    }
+
+    // 외부 터렛 정의에서 사용할 Frost 상태 프로필과 현재 레벨을 설정한다
+    public void SetFrostStatusProfile(FrostStatusProfileSO frostStatusProfile_, int level)
+    {
+        frostStatusProfile = frostStatusProfile_;
+        frostStatusLevel = Mathf.Max(1, level);
     }
 
     // 런타임 projectile scale 진행 값을 빔 스케일에도 반영한다
@@ -476,7 +485,7 @@ public class BeamFiringEvent : FiringEvent
     // Frost 상태 효과를 받을 수 있는 대상이면 슬로우와 빙결 값을 전달한다
     private void ApplyFrostStatus(IDamageable damageable)
     {
-        if (attackProfile == null || !attackProfile.HasFrostStatus)
+        if (frostStatusProfile == null || !frostStatusProfile.HasFrostStatus)
         {
             return;
         }
@@ -487,33 +496,7 @@ public class BeamFiringEvent : FiringEvent
             return;
         }
 
-        frostReceiver.ApplyFrostStatus(CreateFrostStatusPayload());
-    }
-
-    // 현재 빔 공격 프로필을 Frost 상태 효과 전달용 값으로 변환한다
-    private FrostStatusPayload CreateFrostStatusPayload()
-    {
-        FrostStatusPayload payload = new FrostStatusPayload
-        {
-            tickInterval = GetDamageTickInterval(),
-            slowBuildUpDuration = attackProfile.slowBuildUpDuration,
-            maxSlowRatio = attackProfile.maxSlowRatio,
-            slowHoldDuration = attackProfile.slowHoldDuration,
-            freezeDuration = attackProfile.freezeDuration,
-            freezeTriggerRatio = attackProfile.freezeTriggerRatio,
-            canTriggerFreeze = true,
-            freezeEffectPrefab = attackProfile.freezeEffectPrefab,
-            freezeEffectDuration = attackProfile.freezeEffectDuration,
-            freezeExplosionDamageDelay = attackProfile.freezeExplosionDamageDelay,
-            freezeExplosionRadius = attackProfile.freezeExplosionRadius,
-            freezeExplosionDamage = attackProfile.freezeExplosionDamage,
-            freezeExplosionLayerMask = attackProfile.freezeExplosionLayerMask,
-            freezeCooldownPerTarget = attackProfile.freezeCooldownPerTarget,
-            freezeExplosionSlowRatio = attackProfile.freezeExplosionSlowRatio,
-            freezeExplosionSlowDuration = attackProfile.freezeExplosionSlowDuration
-        };
-
-        return payload;
+        frostReceiver.ApplyFrostStatus(frostStatusProfile.CreatePayload(frostStatusLevel, GetDamageTickInterval()));
     }
 
     // 관통 판정에 사용할 버퍼 배열을 준비한다

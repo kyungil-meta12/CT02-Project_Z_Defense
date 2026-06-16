@@ -102,9 +102,18 @@ Use it for:
 
 - turret evolution effects
 - projectile VFX
+- Frost freeze explosion effects
 - helicopter missile skill objects
 
 Do not use it to bypass proper prefab setup or pooling reset rules.
+
+Follow-up pooling rules:
+
+- Repeated gameplay effects should have a `PoolObject`-compatible prefab setup instead of relying on fallback `Instantiate/Destroy`.
+- Long-lived effects that follow a runtime target must clear target references, cached transforms, timers, pending damage flags, and payload data before reuse.
+- Followed effects should cache their target transform, collider, or explicit anchor during initialization; avoid repeated child hierarchy scans in `Update`.
+- Particle and trail state must be cleared or restarted on reuse so old particles do not leak into the next spawn.
+- Cancel paths must be safe when the owner dies, is disabled, or returns to a pool before a delayed effect finishes.
 
 ## Resources.Load Usage
 

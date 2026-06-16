@@ -8,6 +8,7 @@ public class StatusEffectVisualController : MonoBehaviour
     [Header("프로스트 슬로우 비주얼")]
     [SerializeField] private GameObject frostSlowVisualPrefab;
     [SerializeField] private Renderer[] frostTargetRenderers;
+    [SerializeField, Min(0.01f)] private float frostParticleScaleMultiplier = 1.0f;
 
     private GameObject[] frostSlowVisualInstances;
     private bool frostSlowVisualActive;
@@ -142,6 +143,37 @@ public class StatusEffectVisualController : MonoBehaviour
             }
 
             visualInstance.SetActive(isActive);
+            if (isActive)
+            {
+                ApplyFrostParticleScaleMultiplier(visualInstance);
+            }
+        }
+    }
+
+    // OverlayFX가 대상 크기로 맞춘 파티클 크기에 프리팹별 보정 배율을 적용한다
+    private void ApplyFrostParticleScaleMultiplier(GameObject visualInstance)
+    {
+        if (Mathf.Approximately(frostParticleScaleMultiplier, 1.0f))
+        {
+            return;
+        }
+
+        OverlayFX overlayFx = visualInstance.GetComponent<OverlayFX>();
+        if (overlayFx == null || overlayFx.particleSystems == null)
+        {
+            return;
+        }
+
+        for (int i = 0; i < overlayFx.particleSystems.Count; i++)
+        {
+            ParticleSystem particleSystem = overlayFx.particleSystems[i];
+            if (particleSystem == null)
+            {
+                continue;
+            }
+
+            ParticleSystem.MainModule main = particleSystem.main;
+            main.startSizeMultiplier *= frostParticleScaleMultiplier;
         }
     }
 

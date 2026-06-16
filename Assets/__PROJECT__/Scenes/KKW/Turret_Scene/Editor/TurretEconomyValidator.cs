@@ -61,7 +61,41 @@ internal static class TurretEconomyValidator
             ValidateSelfTargetEvolution(definition, path, stats);
             ValidateDefinitionEvolutionCostRamp(definition, path, stats);
             ValidateDefinitionCostRamp(definition, path, stats);
+            ValidateFrostStatusProfile(definition, path, stats);
         }
+    }
+
+    // Frost 터렛 정의에 Frost 상태 프로필이 연결되어 있는지 검사한다
+    private static void ValidateFrostStatusProfile(TurretDefinitionSO definition, string path, ValidationStats stats)
+    {
+        if (!IsFrostTurretDefinition(definition))
+        {
+            return;
+        }
+
+        if (definition.frostStatusProfile != null)
+        {
+            return;
+        }
+
+        stats.MissingFrostStatusProfileCount++;
+        LogIssue("Frost 터렛 정의에 frostStatusProfile이 연결되지 않았습니다. Frost 슬로우/빙결/폭발 효과가 적용되지 않습니다.", path, definition);
+    }
+
+    // 터렛 정의가 Frost 터렛인지 안정적인 ID와 표시명으로 확인한다
+    private static bool IsFrostTurretDefinition(TurretDefinitionSO definition)
+    {
+        if (definition == null)
+        {
+            return false;
+        }
+
+        if (definition.turretId == "frost_turret")
+        {
+            return true;
+        }
+
+        return definition.displayName == "Frost_Turret";
     }
 
     // 터렛 정의의 진화 엔트리가 자기 자신을 목표로 가리키는지 검사한다
@@ -524,6 +558,7 @@ internal static class TurretEconomyValidator
         builder.AppendLine($"진화 비용 램프 불일치: {stats.EvolutionCostRampMismatchCount}개");
         builder.AppendLine($"maxLevel/진화 프로필 충돌: {stats.MaxLevelEvolutionConflictCount}개");
         builder.AppendLine($"자기 자신 진화 Target: {stats.SelfTargetEvolutionCount}개");
+        builder.AppendLine($"누락된 Frost 상태 프로필: {stats.MissingFrostStatusProfileCount}개");
 
         if (issueCount > 0)
         {
@@ -550,7 +585,8 @@ internal static class TurretEconomyValidator
         public int EvolutionCostRampMismatchCount;
         public int MaxLevelEvolutionConflictCount;
         public int SelfTargetEvolutionCount;
+        public int MissingFrostStatusProfileCount;
 
-        public int TotalIssueCount => MissingUpgradeCostProfileCount + EmptyUpgradeCostProfileCount + MissingEvolutionCostCount + MissingPlacementCostCount + NegativeCostCount + CostRampMismatchCount + EvolutionCostRampMismatchCount + MaxLevelEvolutionConflictCount + SelfTargetEvolutionCount;
+        public int TotalIssueCount => MissingUpgradeCostProfileCount + EmptyUpgradeCostProfileCount + MissingEvolutionCostCount + MissingPlacementCostCount + NegativeCostCount + CostRampMismatchCount + EvolutionCostRampMismatchCount + MaxLevelEvolutionConflictCount + SelfTargetEvolutionCount + MissingFrostStatusProfileCount;
     }
 }

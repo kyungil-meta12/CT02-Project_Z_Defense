@@ -732,7 +732,7 @@ MonoBehaviour:
     maxWave: 450
     spawnInterval: 0.58
     spawnCount: 60
-    spawnBossAsLastEnemy: 1
+    spawnBossAsLastEnemy: 0
     normalZombieEntries:
     - prefab: {fileID: 2198761140652240216, guid: 4696f3a76ac50b74dba3cd8982cf1807, type: 3}
       weight: 35

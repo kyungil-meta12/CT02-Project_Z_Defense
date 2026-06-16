@@ -22,3 +22,4 @@ MonoBehaviour:
   vfxProgressionProfile: {fileID: 11400000, guid: 8d3dcb154cd189842aa6f5684378e5dc, type: 2}
   projectileScaleProgressionProfile: {fileID: 11400000, guid: 248471f5e12ab6043be08d17bd77a3e9, type: 2}
   evolutionProgressionProfile: {fileID: 0}
+  frostStatusProfile: {fileID: 11400000, guid: fcbb36803b42a734e8e2046af3bc547e, type: 2}

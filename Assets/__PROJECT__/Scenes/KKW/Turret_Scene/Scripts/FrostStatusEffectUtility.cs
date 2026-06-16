@@ -9,11 +9,34 @@ public static class FrostStatusEffectUtility
     private static readonly Collider[] ExplosionHitBuffer = new Collider[EXPLOSION_HIT_BUFFER_SIZE];
     private static readonly IDamageable[] DamagedTargets = new IDamageable[EXPLOSION_HIT_BUFFER_SIZE];
 
-    // 빙결 조건이 충족된 위치에 이펙트와 범위 데미지를 적용한다
-    public static void TriggerFreezeExplosion(FrostStatusPayload payload, Vector3 position)
+    // 빙결 조건이 충족된 위치에 이펙트와 원 대상 및 범위 데미지를 적용하고 생성된 이펙트를 반환한다
+    public static GameObject TriggerFreezeExplosion(FrostStatusPayload payload, Vector3 position, IDamageable primaryTarget)
     {
         GameObject effectObject = SpawnFreezeEffect(payload, position);
-        ScheduleExplosionDamage(payload, position, effectObject);
+        ScheduleExplosionDamage(payload, position, primaryTarget, effectObject);
+        return effectObject;
+    }
+
+    // 활성 빙결 이펙트와 예약된 폭발 데미지를 즉시 취소한다
+    public static void CancelFreezeExplosionEffect(GameObject effectObject, IDamageable owner)
+    {
+        if (effectObject == null)
+        {
+            return;
+        }
+
+        FrostFreezeExplosionDamageTimer damageTimer = effectObject.GetComponent<FrostFreezeExplosionDamageTimer>();
+        if (damageTimer != null && !damageTimer.IsOwnedBy(owner))
+        {
+            return;
+        }
+
+        if (damageTimer != null)
+        {
+            damageTimer.CancelPendingDamage();
+        }
+
+        PooledObjectUtility.ReturnOrDestroy(effectObject);
     }
 
     // 빙결 이펙트 프리팹을 풀링 기반으로 생성한다
@@ -28,24 +51,20 @@ public static class FrostStatusEffectUtility
         return PooledObjectUtility.SpawnEffect(payload.freezeEffectPrefab, position, Quaternion.identity, effectDuration);
     }
 
-    // 빙결 이펙트의 폭발 타이밍에 맞춰 범위 데미지를 예약한다
-    private static void ScheduleExplosionDamage(FrostStatusPayload payload, Vector3 position, GameObject effectObject)
+    // 빙결 이펙트의 폭발 타이밍에 맞춰 원 대상 및 범위 데미지를 예약한다
+    private static void ScheduleExplosionDamage(FrostStatusPayload payload, Vector3 position, IDamageable primaryTarget, GameObject effectObject)
     {
-        if (payload.freezeExplosionDamage <= 0.0f || payload.freezeExplosionRadius <= 0.0f)
+        bool hasExplosionDamage = HasExplosionDamage(payload);
+        if (!hasExplosionDamage && effectObject == null)
         {
-            return;
-        }
-
-        if (payload.freezeExplosionDamageDelay <= 0.0f)
-        {
-            ApplyExplosionDamage(payload, position);
             return;
         }
 
         if (effectObject == null)
         {
             Debug.LogWarning("[FrostStatusEffectUtility] 빙결 이펙트가 없어 폭발 데미지를 즉시 적용합니다. Freeze Effect Prefab 연결을 확인해주세요.");
-            ApplyExplosionDamage(payload, position);
+            ApplyFreezePrimaryTargetDamage(payload, primaryTarget);
+            ApplyExplosionDamage(payload, position, primaryTarget);
             return;
         }
 
@@ -55,11 +74,35 @@ public static class FrostStatusEffectUtility
             damageTimer = effectObject.AddComponent<FrostFreezeExplosionDamageTimer>();
         }
 
-        damageTimer.Init(payload, position, payload.freezeExplosionDamageDelay);
+        damageTimer.Init(payload, position, primaryTarget, payload.freezeExplosionDamageDelay, hasExplosionDamage);
     }
 
-    // 빙결 폭발 범위 안의 생존 대상에게 중복 없이 데미지를 적용한다
-    public static void ApplyExplosionDamage(FrostStatusPayload payload, Vector3 position)
+    // 빙결 폭발에 적용할 데미지가 하나라도 있는지 확인한다
+    private static bool HasExplosionDamage(FrostStatusPayload payload)
+    {
+        return payload.freezePrimaryTargetMaxHpDamageRatio > 0.0f
+            || payload.freezeExplosionDamage > 0.0f && payload.freezeExplosionRadius > 0.0f;
+    }
+
+    // 빙결 폭발을 직접 발생시킨 대상에게 최대체력 비례 데미지를 적용한다
+    public static void ApplyFreezePrimaryTargetDamage(FrostStatusPayload payload, IDamageable primaryTarget)
+    {
+        if (primaryTarget == null || !primaryTarget.IsAlive || payload.freezePrimaryTargetMaxHpDamageRatio <= 0.0f)
+        {
+            return;
+        }
+
+        float primaryDamage = Mathf.Max(0.0f, primaryTarget.TotalHp * payload.freezePrimaryTargetMaxHpDamageRatio);
+        if (primaryDamage <= 0.0f)
+        {
+            return;
+        }
+
+        primaryTarget.TakeDamage(primaryDamage);
+    }
+
+    // 빙결 폭발 범위 안의 생존 대상에게 원 대상을 제외하고 중복 없이 데미지를 적용한다
+    public static void ApplyExplosionDamage(FrostStatusPayload payload, Vector3 position, IDamageable excludedTarget)
     {
         if (payload.freezeExplosionDamage <= 0.0f || payload.freezeExplosionRadius <= 0.0f)
         {
@@ -85,7 +128,7 @@ public static class FrostStatusEffectUtility
             }
 
             IDamageable damageable = hitCollider.GetComponentInParent<IDamageable>();
-            if (damageable == null || !damageable.IsAlive || ContainsDamageTarget(damageable, damagedCount))
+            if (damageable == null || damageable == excludedTarget || !damageable.IsAlive || ContainsDamageTarget(damageable, damagedCount))
             {
                 continue;
             }

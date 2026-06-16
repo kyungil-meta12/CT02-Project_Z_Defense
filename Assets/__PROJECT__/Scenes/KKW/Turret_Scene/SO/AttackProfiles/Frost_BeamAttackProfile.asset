@@ -15,14 +15,27 @@ MonoBehaviour:
   damageTickInterval: 0.2
   damageMultiplier: 1
   treatTurretDamageAsDps: 1
-  targetMode: 0
-  maxTargets: 1
+  targetMode: 1
+  maxTargets: 4
   pierceRadius: 0.35
   damageBufferSize: 16
   damageLayerMask:
     serializedVersion: 2
     m_Bits: 1152
   triggerInteraction: 2
-  slowRatio: 0.2
-  slowDuration: 1
-  freezeDuration: 0
+  freezeDuration: 3.8
+  slowBuildUpDuration: 1.5
+  maxSlowRatio: 0.9
+  slowHoldDuration: 1
+  freezeTriggerRatio: 0.9
+  freezeEffectPrefab: {fileID: 1497850087004499017, guid: 1f60f8de557a12f4f8550a1c2742b4bd, type: 3}
+  freezeEffectDuration: 5
+  freezeExplosionDamageDelay: 2.8
+  freezeExplosionRadius: 2.5
+  freezeExplosionDamage: 22
+  freezeExplosionLayerMask:
+    serializedVersion: 2
+    m_Bits: 1152
+  freezeCooldownPerTarget: 8
+  freezeExplosionSlowRatio: 0.3
+  freezeExplosionSlowDuration: 1

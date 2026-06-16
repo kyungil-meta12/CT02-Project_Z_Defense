@@ -120,10 +120,36 @@ Damage interpretation:
 
 Frost status handling:
 
-- `BeamAttackProfileSO` stores `slowRatio`, `slowDuration`, and `freezeDuration`.
-- `BeamFiringEvent` only forwards these values to targets implementing `IFrostStatusEffectReceiver`.
-- `NormalZombie` and `BossZombie` do not currently implement `IFrostStatusEffectReceiver`, so slow and freeze values are data-ready but not active until enemy-side status handling is added.
-- `slowDuration <= 0` means slow is inactive even if `slowRatio` is greater than zero.
+- `BeamAttackProfileSO` stores Frost values (`freezeDuration`, `slowBuildUpDuration`, `maxSlowRatio`, `slowHoldDuration`, `freezeTriggerRatio`, `freezeEffectPrefab`, `freezeEffectDuration`, `freezeExplosionDamageDelay`, `freezeExplosionRadius`, `freezeExplosionDamage`, `freezeExplosionLayerMask`, `freezeCooldownPerTarget`, `freezeExplosionSlowRatio`, `freezeExplosionSlowDuration`).
+- `BeamFiringEvent` converts these values into `FrostStatusPayload` and forwards it to targets implementing `IFrostStatusEffectReceiver`.
+- `NormalZombie` and `BossZombie` implement `IFrostStatusEffectReceiver`.
+- `NormalZombie` accumulates Frost exposure, scales cached `MoveSpeed` and `AttackSpeed` animator parameters, and triggers freeze explosion effects when buildup reaches the configured threshold.
+- `BossZombie` accumulates Frost exposure, scales the cached behavior blackboard `speed` value and the `AttackSpeed` animator parameter, and triggers freeze explosion effects when buildup reaches the configured threshold.
+- `FrostStatusEffectUtility` owns freeze effect spawning and non-alloc overlap explosion damage so future Frost skills can reuse the same explosion behavior.
+- `FrostFreezeExplosionDamageTimer` delays explosion damage so the damage can land when `Ice_Cubes_Explosion` visually bursts instead of when the freeze effect starts.
+- `StatusEffectVisualController` owns enemy-side status VFX slots. It can spawn one `MeshFX_Frozen 1` instance per configured target renderer, inject the renderer into `OverlayFX`, and remove the runtime overlay material when Frost slow ends.
+- `NormalZombie` and `BossZombie` only report Frost active/inactive state to `StatusEffectVisualController`; they do not directly instantiate or configure mesh VFX.
+- `NormalZombie` exposes runtime base speed setters so external buffs such as Screamer speed buffs can change the non-Frost base speed without overwriting the active Frost multiplier.
+- `maxSlowRatio` is interpreted as a maximum reduction ratio, so `0.9` means the target keeps `10%` speed when Frost buildup reaches the cap.
+- `slowBuildUpDuration` controls how long continuous Frost exposure takes to reach `maxSlowRatio`.
+- `slowHoldDuration` controls how long the slow remains after Frost exposure stops.
+- `freezeTriggerRatio` controls when the freeze explosion branch should trigger after slow buildup reaches the configured ratio.
+- `freezeEffectDuration` controls how long the freeze VFX remains alive before returning to the pool.
+- `freezeExplosionDamageDelay` controls when radius damage is applied after the freeze VFX starts.
+- `freezeExplosionSlowRatio` and `freezeExplosionSlowDuration` apply a short secondary slow only to targets damaged by the freeze explosion. This secondary slow cannot trigger another freeze explosion by itself.
+
+Enemy Frost visual setup:
+
+- Add `StatusEffectVisualController` to each zombie prefab that should show Frost slow visuals.
+- Assign `MeshFX_Frozen 1` to the controller's `Frost Slow Visual Prefab` field.
+- Assign only body renderers that should receive the frost overlay into `Frost Target Renderers`.
+- For normal zombies, usually assign the active body `SkinnedMeshRenderer`.
+- For boss zombies, assign body and attachment renderers selectively so hair, eyes, or props can be excluded if needed.
+- Do not modify the original `OverlayFX` script from Private Assets; project-side lifecycle and material cleanup are handled by `StatusEffectVisualController`.
+- `freezeCooldownPerTarget` must prevent the same target from triggering freeze explosions every damage tick.
+- `freezeDuration > 0` temporarily applies a `0` speed multiplier and overrides slow until the freeze timer expires.
+- `freezeEffectPrefab` is owned by the attack/status profile, not by every zombie prefab. Zombies only provide receiver logic and effect position.
+- Frost timers are updated from each zombie's existing `Update` path and reset on spawn, despawn, and death.
 
 ## Frost Beam Setup
 
@@ -166,9 +192,36 @@ Recommended Frost Beam Attack Profile values for first testing:
 | `maxTargets` | `4` | Temporary lane-clearing value. |
 | `pierceRadius` | `0.35` | Tune by enemy collider size and visual width. |
 | `damageBufferSize` | `16` | Must be at least `maxTargets`; increase only if needed. |
-| `slowRatio` | `0.2` | Data-ready until enemy status receiver exists. |
-| `slowDuration` | `1.0` | Must be greater than zero to apply slow later. |
-| `freezeDuration` | `0` | Reserve for future freeze behavior. |
+| `slowBuildUpDuration` | `1.0` | Continuous exposure time to reach maximum slow. |
+| `maxSlowRatio` | `0.9` | Target keeps 10% movement/attack speed at full buildup. |
+| `slowHoldDuration` | `1.0` | Slow retention time after beam exposure stops. |
+| `freezeTriggerRatio` | `0.9` | Trigger freeze branch when slow reaches the cap. |
+| `freezeEffectPrefab` | `IceCubesExplosion` | Assign in editor when the project-owned effect prefab is available. |
+| `freezeEffectDuration` | `5.5` | Keep long enough for `Ice_Cubes_Explosion` particles with 5s lifetime to finish. |
+| `freezeExplosionDamageDelay` | `2.2` | Delay radius damage until the visual cube burst moment. |
+| `freezeExplosionRadius` | `2.5` | First test radius for freeze explosion damage. |
+| `freezeExplosionDamage` | `0` | Keep zero until explosion damage balance is decided. |
+| `freezeExplosionLayerMask` | damage layers | Should match zombie damageable layers for overlap damage. |
+| `freezeExplosionSlowRatio` | `0.3` | Targets damaged by the freeze explosion lose 30% speed briefly. |
+| `freezeExplosionSlowDuration` | `1.0` | Duration of the secondary explosion slow. |
+| `freezeCooldownPerTarget` | `2.0` | Prevent repeated explosions from the same target every tick. |
+
+Current `Frost_BeamAttackProfile` test values:
+
+- `targetMode = PierceLine`
+- `maxTargets = 4`
+- `damageTickInterval = 0.2`
+- `slowBuildUpDuration = 1.0`
+- `maxSlowRatio = 0.9`
+- `slowHoldDuration = 1.0`
+- `freezeTriggerRatio = 0.9`
+- `freezeExplosionRadius = 2.5`
+- `freezeEffectDuration = 5.5`
+- `freezeExplosionDamageDelay = 2.2`
+- `freezeExplosionDamage = 0`
+- `freezeExplosionSlowRatio = 0.3`
+- `freezeExplosionSlowDuration = 1.0`
+- `freezeCooldownPerTarget = 2.0`
 
 FrostRay VFX notes:
 
@@ -177,7 +230,9 @@ FrostRay VFX notes:
 - The hit effect is `BeamEmitter.beamTargetHitFX`, currently `Hit_Spikes`.
 - `BeamFiringEvent` resolves those `BeamEmitter` references at runtime and moves them to the current target position every frame.
 - The FrostRay beam visual is authored around a base length of `5`. `BeamFiringEvent.scaleBeamLengthAlongLocalX` scales local X by `targetDistance / beamBaseLength`.
+- `BeamFiringEvent.keepWorldScaleChildNames` preserves configured child particle sizes after root beam length scaling. Current Frost turret excludes `Smoke_Twirly_Add` and `Flecks_Shiny_Alpha` so muzzle/fleck particles keep their original size at long range.
 - To reduce only the hit effect size, scale the `Hit_Spikes` object or its children, not the root `FrostRay_TurretBeam` object. Scaling the root changes the whole beam length and width.
+- Current duplicated `Hit_Spikes` transform scale is `0.2, 0.2, 0.2` for the Frost turret test prefab.
 - If VFX density or particle emission looks wrong after length scaling, tune the duplicated `FrostRay_TurretBeam` prefab under the project folder, not the Private Assets original.
 
 ## Current Balance Direction

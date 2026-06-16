@@ -1964,6 +1964,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 2703428070900690109, guid: bb3feed03de6ffc478b034fa5b6ed38f, type: 3}
+      propertyPath: 'frostTargetRenderers.Array.data[0]'
+      value: 
+      objectReference: {fileID: 5594879449106943511}
     - target: {fileID: 3317958215391167824, guid: bb3feed03de6ffc478b034fa5b6ed38f, type: 3}
       propertyPath: m_Avatar
       value: 
@@ -1981,13 +1985,13 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 11400000, guid: 10f1d228ca24f9b4c8eb370bab827765, type: 2}
     - target: {fileID: 5496418273564551380, guid: bb3feed03de6ffc478b034fa5b6ed38f, type: 3}
-      propertyPath: rewardProfileOverride
-      value:
-      objectReference: {fileID: 11400000, guid: b1651f1f2e15fb44188b9212248eb955, type: 2}
-    - target: {fileID: 5496418273564551380, guid: bb3feed03de6ffc478b034fa5b6ed38f, type: 3}
       propertyPath: boneRoot
       value: 
       objectReference: {fileID: 2269487032733829538}
+    - target: {fileID: 5496418273564551380, guid: bb3feed03de6ffc478b034fa5b6ed38f, type: 3}
+      propertyPath: rewardProfileOverride
+      value: 
+      objectReference: {fileID: 11400000, guid: b1651f1f2e15fb44188b9212248eb955, type: 2}
     - target: {fileID: 5496418273564551380, guid: bb3feed03de6ffc478b034fa5b6ed38f, type: 3}
       propertyPath: bossZombieEnum.m_Value
       value: 1

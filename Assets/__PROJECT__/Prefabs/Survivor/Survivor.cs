@@ -51,6 +51,9 @@ public class Survivor : MonoBehaviour
     [SerializeField, Min(0.05f)] private float defensePointRetryInterval = 0.5f;
     [SerializeField, Min(0.1f)] private float navMeshRecoverySampleDistance = 1.5f;
 
+    [Header("엔지니어 이동")]
+    [SerializeField, Min(0.1f)] private float engineerStandbyArriveDistance = 2.0f;
+
     [Header("구출 및 치료")]
     [SerializeField] private SurvivorRole role = SurvivorRole.constructionWorker;
     [SerializeField] private GameObject visibleRoot;
@@ -100,7 +103,6 @@ public class Survivor : MonoBehaviour
     private bool isInitializedAsRescueSurvivor;
     private TurretEngineerBuffReceiver assignedEngineerBuffReceiver;
     private TurretBaseSlot assignedTurretSlot;
-    private NavMeshPath reusableEngineerStandbyPath;
 
     public int ActiveDefenseLineIndex => activeDefenseLineIndex;
     public SurvivorRole Role => role;
@@ -117,7 +119,6 @@ public class Survivor : MonoBehaviour
         moveSpeedHash = Animator.StringToHash(moveSpeedParameter);
         repairHash = Animator.StringToHash(repairParameter);
         vaultHash = Animator.StringToHash(vaultTriggerParameter);
-        reusableEngineerStandbyPath = new NavMeshPath();
         hasMoveSpeedParameter = HasAnimatorParameter(moveSpeedHash);
         hasRepairParameter = HasAnimatorParameter(repairHash);
         hasVaultParameter = HasAnimatorParameter(vaultHash);
@@ -334,12 +335,6 @@ public class Survivor : MonoBehaviour
             return false;
         }
 
-        if (standbyPoint != null && !CanMoveToEngineerStandbyPoint(standbyPoint))
-        {
-            Debug.LogWarning("[Survivor] 엔지니어가 터렛 대기 위치로 이동할 수 없어 버프 배치를 취소합니다.", this);
-            return false;
-        }
-
         if (!buffReceiver.TryRegisterEngineer(this))
         {
             return false;
@@ -494,8 +489,7 @@ public class Survivor : MonoBehaviour
 
         if (moveTimeout > 0f && moveTimer >= moveTimeout)
         {
-            AbortRepairTarget("[Survivor] 수리 대상까지 이동 시간이 초과되어 예약을 해제합니다.");
-            return;
+            LogDefenseMoveWarning("[Survivor] 수리 대상까지 이동 시간이 오래 걸리고 있습니다.");
         }
 
         if (!agent.pathPending && agent.pathStatus == NavMeshPathStatus.PathInvalid)
@@ -591,8 +585,7 @@ public class Survivor : MonoBehaviour
 
         if (defensePointMoveTimeout > 0f && moveTimer >= defensePointMoveTimeout)
         {
-            AbortDefensePointMove("[Survivor] 방어선 포인트까지 이동 시간이 초과되어 잠시 후 재시도합니다.", true);
-            return;
+            LogDefenseMoveWarning("[Survivor] 방어선 포인트까지 이동 시간이 오래 걸리고 있습니다.");
         }
 
         if (!agent.pathPending && agent.pathStatus == NavMeshPathStatus.PathInvalid)
@@ -779,22 +772,6 @@ public class Survivor : MonoBehaviour
         Debug.LogWarning(message, this);
     }
 
-    // 엔지니어가 지정 대기 지점까지 NavMesh 경로로 이동할 수 있는지 확인한다
-    private bool CanMoveToEngineerStandbyPoint(Transform standbyPoint)
-    {
-        if (standbyPoint == null || agent == null || !agent.enabled || !agent.isOnNavMesh || reusableEngineerStandbyPath == null)
-        {
-            return false;
-        }
-
-        if (!agent.CalculatePath(standbyPoint.position, reusableEngineerStandbyPath))
-        {
-            return false;
-        }
-
-        return reusableEngineerStandbyPath.status == NavMeshPathStatus.PathComplete;
-    }
-
     // 현재 상태에 맞는 이동 목적지가 비어 있으면 저장된 기준 지점으로 복구한다
     private bool TryRestoreDefenseMoveTarget()
     {
@@ -860,8 +837,19 @@ public class Survivor : MonoBehaviour
 
         Vector3 offset = defenseMoveTarget.position - transform.position;
         offset.y = 0f;
-        float stoppingDistance = Mathf.Max(0.05f, defensePointStoppingDistance);
-        return offset.sqrMagnitude <= stoppingDistance * stoppingDistance;
+        float arriveDistance = GetCurrentArriveDistance();
+        return offset.sqrMagnitude <= arriveDistance * arriveDistance;
+    }
+
+    // 현재 이동 상태에 맞는 도착 인정 거리를 반환한다
+    private float GetCurrentArriveDistance()
+    {
+        if (state == SurvivorState.MovingToEngineerStandby)
+        {
+            return Mathf.Max(0.1f, engineerStandbyArriveDistance);
+        }
+
+        return Mathf.Max(0.05f, defensePointStoppingDistance);
     }
 
     // 대상 방향으로 회전한다

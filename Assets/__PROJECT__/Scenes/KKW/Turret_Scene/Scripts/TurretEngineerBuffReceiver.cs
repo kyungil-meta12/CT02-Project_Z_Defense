@@ -13,6 +13,11 @@ public class TurretEngineerBuffReceiver : MonoBehaviour
     [SerializeField] private TurretStatProfileApplier statProfileApplier;
     [SerializeField] private TurretDefinitionRuntimeController runtimeController;
 
+    [Header("버프 상태")]
+    public int currentEngineerCount;
+    public float currentDamageBonusRatio;
+    public float currentDamageMultiplier = 1.0f;
+
     private readonly List<Survivor> engineers = new List<Survivor>(4);
 
     public int EngineerCount => engineers.Count;
@@ -76,13 +81,16 @@ public class TurretEngineerBuffReceiver : MonoBehaviour
     {
         RefreshReferences();
 
+        currentEngineerCount = engineers.Count;
+        currentDamageBonusRatio = Mathf.Max(0.0f, damageBonusRatioPerEngineer) * currentEngineerCount;
+        currentDamageMultiplier = 1.0f + currentDamageBonusRatio;
+
         if (statProfileApplier == null)
         {
             return;
         }
 
-        float multiplier = 1.0f + Mathf.Max(0.0f, damageBonusRatioPerEngineer) * engineers.Count;
-        statProfileApplier.SetDamageMultiplier(multiplier);
+        statProfileApplier.SetDamageMultiplier(currentDamageMultiplier);
 
         if (runtimeController != null)
         {

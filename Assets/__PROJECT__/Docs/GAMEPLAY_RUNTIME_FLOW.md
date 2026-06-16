@@ -188,6 +188,7 @@ Runtime behavior:
 8. Spawned rescue survivors move from zombie spawn points to the final rear point, wait for treatment, move to the hospital, hide for the treatment timer, return, and then wait for role selection.
 9. Treated survivors can become `constructionWorker` or `engineer` through `SurvivorInteractionController`.
 10. Engineers can be clicked first and then assigned by selecting a turret target button in the engineer buff target UI; the target turret receives a stackable damage buff through `TurretEngineerBuffReceiver`.
+11. Long movement time logs a throttled warning but does not cancel the current movement target.
 
 Repair target policy:
 

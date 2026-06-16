@@ -150,6 +150,7 @@ Each survivor should have:
 - Animator parameters matching configured names when animations are required
 - Valid `vaultObstacleLayerMask`, or an `Obstacle` layer available for fallback
 - Optional `visibleRoot` child if treatment should hide the visual while keeping the survivor controller alive
+- `engineerStandbyArriveDistance` large enough for the turret base footprint so engineers stop near the base instead of pushing into the center point
 
 Survivor movement depends on:
 

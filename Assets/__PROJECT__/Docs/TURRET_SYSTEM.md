@@ -217,6 +217,19 @@ Recommended Poison Status Profile values for first testing:
 | `stackRefreshMode` | `AddStackAndRefreshDuration` | Repeated hits increase stacks and refresh duration. |
 | `bossDamageMultiplier` | `0.5` | First-pass boss resistance value. |
 
+Poison next-session handoff:
+
+- C# runtime structure is implemented, but the Poison status SO asset has not been created yet.
+- Start the next session by creating a Poison status profile asset through `Create > Project Z Defense > Poison Status Profile`.
+- Assign that asset to `Poison_Turret_Definition.poisonStatusProfile`.
+- Run `Project Z Defense/Validation/Validate Turret Economy`; the validator should report no missing `poisonStatusProfile` for `poison_turret` after wiring.
+- Confirm `Poison_Turret.prefab` loads normally in Unity. It was seen as a prefab variant of `SM_Quad_Barrel_Gun`; if the source prefab reference is missing in editor, fix the prefab reference before gameplay testing.
+- Confirm the Poison turret uses a projectile VFX profile, not a beam profile.
+- Play-mode test direct hit damage first, then verify Poison ticks start after `tickInterval`.
+- Verify stack behavior with repeated hits: `RefreshDurationOnly` should not increase stacks, while `AddStackAndRefreshDuration` should increase up to `maxStackCount`.
+- If Poison visual feedback is needed, configure `StatusEffectVisualController` Poison fields on normal and boss zombie prefabs after choosing the visual prefab.
+- After functional validation, tune `maxHpDamageRatioPerTick`, `duration`, `maxStackCount`, and `bossDamageMultiplier` against late-wave HP values.
+
 ## Frost Beam Setup
 
 Current Frost beam assets:

@@ -26,6 +26,22 @@ Rules:
 - Repeated death handling must be guarded.
 - Implementations own their mutable HP state; external systems read state and call `TakeDamage` only.
 
+## Status Effect Receivers
+
+Current receiver interfaces:
+
+- `IFrostStatusEffectReceiver`
+- `IPoisonStatusEffectReceiver`
+
+Rules:
+
+- Damage receivers own mutable status timers and stack state.
+- Attack systems should pass immutable payload values and should not mutate enemy runtime state directly.
+- Status timers should reset on spawn, despawn, and death.
+- Damage-over-time effects should call the same `TakeDamage` path as direct damage so HP UI, death handling, rewards, and damage popups stay consistent.
+- Visual controllers should only reflect active/inactive state; they should not own gameplay status logic.
+- Repeated status application should avoid allocations and should not search scene objects in hot paths.
+
 ## MemoryPool
 
 Paths:

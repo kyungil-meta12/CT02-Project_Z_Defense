@@ -123,7 +123,7 @@ public class InventorySystem : MonoBehaviour
             {
                 if(itemDict.ContainsKey(type)) // 존재하는 아이템에 대해서만 출력한다.
                 {
-                    Debug.Log($"{type}: {itemDict[type]}");
+                    Debug.Log(GetFormatString(type));
                 }
             }
         }
@@ -162,7 +162,7 @@ public class InventorySystem : MonoBehaviour
     {
         if (HasItem(itemType))
         {
-            return $"[{GetName(itemType)}]: " + GetCountString(itemType);
+            return $"[{itemType}]: " + GetCountString(itemType);
         }
         return "[N/A] : 0";
     }

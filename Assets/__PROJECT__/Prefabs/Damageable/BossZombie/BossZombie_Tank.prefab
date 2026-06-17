@@ -2155,6 +2155,7 @@ MonoBehaviour:
     particleScaleMultiplier: 1
     restartParticlesOnEnable: 1
     lethalIndicatorChildName: PoisonIcon
+    lethalIndicatorLocalPositionOffset: {x: 0, y: 0.35, z: 0.8}
   - visualType: 1
     attachMode: 0
     visualPrefab: {fileID: 3302223808384218742, guid: eddf1eaadeb5eac4f86f72b5044f2dda, type: 3}

@@ -38,6 +38,7 @@ This document is the shortest map for finding where project code, scenes, prefab
 | Obstacle/gate placement and defense-line slot behavior | `Assets/__PROJECT__/Prefabs/Damageable/Obstacle` |
 | Turret, projectile, placement, skill, or turret SO work | `Assets/__PROJECT__/Scenes/KKW/Turret_Scene/...` until the turret module is moved to a shared folder |
 | Turret special attack profiles | `Assets/__PROJECT__/Scenes/KKW/Turret_Scene/SO/AttackProfiles/...` |
+| Turret-owned status effect VFX prefabs | `Assets/__PROJECT__/Scenes/KKW/Turret_Scene/Prefabs/Status Effect/...` |
 | Runtime-loaded UI settings or prefabs | `Assets/__PROJECT__/Resources/UI` only when `Resources.Load` is required |
 | Documentation | `Assets/__PROJECT__/Docs` |
 | External asset adaptation | Project wrapper/profile first; avoid editing `Private Assets` originals |
@@ -45,6 +46,7 @@ This document is the shortest map for finding where project code, scenes, prefab
 ## Current Structural Notes
 
 - Some production scripts currently live under scene folders, especially turret systems under `Scenes/KKW/Turret_Scene/Scripts`.
+- Turret-owned status effect VFX, including Frost freeze visuals and Poison aura/burst visuals, currently live under `Scenes/KKW/Turret_Scene/Prefabs/Status Effect`.
 - Do not move scripts, prefabs, or ScriptableObjects casually. Unity `.meta` GUID stability is more important than folder tidiness.
 - Scene YAML changes must preserve existing `guid`, `fileID`, prefab instance links, component order, and serialized references unless the task explicitly requires a structural change.
 - If code and scene setup disagree, inspect the current scene/prefab before adding a parallel system.

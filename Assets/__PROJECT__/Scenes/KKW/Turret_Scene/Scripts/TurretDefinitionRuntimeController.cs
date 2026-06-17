@@ -463,12 +463,13 @@ public class TurretDefinitionRuntimeController : MonoBehaviour
     // 현재 터렛 정의와 레벨에 맞는 Poison 상태 payload를 생성한다
     private PoisonStatusPayload CreatePoisonStatusPayload()
     {
-        if (turretDefinition == null || turretDefinition.poisonStatusProfile == null || !turretDefinition.poisonStatusProfile.HasPoisonStatus)
+        if (turretDefinition == null || turretDefinition.poisonStatusProfile == null)
         {
             return default;
         }
 
-        return turretDefinition.poisonStatusProfile.CreatePayload(level);
+        PoisonStatusPayload payload = turretDefinition.poisonStatusProfile.CreatePayload(level, turretDefinition.statGrowthProfile);
+        return payload.hasPoisonStatus ? payload : default;
     }
 
     // 진화 엔트리에 설정된 연출 효과를 재생한다

@@ -42,6 +42,15 @@ Rules:
 - Visual controllers should only reflect active/inactive state; they should not own gameplay status logic.
 - Repeated status application should avoid allocations and should not search scene objects in hot paths.
 
+Poison-specific shared contract:
+
+- `PoisonStatusPayload` carries max-HP tick damage values, stack policy, boss multiplier, and an optional `PoisonDeathBurstProfileSO`.
+- `IPoisonStatusEffectReceiver.IsPoisonLethalPending` exposes whether the receiver's remaining Poison ticks can kill its current HP.
+- Targeting systems may read `IsPoisonLethalPending` to avoid wasting Poison shots, but they should not change enemy Poison state.
+- Visual systems should receive lethal state from the damage receiver and should not calculate lethal damage themselves.
+- Weak area Poison from death burst uses the same receiver contract as direct Poison projectile hits.
+- Boss receivers can accept Poison and weak area Poison, but boss death-burst triggering is a zombie implementation rule, not part of the shared interface.
+
 ## MemoryPool
 
 Paths:
@@ -119,6 +128,7 @@ Use it for:
 - turret evolution effects
 - projectile VFX
 - Frost freeze explosion effects
+- Poison lethal-death burst effects
 - helicopter missile skill objects
 
 Do not use it to bypass proper prefab setup or pooling reset rules.
@@ -126,6 +136,7 @@ Do not use it to bypass proper prefab setup or pooling reset rules.
 Follow-up pooling rules:
 
 - Repeated gameplay effects should have a `PoolObject`-compatible prefab setup instead of relying on fallback `Instantiate/Destroy`.
+- Chain-capable effects such as Poison death burst should be treated as repeated gameplay effects, not rare one-off effects.
 - Long-lived effects that follow a runtime target must clear target references, cached transforms, timers, pending damage flags, and payload data before reuse.
 - Followed effects should cache their target transform, collider, or explicit anchor during initialization; avoid repeated child hierarchy scans in `Update`.
 - Particle and trail state must be cleared or restarted on reuse so old particles do not leak into the next spawn.

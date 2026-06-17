@@ -453,6 +453,11 @@ public class BossZombie : PoolObject, IDamageable, IFrostStatusEffectReceiver, I
 
         DamagePopupSpawner.SpawnDamage(transform, appliedDamage);
 
+        if (CurrHp > 0f && poisonStatusActive)
+        {
+            RefreshPoisonLethalVisual();
+        }
+
         if (CurrHp <= 0f)
         {
             Die();
@@ -550,10 +555,12 @@ public class BossZombie : PoolObject, IDamageable, IFrostStatusEffectReceiver, I
             return;
         }
 
+        float previousRemainingDuration = poisonRemainingDuration;
+        float previousTickTimer = poisonTickTimer;
         poisonRemainingDuration = Mathf.Max(0.0f, poisonRemainingDuration - deltaTime);
         poisonTickTimer -= deltaTime;
 
-        if (poisonTickTimer <= 0.0f && poisonRemainingDuration > 0.0f)
+        if (poisonTickTimer <= 0.0f && PoisonStatusRuntimeUtility.CanApplyTick(previousRemainingDuration, previousTickTimer))
         {
             ApplyPoisonTickDamage();
             poisonTickTimer = Mathf.Max(0.01f, poisonStatusPayload.tickInterval);
@@ -576,7 +583,7 @@ public class BossZombie : PoolObject, IDamageable, IFrostStatusEffectReceiver, I
             return;
         }
 
-        float damage = TotalHp * Mathf.Clamp01(poisonStatusPayload.maxHpDamageRatioPerTick) * poisonStackCount * Mathf.Max(0.0f, poisonStatusPayload.bossDamageMultiplier);
+        float damage = PoisonStatusRuntimeUtility.CalculateTickDamage(TotalHp, poisonStatusPayload.maxHpDamageRatioPerTick, poisonStackCount, poisonStatusPayload.bossDamageMultiplier);
         TakeDamage(damage);
     }
 
@@ -614,15 +621,7 @@ public class BossZombie : PoolObject, IDamageable, IFrostStatusEffectReceiver, I
     // 남은 지속시간 안에 발생할 Poison 틱 수를 계산한다
     private int GetRemainingPoisonTickCount()
     {
-        float remainingDuration = Mathf.Max(0.0f, poisonRemainingDuration);
-        float nextTickTime = Mathf.Max(0.0f, poisonTickTimer);
-        float tickInterval = Mathf.Max(0.01f, poisonStatusPayload.tickInterval);
-        if (remainingDuration <= 0.0f || nextTickTime >= remainingDuration)
-        {
-            return 0;
-        }
-
-        return 1 + Mathf.FloorToInt((remainingDuration - nextTickTime - 0.0001f) / tickInterval);
+        return PoisonStatusRuntimeUtility.GetRemainingTickCount(poisonRemainingDuration, poisonTickTimer, poisonStatusPayload.tickInterval);
     }
 
     // 현재 Frost 상태에 맞춰 비헤이비어 이동 속도와 공격 속도를 반영한다

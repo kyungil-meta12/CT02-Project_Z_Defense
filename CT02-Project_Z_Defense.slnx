@@ -14,6 +14,7 @@
   <Project Path="DamageNumbersPro.csproj" />
   <Project Path="Lofelt.NiceVibrations.csproj" />
   <Project Path="Assembly-CSharp-Editor.csproj" />
+  <Project Path="Kamgam.UGUIWorldImage.csproj" />
   <Project Path="Lofelt.NiceVibrations.Demo.csproj" />
   <Project Path="Lofelt.NiceVibrations.Editor.csproj" />
   <Project Path="ACTk.Examples.Genuine.Editor.csproj" />

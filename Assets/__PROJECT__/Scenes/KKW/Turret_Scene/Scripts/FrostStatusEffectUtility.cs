@@ -1,4 +1,5 @@
-using UnityEngine;
+﻿using UnityEngine;
+using ProjectZDefense.StatusEffects;
 
 /// <summary>
 /// Frost 상태 효과의 빙결 이펙트 생성과 범위 데미지 적용을 공통 처리한다.

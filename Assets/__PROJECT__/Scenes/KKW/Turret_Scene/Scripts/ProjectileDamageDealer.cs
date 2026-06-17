@@ -1,5 +1,6 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
+using ProjectZDefense.StatusEffects;
 
 /// <summary>
 /// 투사체가 충돌한 대상에게 데미지를 적용하고 관통 횟수와 중복 피격을 관리한다.

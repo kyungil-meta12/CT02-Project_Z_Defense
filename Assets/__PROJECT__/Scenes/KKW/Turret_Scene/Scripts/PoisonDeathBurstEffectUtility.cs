@@ -1,4 +1,5 @@
-using UnityEngine;
+﻿using UnityEngine;
+using ProjectZDefense.StatusEffects;
 
 /// <summary>
 /// Poison 처형 사망 폭발 이펙트 생성과 약한 범위 중독 적용을 공통 처리한다.

@@ -1,5 +1,6 @@
-using ProjectZima.PolygonModularTurretsPack;
+﻿using ProjectZima.PolygonModularTurretsPack;
 using UnityEngine;
+using ProjectZDefense.StatusEffects;
 
 /// <summary>
 /// 터렛 Definition을 런타임 터렛 오브젝트에 적용하고 레벨업, 진화, 비용 소모를 중계한다.

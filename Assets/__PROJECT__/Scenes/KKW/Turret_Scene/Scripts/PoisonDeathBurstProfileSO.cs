@@ -1,4 +1,5 @@
-using UnityEngine;
+﻿using UnityEngine;
+using ProjectZDefense.StatusEffects;
 
 /// <summary>
 /// Poison 처형 확정 대상 사망 시 발생하는 폭발 이펙트와 약한 범위 중독 값을 관리하는 프로필.

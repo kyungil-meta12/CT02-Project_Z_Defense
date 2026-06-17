@@ -1,4 +1,5 @@
-using UnityEngine;
+﻿using UnityEngine;
+using ProjectZDefense.StatusEffects;
 
 /// <summary>
 /// Frost 터렛의 슬로우, 빙결, 폭발 효과 기본값과 체력비례 데미지 성장을 관리하는 상태이상 프로필.

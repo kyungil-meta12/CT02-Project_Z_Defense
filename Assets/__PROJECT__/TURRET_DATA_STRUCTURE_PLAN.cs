@@ -327,7 +327,7 @@
  * - If Ice_Cubes_Explosion is used frequently, its duplicated project prefab should inherit or include PoolObject so SpawnEffect does not fall back to Instantiate/Destroy.
  * - Long-lived followed VFX, such as Ice_Cubes_Explosion following a frozen target, must clear target, timer, damage-pending, payload, and cached position state on disable or pool return.
  * - Pooled particle effects must restart particle systems and clear old particle/trail state on reuse.
- * - Frost freeze explosion cancellation must stay connected to zombie death and pool reset paths: NormalZombie.ResetFrostStatus -> CancelActiveFrostFreezeEffect -> FrostStatusEffectUtility.CancelFreezeExplosionEffect.
+ * - Frost freeze explosion cancellation must stay connected to zombie death and pool reset paths: NormalZombie.ResetFrostStatus -> FrostStatusRuntime.ResetStatus -> FrostStatusEffectUtility.CancelFreezeExplosionEffect.
  *
  * Frost Pooling / Optimization Follow-Up
  *

@@ -1,12 +1,13 @@
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.AI;
 using System.Collections;
 using System;
+using ProjectZDefense.StatusEffects;
 
 /// <summary>
 /// 일반 좀비의 웨이브 스탯 초기화, 이동/공격, 피격, 사망, 처치 보상 지급을 담당한다.
 /// </summary>
-public class NormalZombie : PoolObject, IDamageable, IFrostStatusEffectReceiver, IPoisonStatusEffectReceiver
+public class NormalZombie : PoolObject, IDamageable, IFrostStatusEffectReceiver, IPoisonStatusEffectReceiver, IFrostStatusRuntimeOwner
 {
     [Header("일반 좀비 기본 스펙")] public NormalZombieSpec spec;
     [Header("프리팹별 처치 보상 Override")] [SerializeField] private ZombieRewardProfileSO rewardProfileOverride;
@@ -34,7 +35,7 @@ public class NormalZombie : PoolObject, IDamageable, IFrostStatusEffectReceiver,
     public float CurrHp { get; private set; } // 현재 체력
     public float TotalHp { get; private set; } // 최대 체력
     public bool IsAlive { get; private set; } // 살아있는 상태
-    public bool IsPoisonLethalPending { get; private set; }
+    public bool IsPoisonLethalPending => poisonStatusRuntime != null && poisonStatusRuntime.IsLethalPending;
 
     private bool returnInstanceCoroutineRunning = false;
 
@@ -44,19 +45,8 @@ public class NormalZombie : PoolObject, IDamageable, IFrostStatusEffectReceiver,
     private bool originalIsKinematic;
     private float baseMoveSpeed;
     private float baseAttackSpeed;
-    private float frostSlowRatio;
-    private float frostExposureTimer;
-    private float frostHoldTimer;
-    private float frostFreezeTimer;
-    private float frostFreezeCooldownTimer;
-    private bool frostStatusDirty;
-    private bool frostStatusActive;
-    private GameObject activeFrostFreezeEffect;
-    private PoisonStatusPayload poisonStatusPayload;
-    private float poisonRemainingDuration;
-    private float poisonTickTimer;
-    private int poisonStackCount;
-    private bool poisonStatusActive;
+    private FrostStatusRuntime frostStatusRuntime;
+    private PoisonStatusRuntime poisonStatusRuntime;
 
     // 사망 시 최종 보상값을 저장하는 구조체
     private RewardResult rewardResult = new();
@@ -68,6 +58,8 @@ public class NormalZombie : PoolObject, IDamageable, IFrostStatusEffectReceiver,
         anim = GetComponent<Animator>();
         agent = GetComponent<NavMeshAgent>();
         CacheStatusEffectVisualController();
+        CacheFrostStatusRuntime();
+        CachePoisonStatusRuntime();
         CacheColliders();
         CacheRigidbodyDefaults();
         agent.updatePosition = false;
@@ -164,8 +156,14 @@ public class NormalZombie : PoolObject, IDamageable, IFrostStatusEffectReceiver,
     // 매 프레임 사망 반환과 이동/공격 상태를 갱신한다
     private void Update()
     {
-        UpdateFrostStatus(Time.deltaTime);
-        UpdatePoisonStatus(Time.deltaTime);
+        if (frostStatusRuntime != null)
+        {
+            frostStatusRuntime.Tick(Time.deltaTime);
+        }
+        if (poisonStatusRuntime != null)
+        {
+            poisonStatusRuntime.Tick(Time.deltaTime);
+        }
         UpdateDeath();
         UpdateMoveAndAttack();
     }
@@ -322,9 +320,9 @@ public class NormalZombie : PoolObject, IDamageable, IFrostStatusEffectReceiver,
 
         DamagePopupSpawner.SpawnDamage(transform, appliedDamage);
 
-        if (CurrHp > 0f && poisonStatusActive)
+        if (CurrHp > 0f && poisonStatusRuntime != null && poisonStatusRuntime.IsActive)
         {
-            RefreshPoisonLethalVisual();
+            poisonStatusRuntime.RefreshLethalPrediction();
         }
 
         // 체력이 완전히 떨어지면
@@ -337,59 +335,23 @@ public class NormalZombie : PoolObject, IDamageable, IFrostStatusEffectReceiver,
     // Frost 빔으로 전달된 누적 슬로우와 빙결 폭발 데이터를 갱신한다
     public void ApplyFrostStatus(FrostStatusPayload payload)
     {
-        if (!IsAlive)
+        if (!IsAlive || frostStatusRuntime == null)
         {
             return;
         }
 
-        float safeMaxSlowRatio = Mathf.Clamp01(payload.maxSlowRatio);
-        float safeBuildUpDuration = Mathf.Max(0.0f, payload.slowBuildUpDuration);
-        float safeTickInterval = Mathf.Max(0.0f, payload.tickInterval);
-
-        if (safeMaxSlowRatio > 0.0f)
-        {
-            frostExposureTimer += safeTickInterval > 0.0f ? safeTickInterval : Time.deltaTime;
-            float buildUpRatio = safeBuildUpDuration > 0.0f ? Mathf.Clamp01(frostExposureTimer / safeBuildUpDuration) : 1.0f;
-            frostSlowRatio = Mathf.Max(frostSlowRatio, safeMaxSlowRatio * buildUpRatio);
-            frostHoldTimer = Mathf.Max(frostHoldTimer, payload.slowHoldDuration);
-            frostStatusDirty = true;
-        }
-
-        if (payload.canTriggerFreeze && frostFreezeCooldownTimer <= 0.0f && frostSlowRatio >= payload.freezeTriggerRatio)
-        {
-            TriggerFrostFreeze(payload);
-        }
+        frostStatusRuntime.ApplyFrostStatus(payload);
     }
 
     // Poison 투사체로 전달된 중독 틱데미지 데이터를 갱신한다
     public void ApplyPoisonStatus(PoisonStatusPayload payload)
     {
-        if (!IsAlive || !payload.hasPoisonStatus)
+        if (!IsAlive || poisonStatusRuntime == null)
         {
             return;
         }
 
-        poisonStatusPayload = payload;
-        int safeMaxStackCount = Mathf.Max(1, payload.maxStackCount);
-
-        if (poisonStackCount <= 0)
-        {
-            poisonStackCount = 1;
-        }
-        else if (payload.stackRefreshMode == PoisonStackRefreshMode.AddStackAndRefreshDuration)
-        {
-            poisonStackCount = Mathf.Min(safeMaxStackCount, poisonStackCount + 1);
-        }
-
-        poisonRemainingDuration = Mathf.Max(poisonRemainingDuration, payload.duration);
-        if (poisonTickTimer <= 0.0f)
-        {
-            poisonTickTimer = Mathf.Max(0.01f, payload.tickInterval);
-        }
-
-        poisonStatusActive = true;
-        SetPoisonVisualActive(true);
-        RefreshPoisonLethalVisual();
+        poisonStatusRuntime.ApplyPoisonStatus(payload);
     }
 
     // Frost 상태를 제외한 현재 이동/공격 기준 속도를 반환한다
@@ -403,182 +365,45 @@ public class NormalZombie : PoolObject, IDamageable, IFrostStatusEffectReceiver,
     {
         baseMoveSpeed = Mathf.Max(0.0f, moveSpeed);
         baseAttackSpeed = Mathf.Max(0.0f, attackSpeed);
-        frostStatusDirty = true;
-        ApplyFrostSpeedModifier();
+        if (frostStatusRuntime != null)
+        {
+            frostStatusRuntime.RefreshSpeedModifier();
+        }
     }
 
-    // Frost 상태 타이머를 감소시키고 이동/공격 속도를 갱신한다
-    private void UpdateFrostStatus(float deltaTime)
-    {
-        if (frostFreezeCooldownTimer > 0.0f)
-        {
-            frostFreezeCooldownTimer = Mathf.Max(0.0f, frostFreezeCooldownTimer - deltaTime);
-        }
-
-        if (!frostStatusActive && !frostStatusDirty)
-        {
-            return;
-        }
-
-        if (frostHoldTimer > 0.0f)
-        {
-            frostHoldTimer = Mathf.Max(0.0f, frostHoldTimer - deltaTime);
-        }
-
-        if (frostFreezeTimer > 0.0f)
-        {
-            frostFreezeTimer = Mathf.Max(0.0f, frostFreezeTimer - deltaTime);
-        }
-
-        if (frostHoldTimer <= 0.0f && frostFreezeTimer <= 0.0f)
-        {
-            frostSlowRatio = 0.0f;
-            frostExposureTimer = 0.0f;
-        }
-
-        ApplyFrostSpeedModifier();
-    }
-
-    // Poison 상태 타이머를 감소시키고 틱마다 체력비례 데미지를 적용한다
-    private void UpdatePoisonStatus(float deltaTime)
-    {
-        if (!poisonStatusActive)
-        {
-            return;
-        }
-
-        if (!IsAlive)
-        {
-            ResetPoisonStatus();
-            return;
-        }
-
-        float previousRemainingDuration = poisonRemainingDuration;
-        float previousTickTimer = poisonTickTimer;
-        poisonRemainingDuration = Mathf.Max(0.0f, poisonRemainingDuration - deltaTime);
-        poisonTickTimer -= deltaTime;
-
-        if (poisonTickTimer <= 0.0f && PoisonStatusRuntimeUtility.CanApplyTick(previousRemainingDuration, previousTickTimer))
-        {
-            ApplyPoisonTickDamage();
-            poisonTickTimer = Mathf.Max(0.01f, poisonStatusPayload.tickInterval);
-        }
-
-        if (poisonRemainingDuration <= 0.0f)
-        {
-            ResetPoisonStatus();
-            return;
-        }
-
-        RefreshPoisonLethalVisual();
-    }
-
-    // 현재 중독 중첩 수에 맞는 최대체력 비례 틱데미지를 적용한다
-    private void ApplyPoisonTickDamage()
-    {
-        if (!IsAlive || poisonStackCount <= 0 || poisonStatusPayload.maxHpDamageRatioPerTick <= 0.0f)
-        {
-            return;
-        }
-
-        float damage = PoisonStatusRuntimeUtility.CalculateTickDamage(TotalHp, poisonStatusPayload.maxHpDamageRatioPerTick, poisonStackCount, 1.0f);
-        TakeDamage(damage);
-    }
-
-    // 남은 Poison 틱데미지로 사망이 확정되는지 갱신한다
-    private void RefreshPoisonLethalVisual()
-    {
-        IsPoisonLethalPending = IsPoisonDamageLethal();
-        SetPoisonLethalVisualActive(IsPoisonLethalPending);
-    }
-
-    // 남은 Poison 틱데미지 총합이 현재 체력을 넘는지 확인한다
-    private bool IsPoisonDamageLethal()
-    {
-        if (!IsAlive || !poisonStatusActive || poisonStackCount <= 0)
-        {
-            return false;
-        }
-
-        float tickDamage = GetPoisonTickDamage();
-        int remainingTickCount = GetRemainingPoisonTickCount();
-        return tickDamage > 0.0f && remainingTickCount > 0 && CurrHp <= tickDamage * remainingTickCount;
-    }
-
-    // 현재 중첩 수 기준 Poison 1틱 데미지를 반환한다
-    private float GetPoisonTickDamage()
-    {
-        if (poisonStatusPayload.maxHpDamageRatioPerTick <= 0.0f || poisonStackCount <= 0)
-        {
-            return 0.0f;
-        }
-
-        return TotalHp * Mathf.Clamp01(poisonStatusPayload.maxHpDamageRatioPerTick) * poisonStackCount;
-    }
-
-    // 남은 지속시간 안에 발생할 Poison 틱 수를 계산한다
-    private int GetRemainingPoisonTickCount()
-    {
-        return PoisonStatusRuntimeUtility.GetRemainingTickCount(poisonRemainingDuration, poisonTickTimer, poisonStatusPayload.tickInterval);
-    }
-
-    // 현재 Frost 상태에 맞춰 애니메이터 속도 파라미터를 반영한다
-    private void ApplyFrostSpeedModifier()
+    // Frost 상태가 계산한 속도 배율을 애니메이터 이동/공격 속도에 반영한다
+    public void ApplyFrostSpeedMultiplier(float speedMultiplier)
     {
         if (anim == null)
         {
             return;
         }
 
-        float speedMultiplier = 1.0f;
-        if (frostFreezeTimer > 0.0f)
-        {
-            speedMultiplier = 0.0f;
-        }
-        else if (frostHoldTimer > 0.0f)
-        {
-            speedMultiplier = Mathf.Clamp01(1.0f - frostSlowRatio);
-        }
-
-        anim.SetFloat("MoveSpeed", baseMoveSpeed * speedMultiplier);
-        anim.SetFloat("AttackSpeed", baseAttackSpeed * speedMultiplier);
-        frostStatusActive = speedMultiplier < 1.0f;
-        SetFrostVisualActive(frostStatusActive);
-        frostStatusDirty = false;
+        float safeSpeedMultiplier = Mathf.Clamp01(speedMultiplier);
+        anim.SetFloat("MoveSpeed", baseMoveSpeed * safeSpeedMultiplier);
+        anim.SetFloat("AttackSpeed", baseAttackSpeed * safeSpeedMultiplier);
     }
 
     // 풀 재사용이나 사망 시 Frost 상태를 초기화하고 원래 속도를 복구한다
     private void ResetFrostStatus()
     {
-        CancelActiveFrostFreezeEffect();
-        frostSlowRatio = 0.0f;
-        frostExposureTimer = 0.0f;
-        frostHoldTimer = 0.0f;
-        frostFreezeTimer = 0.0f;
-        frostFreezeCooldownTimer = 0.0f;
-        frostStatusDirty = false;
-        frostStatusActive = false;
-
-        if (anim != null)
+        if (frostStatusRuntime == null)
         {
-            anim.SetFloat("MoveSpeed", baseMoveSpeed);
-            anim.SetFloat("AttackSpeed", baseAttackSpeed);
+            return;
         }
 
-        SetFrostVisualActive(false);
+        frostStatusRuntime.ResetStatus();
     }
 
     // 풀 재사용이나 사망 시 Poison 상태를 초기화하고 비주얼을 끈다
     private void ResetPoisonStatus()
     {
-        poisonStatusPayload = default;
-        poisonRemainingDuration = 0.0f;
-        poisonTickTimer = 0.0f;
-        poisonStackCount = 0;
-        poisonStatusActive = false;
-        IsPoisonLethalPending = false;
-        SetPoisonLethalVisualActive(false);
-        SetPoisonVisualActive(false);
+        if (poisonStatusRuntime == null)
+        {
+            return;
+        }
+
+        poisonStatusRuntime.ResetStatus();
     }
 
     // 상태이상 비주얼 컨트롤러를 자식까지 포함해 캐시한다
@@ -592,61 +417,28 @@ public class NormalZombie : PoolObject, IDamageable, IFrostStatusEffectReceiver,
         statusEffectVisualController = GetComponentInChildren<StatusEffectVisualController>(true);
     }
 
-    // 프로스트 상태 활성 여부에 맞춰 비주얼 컨트롤러를 갱신한다
-    private void SetFrostVisualActive(bool isActive)
+    // Frost 상태 런타임 컴포넌트를 캐시하고 일반 좀비 정책으로 초기화한다
+    private void CacheFrostStatusRuntime()
     {
-        if (statusEffectVisualController == null)
+        frostStatusRuntime = GetComponent<FrostStatusRuntime>();
+        if (frostStatusRuntime == null)
         {
-            return;
+            frostStatusRuntime = gameObject.AddComponent<FrostStatusRuntime>();
         }
 
-        statusEffectVisualController.SetFrostSlowActive(isActive);
+        frostStatusRuntime.Initialize(this, this, statusEffectVisualController, true);
     }
 
-    // 포이즌 상태 활성 여부에 맞춰 비주얼 컨트롤러를 갱신한다
-    private void SetPoisonVisualActive(bool isActive)
+    // Poison 상태 런타임 컴포넌트를 캐시하고 일반 좀비 정책으로 초기화한다
+    private void CachePoisonStatusRuntime()
     {
-        if (statusEffectVisualController == null)
+        poisonStatusRuntime = GetComponent<PoisonStatusRuntime>();
+        if (poisonStatusRuntime == null)
         {
-            return;
+            poisonStatusRuntime = gameObject.AddComponent<PoisonStatusRuntime>();
         }
 
-        statusEffectVisualController.SetPoisonActive(isActive);
-    }
-
-    // 포이즌 처치 확정 표시 활성 여부에 맞춰 비주얼 컨트롤러를 갱신한다
-    private void SetPoisonLethalVisualActive(bool isActive)
-    {
-        if (statusEffectVisualController == null)
-        {
-            return;
-        }
-
-        statusEffectVisualController.SetPoisonLethalIndicatorActive(isActive);
-    }
-
-    // Frost 누적치가 빙결 조건에 도달했을 때 이펙트와 폭발 데미지를 실행한다
-    private void TriggerFrostFreeze(FrostStatusPayload payload)
-    {
-        frostFreezeCooldownTimer = Mathf.Max(0.0f, payload.freezeCooldownPerTarget);
-        frostFreezeTimer = Mathf.Max(frostFreezeTimer, payload.freezeDuration);
-        frostStatusDirty = true;
-
-        CancelActiveFrostFreezeEffect();
-        Vector3 effectPosition = TurretAimPointUtility.GetAimPosition(gameObject);
-        activeFrostFreezeEffect = FrostStatusEffectUtility.TriggerFreezeExplosion(payload, effectPosition, this);
-    }
-
-    // 현재 좀비에게 묶인 빙결 이펙트와 예약 폭발 데미지를 취소한다
-    private void CancelActiveFrostFreezeEffect()
-    {
-        if (activeFrostFreezeEffect == null)
-        {
-            return;
-        }
-
-        FrostStatusEffectUtility.CancelFreezeExplosionEffect(activeFrostFreezeEffect, this);
-        activeFrostFreezeEffect = null;
+        poisonStatusRuntime.Initialize(this, statusEffectVisualController, false, true);
     }
 
     /// <summary>
@@ -690,12 +482,12 @@ public class NormalZombie : PoolObject, IDamageable, IFrostStatusEffectReceiver,
     // Poison 처형 확정 상태로 사망한 경우 사망 폭발과 약한 범위 중독을 실행한다
     private void TriggerPoisonDeathBurstIfNeeded()
     {
-        if (!IsPoisonLethalPending || poisonStatusPayload.deathBurstProfile == null)
+        if (poisonStatusRuntime == null)
         {
             return;
         }
 
-        PoisonDeathBurstEffectUtility.TriggerDeathBurst(poisonStatusPayload, transform.position, this);
+        poisonStatusRuntime.TriggerDeathBurstIfNeeded(transform.position);
     }
 
     // 일반 좀비 프리팹 Override 보상 프로필을 기준으로 처치 보상을 지급한다

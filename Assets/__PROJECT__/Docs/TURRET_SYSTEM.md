@@ -129,15 +129,16 @@ Damage interpretation:
 Frost status handling:
 
 - `FrostStatusProfileSO` stores Frost values (`freezeDuration`, `slowBuildUpDuration`, `maxSlowRatio`, `slowHoldDuration`, `freezeTriggerRatio`, `freezeEffectPrefab`, `freezeEffectDuration`, `freezeExplosionDamageDelay`, `freezeExplosionRadius`, `freezeExplosionDamage`, `freezePrimaryTargetMaxHpDamageRatio`, `freezeExplosionLayerMask`, `freezeCooldownPerTarget`, `freezeExplosionSlowRatio`, `freezeExplosionSlowDuration`) and optional primary-target max-HP damage ratio growth.
-- `BeamFiringEvent` asks `FrostStatusProfileSO` for a level-scaled `FrostStatusPayload` and forwards it to targets implementing `IFrostStatusEffectReceiver`.
-- `NormalZombie` and `BossZombie` implement `IFrostStatusEffectReceiver`.
-- `NormalZombie` accumulates Frost exposure, scales cached `MoveSpeed` and `AttackSpeed` animator parameters, and triggers freeze explosion effects when buildup reaches the configured threshold.
-- `BossZombie` accumulates Frost exposure and scales the cached behavior blackboard `speed` value plus the `AttackSpeed` animator parameter, but does not trigger freeze explosion effects. Boss Frost is slow-only by design.
+- `BeamFiringEvent` asks `FrostStatusProfileSO` for a level-scaled `ProjectZDefense.StatusEffects.FrostStatusPayload` and forwards it to targets implementing `ProjectZDefense.StatusEffects.IFrostStatusEffectReceiver`.
+- `NormalZombie` and `BossZombie` implement `ProjectZDefense.StatusEffects.IFrostStatusEffectReceiver`.
+- `FrostStatusRuntime` owns Frost exposure, hold timer, freeze timer, freeze cooldown, visual toggles, and optional freeze explosion effects.
+- `NormalZombie` initializes `FrostStatusRuntime` with freeze explosion enabled and only applies the calculated speed multiplier to cached `MoveSpeed` and `AttackSpeed` animator parameters.
+- `BossZombie` initializes `FrostStatusRuntime` with freeze explosion disabled and only applies the calculated speed multiplier to the cached behavior blackboard `speed` value plus the `AttackSpeed` animator parameter. Boss Frost is slow-only by design.
 - `FrostStatusEffectUtility` owns freeze effect spawning and non-alloc overlap explosion damage so future Frost skills can reuse the same explosion behavior.
 - `FrostFreezeExplosionDamageTimer` keeps `Ice_Cubes_Explosion` following the original frozen target while it is alive and delays explosion damage so the damage lands at the current effect position when the visual burst happens.
 - `NormalZombie` keeps the active `Ice_Cubes_Explosion` handle and cancels the effect plus pending explosion damage when the original frozen target dies or is reset for pooling.
 - `StatusEffectVisualController` owns enemy-side status VFX slots. It can spawn one `MeshFX_Frozen 1` instance per configured target renderer, inject the renderer into `OverlayFX`, and remove the runtime overlay material when Frost slow ends.
-- `NormalZombie` and `BossZombie` only report Frost active/inactive state to `StatusEffectVisualController`; they do not directly instantiate or configure mesh VFX.
+- `FrostStatusRuntime` reports Frost active/inactive state to `StatusEffectVisualController`; zombies do not directly instantiate or configure mesh VFX.
 - `NormalZombie` exposes runtime base speed setters so external buffs such as Screamer speed buffs can change the non-Frost base speed without overwriting the active Frost multiplier.
 - `maxSlowRatio` is interpreted as a maximum reduction ratio, so `0.9` means the target keeps `10%` speed when Frost buildup reaches the cap.
 - `slowBuildUpDuration` controls how long continuous Frost exposure takes to reach `maxSlowRatio`.
@@ -162,17 +163,18 @@ Frost pooling and optimization follow-up:
 Enemy Frost visual setup:
 
 - Add `StatusEffectVisualController` to each zombie prefab that should show Frost slow visuals.
-- Assign `MeshFX_Frozen 1` to the controller's `Frost Slow Visual Prefab` field.
-- Assign only body renderers that should receive the frost overlay into `Frost Target Renderers`.
+- Add a `StatusEffectVisualSlot` with `visualType = FrostSlow` and `attachMode = RendererOverlay`.
+- Assign `MeshFX_Frozen 1` to that slot's `visualPrefab`.
+- Assign only body renderers that should receive the frost overlay into that slot's `targetRenderers`.
 - For normal zombies, usually assign the active body `SkinnedMeshRenderer`.
-- For boss zombies, assign a boss-specific Frost visual prefab to the same `Frost Slow Visual Prefab` slot when `MeshFX_Frozen 1` is too visually noisy or incorrectly scaled.
+- For boss zombies, assign a boss-specific Frost visual prefab to a FrostSlow `StatusEffectVisualSlot` when `MeshFX_Frozen 1` is too visually noisy or incorrectly scaled.
 - For boss zombies, assign body and attachment renderers selectively so hair, eyes, or props can be excluded if needed.
 - If boss Frost particles look too large, lower `Frost Particle Scale Multiplier` on the boss `StatusEffectVisualController` instead of scaling the source MeshFX prefab.
 - Do not modify the original `OverlayFX` script from Private Assets; project-side lifecycle and material cleanup are handled by `StatusEffectVisualController`.
 - `freezeCooldownPerTarget` must prevent the same target from triggering freeze explosions every damage tick.
 - `freezeDuration > 0` temporarily applies a `0` speed multiplier and overrides slow until the freeze timer expires.
 - `freezeEffectPrefab` is owned by the attack/status profile, not by every zombie prefab. Zombies only provide receiver logic and effect position.
-- Frost timers are updated from each zombie's existing `Update` path and reset on spawn, despawn, and death.
+- Frost timers are updated by `FrostStatusRuntime.Tick` from each zombie's existing `Update` path and reset on spawn, despawn, and death.
 
 Poison status handling:
 
@@ -181,11 +183,12 @@ Poison status handling:
 - `PoisonTurretStatGrowthProfileSO` owns Poison_Turret-only level growth for Poison tick damage, Poison duration, Poison death burst radius, death burst weak Poison tick damage, and death burst weak Poison duration.
 - `TurretDefinitionRuntimeController.ApplyVFX` creates a level-bound Poison payload only for projectile VFX profiles and passes it to the runtime `Turret`.
 - The base projectile firing path carries the Poison payload from `Turret` to `FiringEvent`, `Gun`, and `ProjectileDamageDealer`.
-- `ProjectileDamageDealer` applies direct projectile damage first, then forwards Poison to targets implementing `IPoisonStatusEffectReceiver`.
-- `NormalZombie` and `BossZombie` implement `IPoisonStatusEffectReceiver`.
-- `PoisonStatusRuntimeUtility` owns shared Poison tick timing, remaining tick count, and max-HP tick damage calculations so normal and boss receivers do not drift apart.
-- `NormalZombie` applies Poison tick damage as `TotalHp * maxHpDamageRatioPerTick * stackCount`.
-- `BossZombie` applies Poison tick damage as `TotalHp * maxHpDamageRatioPerTick * stackCount * bossDamageMultiplier`.
+- `ProjectileDamageDealer` applies direct projectile damage first, then forwards Poison to targets implementing `ProjectZDefense.StatusEffects.IPoisonStatusEffectReceiver`.
+- `NormalZombie` and `BossZombie` implement `ProjectZDefense.StatusEffects.IPoisonStatusEffectReceiver`.
+- `PoisonStatusRuntime` owns per-target Poison duration, tick timer, stack count, lethal-pending state, visual toggles, and optional death burst trigger.
+- `PoisonStatusRuntimeUtility` owns shared Poison tick timing, remaining tick count, and max-HP tick damage calculations.
+- `NormalZombie` initializes `PoisonStatusRuntime` with normal damage rules and allows lethal death burst.
+- `BossZombie` initializes `PoisonStatusRuntime` with boss damage multiplier rules and blocks lethal death burst.
 - `RefreshDurationOnly` refreshes Poison duration without increasing stack count after the first stack.
 - `AddStackAndRefreshDuration` increases stack count up to `maxStackCount` and refreshes duration.
 - Poison ticks start after `tickInterval`; direct projectile hit damage remains separate from Poison tick damage.
@@ -196,22 +199,22 @@ Poison status handling:
 - `NormalZombie` triggers `PoisonDeathBurstEffectUtility` only when it dies while `IsPoisonLethalPending` is true and the active Poison payload has a death burst profile.
 - `BossZombie` can show the lethal indicator and can receive weak area Poison from a normal zombie's burst, but boss death does not trigger the Poison death burst.
 - `PoisonDeathBurstProfileSO.allowChainDeathBurst` controls whether weak Poison payloads keep the same death burst profile. When enabled, weak Poison can show the lethal indicator and chain another normal-zombie death burst.
-- Poison death burst uses `Physics.OverlapSphereNonAlloc` with a fixed buffer and deduplicates `IPoisonStatusEffectReceiver` targets before applying weak Poison.
+- Poison death burst uses `Physics.OverlapSphereNonAlloc` with a fixed buffer and deduplicates `ProjectZDefense.StatusEffects.IPoisonStatusEffectReceiver` targets before applying weak Poison.
 
 Poison runtime pipeline:
 
 1. `Poison_Turret_Definition.poisonStatusProfile` points to the active `PoisonStatusProfileSO`.
-2. `TurretDefinitionRuntimeController.ApplyVFX` creates a `PoisonStatusPayload` from `PoisonStatusProfileSO` and `TurretStatGrowthProfileSO` when the selected VFX is projectile-based.
+2. `TurretDefinitionRuntimeController.ApplyVFX` creates a `ProjectZDefense.StatusEffects.PoisonStatusPayload` from `PoisonStatusProfileSO` and `TurretStatGrowthProfileSO` when the selected VFX is projectile-based.
 3. The payload is stored on the runtime `Turret` and passed through `FiringEvent`, `Gun`, and `ProjectileDamageDealer` each projectile spawn.
 4. `ProjectileDamageDealer.TryApplyDamage` applies direct projectile damage first through `IDamageable.TakeDamage`.
-5. If the damaged target still lives and implements `IPoisonStatusEffectReceiver`, `ProjectileDamageDealer` calls `ApplyPoisonStatus`.
-6. `NormalZombie` and `BossZombie` own their own Poison timers, stack count, tick timer, lethal-pending state, and visual toggles.
+5. If the damaged target still lives and implements `ProjectZDefense.StatusEffects.IPoisonStatusEffectReceiver`, `ProjectileDamageDealer` calls `ApplyPoisonStatus`.
+6. `NormalZombie` and `BossZombie` delegate Poison timers, stack count, tick timer, lethal-pending state, and visual toggles to `PoisonStatusRuntime`.
 7. Poison tick damage uses the same `TakeDamage` path as direct damage so HP UI, popups, rewards, and death flow stay consistent.
 8. Every Poison update recalculates whether the remaining scheduled ticks can kill the target; if yes, `IsPoisonLethalPending` becomes true and the visual controller turns on the configured lethal indicator child.
-9. `TargetFinder.excludePoisonLethalTargets` lets Poison turret targeting skip targets whose `IsPoisonLethalPending` is already true.
+9. `TargetFinder` calls connected `ITargetCandidateFilter` components. `PoisonLethalTargetCandidateFilter` lets Poison turret targeting skip targets whose `IsPoisonLethalPending` is already true.
 10. If a normal zombie dies while `IsPoisonLethalPending` is true and the active payload has a `deathBurstProfile`, `NormalZombie.Die` calls `PoisonDeathBurstEffectUtility.TriggerDeathBurst`.
 11. `PoisonDeathBurstEffectUtility` spawns the configured burst VFX through `PooledObjectUtility.SpawnEffect`.
-12. The same utility applies weak area Poison to nearby living `IPoisonStatusEffectReceiver` targets using `Physics.OverlapSphereNonAlloc`.
+12. The same utility applies weak area Poison to nearby living `ProjectZDefense.StatusEffects.IPoisonStatusEffectReceiver` targets using `Physics.OverlapSphereNonAlloc`.
 13. Weak area Poison can chain only if `PoisonDeathBurstProfileSO.allowChainDeathBurst` is enabled.
 14. Boss zombies can receive direct Poison, weak area Poison, and lethal indicators, but boss death never calls the Poison death burst trigger.
 
@@ -220,12 +223,12 @@ Poison data ownership:
 - `PoisonStatusProfileSO` owns base Poison rules and values that should exist at tier level 1.
 - `PoisonDeathBurstProfileSO` owns base death-burst VFX, target layer mask, chain toggle, and base weak area Poison rules.
 - `PoisonTurretStatGrowthProfileSO` owns Poison-specific level-scaling values. Do not add per-level Poison balancing fields to `PoisonStatusProfileSO` or the shared `TurretStatGrowthProfileSO`.
-- `TurretDefinitionRuntimeController` combines the status profile and stat growth profile into one immutable `PoisonStatusPayload` for the current level.
+- `TurretDefinitionRuntimeController` combines the status profile and stat growth profile into one immutable `ProjectZDefense.StatusEffects.PoisonStatusPayload` for the current level.
 - Non-Poison turret growth assets should use `TurretStatGrowthProfileSO`, so they do not show Poison-only fields in the Inspector.
 - `Poison_Turret_Stat Growth Profile SO` should use `PoisonTurretStatGrowthProfileSO`.
-- `PoisonDeathBurstEffectUtility` uses the precomputed values inside `PoisonStatusPayload`, not raw profile values, so death-burst weak Poison stays level-scaled during chain explosions.
+- `PoisonDeathBurstEffectUtility` uses the precomputed values inside `ProjectZDefense.StatusEffects.PoisonStatusPayload`, not raw profile values, so death-burst weak Poison stays level-scaled during chain explosions.
 - `PoisonStatusProfileSO.HasPoisonStatus` is only a base-profile quick check. Runtime activation is decided from the scaled payload so a profile with low base values can still become active through growth settings.
-- Poison tick timing edge cases should be fixed in `PoisonStatusRuntimeUtility`, not separately in `NormalZombie` and `BossZombie`.
+- Per-target Poison state changes should be fixed in `PoisonStatusRuntime`, while pure tick math edge cases should be fixed in `PoisonStatusRuntimeUtility`.
 
 Poison growth fields on `PoisonTurretStatGrowthProfileSO`:
 
@@ -262,7 +265,7 @@ Poison death burst and chain rules:
 - `BossZombie` is intentionally excluded from burst triggering even if its lethal indicator is visible.
 - The dead source target is excluded from the weak area Poison overlap result.
 - Duplicate colliders under the same target are deduplicated before applying weak Poison.
-- Weak Poison is created by `PoisonDeathBurstEffectUtility` from the already scaled `PoisonStatusPayload`.
+- Weak Poison is created by `PoisonDeathBurstEffectUtility` from the already scaled `ProjectZDefense.StatusEffects.PoisonStatusPayload`.
 - When `allowChainDeathBurst` is true, that weak payload keeps the same `deathBurstProfile`; when false, the weak payload sets `deathBurstProfile = null`.
 - Chain explosions are therefore data-driven and can be disabled from the profile without changing code.
 - Chain behavior should be tuned carefully because multiple overlapping bursts can quickly multiply area pressure.
@@ -270,7 +273,8 @@ Poison death burst and chain rules:
 Poison performance notes:
 
 - Poison timers run inside each affected zombie's existing `Update` path.
-- Target exclusion is checked only during `TargetFinder.FindNearestTarget`, not every frame for every zombie.
+- `NormalZombie` and `BossZombie` only call `PoisonStatusRuntime.Tick`; they should not grow separate Poison timer or stack fields again.
+- Target exclusion filters are checked only during `TargetFinder.FindNearestTarget`, not every frame for every zombie.
 - Area Poison uses a fixed collider buffer and does not allocate via `Physics.OverlapSphere`.
 - Burst VFX should be backed by `PoolObject`/`MemoryPool` when the chain setting is enabled for production waves.
 - Avoid enabling verbose target debug logs in normal play because candidate loops can produce many messages.
@@ -302,7 +306,7 @@ Required Poison wiring:
 - `SimpleFire.gunPrefabs[0]` must reference the turret root object that owns `Gun`, not the visual head/rotator child.
 - `TargetFinder.pivotObject` should reference `FireNozzle` so range and line-of-sight checks originate from the muzzle area.
 - Current `Poison_Turret.prefab` intentionally uses `TargetFinder.aimHeightRatio = 0`. Although most turrets use `0.35`, this value stabilized Poison projectile firing angle in play-mode testing.
-- Current `Poison_Turret.prefab` uses `TargetFinder.excludePoisonLethalTargets = true` so it stops spending shots on targets already guaranteed to die from Poison ticks.
+- Current `Poison_Turret.prefab` connects `PoisonLethalTargetCandidateFilter` to `TargetFinder.targetCandidateFilterBehaviours` so it stops spending shots on targets already guaranteed to die from Poison ticks.
 - If `TargetFinder.aimHeightRatio` is changed later, retest muzzle alignment, fire gating, projectile travel, and target jitter together; do not treat it as a purely visual setting.
 
 Recommended Poison Status Profile values for first testing:
@@ -388,7 +392,7 @@ Poison play-mode verification checklist:
 4. Wait for `tickInterval` and confirm Poison tick damage uses max-HP ratio damage.
 5. Re-hit the same target and confirm stack policy matches `PoisonStatusProfileSO.stackRefreshMode`.
 6. Damage a Poisoned target with another turret and confirm `PoisonIcon` turns on when the remaining Poison ticks alone can finish the current HP.
-7. Confirm `Poison_Turret` stops choosing targets with visible lethal indicators when `excludePoisonLethalTargets` is enabled.
+7. Confirm `Poison_Turret` stops choosing targets with visible lethal indicators when `PoisonLethalTargetCandidateFilter` is connected to `TargetFinder`.
 8. Kill a lethal-indicator normal zombie and confirm burst VFX spawns.
 9. Confirm nearby normal zombies receive weak area Poison.
 10. Confirm nearby boss zombies receive weak area Poison.
@@ -660,7 +664,7 @@ A complete path from Sentinel-01 tier level 1 to a second-generation `_3` tier l
 - `TargetFinder` resolves hit colliders to a stable tagged or `IDamageable` target root before returning a target, avoiding aim jitter from multi-collider enemies.
 - `TargetFinder` can ignore `ObstacleBuildSlot` helper colliders, placed `Obstacle` colliders, and an additional ignore layer mask during line-of-sight checks so defense-line barricades do not hide zombies from turret targeting.
 - `TargetFinder.aimHeightRatio` controls where inside the target collider height the turret aims and runs line-of-sight checks. Keep the default `0.35` for existing turrets. Current `Poison_Turret` intentionally uses `0` because play-mode testing showed the projectile firing angle is more stable with that value.
-- `TargetFinder.excludePoisonLethalTargets` is intended for `Poison_Turret` only. When enabled, targets whose remaining Poison ticks already guarantee death are skipped by target search so Poison fire can move to healthier enemies.
+- `TargetFinder.targetCandidateFilterBehaviours` can connect project-owned `ITargetCandidateFilter` components. `PoisonLethalTargetCandidateFilter` is intended for `Poison_Turret` only and skips targets whose remaining Poison ticks already guarantee death.
 - `Turret` smooths target aim point and target velocity prediction, ignores vertical prediction by default, and uses `TurretLeadPredictionUtility` to aim at an estimated projectile/target intercept point.
 - Prediction lead time can scale from slow-projectile long lead to fast-projectile short lead, improving low-speed projectile hit rate without making laser-speed shots over-lead visibly.
 - `Turret` staggers its first target search within `targetSearchInterval` so many turrets do not all run physics target scans on the same frame.

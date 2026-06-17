@@ -27,6 +27,8 @@ This document is the shortest map for finding where project code, scenes, prefab
 | Spawning | `Prefabs/ZombieSpawner`, `Scenes/KKW/Turret_Scene/SO/Zombie Wave Spawn Profile`, `Scenes/KKW/Turret_Scene/SO/Zombie_Specs` | `ZombieWaveSpawnProfileSO` driven wave ranges, spawn counts, weighted zombie entries, boss final spawn, and runtime stat/reward multipliers. Zombie specs own only baseline stats and random variance. |
 | Turrets | `Scenes/KKW/Turret_Scene` | Turret definitions, stats, evolution, placement, projectile damage, VFX profile data. |
 | Common feedback | `Scripts/DamagePopup*`, `Resources/UI` | World-space damage number spawning and pooling. |
+| Status effects | `Scripts/StatusEffects` | Shared status-effect visuals and per-target runtimes such as `FrostStatusRuntime` and `PoisonStatusRuntime`. |
+| Targeting filters | `Scripts/Targeting` | Project-owned target candidate filter interfaces and reusable filter components. |
 | Pooling | `Scripts/Singleton/MemoryPool`, `Scripts/PoolObject` | Runtime object reuse and pool containers. |
 
 ## Where To Put New Work

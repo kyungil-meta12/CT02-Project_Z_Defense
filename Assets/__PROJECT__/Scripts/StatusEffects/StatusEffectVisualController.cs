@@ -51,22 +51,10 @@ public sealed class StatusEffectVisualSlot
 /// </summary>
 public class StatusEffectVisualController : MonoBehaviour
 {
-    [Header("프로스트 슬로우 비주얼")]
-    [SerializeField] private GameObject frostSlowVisualPrefab;
-    [SerializeField] private Renderer[] frostTargetRenderers;
-    [SerializeField, Min(0.01f)] private float frostParticleScaleMultiplier = 1.0f;
-
-    [Header("포이즌 비주얼")]
-    [SerializeField] private GameObject poisonVisualPrefab;
-    [SerializeField] private Renderer[] poisonTargetRenderers;
-    [SerializeField, Min(0.01f)] private float poisonParticleScaleMultiplier = 1.0f;
-
     [Header("상태이상 비주얼 슬롯")]
     [SerializeField] private StatusEffectVisualSlot[] visualSlots;
 
-    private GameObject[] frostSlowVisualInstances;
     private bool frostSlowVisualActive;
-    private GameObject[] poisonVisualInstances;
     private bool poisonVisualActive;
 
     // 컴포넌트가 비활성화될 때 상태이상 비주얼과 임시 머티리얼을 정리한다
@@ -93,17 +81,14 @@ public class StatusEffectVisualController : MonoBehaviour
 
         if (isActive)
         {
-            EnsureFrostSlowVisualInstances();
             EnsureVisualSlotInstances(StatusEffectVisualType.FrostSlow);
         }
 
-        SetFrostSlowInstancesActive(isActive);
         SetVisualSlotInstancesActive(StatusEffectVisualType.FrostSlow, isActive);
         frostSlowVisualActive = isActive;
 
         if (!isActive)
         {
-            StripRuntimeOverlayMaterials();
             StripVisualSlotOverlayMaterials(StatusEffectVisualType.FrostSlow);
         }
     }
@@ -118,18 +103,15 @@ public class StatusEffectVisualController : MonoBehaviour
 
         if (isActive)
         {
-            EnsurePoisonVisualInstances();
             EnsureVisualSlotInstances(StatusEffectVisualType.Poison);
         }
 
-        SetPoisonInstancesActive(isActive);
         SetVisualSlotInstancesActive(StatusEffectVisualType.Poison, isActive);
         poisonVisualActive = isActive;
 
         if (!isActive)
         {
             SetPoisonLethalIndicatorActive(false);
-            StripRuntimeOverlayMaterials(poisonTargetRenderers, GetPoisonOverlayMaterialName());
             StripVisualSlotOverlayMaterials(StatusEffectVisualType.Poison);
         }
     }
@@ -138,60 +120,6 @@ public class StatusEffectVisualController : MonoBehaviour
     public void SetPoisonLethalIndicatorActive(bool isActive)
     {
         SetLethalIndicatorActive(StatusEffectVisualType.Poison, isActive);
-    }
-
-    // 연결된 대상 렌더러 수에 맞춰 프로스트 비주얼 인스턴스를 준비한다
-    private void EnsureFrostSlowVisualInstances()
-    {
-        if (frostSlowVisualPrefab == null || frostTargetRenderers == null)
-        {
-            return;
-        }
-
-        if (frostSlowVisualInstances == null || frostSlowVisualInstances.Length != frostTargetRenderers.Length)
-        {
-            ClearFrostSlowVisualInstances();
-            frostSlowVisualInstances = new GameObject[frostTargetRenderers.Length];
-        }
-
-        for (int i = 0; i < frostTargetRenderers.Length; i++)
-        {
-            Renderer targetRenderer = frostTargetRenderers[i];
-            if (targetRenderer == null || frostSlowVisualInstances[i] != null)
-            {
-                continue;
-            }
-
-            GameObject visualInstance = CreateOverlayVisualInstance(frostSlowVisualPrefab, targetRenderer, transform, frostParticleScaleMultiplier);
-            frostSlowVisualInstances[i] = visualInstance;
-        }
-    }
-
-    // 연결된 대상 렌더러 수에 맞춰 포이즌 비주얼 인스턴스를 준비한다
-    private void EnsurePoisonVisualInstances()
-    {
-        if (poisonVisualPrefab == null || poisonTargetRenderers == null)
-        {
-            return;
-        }
-
-        if (poisonVisualInstances == null || poisonVisualInstances.Length != poisonTargetRenderers.Length)
-        {
-            ClearPoisonVisualInstances();
-            poisonVisualInstances = new GameObject[poisonTargetRenderers.Length];
-        }
-
-        for (int i = 0; i < poisonTargetRenderers.Length; i++)
-        {
-            Renderer targetRenderer = poisonTargetRenderers[i];
-            if (targetRenderer == null || poisonVisualInstances[i] != null)
-            {
-                continue;
-            }
-
-            GameObject visualInstance = CreateOverlayVisualInstance(poisonVisualPrefab, targetRenderer, transform, poisonParticleScaleMultiplier);
-            poisonVisualInstances[i] = visualInstance;
-        }
     }
 
     // 지정한 상태이상 타입에 해당하는 확장 비주얼 슬롯 인스턴스를 준비한다
@@ -336,18 +264,6 @@ public class StatusEffectVisualController : MonoBehaviour
                 shape.meshRenderer = meshRenderer;
             }
         }
-    }
-
-    // 준비된 프로스트 비주얼 인스턴스들을 활성화하거나 비활성화한다
-    private void SetFrostSlowInstancesActive(bool isActive)
-    {
-        SetInstancesActive(frostSlowVisualInstances, isActive, true);
-    }
-
-    // 준비된 포이즌 비주얼 인스턴스들을 활성화하거나 비활성화한다
-    private void SetPoisonInstancesActive(bool isActive)
-    {
-        SetInstancesActive(poisonVisualInstances, isActive, true);
     }
 
     // 지정한 상태이상 타입에 해당하는 확장 슬롯 인스턴스를 활성화하거나 비활성화한다
@@ -544,20 +460,6 @@ public class StatusEffectVisualController : MonoBehaviour
         }
     }
 
-    // 생성된 프로스트 비주얼 인스턴스를 모두 제거한다
-    private void ClearFrostSlowVisualInstances()
-    {
-        ClearInstances(frostSlowVisualInstances);
-        frostSlowVisualInstances = null;
-    }
-
-    // 생성된 포이즌 비주얼 인스턴스를 모두 제거한다
-    private void ClearPoisonVisualInstances()
-    {
-        ClearInstances(poisonVisualInstances);
-        poisonVisualInstances = null;
-    }
-
     // 단일 슬롯에 생성된 비주얼 인스턴스를 모두 제거한다
     private static void ClearSlotInstances(StatusEffectVisualSlot slot)
     {
@@ -590,12 +492,6 @@ public class StatusEffectVisualController : MonoBehaviour
             Destroy(visualInstance);
             instances[i] = null;
         }
-    }
-
-    // OverlayFX가 주입한 런타임 머티리얼 슬롯을 대상 렌더러에서 제거한다
-    private void StripRuntimeOverlayMaterials()
-    {
-        StripRuntimeOverlayMaterials(frostTargetRenderers, GetFrostOverlayMaterialName());
     }
 
     // 지정한 상태이상 타입에 해당하는 확장 슬롯 Overlay 머티리얼을 제거한다
@@ -636,18 +532,6 @@ public class StatusEffectVisualController : MonoBehaviour
 
             StripRuntimeOverlayMaterial(targetRenderer, overlayMaterialName);
         }
-    }
-
-    // 프로스트 비주얼 프리팹에서 제거할 OverlayFX 머티리얼 이름을 얻는다
-    private string GetFrostOverlayMaterialName()
-    {
-        return GetOverlayMaterialName(frostSlowVisualPrefab);
-    }
-
-    // 포이즌 비주얼 프리팹에서 제거할 OverlayFX 머티리얼 이름을 얻는다
-    private string GetPoisonOverlayMaterialName()
-    {
-        return GetOverlayMaterialName(poisonVisualPrefab);
     }
 
     // 지정한 OverlayFX 프리팹에서 제거할 Overlay 머티리얼 이름을 얻는다

@@ -1,4 +1,4 @@
-%YAML 1.1
+﻿%YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
 --- !u!1 &1554523122684958870
 GameObject:
@@ -160,6 +160,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: b27aa1b7fa8d19348b4695c715aff35f, type: 3}
       insertIndex: -1
       addedObject: {fileID: 8251441108112627685}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: b27aa1b7fa8d19348b4695c715aff35f, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 6912548720064172381}
   m_SourcePrefab: {fileID: 100100000, guid: b27aa1b7fa8d19348b4695c715aff35f, type: 3}
 --- !u!1 &3523282777213805162 stripped
 GameObject:
@@ -186,7 +189,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: be3681d4c0e9f644d851459332a10c61, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: Assembly-CSharp::ProjectZima.PolygonModularTurretsPack.Turret
   rotatorMesh: {fileID: 3523282777213805162}
   headMesh: {fileID: 3523282777213805162}
@@ -223,7 +226,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a31afd3a38f12d846bcc57f9abf2944d, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: Assembly-CSharp::ProjectZima.PolygonModularTurretsPack.TargetFinder
   radius: 10
   targetTag: Enemy
@@ -232,7 +235,8 @@ MonoBehaviour:
     m_Bits: 128
   pivotObject: {fileID: 1554523122684958870}
   aimHeightRatio: 0
-  excludePoisonLethalTargets: 1
+  targetCandidateFilterBehaviours:
+  - {fileID: 6912548720064172381}
   showDebug: 0
   useHorizontalDistance: 1
   requireLineOfSight: 1
@@ -247,6 +251,18 @@ MonoBehaviour:
   showRangeGizmo: 1
   drawRangeOnlyWhenSelected: 1
   rangeGizmoColor: {r: 0, g: 1, b: 0, a: 1}
+--- !u!114 &6912548720064172381
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8380518456665748796}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 573df076fdf04e8fb9b6de0acebd75a7, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::PoisonLethalTargetCandidateFilter
 --- !u!114 &2207578071670153833
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -257,7 +273,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 17296b2ce492c0d469b41f99c4838a6b, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: Assembly-CSharp::TurretStatProfileApplier
   statProfile: {fileID: 11400000, guid: e45aa381bc7fb8d4fa34a2c13dd8af2e, type: 2}
   targetTurret: {fileID: 3244784469658414930}
@@ -276,7 +292,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a87f91c13a2143e4aa6e691bd2b48bc7, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: Assembly-CSharp::TurretDefinitionRuntimeController
   turretDefinition: {fileID: 11400000, guid: 9ed0a462473ebe84e8781e5d2e8891dd, type: 2}
   level: 1
@@ -302,7 +318,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f89ead4bf227d574e9d1fafefd001433, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: Assembly-CSharp::ProjectZima.PolygonModularTurretsPack.Gun
   muzzleObject: {fileID: 1554523122684958870}
   burstFireCount: 1
@@ -318,7 +334,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: b41aab23c1c36d94aa4af80b1de3076a, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: Assembly-CSharp::ProjectZima.PolygonModularTurretsPack.SimpleFire
   gunPrefabs:
   - {fileID: 8380518456665748796}

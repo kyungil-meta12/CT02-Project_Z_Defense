@@ -1,4 +1,5 @@
-using UnityEngine;
+﻿using UnityEngine;
+using ProjectZDefense.StatusEffects;
 
 public enum PoisonStackRefreshMode
 {

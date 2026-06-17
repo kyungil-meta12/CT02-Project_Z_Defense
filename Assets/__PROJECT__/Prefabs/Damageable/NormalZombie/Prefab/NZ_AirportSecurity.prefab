@@ -5540,15 +5540,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d0d6f8f58814424c8f9fb01aee1f8650, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::StatusEffectVisualController
-  frostSlowVisualPrefab: {fileID: 4293332855471414272, guid: 3a98e83bb68a5464cb486565d6e6e8a0, type: 3}
-  frostTargetRenderers:
-  - {fileID: 22856543648109273}
-  frostParticleScaleMultiplier: 1
-  poisonVisualPrefab: {fileID: 0}
-  poisonTargetRenderers:
-  - {fileID: 0}
-  poisonParticleScaleMultiplier: 1
   visualSlots:
+  - visualType: 0
+    attachMode: 1
+    visualPrefab: {fileID: 4293332855471414272, guid: 3a98e83bb68a5464cb486565d6e6e8a0, type: 3}
+    anchor: {fileID: 0}
+    localPositionOffset: {x: 0, y: 0, z: 0}
+    localEulerOffset: {x: 0, y: 0, z: 0}
+    localScale: {x: 1, y: 1, z: 1}
+    targetRenderers:
+    - {fileID: 22856543648109273}
+    particleScaleMultiplier: 1
+    restartParticlesOnEnable: 1
+    lethalIndicatorChildName:
+    lethalIndicatorLocalPositionOffset: {x: 0, y: 0, z: 0}
   - visualType: 1
     attachMode: 0
     visualPrefab: {fileID: 3302223808384218742, guid: eddf1eaadeb5eac4f86f72b5044f2dda, type: 3}

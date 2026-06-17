@@ -30,22 +30,28 @@ Rules:
 
 Current receiver interfaces:
 
-- `IFrostStatusEffectReceiver`
-- `IPoisonStatusEffectReceiver`
+- `ProjectZDefense.StatusEffects.IFrostStatusEffectReceiver`
+- `ProjectZDefense.StatusEffects.IPoisonStatusEffectReceiver`
+
+Current payload value types:
+
+- `ProjectZDefense.StatusEffects.FrostStatusPayload`
+- `ProjectZDefense.StatusEffects.PoisonStatusPayload`
 
 Rules:
 
-- Damage receivers own mutable status timers and stack state.
+- Damage receivers or their delegated status runtime components own mutable status timers and stack state.
 - Attack systems should pass immutable payload values and should not mutate enemy runtime state directly.
 - Status timers should reset on spawn, despawn, and death.
 - Damage-over-time effects should call the same `TakeDamage` path as direct damage so HP UI, death handling, rewards, and damage popups stay consistent.
-- Visual controllers should only reflect active/inactive state; they should not own gameplay status logic.
+- Visual controllers should only reflect active/inactive state through `StatusEffectVisualSlot`; they should not own gameplay status logic.
 - Repeated status application should avoid allocations and should not search scene objects in hot paths.
+- Targeting systems should use `ITargetCandidateFilter` components for status-driven target exclusion instead of hard-coding status-specific checks.
 
 Poison-specific shared contract:
 
-- `PoisonStatusPayload` carries max-HP tick damage values, stack policy, boss multiplier, and an optional `PoisonDeathBurstProfileSO`.
-- `IPoisonStatusEffectReceiver.IsPoisonLethalPending` exposes whether the receiver's remaining Poison ticks can kill its current HP.
+- `ProjectZDefense.StatusEffects.PoisonStatusPayload` carries max-HP tick damage values, stack policy, boss multiplier, and an optional `PoisonDeathBurstProfileSO`.
+- `ProjectZDefense.StatusEffects.IPoisonStatusEffectReceiver.IsPoisonLethalPending` exposes whether the receiver's remaining Poison ticks can kill its current HP.
 - Targeting systems may read `IsPoisonLethalPending` to avoid wasting Poison shots, but they should not change enemy Poison state.
 - Visual systems should receive lethal state from the damage receiver and should not calculate lethal damage themselves.
 - Weak area Poison from death burst uses the same receiver contract as direct Poison projectile hits.

@@ -1,5 +1,6 @@
-using ProjectZima.PolygonModularTurretsPack;
+﻿using ProjectZima.PolygonModularTurretsPack;
 using UnityEngine;
+using ProjectZDefense.StatusEffects;
 
 /// <summary>
 /// 투사체를 생성하지 않고 총구와 타겟 사이에 빔 VFX를 유지하며 빔 공격 규칙과 선택적 Frost 상태 효과를 적용한다.

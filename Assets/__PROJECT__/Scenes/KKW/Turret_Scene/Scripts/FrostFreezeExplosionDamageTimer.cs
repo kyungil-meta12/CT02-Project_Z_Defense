@@ -1,4 +1,5 @@
-using UnityEngine;
+﻿using UnityEngine;
+using ProjectZDefense.StatusEffects;
 
 /// <summary>
 /// 빙결 이펙트 재생 후 지정된 지연 시간에 폭발 데미지를 한 번 적용한다.

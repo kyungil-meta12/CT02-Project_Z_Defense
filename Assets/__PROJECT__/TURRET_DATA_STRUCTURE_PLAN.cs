@@ -76,10 +76,11 @@
  * - All 24 second-generation Definition basePrefab references were verified to point to prefab roots instead of child model objects.
  *
  * 7. Third Generation Turrets
- * - Third generation is planned but not implemented.
- * - Current second-generation _3 turret Definitions intentionally stop with no connected third-generation EvolutionProgressionSO.
- * - Current visual plan candidates:
- *   Poison Turret
+ * - Third generation setup is in progress.
+ * - Frost_Turret runtime status structure is implemented and uses FrostStatusProfileSO through TurretDefinitionSO.
+ * - Poison_Turret base projectile Definition/stat/growth/cost/VFX/scale assets exist, and Poison status runtime code is implemented through PoisonStatusProfileSO.
+ * - Poison_Turret still needs editor wiring for the actual PoisonStatusProfileSO asset on Poison_Turret_Definition.
+ * - Current additional visual plan candidates:
  *   CuteStarTurret
  *   ElectroTurret
  *   FlameThrower/LameThrower name still needs confirmation.
@@ -230,6 +231,7 @@
  * - Holds Poison-specific status values referenced from TurretDefinitionSO.
  * - Current responsibilities: max-HP tick damage ratio, tick interval, duration, max stack count, stack refresh mode, and boss damage multiplier.
  * - Poison uses the normal projectile attack path, so direct hit damage stays in TurretStatProfileSO/TurretStatGrowthProfileSO and only the damage-over-time status behavior lives here.
+ * - Current asset handoff: create the Poison status profile in Unity and assign it to Poison_Turret_Definition.poisonStatusProfile before play-mode testing.
  *
  * Evolution Runtime Flow
  *
@@ -515,6 +517,16 @@
  * - evolutionProgressionProfile is assigned only if the turret can evolve.
  * - maxLevel is 0 unless the turret is intended to stop leveling forever.
  * - If the turret should stop only to wait for an evolution choice, use EvolutionProgressionSO.requiredLevel instead of maxLevel.
+ *
+ * Poison_Turret Next Setup Checklist
+ *
+ * - Create a PoisonStatusProfileSO asset through Create > Project Z Defense > Poison Status Profile.
+ * - Assign it to Poison_Turret_Definition.poisonStatusProfile.
+ * - Run Project Z Defense/Validation/Validate Turret Economy and resolve any missing Poison status profile warning.
+ * - Confirm Poison_Turret.prefab loads with valid turret runtime components and valid prefab source references.
+ * - Confirm Poison_Turret_VFX Progression SO selects a Projectile VFX profile.
+ * - Test direct projectile damage first, then Poison tick damage after the configured tickInterval.
+ * - Tune maxHpDamageRatioPerTick, duration, maxStackCount, and bossDamageMultiplier after functional validation.
  *
  * For every evolution entry:
  * - requiredLevel uses tier level.

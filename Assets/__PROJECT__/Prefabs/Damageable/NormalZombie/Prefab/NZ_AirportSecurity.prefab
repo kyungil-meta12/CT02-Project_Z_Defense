@@ -2318,6 +2318,8 @@ Transform:
   - {fileID: 3789467093306962976}
   - {fileID: 7226046948511804623}
   - {fileID: 2533092677818141673}
+  - {fileID: 7293107122369611496}
+  - {fileID: 575556419238700156}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!95 &3854332720377832996
@@ -3770,6 +3772,37 @@ SkinnedMeshRenderer:
     m_Center: {x: -0.45387948, y: 0.0000017285347, z: 0.1390103}
     m_Extent: {x: 1.499097, y: 1.6845057, z: 0.5396775}
   m_DirtyAABB: 0
+--- !u!1 &4704161394514484915
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 575556419238700156}
+  m_Layer: 14
+  m_Name: PoisonBodyAnchor
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &575556419238700156
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4704161394514484915}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0.84, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 7326208106863662701}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &4706536821975016757
 GameObject:
   m_ObjectHideFlags: 0
@@ -5172,6 +5205,37 @@ SkinnedMeshRenderer:
     m_Center: {x: -0.5097586, y: 0.0000017285347, z: 0.01634258}
     m_Extent: {x: 1.5549761, y: 1.6845057, z: 0.55129623}
   m_DirtyAABB: 0
+--- !u!1 &6269104922797981167
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 7293107122369611496}
+  m_Layer: 14
+  m_Name: PoisonFootAnchor
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &7293107122369611496
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6269104922797981167}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 7326208106863662701}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &6688683269553079736
 GameObject:
   m_ObjectHideFlags: 0
@@ -5443,7 +5507,7 @@ GameObject:
   - component: {fileID: 2533092677818141673}
   - component: {fileID: 3949661855499317430}
   m_Layer: 14
-  m_Name: FrostEffect
+  m_Name: VisualControll
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -5479,6 +5543,34 @@ MonoBehaviour:
   frostSlowVisualPrefab: {fileID: 4293332855471414272, guid: 3a98e83bb68a5464cb486565d6e6e8a0, type: 3}
   frostTargetRenderers:
   - {fileID: 22856543648109273}
+  frostParticleScaleMultiplier: 1
+  poisonVisualPrefab: {fileID: 0}
+  poisonTargetRenderers:
+  - {fileID: 0}
+  poisonParticleScaleMultiplier: 1
+  visualSlots:
+  - visualType: 1
+    attachMode: 0
+    visualPrefab: {fileID: 3302223808384218742, guid: eddf1eaadeb5eac4f86f72b5044f2dda, type: 3}
+    anchor: {fileID: 7293107122369611496}
+    localPositionOffset: {x: 0, y: 0, z: 0}
+    localEulerOffset: {x: 0, y: 0, z: 0}
+    localScale: {x: 3, y: 3, z: 3}
+    targetRenderers: []
+    particleScaleMultiplier: 0
+    restartParticlesOnEnable: 1
+    lethalIndicatorChildName: 
+  - visualType: 1
+    attachMode: 0
+    visualPrefab: {fileID: 8849920109140471609, guid: 1e5174c2918fbed469e22db73be42f2d, type: 3}
+    anchor: {fileID: 575556419238700156}
+    localPositionOffset: {x: 0, y: 0, z: 0}
+    localEulerOffset: {x: 0, y: 0, z: 0}
+    localScale: {x: 2, y: 2, z: 2}
+    targetRenderers: []
+    particleScaleMultiplier: 0
+    restartParticlesOnEnable: 1
+    lethalIndicatorChildName: PoisonIcon
 --- !u!1 &7657971409446761997
 GameObject:
   m_ObjectHideFlags: 0

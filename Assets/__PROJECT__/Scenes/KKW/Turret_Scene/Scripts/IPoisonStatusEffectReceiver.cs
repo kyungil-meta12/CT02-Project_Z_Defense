@@ -10,6 +10,7 @@ public struct PoisonStatusPayload
     public int maxStackCount;
     public PoisonStackRefreshMode stackRefreshMode;
     public float bossDamageMultiplier;
+    public PoisonDeathBurstProfileSO deathBurstProfile;
 }
 
 /// <summary>
@@ -17,6 +18,8 @@ public struct PoisonStatusPayload
 /// </summary>
 public interface IPoisonStatusEffectReceiver
 {
+    bool IsPoisonLethalPending { get; }
+
     // 대상에게 Poison 상태 효과를 적용한다
     void ApplyPoisonStatus(PoisonStatusPayload payload);
 }

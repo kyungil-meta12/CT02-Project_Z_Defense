@@ -157,6 +157,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: b27aa1b7fa8d19348b4695c715aff35f, type: 3}
       insertIndex: -1
       addedObject: {fileID: 7880926379036967498}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: b27aa1b7fa8d19348b4695c715aff35f, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 8251441108112627685}
   m_SourcePrefab: {fileID: 100100000, guid: b27aa1b7fa8d19348b4695c715aff35f, type: 3}
 --- !u!1 &3523282777213805162 stripped
 GameObject:
@@ -227,7 +230,9 @@ MonoBehaviour:
   targetLayer:
     serializedVersion: 2
     m_Bits: 128
-  pivotObject: {fileID: 3523282777213805162}
+  pivotObject: {fileID: 1554523122684958870}
+  aimHeightRatio: 0
+  excludePoisonLethalTargets: 1
   showDebug: 0
   useHorizontalDistance: 1
   requireLineOfSight: 1
@@ -284,7 +289,7 @@ MonoBehaviour:
   logProjectileDamage: 1
   statProfileApplier: {fileID: 2207578071670153833}
   targetTurret: {fileID: 3244784469658414930}
-  targetFiringEvent: {fileID: 0}
+  targetFiringEvent: {fileID: 8251441108112627685}
   currentTurretName: 
   availableEvolutionNames: 
 --- !u!114 &7880926379036967498
@@ -303,3 +308,19 @@ MonoBehaviour:
   burstFireCount: 1
   useMuzzleForwardDirection: 1
   extraCollisionIgnoreRoots: []
+--- !u!114 &8251441108112627685
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8380518456665748796}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b41aab23c1c36d94aa4af80b1de3076a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ProjectZima.PolygonModularTurretsPack.SimpleFire
+  gunPrefabs:
+  - {fileID: 8380518456665748796}
+  muzzleVFX: {fileID: 0}
+  muzzleVFXDuration: 2

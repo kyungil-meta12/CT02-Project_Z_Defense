@@ -249,7 +249,20 @@ public class BossZombie : PoolObject, IDamageable, IFrostStatusEffectReceiver, I
     // 애니메이터 루트모션 이동량을 최상위 트랜스폼과 NavMeshAgent에 적용한다
     private void OnAnimatorMove()
     {
-        if (!IsAlive || !anim || !agent || !agent.enabled || !agent.isOnNavMesh)
+        if (!anim)
+        {
+            return;
+        }
+
+        if (!IsAlive)
+        {
+            // 사망 애니메이션 루트모션을 트랜스폼에 반영해 공중 부유 현상을 방지한다
+            transform.position += anim.deltaPosition;
+            transform.rotation *= anim.deltaRotation;
+            return;
+        }
+
+        if (!agent || !agent.enabled || !agent.isOnNavMesh)
         {
             return;
         }
@@ -728,6 +741,11 @@ public class BossZombie : PoolObject, IDamageable, IFrostStatusEffectReceiver, I
         {
             if (agent.isOnNavMesh)
             {
+                // 사망 시작 위치를 NavMesh 표면 Y로 보정해 초기 부유를 방지한다
+                Vector3 snapPos = transform.position;
+                snapPos.y = agent.nextPosition.y;
+                transform.position = snapPos;
+
                 agent.ResetPath();
             }
 

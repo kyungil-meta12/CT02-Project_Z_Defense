@@ -16,19 +16,13 @@ MonoBehaviour:
   maxSlowRatio: 1
   slowHoldDuration: 3
   freezeTriggerRatio: 1
-  slowBuildUpDurationReductionPerLevel: 0
-  minSlowBuildUpDuration: 0
-  maxSlowRatioPerLevel: 0
-  maxSlowRatioLimit: 1
   freezeDuration: 3.8
   freezeEffectPrefab: {fileID: 1497850087004499017, guid: 0a1a0ac7410509441951e89be9c0cda2, type: 3}
   freezeEffectDuration: 3.8
+  freezeDeathEffectPrefab: {fileID: 6648929964555825526, guid: aea6ed05ed89be74e9aee6d22cab59d8, type: 3}
+  freezeDeathEffectDuration: 2
   freezeExplosionDamageDelay: 2.8
   freezeCooldownPerTarget: 8
-  freezeDurationPerLevel: 0
-  maxFreezeDuration: 0
-  freezeCooldownReductionPerLevel: 0
-  minFreezeCooldownPerTarget: 0
   freezeExplosionRadius: 2.5
   freezeExplosionDamage: 15000
   freezePrimaryTargetMaxHpDamageRatio: 0.8
@@ -37,11 +31,5 @@ MonoBehaviour:
     m_Bits: 1152
   freezeExplosionSlowRatio: 0.3
   freezeExplosionSlowDuration: 1
-  freezeExplosionRadiusPerLevel: 0
-  maxFreezeExplosionRadius: 0
-  freezeExplosionDamagePerLevel: 0
-  freezeExplosionDamagePercentPerLevel: 0
   freezePrimaryTargetMaxHpDamageRatioPerLevel: 0
   maxFreezePrimaryTargetMaxHpDamageRatio: 0.8
-  freezeExplosionSlowRatioPerLevel: 0
-  maxFreezeExplosionSlowRatio: 0.3

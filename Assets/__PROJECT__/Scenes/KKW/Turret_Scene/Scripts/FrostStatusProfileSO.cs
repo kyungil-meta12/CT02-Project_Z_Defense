@@ -17,6 +17,8 @@ public class FrostStatusProfileSO : ScriptableObject
     [Min(0.0f)] public float freezeDuration = 0.0f;
     public GameObject freezeEffectPrefab;
     [Min(0.0f)] public float freezeEffectDuration = 5.5f;
+    public GameObject freezeDeathEffectPrefab;
+    [Min(0.0f)] public float freezeDeathEffectDuration = 2.0f;
     [Min(0.0f)] public float freezeExplosionDamageDelay = 2.2f;
     [Min(0.0f)] public float freezeCooldownPerTarget = 0.0f;
 
@@ -39,6 +41,7 @@ public class FrostStatusProfileSO : ScriptableObject
             return maxSlowRatio > 0.0f && (slowBuildUpDuration > 0.0f || slowHoldDuration > 0.0f)
                 || freezeDuration > 0.0f
                 || freezeEffectPrefab != null
+                || freezeDeathEffectPrefab != null
                 || freezeExplosionDamage > 0.0f
                 || freezePrimaryTargetMaxHpDamageRatio > 0.0f
                 || freezePrimaryTargetMaxHpDamageRatioPerLevel > 0.0f
@@ -62,6 +65,8 @@ public class FrostStatusProfileSO : ScriptableObject
             canTriggerFreeze = true,
             freezeEffectPrefab = freezeEffectPrefab,
             freezeEffectDuration = freezeEffectDuration,
+            freezeDeathEffectPrefab = freezeDeathEffectPrefab,
+            freezeDeathEffectDuration = freezeDeathEffectDuration,
             freezeExplosionDamageDelay = freezeExplosionDamageDelay,
             freezeExplosionRadius = freezeExplosionRadius,
             freezeExplosionDamage = freezeExplosionDamage,
@@ -84,6 +89,7 @@ public class FrostStatusProfileSO : ScriptableObject
         freezeTriggerRatio = Mathf.Clamp01(freezeTriggerRatio);
         freezeDuration = Mathf.Max(0.0f, freezeDuration);
         freezeEffectDuration = Mathf.Max(0.0f, freezeEffectDuration);
+        freezeDeathEffectDuration = Mathf.Max(0.0f, freezeDeathEffectDuration);
         freezeExplosionDamageDelay = Mathf.Max(0.0f, freezeExplosionDamageDelay);
         freezeCooldownPerTarget = Mathf.Max(0.0f, freezeCooldownPerTarget);
         freezeExplosionRadius = Mathf.Max(0.0f, freezeExplosionRadius);

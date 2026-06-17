@@ -17,6 +17,7 @@ public sealed class FrostStatusRuntime : MonoBehaviour
     private bool frostStatusDirty;
     private bool frostStatusActive;
     private bool canTriggerFreeze;
+    private FrostStatusPayload activeFreezePayload;
     private GameObject activeFrostFreezeEffect;
 
     public bool IsActive => frostStatusActive;
@@ -114,6 +115,7 @@ public sealed class FrostStatusRuntime : MonoBehaviour
         frostFreezeCooldownTimer = 0.0f;
         frostStatusDirty = false;
         frostStatusActive = false;
+        activeFreezePayload = default;
         ApplySpeedMultiplier(1.0f);
         SetFrostVisualActive(false);
     }
@@ -123,11 +125,24 @@ public sealed class FrostStatusRuntime : MonoBehaviour
     {
         frostFreezeCooldownTimer = Mathf.Max(0.0f, payload.freezeCooldownPerTarget);
         frostFreezeTimer = Mathf.Max(frostFreezeTimer, payload.freezeDuration);
+        activeFreezePayload = payload;
         frostStatusDirty = true;
 
         CancelActiveFrostFreezeEffect();
         Vector3 effectPosition = TurretAimPointUtility.GetAimPosition(gameObject);
         activeFrostFreezeEffect = FrostStatusEffectUtility.TriggerFreezeExplosion(payload, effectPosition, damageable);
+    }
+
+    // 빙결 상태에서 사망한 대상의 전용 사망 이펙트를 재생한다
+    public void TriggerFreezeDeathEffectIfNeeded()
+    {
+        if (!IsFrozen)
+        {
+            return;
+        }
+
+        Vector3 effectPosition = TurretAimPointUtility.GetAimPosition(gameObject);
+        FrostStatusEffectUtility.TriggerFreezeDeathEffect(activeFreezePayload, effectPosition);
     }
 
     // 현재 Frost 상태에 맞춰 대상 속도 배율과 비주얼을 반영한다

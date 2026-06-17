@@ -40,6 +40,18 @@ public static class FrostStatusEffectUtility
         PooledObjectUtility.ReturnOrDestroy(effectObject);
     }
 
+    // 빙결 상태인 대상이 사망할 때 전용 사망 이펙트를 풀링 기반으로 생성한다
+    public static void TriggerFreezeDeathEffect(FrostStatusPayload payload, Vector3 position)
+    {
+        if (payload.freezeDeathEffectPrefab == null)
+        {
+            return;
+        }
+
+        float effectDuration = Mathf.Max(0.0f, payload.freezeDeathEffectDuration);
+        PooledObjectUtility.SpawnEffect(payload.freezeDeathEffectPrefab, position, Quaternion.identity, effectDuration);
+    }
+
     // 빙결 이펙트 프리팹을 풀링 기반으로 생성한다
     private static GameObject SpawnFreezeEffect(FrostStatusPayload payload, Vector3 position)
     {

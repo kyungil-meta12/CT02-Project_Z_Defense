@@ -466,6 +466,7 @@ public class NormalZombie : PoolObject, IDamageable, IFrostStatusEffectReceiver,
         }
 
         hpUI.gameObject.SetActive(false); // hp UI 비활성화
+        TriggerFrostDeathEffectIfNeeded();
         TriggerPoisonDeathBurstIfNeeded();
         ResetFrostStatus();
         ResetPoisonStatus();
@@ -477,6 +478,17 @@ public class NormalZombie : PoolObject, IDamageable, IFrostStatusEffectReceiver,
         SetCollidersEnabled(false); // 히트 콜라이더 비활성화
         StopRigidbodySimulation();
         rb.constraints = RigidbodyConstraints.FreezeRotation; // 모든 방향 회전 방지
+    }
+
+    // 빙결 상태로 사망한 경우 Frost 사망 전용 이펙트를 실행한다
+    private void TriggerFrostDeathEffectIfNeeded()
+    {
+        if (frostStatusRuntime == null)
+        {
+            return;
+        }
+
+        frostStatusRuntime.TriggerFreezeDeathEffectIfNeeded();
     }
 
     // Poison 처형 확정 상태로 사망한 경우 사망 폭발과 약한 범위 중독을 실행한다

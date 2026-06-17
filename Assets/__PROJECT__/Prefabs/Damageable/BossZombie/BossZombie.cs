@@ -629,6 +629,7 @@ public class BossZombie : PoolObject, IDamageable, IFrostStatusEffectReceiver, I
         }
 
         hpUI.gameObject.SetActive(false); // hp UI 비활성화
+        TriggerFrostDeathEffectIfNeeded();
         ResetFrostStatus();
         ResetPoisonStatus();
 
@@ -650,6 +651,17 @@ public class BossZombie : PoolObject, IDamageable, IFrostStatusEffectReceiver, I
         SetCollidersEnabled(false); // 사망 후 터렛 타겟/발사체 충돌 대상에서 제외
 
         isDieBV.Value = true;
+    }
+
+    // 빙결 상태로 사망한 경우 Frost 사망 전용 이펙트를 실행한다
+    private void TriggerFrostDeathEffectIfNeeded()
+    {
+        if (frostStatusRuntime == null)
+        {
+            return;
+        }
+
+        frostStatusRuntime.TriggerFreezeDeathEffectIfNeeded();
     }
 
     // 보스 프리팹 Override 또는 스펙의 보상 프로필을 기준으로 처치 보상을 지급한다

@@ -128,7 +128,7 @@ Damage interpretation:
 
 Frost status handling:
 
-- `FrostStatusProfileSO` stores Frost values (`freezeDuration`, `slowBuildUpDuration`, `maxSlowRatio`, `slowHoldDuration`, `freezeTriggerRatio`, `freezeEffectPrefab`, `freezeEffectDuration`, `freezeExplosionDamageDelay`, `freezeExplosionRadius`, `freezeExplosionDamage`, `freezePrimaryTargetMaxHpDamageRatio`, `freezeExplosionLayerMask`, `freezeCooldownPerTarget`, `freezeExplosionSlowRatio`, `freezeExplosionSlowDuration`) and optional primary-target max-HP damage ratio growth.
+- `FrostStatusProfileSO` stores Frost values (`freezeDuration`, `slowBuildUpDuration`, `maxSlowRatio`, `slowHoldDuration`, `freezeTriggerRatio`, `freezeEffectPrefab`, `freezeEffectDuration`, `freezeDeathEffectPrefab`, `freezeDeathEffectDuration`, `freezeExplosionDamageDelay`, `freezeExplosionRadius`, `freezeExplosionDamage`, `freezePrimaryTargetMaxHpDamageRatio`, `freezeExplosionLayerMask`, `freezeCooldownPerTarget`, `freezeExplosionSlowRatio`, `freezeExplosionSlowDuration`) and optional primary-target max-HP damage ratio growth.
 - `BeamFiringEvent` asks `FrostStatusProfileSO` for a level-scaled `ProjectZDefense.StatusEffects.FrostStatusPayload` and forwards it to targets implementing `ProjectZDefense.StatusEffects.IFrostStatusEffectReceiver`.
 - `NormalZombie` and `BossZombie` implement `ProjectZDefense.StatusEffects.IFrostStatusEffectReceiver`.
 - `FrostStatusRuntime` owns Frost exposure, hold timer, freeze timer, freeze cooldown, visual toggles, and optional freeze explosion effects.
@@ -139,6 +139,7 @@ Frost status handling:
 - `FrostStatusEffectUtility` owns freeze effect spawning and non-alloc overlap explosion damage so future Frost skills can reuse the same explosion behavior.
 - `FrostFreezeExplosionDamageTimer` keeps `Ice_Cubes_Explosion` following the original frozen target while it is alive and delays explosion damage so the damage lands at the current effect position when the visual burst happens.
 - `FrostStatusRuntime` keeps the active `Ice_Cubes_Explosion` handle and cancels the effect plus pending explosion damage when the original frozen target dies or is reset for pooling.
+- `FrostStatusRuntime.TriggerFreezeDeathEffectIfNeeded` spawns the configured `freezeDeathEffectPrefab` when a target dies while its freeze timer is still active. This is separate from `Ice_Cubes_Explosion`, which is still cancelled on death to prevent delayed damage from a dead original target.
 - `StatusEffectVisualController` owns enemy-side status VFX slots. It can spawn one `MeshFX_Frozen 1` instance per configured target renderer, inject the renderer into `OverlayFX`, and remove the runtime overlay material when Frost slow ends.
 - `FrostStatusRuntime` reports Frost active/inactive state to `StatusEffectVisualController`; zombies do not directly instantiate or configure mesh VFX.
 - `NormalZombie` exposes runtime base speed setters so external buffs such as Screamer speed buffs can change the non-Frost base speed without overwriting the active Frost multiplier.
@@ -176,6 +177,7 @@ Enemy Frost visual setup:
 - `freezeCooldownPerTarget` must prevent the same target from triggering freeze explosions every damage tick.
 - `freezeDuration > 0` temporarily applies a `0` speed multiplier and overrides slow until the freeze timer expires.
 - `freezeEffectPrefab` is owned by the attack/status profile, not by every zombie prefab. Zombies only provide receiver logic and effect position.
+- `freezeDeathEffectPrefab` is also owned by the Frost status profile and should be assigned when frozen-target deaths need an extra visual burst after `Ice_Cubes_Explosion` is cancelled.
 - Frost timers are updated by `FrostStatusRuntime.Tick` from each zombie's existing `Update` path and reset on spawn, despawn, and death.
 - Current `Frost_Turret.prefab` connects `FrostFreezeSuppressedTargetCandidateFilter` to `TargetFinder.targetCandidateFilterBehaviours` so it looks for a new freeze candidate after a normal zombie has already triggered freeze.
 - `FrostFreezeSuppressedTargetCandidateFilter` exposes its exclude conditions in the Inspector (`excludeFrozenTargets`, `excludeFreezeCooldownTargets`) so designers can verify the Frost targeting policy directly on the turret prefab.

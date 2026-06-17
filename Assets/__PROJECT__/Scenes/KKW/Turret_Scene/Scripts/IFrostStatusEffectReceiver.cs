@@ -16,6 +16,8 @@ namespace ProjectZDefense.StatusEffects
         public bool canTriggerFreeze;
         public GameObject freezeEffectPrefab;
         public float freezeEffectDuration;
+        public GameObject freezeDeathEffectPrefab;
+        public float freezeDeathEffectDuration;
         public float freezeExplosionDamageDelay;
         public float freezeExplosionRadius;
         public float freezeExplosionDamage;

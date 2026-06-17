@@ -271,9 +271,20 @@ MonoBehaviour:
   closeRangePredictionDistance: 2
   closeRangeFireDistance: 2
   closeRangeTurretAngleAttack: 60
+  requireAimAngleBeforeFire: 0
   fireTick: 0.1
   targetSearchInterval: 0.1
   aimPointLerpSpeed: 18
+  targetVelocityLerpSpeed: 10
+  maxPredictionLeadTime: 0.25
+  useInterceptPrediction: 1
+  useProjectileSpeedBasedPrediction: 1
+  slowProjectileSpeedThreshold: 40
+  fastProjectileSpeedThreshold: 120
+  slowProjectileMaxLeadTime: 0.85
+  fastProjectileMaxLeadTime: 0.2
+  ignoreVerticalPrediction: 1
+  predictionVelocityDeadZone: 0.05
   showDebug: 0
 --- !u!114 &8184580613957516032
 MonoBehaviour:
@@ -293,12 +304,19 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 128
   pivotObject: {fileID: 6071025949131464778}
+  aimHeightRatio: 0.35
+  excludePoisonLethalTargets: 0
   showDebug: 0
   useHorizontalDistance: 1
   requireLineOfSight: 1
   lineOfSightBlockingMask:
     serializedVersion: 2
     m_Bits: 576
+  ignoreObstacleBuildSlotColliders: 1
+  ignorePlacedObstacleColliders: 1
+  additionalLineOfSightIgnoreMask:
+    serializedVersion: 2
+    m_Bits: 0
   showRangeGizmo: 1
   drawRangeOnlyWhenSelected: 1
   rangeGizmoColor: {r: 0, g: 1, b: 0, a: 1}
@@ -337,6 +355,7 @@ MonoBehaviour:
   - {fileID: 3254397214458074372}
   applyOnStart: 1
   applyOnInspectorChange: 1
+  damageMultiplier: 1
 --- !u!114 &8572216255350479509
 MonoBehaviour:
   m_ObjectHideFlags: 0

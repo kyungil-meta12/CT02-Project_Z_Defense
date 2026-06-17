@@ -22,6 +22,9 @@ public class PoisonStatusProfileSO : ScriptableObject
     [Header("보스 보정")]
     [Min(0.0f)] public float bossDamageMultiplier = 1.0f;
 
+    [Header("처형 사망 폭발")]
+    public PoisonDeathBurstProfileSO deathBurstProfile;
+
     public bool HasPoisonStatus
     {
         get
@@ -41,7 +44,8 @@ public class PoisonStatusProfileSO : ScriptableObject
             duration = Mathf.Max(0.0f, duration),
             maxStackCount = Mathf.Max(1, maxStackCount),
             stackRefreshMode = stackRefreshMode,
-            bossDamageMultiplier = Mathf.Max(0.0f, bossDamageMultiplier)
+            bossDamageMultiplier = Mathf.Max(0.0f, bossDamageMultiplier),
+            deathBurstProfile = deathBurstProfile
         };
 
         return payload;

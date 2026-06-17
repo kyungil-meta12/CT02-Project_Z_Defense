@@ -5,10 +5,16 @@ using UnityEngine;
 /// </summary>
 public static class TurretAimPointUtility
 {
-    private const float DEFAULT_AIM_HEIGHT_RATIO = 0.35f;
+    public const float DEFAULT_AIM_HEIGHT_RATIO = 0.35f;
 
     // 대상 오브젝트에서 콜라이더를 찾아 터렛 조준 위치를 반환한다
     public static Vector3 GetAimPosition(GameObject target)
+    {
+        return GetAimPosition(target, DEFAULT_AIM_HEIGHT_RATIO);
+    }
+
+    // 대상 오브젝트에서 콜라이더를 찾아 지정 높이 비율의 터렛 조준 위치를 반환한다
+    public static Vector3 GetAimPosition(GameObject target, float aimHeightRatio)
     {
         if (target == null)
         {
@@ -21,11 +27,17 @@ public static class TurretAimPointUtility
             return target.transform.position;
         }
 
-        return GetAimPosition(targetCollider);
+        return GetAimPosition(targetCollider, aimHeightRatio);
     }
 
     // 대상 콜라이더의 하단 기준 몸통 높이를 터렛 조준 위치로 반환한다
     public static Vector3 GetAimPosition(Collider targetCollider)
+    {
+        return GetAimPosition(targetCollider, DEFAULT_AIM_HEIGHT_RATIO);
+    }
+
+    // 대상 콜라이더의 하단 기준 지정 높이 비율을 터렛 조준 위치로 반환한다
+    public static Vector3 GetAimPosition(Collider targetCollider, float aimHeightRatio)
     {
         if (targetCollider == null)
         {
@@ -34,7 +46,7 @@ public static class TurretAimPointUtility
 
         Bounds bounds = targetCollider.bounds;
         Vector3 aimPosition = bounds.center;
-        aimPosition.y = Mathf.Lerp(bounds.min.y, bounds.max.y, DEFAULT_AIM_HEIGHT_RATIO);
+        aimPosition.y = Mathf.Lerp(bounds.min.y, bounds.max.y, Mathf.Clamp01(aimHeightRatio));
         return aimPosition;
     }
 }

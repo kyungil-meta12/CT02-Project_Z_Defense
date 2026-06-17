@@ -62,6 +62,7 @@ public class BossZombie : PoolObject, IDamageable, IFrostStatusEffectReceiver, I
     public float TotalHp { get; private set; }
     public float CurrHp { get; private set; }
     public bool IsAlive { get; private set; }
+    public bool IsPoisonLethalPending { get; private set; }
 
     // 최종 보상값을 저장하는 구조체
     private RewardResult rewardResult = new();
@@ -510,6 +511,7 @@ public class BossZombie : PoolObject, IDamageable, IFrostStatusEffectReceiver, I
 
         poisonStatusActive = true;
         SetPoisonVisualActive(true);
+        RefreshPoisonLethalVisual();
     }
 
     // Frost 상태 타이머를 감소시키고 이동/공격 속도를 갱신한다
@@ -560,7 +562,10 @@ public class BossZombie : PoolObject, IDamageable, IFrostStatusEffectReceiver, I
         if (poisonRemainingDuration <= 0.0f)
         {
             ResetPoisonStatus();
+            return;
         }
+
+        RefreshPoisonLethalVisual();
     }
 
     // 현재 중독 중첩 수와 보스 보정 배율에 맞는 최대체력 비례 틱데미지를 적용한다
@@ -573,6 +578,51 @@ public class BossZombie : PoolObject, IDamageable, IFrostStatusEffectReceiver, I
 
         float damage = TotalHp * Mathf.Clamp01(poisonStatusPayload.maxHpDamageRatioPerTick) * poisonStackCount * Mathf.Max(0.0f, poisonStatusPayload.bossDamageMultiplier);
         TakeDamage(damage);
+    }
+
+    // 남은 Poison 틱데미지로 사망이 확정되는지 갱신한다
+    private void RefreshPoisonLethalVisual()
+    {
+        IsPoisonLethalPending = IsPoisonDamageLethal();
+        SetPoisonLethalVisualActive(IsPoisonLethalPending);
+    }
+
+    // 남은 Poison 틱데미지 총합이 현재 체력을 넘는지 확인한다
+    private bool IsPoisonDamageLethal()
+    {
+        if (!IsAlive || !poisonStatusActive || poisonStackCount <= 0)
+        {
+            return false;
+        }
+
+        float tickDamage = GetPoisonTickDamage();
+        int remainingTickCount = GetRemainingPoisonTickCount();
+        return tickDamage > 0.0f && remainingTickCount > 0 && CurrHp <= tickDamage * remainingTickCount;
+    }
+
+    // 현재 중첩 수와 보스 보정 배율 기준 Poison 1틱 데미지를 반환한다
+    private float GetPoisonTickDamage()
+    {
+        if (poisonStatusPayload.maxHpDamageRatioPerTick <= 0.0f || poisonStackCount <= 0)
+        {
+            return 0.0f;
+        }
+
+        return TotalHp * Mathf.Clamp01(poisonStatusPayload.maxHpDamageRatioPerTick) * poisonStackCount * Mathf.Max(0.0f, poisonStatusPayload.bossDamageMultiplier);
+    }
+
+    // 남은 지속시간 안에 발생할 Poison 틱 수를 계산한다
+    private int GetRemainingPoisonTickCount()
+    {
+        float remainingDuration = Mathf.Max(0.0f, poisonRemainingDuration);
+        float nextTickTime = Mathf.Max(0.0f, poisonTickTimer);
+        float tickInterval = Mathf.Max(0.01f, poisonStatusPayload.tickInterval);
+        if (remainingDuration <= 0.0f || nextTickTime >= remainingDuration)
+        {
+            return 0;
+        }
+
+        return 1 + Mathf.FloorToInt((remainingDuration - nextTickTime - 0.0001f) / tickInterval);
     }
 
     // 현재 Frost 상태에 맞춰 비헤이비어 이동 속도와 공격 속도를 반영한다
@@ -629,6 +679,8 @@ public class BossZombie : PoolObject, IDamageable, IFrostStatusEffectReceiver, I
         poisonTickTimer = 0.0f;
         poisonStackCount = 0;
         poisonStatusActive = false;
+        IsPoisonLethalPending = false;
+        SetPoisonLethalVisualActive(false);
         SetPoisonVisualActive(false);
     }
 
@@ -663,6 +715,17 @@ public class BossZombie : PoolObject, IDamageable, IFrostStatusEffectReceiver, I
         }
 
         statusEffectVisualController.SetPoisonActive(isActive);
+    }
+
+    // 포이즌 처치 확정 표시 활성 여부에 맞춰 비주얼 컨트롤러를 갱신한다
+    private void SetPoisonLethalVisualActive(bool isActive)
+    {
+        if (statusEffectVisualController == null)
+        {
+            return;
+        }
+
+        statusEffectVisualController.SetPoisonLethalIndicatorActive(isActive);
     }
 
     float storeDamage = 0;

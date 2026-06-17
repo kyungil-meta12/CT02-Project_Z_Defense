@@ -180,6 +180,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: d1617184f4f0cc54abbd8c37633531db, type: 3}
       insertIndex: -1
       addedObject: {fileID: 8538779154782827799}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: d1617184f4f0cc54abbd8c37633531db, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 7379124635086214584}
   m_SourcePrefab: {fileID: 100100000, guid: d1617184f4f0cc54abbd8c37633531db, type: 3}
 --- !u!4 &4561317844011085953 stripped
 Transform:
@@ -252,6 +255,8 @@ MonoBehaviour:
     m_Bits: 128
   pivotObject: {fileID: 5804491836346817083}
   aimHeightRatio: 0.35
+  targetCandidateFilterBehaviours:
+  - {fileID: 7379124635086214584}
   showDebug: 0
   useHorizontalDistance: 1
   requireLineOfSight: 1
@@ -266,6 +271,20 @@ MonoBehaviour:
   showRangeGizmo: 1
   drawRangeOnlyWhenSelected: 1
   rangeGizmoColor: {r: 0, g: 1, b: 0, a: 1}
+--- !u!114 &7379124635086214584
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8581458487753932061}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f23bb1fa74874e3990cc8334cd33d21c, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::FrostFreezeSuppressedTargetCandidateFilter
+  excludeFrozenTargets: 1
+  excludeFreezeCooldownTargets: 1
 --- !u!114 &5767384991507708237
 MonoBehaviour:
   m_ObjectHideFlags: 0

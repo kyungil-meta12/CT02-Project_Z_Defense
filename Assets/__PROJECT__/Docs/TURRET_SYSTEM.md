@@ -134,9 +134,11 @@ Frost status handling:
 - `FrostStatusRuntime` owns Frost exposure, hold timer, freeze timer, freeze cooldown, visual toggles, and optional freeze explosion effects.
 - `NormalZombie` initializes `FrostStatusRuntime` with freeze explosion enabled and only applies the calculated speed multiplier to cached `MoveSpeed` and `AttackSpeed` animator parameters.
 - `BossZombie` initializes `FrostStatusRuntime` with freeze explosion disabled and only applies the calculated speed multiplier to the cached behavior blackboard `speed` value plus the `AttackSpeed` animator parameter. Boss Frost is slow-only by design.
+- `FrostStatusRuntime.IsFreezeRetargetSuppressed` becomes true only for freeze-capable targets after freeze starts or while the per-target freeze cooldown remains. Slow buildup alone does not suppress targeting.
+- `FrostFreezeSuppressedTargetCandidateFilter` lets `Frost_Turret` stop retargeting enemies that are already frozen or waiting for their next freeze eligibility window. Bosses are not excluded because Boss Frost is slow-only.
 - `FrostStatusEffectUtility` owns freeze effect spawning and non-alloc overlap explosion damage so future Frost skills can reuse the same explosion behavior.
 - `FrostFreezeExplosionDamageTimer` keeps `Ice_Cubes_Explosion` following the original frozen target while it is alive and delays explosion damage so the damage lands at the current effect position when the visual burst happens.
-- `NormalZombie` keeps the active `Ice_Cubes_Explosion` handle and cancels the effect plus pending explosion damage when the original frozen target dies or is reset for pooling.
+- `FrostStatusRuntime` keeps the active `Ice_Cubes_Explosion` handle and cancels the effect plus pending explosion damage when the original frozen target dies or is reset for pooling.
 - `StatusEffectVisualController` owns enemy-side status VFX slots. It can spawn one `MeshFX_Frozen 1` instance per configured target renderer, inject the renderer into `OverlayFX`, and remove the runtime overlay material when Frost slow ends.
 - `FrostStatusRuntime` reports Frost active/inactive state to `StatusEffectVisualController`; zombies do not directly instantiate or configure mesh VFX.
 - `NormalZombie` exposes runtime base speed setters so external buffs such as Screamer speed buffs can change the non-Frost base speed without overwriting the active Frost multiplier.
@@ -175,6 +177,8 @@ Enemy Frost visual setup:
 - `freezeDuration > 0` temporarily applies a `0` speed multiplier and overrides slow until the freeze timer expires.
 - `freezeEffectPrefab` is owned by the attack/status profile, not by every zombie prefab. Zombies only provide receiver logic and effect position.
 - Frost timers are updated by `FrostStatusRuntime.Tick` from each zombie's existing `Update` path and reset on spawn, despawn, and death.
+- Current `Frost_Turret.prefab` connects `FrostFreezeSuppressedTargetCandidateFilter` to `TargetFinder.targetCandidateFilterBehaviours` so it looks for a new freeze candidate after a normal zombie has already triggered freeze.
+- `FrostFreezeSuppressedTargetCandidateFilter` exposes its exclude conditions in the Inspector (`excludeFrozenTargets`, `excludeFreezeCooldownTargets`) so designers can verify the Frost targeting policy directly on the turret prefab.
 
 Poison status handling:
 
@@ -664,7 +668,7 @@ A complete path from Sentinel-01 tier level 1 to a second-generation `_3` tier l
 - `TargetFinder` resolves hit colliders to a stable tagged or `IDamageable` target root before returning a target, avoiding aim jitter from multi-collider enemies.
 - `TargetFinder` can ignore `ObstacleBuildSlot` helper colliders, placed `Obstacle` colliders, and an additional ignore layer mask during line-of-sight checks so defense-line barricades do not hide zombies from turret targeting.
 - `TargetFinder.aimHeightRatio` controls where inside the target collider height the turret aims and runs line-of-sight checks. Keep the default `0.35` for existing turrets. Current `Poison_Turret` intentionally uses `0` because play-mode testing showed the projectile firing angle is more stable with that value.
-- `TargetFinder.targetCandidateFilterBehaviours` can connect project-owned `ITargetCandidateFilter` components. `PoisonLethalTargetCandidateFilter` is intended for `Poison_Turret` only and skips targets whose remaining Poison ticks already guarantee death.
+- `TargetFinder.targetCandidateFilterBehaviours` can connect project-owned `ITargetCandidateFilter` components. `PoisonLethalTargetCandidateFilter` is intended for `Poison_Turret` only and skips targets whose remaining Poison ticks already guarantee death. `FrostFreezeSuppressedTargetCandidateFilter` is intended for `Frost_Turret` only and skips freeze-capable targets that are already frozen or still inside their per-target freeze cooldown.
 - `Turret` smooths target aim point and target velocity prediction, ignores vertical prediction by default, and uses `TurretLeadPredictionUtility` to aim at an estimated projectile/target intercept point.
 - Prediction lead time can scale from slow-projectile long lead to fast-projectile short lead, improving low-speed projectile hit rate without making laser-speed shots over-lead visibly.
 - `Turret` staggers its first target search within `targetSearchInterval` so many turrets do not all run physics target scans on the same frame.

@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.AI;
 
 /// <summary>
 /// 웨이브별 좀비 스폰, 스폰 정지, 활성 좀비 디스폰, 웨이브 재시작 준비를 관리한다.
@@ -255,6 +256,9 @@ public class ZombieSpawner : MonoBehaviour
             return;
         }
 
+        // NavMesh 펴면 위치로 이동시킨다.
+        NavMesh.SamplePosition(spawnPoint.position, out var hit, 10f, NavMesh.AllAreas);
+        spawnPoint.position = hit.position;
         zombie.SetPosition(spawnPoint);
         zombie.SetDestination(destination);
         RegisterSpawnedZombie(zombie);

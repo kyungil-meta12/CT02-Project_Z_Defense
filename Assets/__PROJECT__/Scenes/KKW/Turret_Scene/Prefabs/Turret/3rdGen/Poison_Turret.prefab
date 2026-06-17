@@ -231,7 +231,7 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 128
   pivotObject: {fileID: 1554523122684958870}
-  aimHeightRatio: 0.6
+  aimHeightRatio: 0
   excludePoisonLethalTargets: 1
   showDebug: 0
   useHorizontalDistance: 1

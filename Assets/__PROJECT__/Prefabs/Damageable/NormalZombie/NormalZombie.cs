@@ -322,6 +322,11 @@ public class NormalZombie : PoolObject, IDamageable, IFrostStatusEffectReceiver,
 
         DamagePopupSpawner.SpawnDamage(transform, appliedDamage);
 
+        if (CurrHp > 0f && poisonStatusActive)
+        {
+            RefreshPoisonLethalVisual();
+        }
+
         // 체력이 완전히 떨어지면
         if (CurrHp <= 0f)
         {
@@ -448,10 +453,12 @@ public class NormalZombie : PoolObject, IDamageable, IFrostStatusEffectReceiver,
             return;
         }
 
+        float previousRemainingDuration = poisonRemainingDuration;
+        float previousTickTimer = poisonTickTimer;
         poisonRemainingDuration = Mathf.Max(0.0f, poisonRemainingDuration - deltaTime);
         poisonTickTimer -= deltaTime;
 
-        if (poisonTickTimer <= 0.0f && poisonRemainingDuration > 0.0f)
+        if (poisonTickTimer <= 0.0f && PoisonStatusRuntimeUtility.CanApplyTick(previousRemainingDuration, previousTickTimer))
         {
             ApplyPoisonTickDamage();
             poisonTickTimer = Mathf.Max(0.01f, poisonStatusPayload.tickInterval);
@@ -474,7 +481,7 @@ public class NormalZombie : PoolObject, IDamageable, IFrostStatusEffectReceiver,
             return;
         }
 
-        float damage = TotalHp * Mathf.Clamp01(poisonStatusPayload.maxHpDamageRatioPerTick) * poisonStackCount;
+        float damage = PoisonStatusRuntimeUtility.CalculateTickDamage(TotalHp, poisonStatusPayload.maxHpDamageRatioPerTick, poisonStackCount, 1.0f);
         TakeDamage(damage);
     }
 
@@ -512,15 +519,7 @@ public class NormalZombie : PoolObject, IDamageable, IFrostStatusEffectReceiver,
     // 남은 지속시간 안에 발생할 Poison 틱 수를 계산한다
     private int GetRemainingPoisonTickCount()
     {
-        float remainingDuration = Mathf.Max(0.0f, poisonRemainingDuration);
-        float nextTickTime = Mathf.Max(0.0f, poisonTickTimer);
-        float tickInterval = Mathf.Max(0.01f, poisonStatusPayload.tickInterval);
-        if (remainingDuration <= 0.0f || nextTickTime >= remainingDuration)
-        {
-            return 0;
-        }
-
-        return 1 + Mathf.FloorToInt((remainingDuration - nextTickTime - 0.0001f) / tickInterval);
+        return PoisonStatusRuntimeUtility.GetRemainingTickCount(poisonRemainingDuration, poisonTickTimer, poisonStatusPayload.tickInterval);
     }
 
     // 현재 Frost 상태에 맞춰 애니메이터 속도 파라미터를 반영한다
@@ -696,7 +695,7 @@ public class NormalZombie : PoolObject, IDamageable, IFrostStatusEffectReceiver,
             return;
         }
 
-        PoisonDeathBurstEffectUtility.TriggerDeathBurst(poisonStatusPayload.deathBurstProfile, transform.position, this);
+        PoisonDeathBurstEffectUtility.TriggerDeathBurst(poisonStatusPayload, transform.position, this);
     }
 
     // 일반 좀비 프리팹 Override 보상 프로필을 기준으로 처치 보상을 지급한다

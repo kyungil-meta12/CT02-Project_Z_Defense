@@ -63,6 +63,7 @@ Do not use display names as stable IDs.
 | `FrostStatusProfileSO` | Frost-specific status rules: slow buildup, max slow, freeze timing, freeze explosion, max-HP damage, secondary explosion slow, related VFX references, and optional primary-target max-HP damage growth. |
 | `PoisonStatusProfileSO` | Poison-specific status rules: max-HP tick damage ratio, tick interval, duration, stack limit, stack refresh mode, boss damage multiplier, and optional death burst profile reference. |
 | `PoisonDeathBurstProfileSO` | Poison lethal-death burst rules: burst VFX, radius, weak Poison values, target layer mask, and boss damage multiplier for secondary weak Poison. |
+| `PoisonTurretStatGrowthProfileSO` | Poison_Turret-only stat growth profile. Inherits common turret stat growth and adds Poison status/death-burst growth fields without exposing them on non-Poison turrets. |
 | `TurretVFXProgressionSO` | Selects active VFX profile by current tier level. |
 | `TurretProjectileScaleProgressionSO` | Selects projectile scale by current tier level. |
 | `TurretEvolutionProgressionSO` | Defines available evolutions, required tier levels, branch-specific costs, icons, and effects. |
@@ -175,12 +176,14 @@ Enemy Frost visual setup:
 
 Poison status handling:
 
-- `PoisonStatusProfileSO` stores Poison values (`maxHpDamageRatioPerTick`, `tickInterval`, `duration`, `maxStackCount`, `stackRefreshMode`, `bossDamageMultiplier`) and can reference a `PoisonDeathBurstProfileSO`.
-- `PoisonDeathBurstProfileSO` stores optional lethal-death burst VFX, weak area Poison values, and whether weak Poison can chain-trigger additional normal-zombie death bursts.
+- `PoisonStatusProfileSO` stores Poison Lv1/base status values (`maxHpDamageRatioPerTick`, `tickInterval`, `duration`, `maxStackCount`, `stackRefreshMode`, `bossDamageMultiplier`) and can reference a `PoisonDeathBurstProfileSO`.
+- `PoisonDeathBurstProfileSO` stores optional lethal-death burst VFX, Lv1/base weak area Poison values, target layer mask, and whether weak Poison can chain-trigger additional normal-zombie death bursts.
+- `PoisonTurretStatGrowthProfileSO` owns Poison_Turret-only level growth for Poison tick damage, Poison duration, Poison death burst radius, death burst weak Poison tick damage, and death burst weak Poison duration.
 - `TurretDefinitionRuntimeController.ApplyVFX` creates a level-bound Poison payload only for projectile VFX profiles and passes it to the runtime `Turret`.
 - The base projectile firing path carries the Poison payload from `Turret` to `FiringEvent`, `Gun`, and `ProjectileDamageDealer`.
 - `ProjectileDamageDealer` applies direct projectile damage first, then forwards Poison to targets implementing `IPoisonStatusEffectReceiver`.
 - `NormalZombie` and `BossZombie` implement `IPoisonStatusEffectReceiver`.
+- `PoisonStatusRuntimeUtility` owns shared Poison tick timing, remaining tick count, and max-HP tick damage calculations so normal and boss receivers do not drift apart.
 - `NormalZombie` applies Poison tick damage as `TotalHp * maxHpDamageRatioPerTick * stackCount`.
 - `BossZombie` applies Poison tick damage as `TotalHp * maxHpDamageRatioPerTick * stackCount * bossDamageMultiplier`.
 - `RefreshDurationOnly` refreshes Poison duration without increasing stack count after the first stack.
@@ -195,6 +198,83 @@ Poison status handling:
 - `PoisonDeathBurstProfileSO.allowChainDeathBurst` controls whether weak Poison payloads keep the same death burst profile. When enabled, weak Poison can show the lethal indicator and chain another normal-zombie death burst.
 - Poison death burst uses `Physics.OverlapSphereNonAlloc` with a fixed buffer and deduplicates `IPoisonStatusEffectReceiver` targets before applying weak Poison.
 
+Poison runtime pipeline:
+
+1. `Poison_Turret_Definition.poisonStatusProfile` points to the active `PoisonStatusProfileSO`.
+2. `TurretDefinitionRuntimeController.ApplyVFX` creates a `PoisonStatusPayload` from `PoisonStatusProfileSO` and `TurretStatGrowthProfileSO` when the selected VFX is projectile-based.
+3. The payload is stored on the runtime `Turret` and passed through `FiringEvent`, `Gun`, and `ProjectileDamageDealer` each projectile spawn.
+4. `ProjectileDamageDealer.TryApplyDamage` applies direct projectile damage first through `IDamageable.TakeDamage`.
+5. If the damaged target still lives and implements `IPoisonStatusEffectReceiver`, `ProjectileDamageDealer` calls `ApplyPoisonStatus`.
+6. `NormalZombie` and `BossZombie` own their own Poison timers, stack count, tick timer, lethal-pending state, and visual toggles.
+7. Poison tick damage uses the same `TakeDamage` path as direct damage so HP UI, popups, rewards, and death flow stay consistent.
+8. Every Poison update recalculates whether the remaining scheduled ticks can kill the target; if yes, `IsPoisonLethalPending` becomes true and the visual controller turns on the configured lethal indicator child.
+9. `TargetFinder.excludePoisonLethalTargets` lets Poison turret targeting skip targets whose `IsPoisonLethalPending` is already true.
+10. If a normal zombie dies while `IsPoisonLethalPending` is true and the active payload has a `deathBurstProfile`, `NormalZombie.Die` calls `PoisonDeathBurstEffectUtility.TriggerDeathBurst`.
+11. `PoisonDeathBurstEffectUtility` spawns the configured burst VFX through `PooledObjectUtility.SpawnEffect`.
+12. The same utility applies weak area Poison to nearby living `IPoisonStatusEffectReceiver` targets using `Physics.OverlapSphereNonAlloc`.
+13. Weak area Poison can chain only if `PoisonDeathBurstProfileSO.allowChainDeathBurst` is enabled.
+14. Boss zombies can receive direct Poison, weak area Poison, and lethal indicators, but boss death never calls the Poison death burst trigger.
+
+Poison data ownership:
+
+- `PoisonStatusProfileSO` owns base Poison rules and values that should exist at tier level 1.
+- `PoisonDeathBurstProfileSO` owns base death-burst VFX, target layer mask, chain toggle, and base weak area Poison rules.
+- `PoisonTurretStatGrowthProfileSO` owns Poison-specific level-scaling values. Do not add per-level Poison balancing fields to `PoisonStatusProfileSO` or the shared `TurretStatGrowthProfileSO`.
+- `TurretDefinitionRuntimeController` combines the status profile and stat growth profile into one immutable `PoisonStatusPayload` for the current level.
+- Non-Poison turret growth assets should use `TurretStatGrowthProfileSO`, so they do not show Poison-only fields in the Inspector.
+- `Poison_Turret_Stat Growth Profile SO` should use `PoisonTurretStatGrowthProfileSO`.
+- `PoisonDeathBurstEffectUtility` uses the precomputed values inside `PoisonStatusPayload`, not raw profile values, so death-burst weak Poison stays level-scaled during chain explosions.
+- `PoisonStatusProfileSO.HasPoisonStatus` is only a base-profile quick check. Runtime activation is decided from the scaled payload so a profile with low base values can still become active through growth settings.
+- Poison tick timing edge cases should be fixed in `PoisonStatusRuntimeUtility`, not separately in `NormalZombie` and `BossZombie`.
+
+Poison growth fields on `PoisonTurretStatGrowthProfileSO`:
+
+| Field | Runtime effect |
+| --- | --- |
+| `poisonMaxHpDamageRatioPerTickPerLevel` | Adds to direct Poison max-HP tick damage ratio per completed tier level. |
+| `maxPoisonMaxHpDamageRatioPerTick` | Caps direct Poison max-HP tick damage ratio. |
+| `poisonDurationPerLevel` | Adds direct Poison duration per completed tier level. |
+| `maxPoisonDuration` | Optional direct Poison duration cap. `0` means uncapped. |
+| `poisonDeathBurstRadiusPerLevel` | Adds to death-burst weak area Poison radius per completed tier level. |
+| `maxPoisonDeathBurstRadius` | Optional death-burst radius cap. `0` means uncapped. |
+| `poisonDeathBurstMaxHpDamageRatioPerTickPerLevel` | Adds to weak area Poison max-HP tick damage ratio per completed tier level. |
+| `maxPoisonDeathBurstMaxHpDamageRatioPerTick` | Caps weak area Poison max-HP tick damage ratio. |
+| `poisonDeathBurstDurationPerLevel` | Adds weak area Poison duration per completed tier level. |
+| `maxPoisonDeathBurstDuration` | Optional weak area Poison duration cap. `0` means uncapped. |
+
+Poison lethal indicator pipeline:
+
+- `StatusEffectVisualController` owns gameplay-agnostic visual slots.
+- Poison visuals should be configured through `StatusEffectVisualSlot` entries instead of one-off scripts on zombie prefabs.
+- `Lethal Indicator Child Name` is a slot-level child lookup name. Current Poison aura uses `PoisonIcon`.
+- The child lookup is cached per spawned visual instance, so the controller does not search the hierarchy every frame.
+- `Lethal Indicator Local Position Offset` moves the cached indicator child after it is found. Use this to pull `PoisonIcon` forward or upward so it does not overlap the zombie body.
+- The indicator is a prediction based on currently known Poison ticks. If another turret damages the target after the indicator appears, the target may die earlier, but the indicator remains valid because Poison alone was already enough to finish it.
+- The remaining tick calculation intentionally excludes ambiguous duration-boundary ticks from the lethal prediction. This prevents a target that is one tick short of dying from briefly showing `PoisonIcon` and then losing it on the next update.
+- The remaining tick calculation must not add epsilon to the full interval division. Tick-boundary tolerance belongs to actual tick application only, not to lethal prediction.
+- Lethal prediction should be conservative: if a floating-point boundary is ambiguous, prefer showing the icon late instead of showing it when Poison is not actually lethal.
+- Non-Poison damage calls refresh the lethal prediction immediately when the target is still alive, so other turrets can reveal a now-guaranteed Poison execution without waiting for the next Poison timer update.
+- The indicator is turned off on Poison expiration, spawn reset, despawn reset, and death reset.
+
+Poison death burst and chain rules:
+
+- Only `NormalZombie` triggers Poison death burst.
+- `BossZombie` is intentionally excluded from burst triggering even if its lethal indicator is visible.
+- The dead source target is excluded from the weak area Poison overlap result.
+- Duplicate colliders under the same target are deduplicated before applying weak Poison.
+- Weak Poison is created by `PoisonDeathBurstEffectUtility` from the already scaled `PoisonStatusPayload`.
+- When `allowChainDeathBurst` is true, that weak payload keeps the same `deathBurstProfile`; when false, the weak payload sets `deathBurstProfile = null`.
+- Chain explosions are therefore data-driven and can be disabled from the profile without changing code.
+- Chain behavior should be tuned carefully because multiple overlapping bursts can quickly multiply area pressure.
+
+Poison performance notes:
+
+- Poison timers run inside each affected zombie's existing `Update` path.
+- Target exclusion is checked only during `TargetFinder.FindNearestTarget`, not every frame for every zombie.
+- Area Poison uses a fixed collider buffer and does not allocate via `Physics.OverlapSphere`.
+- Burst VFX should be backed by `PoolObject`/`MemoryPool` when the chain setting is enabled for production waves.
+- Avoid enabling verbose target debug logs in normal play because candidate loops can produce many messages.
+
 ## Poison Projectile Setup
 
 Current Poison projectile assets:
@@ -205,6 +285,10 @@ Current Poison projectile assets:
 | `SO/TurretDefinition/3rdGen/Poison_Turret_Definition.asset` | Poison turret definition. |
 | `SO/TurretVfxProgresstion/3rdGen/Poison_Turret_VFX Progression SO.asset` | Selects the Poison projectile VFX profile. |
 | `SO/VFXProfiles/Projectile/VFX_Nova Orange/VFX_Nova Orange 1.asset` | Current projectile VFX profile reused by Poison. |
+| `SO/Turret Stat Profile/3rdGen/Poison_Status_Profile_SO.asset` | Current Poison status profile connected to the turret definition. |
+| `SO/AttackProfiles/Poison Death Burst Profile SO.asset` | Current Poison death burst and weak area Poison profile. |
+| `Prefabs/Status Effect/Poison_Turret/MiasmaCannister 1.prefab` | Current foot/ground Poison visual. |
+| `Prefabs/Status Effect/Poison_Turret/19_Poison_Aura_Hazard_Mixed 1.prefab` | Current body Poison aura visual containing the optional `PoisonIcon` child. |
 
 Required Poison wiring:
 
@@ -214,6 +298,12 @@ Required Poison wiring:
 - The selected projectile prefab must have or receive `ProjectileDamageDealer` through the existing projectile spawn path.
 - The selected projectile prefab should already be registered in the MemoryPool prewarm list if it is used frequently.
 - Normal and boss zombie prefabs should have `StatusEffectVisualController` Poison fields configured only when Poison visuals are required.
+- `Poison_Turret.prefab` must have `SimpleFire` connected as `TurretDefinitionRuntimeController.targetFiringEvent`.
+- `SimpleFire.gunPrefabs[0]` must reference the turret root object that owns `Gun`, not the visual head/rotator child.
+- `TargetFinder.pivotObject` should reference `FireNozzle` so range and line-of-sight checks originate from the muzzle area.
+- Current `Poison_Turret.prefab` intentionally uses `TargetFinder.aimHeightRatio = 0`. Although most turrets use `0.35`, this value stabilized Poison projectile firing angle in play-mode testing.
+- Current `Poison_Turret.prefab` uses `TargetFinder.excludePoisonLethalTargets = true` so it stops spending shots on targets already guaranteed to die from Poison ticks.
+- If `TargetFinder.aimHeightRatio` is changed later, retest muzzle alignment, fire gating, projectile travel, and target jitter together; do not treat it as a purely visual setting.
 
 Recommended Poison Status Profile values for first testing:
 
@@ -225,6 +315,30 @@ Recommended Poison Status Profile values for first testing:
 | `maxStackCount` | `3` | Allows repeated hits to matter without unbounded scaling. |
 | `stackRefreshMode` | `AddStackAndRefreshDuration` | Repeated hits increase stacks and refresh duration. |
 | `bossDamageMultiplier` | `0.5` | First-pass boss resistance value. |
+
+Current `Poison_Status_Profile_SO` test values:
+
+- `maxHpDamageRatioPerTick = 0.05`
+- `tickInterval = 1.0`
+- `duration = 12.0`
+- `maxStackCount = 1`
+- `stackRefreshMode = AddStackAndRefreshDuration`
+- `bossDamageMultiplier = 1.0`
+- `deathBurstProfile = Poison Death Burst Profile SO`
+
+Current `Poison_Turret_Stat Growth Profile SO` Poison growth test values:
+
+- `poisonMaxHpDamageRatioPerTickPerLevel = 0`
+- `maxPoisonMaxHpDamageRatioPerTick = 1`
+- `poisonDurationPerLevel = 0`
+- `maxPoisonDuration = 0`
+- `poisonDeathBurstRadiusPerLevel = 0`
+- `maxPoisonDeathBurstRadius = 0`
+- `poisonDeathBurstMaxHpDamageRatioPerTickPerLevel = 0`
+- `maxPoisonDeathBurstMaxHpDamageRatioPerTick = 1`
+- `poisonDeathBurstDurationPerLevel = 0`
+- `maxPoisonDeathBurstDuration = 0`
+- These zero growth values intentionally preserve current play-mode balance while moving future level-scaling responsibility to the stat growth profile.
 
 Recommended Poison Death Burst Profile values for first testing:
 
@@ -241,6 +355,56 @@ Recommended Poison Death Burst Profile values for first testing:
 | `stackRefreshMode` | `RefreshDurationOnly` | Keeps repeated weak bursts predictable. |
 | `bossDamageMultiplier` | `0.2` to `1.0` | Bosses can receive weak area Poison, but tune separately from normal zombies. |
 | `allowChainDeathBurst` | `true` | Allows weak Poison lethal kills on normal zombies to trigger another burst. Turn off if chain reactions overperform. |
+
+Current `Poison Death Burst Profile SO` test values:
+
+- `burstEffectPrefab = 3_Poison_MushRoom 1` or the currently connected project-owned Poison burst prefab.
+- `effectDuration = 2.0`
+- `radius = 3.5`
+- `targetLayerMask.m_Bits = 17536`
+- `maxHpDamageRatioPerTick = 0.02`
+- `tickInterval = 0.5`
+- `duration = 5.0`
+- `maxStackCount = 1`
+- `stackRefreshMode = RefreshDurationOnly`
+- `bossDamageMultiplier = 1.0`
+- `allowChainDeathBurst = true`
+
+Enemy Poison visual setup:
+
+- Add or keep `StatusEffectVisualController` on every zombie prefab that should display Poison visuals.
+- Add a Poison `Anchor` slot for `MiasmaCannister 1` and assign `PoisonFootAnchor`.
+- Add a Poison `Anchor` slot for `19_Poison_Aura_Hazard_Mixed 1` and assign `PoisonBodyAnchor`.
+- On the body aura slot, set `Lethal Indicator Child Name = PoisonIcon` if the aura prefab contains that disabled child.
+- If `PoisonIcon` overlaps the character body, tune `Lethal Indicator Local Position Offset` on the body aura slot. Current starting values are `0, 0.15, 0.35` for `NZ_AirportSecurity` and `0, 0.35, 0.8` for `BossZombie_Tank`.
+- Leave legacy `Poison Visual Prefab` empty when using `Visual Slots`; the slot list is the preferred current setup.
+- Boss prefabs may use the same visual flow, but boss death still does not trigger Poison death burst.
+
+Poison play-mode verification checklist:
+
+1. Place `Poison_Turret` in `2nd Main Scene`.
+2. Confirm the turret rotates toward a valid zombie and fires a projectile from the configured gun/muzzle.
+3. Confirm direct projectile damage lands before Poison status is applied.
+4. Wait for `tickInterval` and confirm Poison tick damage uses max-HP ratio damage.
+5. Re-hit the same target and confirm stack policy matches `PoisonStatusProfileSO.stackRefreshMode`.
+6. Damage a Poisoned target with another turret and confirm `PoisonIcon` turns on when the remaining Poison ticks alone can finish the current HP.
+7. Confirm `Poison_Turret` stops choosing targets with visible lethal indicators when `excludePoisonLethalTargets` is enabled.
+8. Kill a lethal-indicator normal zombie and confirm burst VFX spawns.
+9. Confirm nearby normal zombies receive weak area Poison.
+10. Confirm nearby boss zombies receive weak area Poison.
+11. Confirm a lethal-indicator boss death does not spawn a Poison death burst.
+12. With `allowChainDeathBurst` enabled, confirm weak Poison can create another normal-zombie burst if it becomes lethal.
+13. With `allowChainDeathBurst` disabled, confirm weak Poison can still damage targets but does not trigger additional bursts.
+14. Watch Unity Profiler for repeated burst VFX fallback instantiation if MemoryPool prewarm is not configured.
+
+Poison troubleshooting notes:
+
+- If `Poison_Turret` rotates but does not fire, check `TurretDefinitionRuntimeController.targetFiringEvent`, `SimpleFire.gunPrefabs`, and the root `Gun` reference first.
+- If the range/line-of-sight gizmo appears to start from the wrong place, check `TargetFinder.pivotObject`; current Poison setup expects `FireNozzle`.
+- If firing angle becomes unstable, keep `TargetFinder.aimHeightRatio = 0` for Poison before trying code changes.
+- If PoisonIcon never appears, check the body aura slot's `Lethal Indicator Child Name` and verify the aura prefab actually contains a child named `PoisonIcon`.
+- If bursts do not chain, check `PoisonDeathBurstProfileSO.allowChainDeathBurst`, weak Poison damage values, and whether the dying target is a normal zombie rather than a boss.
+- If bursts hit nothing, check `PoisonDeathBurstProfileSO.targetLayerMask` against the zombie damage layers.
 
 Poison next-session handoff:
 
@@ -495,7 +659,7 @@ A complete path from Sentinel-01 tier level 1 to a second-generation `_3` tier l
 - `TargetFinder` selects the nearest valid target in range.
 - `TargetFinder` resolves hit colliders to a stable tagged or `IDamageable` target root before returning a target, avoiding aim jitter from multi-collider enemies.
 - `TargetFinder` can ignore `ObstacleBuildSlot` helper colliders, placed `Obstacle` colliders, and an additional ignore layer mask during line-of-sight checks so defense-line barricades do not hide zombies from turret targeting.
-- `TargetFinder.aimHeightRatio` controls where inside the target collider height the turret aims and runs line-of-sight checks. Keep the default `0.35` for existing turrets, and raise it for turret prefabs such as `Poison_Turret` that need a higher body aim point.
+- `TargetFinder.aimHeightRatio` controls where inside the target collider height the turret aims and runs line-of-sight checks. Keep the default `0.35` for existing turrets. Current `Poison_Turret` intentionally uses `0` because play-mode testing showed the projectile firing angle is more stable with that value.
 - `TargetFinder.excludePoisonLethalTargets` is intended for `Poison_Turret` only. When enabled, targets whose remaining Poison ticks already guarantee death are skipped by target search so Poison fire can move to healthier enemies.
 - `Turret` smooths target aim point and target velocity prediction, ignores vertical prediction by default, and uses `TurretLeadPredictionUtility` to aim at an estimated projectile/target intercept point.
 - Prediction lead time can scale from slow-projectile long lead to fast-projectile short lead, improving low-speed projectile hit rate without making laser-speed shots over-lead visibly.

@@ -36,19 +36,57 @@ public class PoisonStatusProfileSO : ScriptableObject
     // 현재 터렛 레벨 기준으로 Poison 상태 전달 값을 계산한다
     public PoisonStatusPayload CreatePayload(int level)
     {
+        return CreatePayload(level, null);
+    }
+
+    // 현재 터렛 레벨과 성장 프로필 기준으로 Poison 상태 전달 값을 계산한다
+    public PoisonStatusPayload CreatePayload(int level, TurretStatGrowthProfileSO growthProfile)
+    {
+        float scaledDamageRatio = growthProfile == null
+            ? Mathf.Clamp01(maxHpDamageRatioPerTick)
+            : growthProfile.CalculatePoisonMaxHpDamageRatioPerTick(maxHpDamageRatioPerTick, level);
+        float scaledDuration = growthProfile == null
+            ? Mathf.Max(0.0f, duration)
+            : growthProfile.CalculatePoisonDuration(duration, level);
+
         PoisonStatusPayload payload = new PoisonStatusPayload
         {
-            hasPoisonStatus = HasPoisonStatus,
-            maxHpDamageRatioPerTick = Mathf.Clamp01(maxHpDamageRatioPerTick),
+            hasPoisonStatus = scaledDamageRatio > 0.0f && tickInterval > 0.0f && scaledDuration > 0.0f && maxStackCount > 0,
+            maxHpDamageRatioPerTick = scaledDamageRatio,
             tickInterval = Mathf.Max(0.01f, tickInterval),
-            duration = Mathf.Max(0.0f, duration),
+            duration = scaledDuration,
             maxStackCount = Mathf.Max(1, maxStackCount),
             stackRefreshMode = stackRefreshMode,
             bossDamageMultiplier = Mathf.Max(0.0f, bossDamageMultiplier),
             deathBurstProfile = deathBurstProfile
         };
 
+        ApplyDeathBurstPayload(ref payload, growthProfile, level);
         return payload;
+    }
+
+    // Poison 처형 폭발 프로필과 성장값을 payload에 복사한다
+    private void ApplyDeathBurstPayload(ref PoisonStatusPayload payload, TurretStatGrowthProfileSO growthProfile, int level)
+    {
+        if (deathBurstProfile == null)
+        {
+            return;
+        }
+
+        payload.deathBurstRadius = growthProfile == null
+            ? Mathf.Max(0.0f, deathBurstProfile.radius)
+            : growthProfile.CalculatePoisonDeathBurstRadius(deathBurstProfile.radius, level);
+        payload.deathBurstMaxHpDamageRatioPerTick = growthProfile == null
+            ? Mathf.Clamp01(deathBurstProfile.maxHpDamageRatioPerTick)
+            : growthProfile.CalculatePoisonDeathBurstMaxHpDamageRatioPerTick(deathBurstProfile.maxHpDamageRatioPerTick, level);
+        payload.deathBurstTickInterval = Mathf.Max(0.01f, deathBurstProfile.tickInterval);
+        payload.deathBurstDuration = growthProfile == null
+            ? Mathf.Max(0.0f, deathBurstProfile.duration)
+            : growthProfile.CalculatePoisonDeathBurstDuration(deathBurstProfile.duration, level);
+        payload.deathBurstMaxStackCount = Mathf.Max(1, deathBurstProfile.maxStackCount);
+        payload.deathBurstStackRefreshMode = deathBurstProfile.stackRefreshMode;
+        payload.deathBurstBossDamageMultiplier = Mathf.Max(0.0f, deathBurstProfile.bossDamageMultiplier);
+        payload.deathBurstAllowChain = deathBurstProfile.allowChainDeathBurst;
     }
 
     // 인스펙터에서 입력한 Poison 상태 값을 안전한 범위로 보정한다

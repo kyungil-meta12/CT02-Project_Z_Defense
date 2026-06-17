@@ -40,6 +40,7 @@ public sealed class StatusEffectVisualSlot
 
     [Header("처치 예고 표시")]
     public string lethalIndicatorChildName;
+    public Vector3 lethalIndicatorLocalPositionOffset;
 
     [System.NonSerialized] public GameObject[] runtimeInstances;
     [System.NonSerialized] public GameObject[] lethalIndicatorInstances;
@@ -413,8 +414,20 @@ public class StatusEffectVisualController : MonoBehaviour
             }
 
             Transform indicatorTransform = FindChildRecursive(visualInstance.transform, slot.lethalIndicatorChildName);
+            ApplyLethalIndicatorTransformOffset(indicatorTransform, slot.lethalIndicatorLocalPositionOffset);
             slot.lethalIndicatorInstances[i] = indicatorTransform == null ? null : indicatorTransform.gameObject;
         }
+    }
+
+    // 처치 예고 표시가 본체와 겹치지 않도록 슬롯에 설정된 로컬 위치 오프셋을 적용한다
+    private static void ApplyLethalIndicatorTransformOffset(Transform indicatorTransform, Vector3 localPositionOffset)
+    {
+        if (indicatorTransform == null || localPositionOffset == Vector3.zero)
+        {
+            return;
+        }
+
+        indicatorTransform.localPosition += localPositionOffset;
     }
 
     // 슬롯에 캐시된 처치 예고 표시 오브젝트를 활성화하거나 비활성화한다

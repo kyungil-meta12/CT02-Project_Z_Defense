@@ -42,24 +42,6 @@ public class PoisonDeathBurstProfileSO : ScriptableObject
         }
     }
 
-    // 약한 범위 중독에 사용할 Poison 상태 전달 값을 생성한다
-    public PoisonStatusPayload CreateWeakPoisonPayload()
-    {
-        PoisonStatusPayload payload = new PoisonStatusPayload
-        {
-            hasPoisonStatus = HasWeakPoison,
-            maxHpDamageRatioPerTick = Mathf.Clamp01(maxHpDamageRatioPerTick),
-            tickInterval = Mathf.Max(0.01f, tickInterval),
-            duration = Mathf.Max(0.0f, duration),
-            maxStackCount = Mathf.Max(1, maxStackCount),
-            stackRefreshMode = stackRefreshMode,
-            bossDamageMultiplier = Mathf.Max(0.0f, bossDamageMultiplier),
-            deathBurstProfile = allowChainDeathBurst ? this : null
-        };
-
-        return payload;
-    }
-
     // 인스펙터에서 입력한 범위 중독 값을 안전한 범위로 보정한다
     private void OnValidate()
     {

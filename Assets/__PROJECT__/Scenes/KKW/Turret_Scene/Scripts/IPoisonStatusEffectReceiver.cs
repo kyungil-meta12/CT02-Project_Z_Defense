@@ -11,6 +11,14 @@ public struct PoisonStatusPayload
     public PoisonStackRefreshMode stackRefreshMode;
     public float bossDamageMultiplier;
     public PoisonDeathBurstProfileSO deathBurstProfile;
+    public float deathBurstRadius;
+    public float deathBurstMaxHpDamageRatioPerTick;
+    public float deathBurstTickInterval;
+    public float deathBurstDuration;
+    public int deathBurstMaxStackCount;
+    public PoisonStackRefreshMode deathBurstStackRefreshMode;
+    public float deathBurstBossDamageMultiplier;
+    public bool deathBurstAllowChain;
 }
 
 /// <summary>

@@ -14,7 +14,8 @@ public class InventoryUI : MonoBehaviour
     public Button[] buttons;
     public ItemMetaDataSo metaDataSo;
 
-    public List<Image> images = new();
+    private List<Image> images = new();
+    private List<TextMeshProUGUI> texts = new();
     private List<ItemMetaData> metaDataList = new();
     private int activatedImageCount;
 
@@ -25,8 +26,11 @@ public class InventoryUI : MonoBehaviour
         foreach (var bt in buttons)
         {
             var imgComp = bt.transform.Find("ItemImage").GetComponent<Image>();
+            var txtComp = bt.transform.Find("CountText").GetComponent<TextMeshProUGUI>();
+            txtComp.text = "";
             SetImageVisibility(imgComp, false);
             images.Add(imgComp);
+            texts.Add(txtComp);
             // 일단은 상호작용을 비활성화 한다.
             bt.interactable = false;
         }
@@ -52,6 +56,7 @@ public class InventoryUI : MonoBehaviour
         {
             buttons[i].interactable = false;
             SetImageVisibility(images[i], false);
+            texts[i].text = "";
         }
 
         // 아이템 품목별로 존재하는지 확인한다. 존재하는 아이템은 좌측 상단부터 순서대로 아이템 이미지를 배치한다.
@@ -66,6 +71,7 @@ public class InventoryUI : MonoBehaviour
                 var data = metaDataList.Find(meta => meta.Type == type);
                 images[currentIndex].sprite = data.ItemImage;
                 SetImageVisibility(images[currentIndex], true);
+                texts[currentIndex].text = InventorySystem.Inst.GetCountString(type);
                 currentIndex++;
             }
         }

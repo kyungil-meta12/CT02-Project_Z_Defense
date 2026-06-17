@@ -9,7 +9,6 @@ public class InventoryUI : MonoBehaviour
 {
     public GameObject mainController;
     public Image background;
-    public Button closeButton;
     public Button openButton;
     public Button[] buttons;
     public ItemMetaDataSo metaDataSo;
@@ -18,9 +17,7 @@ public class InventoryUI : MonoBehaviour
     private List<TextMeshProUGUI> texts = new();
     private List<ItemMetaData> metaDataList = new();
     private int activatedImageCount;
-
     private bool openState = false;
-    private float checkTime = 0f;
 
     // 인벤토리를 닫은 상태로 시작
     void Start()
@@ -57,11 +54,16 @@ public class InventoryUI : MonoBehaviour
     // 아이템 개수가 변경 될 때마다 아이템에 해당하는 인덱스의 정보를 업데이트 한다.
     public void OnItemValueChanged(ItemData data)
     {
+        if(!openState)
+        {
+            return;
+        }
         var index = (int)data.Type;
         if (!buttons[index].interactable)
         {
             buttons[index].interactable = true;
             SetImageVisibility(images[index], true);
+            images[index].sprite = metaDataList.Find(meta => meta.Type == data.Type).ItemImage;
         }
         texts[index].text = data.String;
     }
@@ -74,7 +76,6 @@ public class InventoryUI : MonoBehaviour
         mainController.SetActive(true);
         background.gameObject.SetActive(true);
         openButton.gameObject.SetActive(false);
-        closeButton.gameObject.SetActive(true);
 
         // 이전에 활성화 되었던 이미지 및 버튼만 비활성화
         for (int i = 0; i < activatedImageCount; i ++)
@@ -93,8 +94,7 @@ public class InventoryUI : MonoBehaviour
             if(InventorySystem.Inst.HasItem(type))
             {
                 buttons[currentIndex].interactable = true;
-                var data = metaDataList.Find(meta => meta.Type == type);
-                images[currentIndex].sprite = data.ItemImage;
+                images[currentIndex].sprite = metaDataList.Find(meta => meta.Type == type).ItemImage;
                 SetImageVisibility(images[currentIndex], true);
                 texts[currentIndex].text = InventorySystem.Inst.GetCountString(type);
                 currentIndex++;
@@ -115,7 +115,6 @@ public class InventoryUI : MonoBehaviour
         mainController.SetActive(false);
         background.gameObject.SetActive(false);
         openButton.gameObject.SetActive(true);
-        closeButton.gameObject.SetActive(false);
         openState = false;
     }
 

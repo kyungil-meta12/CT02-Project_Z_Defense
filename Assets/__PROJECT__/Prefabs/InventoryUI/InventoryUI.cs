@@ -10,8 +10,10 @@ public class InventoryUI : MonoBehaviour
     public GameObject mainController;
     public Image background;
     public Button openButton;
-    public Button[] buttons;
+    public List<Button> buttons;
     public ItemMetaDataSo metaDataSo;
+    public TextMeshProUGUI itemNameText;
+    public TextMeshProUGUI itemInfoText;
 
     private List<Image> images = new();
     private List<TextMeshProUGUI> texts = new();
@@ -104,6 +106,9 @@ public class InventoryUI : MonoBehaviour
         // 활성화된 이미지 개수 캐싱
         activatedImageCount = currentIndex + 1;
 
+        itemNameText.text = "";
+        itemInfoText.text = "";
+
         openState = true;
     }
 
@@ -116,6 +121,19 @@ public class InventoryUI : MonoBehaviour
         background.gameObject.SetActive(false);
         openButton.gameObject.SetActive(true);
         openState = false;
+    }
+
+    /// <summary>
+    /// 아이템 클릭 이벤트 // 클릭 시 버튼에 해당하는 타입에 해당하는 메타데이터에 있는 이름과 정보를 불러온다.
+    /// </summary>
+    /// <param name="button"></param>
+    public void OnButtonClick(Button button)
+    {
+        var index = buttons.IndexOf(button);
+        var type = (RewardCurrencyType)index;
+        var metaData = metaDataList.Find(meta => meta.Type == type);
+        itemNameText.text = metaData.Name;
+        itemInfoText.text = metaData.InfoText;
     }
 
     /// <summary>

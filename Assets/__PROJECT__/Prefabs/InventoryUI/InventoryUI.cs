@@ -1,0 +1,99 @@
+using System.Collections.Generic;
+using System.Drawing;
+using System.Linq;
+using TMPro;
+using UnityEngine;
+using UnityEngine.UI;
+
+public class InventoryUI : MonoBehaviour
+{
+    public GameObject mainController;
+    public Image background;
+    public Button closeButton;
+    public Button openButton;
+    public Button[] buttons;
+    public ItemMetaDataSo metaDataSo;
+
+    public List<Image> images = new();
+    private List<ItemMetaData> metaDataList = new();
+    private int activatedImageCount;
+
+    // 인벤토리를 닫은 상태로 시작
+    void Start()
+    {
+        // 각 버튼이 가지는 아이템 이미지 컴포넌트를 가져와 일단은 빈 이미지로 채운다.
+        foreach (var bt in buttons)
+        {
+            var imgComp = bt.transform.Find("ItemImage").GetComponent<Image>();
+            SetImageVisibility(imgComp, false);
+            images.Add(imgComp);
+            // 일단은 상호작용을 비활성화 한다.
+            bt.interactable = false;
+        }
+
+        // 아이템 메타데이터 리스트를 불러온다.
+        metaDataList = metaDataSo.MetaDataList.ToList();
+
+        OnCloseInventory();
+    }
+
+    /// <summary>
+    /// 인벤토리를 열 때 호출하는 메서드
+    /// </summary>
+    public void OnOpenInventory()
+    {
+        mainController.SetActive(true);
+        background.gameObject.SetActive(true);
+        openButton.gameObject.SetActive(false);
+        closeButton.gameObject.SetActive(true);
+
+        // 이전에 활성화 되었던 이미지 및 버튼만 비활성화
+        for (int i = 0; i < activatedImageCount; i ++)
+        {
+            buttons[i].interactable = false;
+            SetImageVisibility(images[i], false);
+        }
+
+        // 아이템 품목별로 존재하는지 확인한다. 존재하는 아이템은 좌측 상단부터 순서대로 아이템 이미지를 배치한다.
+        // 아이템 이미지가 배치된 버튼은 상호작용이 활성화 된다.
+        // 메타데이터 목록에서 타입에 해당하는 이미지를 찾아 해당 이미지로 교체한다.
+        int currentIndex = 0;
+        foreach(RewardCurrencyType type in InventorySystem.Inst.Types)
+        {
+            if(InventorySystem.Inst.HasItem(type))
+            {
+                buttons[currentIndex].interactable = true;
+                var data = metaDataList.Find(meta => meta.Type == type);
+                images[currentIndex].sprite = data.ItemImage;
+                SetImageVisibility(images[currentIndex], true);
+                currentIndex++;
+            }
+        }
+
+        // 활성화된 이미지 개수 캐싱
+        activatedImageCount = currentIndex + 1;
+    }
+
+    /// <summary>
+    /// 인벤토리를 닫을 때 호출하는 메서드
+    /// </summary>
+    public void OnCloseInventory()
+    {
+        mainController.SetActive(false);
+        background.gameObject.SetActive(false);
+        openButton.gameObject.SetActive(true);
+        closeButton.gameObject.SetActive(false);
+    }
+
+    /// <summary>
+    /// 이미지가 보이는 여부를 설정한다.
+    /// </summary>
+    /// <param name="image"></param>
+    /// <param name="flag"></param>
+    private void SetImageVisibility(Image image, bool flag)
+    {
+        var color = image.color;
+        color.a = flag ? 1f : 0f;
+        image.color = color;
+    }
+}

@@ -19,9 +19,14 @@ public class InventoryUI : MonoBehaviour
     private List<ItemMetaData> metaDataList = new();
     private int activatedImageCount;
 
+    private bool openState = false;
+    private float checkTime = 0f;
+
     // 인벤토리를 닫은 상태로 시작
     void Start()
     {
+        InventorySystem.Inst.OnItemCountChange += OnItemValueChanged;
+
         // 각 버튼이 가지는 아이템 이미지 컴포넌트를 가져와 일단은 빈 이미지로 채운다.
         foreach (var bt in buttons)
         {
@@ -39,6 +44,26 @@ public class InventoryUI : MonoBehaviour
         metaDataList = metaDataSo.MetaDataList.ToList();
 
         OnCloseInventory();
+    }
+
+    void OnDestory()
+    {
+        if(InventorySystem.Inst)
+        {
+            InventorySystem.Inst.OnItemCountChange -= OnItemValueChanged;
+        }
+    }
+
+    // 아이템 개수가 변경 될 때마다 아이템에 해당하는 인덱스의 정보를 업데이트 한다.
+    public void OnItemValueChanged(ItemData data)
+    {
+        var index = (int)data.Type;
+        if (!buttons[index].interactable)
+        {
+            buttons[index].interactable = true;
+            SetImageVisibility(images[index], true);
+        }
+        texts[index].text = data.String;
     }
 
     /// <summary>
@@ -78,6 +103,8 @@ public class InventoryUI : MonoBehaviour
 
         // 활성화된 이미지 개수 캐싱
         activatedImageCount = currentIndex + 1;
+
+        openState = true;
     }
 
     /// <summary>
@@ -89,6 +116,7 @@ public class InventoryUI : MonoBehaviour
         background.gameObject.SetActive(false);
         openButton.gameObject.SetActive(true);
         closeButton.gameObject.SetActive(false);
+        openState = false;
     }
 
     /// <summary>

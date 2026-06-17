@@ -88,7 +88,7 @@ public class InventoryUI : MonoBehaviour
         // 아이템 이미지가 배치된 버튼은 상호작용이 활성화 된다.
         // 메타데이터 목록에서 타입에 해당하는 이미지를 찾아 해당 이미지로 교체한다.
         int currentIndex = 0;
-        foreach(RewardCurrencyType type in InventorySystem.Inst.Types)
+        foreach(RewardCurrencyType type in InventorySystem.Inst.Types)ㅇ
         {
             if(InventorySystem.Inst.HasItem(type))
             {

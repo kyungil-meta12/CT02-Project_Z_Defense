@@ -1,0 +1,183 @@
+using UnityEngine;
+using ProjectZDefense.StatusEffects;
+
+/// <summary>
+/// Electro 투사체가 직접 적중한 대상 주변으로 체인 라이트닝 데미지를 전파한다.
+/// </summary>
+public static class ElectroChainLightningUtility
+{
+    private const int CHAIN_BUFFER_SIZE = 32;
+
+    private static readonly Collider[] ChainHitBuffer = new Collider[CHAIN_BUFFER_SIZE];
+    private static readonly IDamageable[] ChainedTargets = new IDamageable[CHAIN_BUFFER_SIZE];
+
+    // 직접 피격 대상에서 시작해 주변 유효 대상에게 체인 데미지를 순차 적용한다
+    public static void ApplyChain(ElectroStatusPayload payload, IDamageable primaryTarget, Vector3 primaryPosition, float sourceDamage)
+    {
+        if (!CanApplyChain(payload, primaryTarget, sourceDamage))
+        {
+            return;
+        }
+
+        int chainedTargetCount = 0;
+        RegisterChainedTarget(primaryTarget, ref chainedTargetCount);
+
+        Vector3 currentPosition = primaryPosition;
+        for (int chainIndex = 1; chainIndex < payload.maxChainTargets && chainedTargetCount < CHAIN_BUFFER_SIZE; chainIndex++)
+        {
+            IDamageable nextTarget = FindNearestChainTarget(payload, currentPosition, chainedTargetCount);
+            if (nextTarget == null)
+            {
+                break;
+            }
+
+            float chainDamage = sourceDamage * CalculateChainDamageMultiplier(payload, chainIndex);
+            Vector3 nextPosition = ResolveTargetPosition(nextTarget, currentPosition);
+            ElectroChainLinkEffectUtility.Play(payload, currentPosition, nextPosition);
+            nextTarget.TakeDamage(chainDamage);
+            ApplyElectroStatus(payload, nextTarget, chainIndex, sourceDamage);
+            RegisterChainedTarget(nextTarget, ref chainedTargetCount);
+            currentPosition = nextPosition;
+        }
+
+        ClearChainedTargets(chainedTargetCount);
+    }
+
+    // 체인을 적용할 수 있는 최소 조건을 확인한다
+    private static bool CanApplyChain(ElectroStatusPayload payload, IDamageable primaryTarget, float sourceDamage)
+    {
+        return payload.hasElectroStatus &&
+               payload.maxChainTargets > 1 &&
+               payload.chainRadius > 0.0f &&
+               sourceDamage > 0.0f &&
+               primaryTarget != null;
+    }
+
+    // 지정 위치 주변에서 아직 체인되지 않은 가장 가까운 데미지 대상을 찾는다
+    private static IDamageable FindNearestChainTarget(ElectroStatusPayload payload, Vector3 position, int chainedTargetCount)
+    {
+        int hitCount = Physics.OverlapSphereNonAlloc(
+            position,
+            payload.chainRadius,
+            ChainHitBuffer,
+            payload.chainTargetLayerMask,
+            QueryTriggerInteraction.Collide);
+
+        IDamageable nearestTarget = null;
+        float nearestDistanceSqr = float.MaxValue;
+
+        for (int i = 0; i < hitCount; i++)
+        {
+            Collider hitCollider = ChainHitBuffer[i];
+            if (hitCollider == null)
+            {
+                continue;
+            }
+
+            IDamageable candidate = hitCollider.GetComponentInParent<IDamageable>();
+            if (!IsValidChainTarget(candidate, chainedTargetCount))
+            {
+                continue;
+            }
+
+            Vector3 candidatePosition = ResolveTargetPosition(candidate, hitCollider.bounds.center);
+            float distanceSqr = (candidatePosition - position).sqrMagnitude;
+            if (distanceSqr >= nearestDistanceSqr)
+            {
+                continue;
+            }
+
+            nearestDistanceSqr = distanceSqr;
+            nearestTarget = candidate;
+        }
+
+        ClearHitBuffer(hitCount);
+        return nearestTarget;
+    }
+
+    // 체인 대상이 생존 중이며 이미 맞은 대상이 아닌지 확인한다
+    private static bool IsValidChainTarget(IDamageable candidate, int chainedTargetCount)
+    {
+        return candidate != null && candidate.IsAlive && !ContainsChainedTarget(candidate, chainedTargetCount);
+    }
+
+    // 대상이 이미 이번 체인에 포함되어 있는지 확인한다
+    private static bool ContainsChainedTarget(IDamageable target, int chainedTargetCount)
+    {
+        for (int i = 0; i < chainedTargetCount; i++)
+        {
+            if (ChainedTargets[i] == target)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    // 체인 대상 목록에 새 대상을 등록한다
+    private static void RegisterChainedTarget(IDamageable target, ref int chainedTargetCount)
+    {
+        if (target == null || chainedTargetCount >= CHAIN_BUFFER_SIZE)
+        {
+            return;
+        }
+
+        ChainedTargets[chainedTargetCount] = target;
+        chainedTargetCount++;
+    }
+
+    // 체인 순번에 따른 데미지 배율을 계산한다
+    private static float CalculateChainDamageMultiplier(ElectroStatusPayload payload, int chainIndex)
+    {
+        float multiplier = 1.0f - Mathf.Clamp01(payload.chainDamageFalloffPerJump) * Mathf.Max(0, chainIndex);
+        return Mathf.Max(0.0f, multiplier);
+    }
+
+    // 체인 대상에게 Electro 상태 효과를 전달한다
+    private static void ApplyElectroStatus(ElectroStatusPayload payload, IDamageable target, int chainIndex, float sourceDamage)
+    {
+        if (target == null || !target.IsAlive)
+        {
+            return;
+        }
+
+        IElectroStatusEffectReceiver electroReceiver = target as IElectroStatusEffectReceiver;
+        if (electroReceiver == null)
+        {
+            return;
+        }
+
+        electroReceiver.ApplyElectroStatus(payload, chainIndex, sourceDamage);
+    }
+
+    // 데미지 대상의 위치를 컴포넌트 기준으로 확인하고 실패 시 대체 위치를 반환한다
+    private static Vector3 ResolveTargetPosition(IDamageable target, Vector3 fallbackPosition)
+    {
+        if (target is Component targetComponent)
+        {
+            return targetComponent.transform.position;
+        }
+
+        return fallbackPosition;
+    }
+
+    // 체인 탐색에 사용한 콜라이더 버퍼를 비운다
+    private static void ClearHitBuffer(int hitCount)
+    {
+        int clearCount = Mathf.Min(hitCount, ChainHitBuffer.Length);
+        for (int i = 0; i < clearCount; i++)
+        {
+            ChainHitBuffer[i] = null;
+        }
+    }
+
+    // 이번 체인에 등록한 대상 버퍼를 비운다
+    private static void ClearChainedTargets(int chainedTargetCount)
+    {
+        for (int i = 0; i < chainedTargetCount; i++)
+        {
+            ChainedTargets[i] = null;
+        }
+    }
+}

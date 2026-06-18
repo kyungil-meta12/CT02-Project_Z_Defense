@@ -62,6 +62,7 @@ Do not use display names as stable IDs.
 | `BeamAttackProfileSO` | Beam-specific attack rules: damage tick interval, damage multiplier, DPS interpretation, target mode, pierce radius, max targets, and damage layer mask. |
 | `FrostStatusProfileSO` | Frost-specific status rules: slow buildup, max slow, freeze timing, freeze explosion, max-HP damage, secondary explosion slow, related VFX references, and optional primary-target max-HP damage growth. |
 | `PoisonStatusProfileSO` | Poison-specific status rules: max-HP tick damage ratio, tick interval, duration, stack limit, stack refresh mode, boss damage multiplier, and optional death burst profile reference. |
+| `ElectroStatusProfileSO` | Electro-specific status rules: chain lightning count/radius/falloff, Shock stack duration, Overload trigger policy, Overload burst, and short stun timing. |
 | `PoisonDeathBurstProfileSO` | Poison lethal-death burst rules: burst VFX, radius, weak Poison values, target layer mask, and boss damage multiplier for secondary weak Poison. |
 | `PoisonTurretStatGrowthProfileSO` | Poison_Turret-only stat growth profile. Inherits common turret stat growth and adds Poison status/death-burst growth fields without exposing them on non-Poison turrets. |
 | `TurretVFXProgressionSO` | Selects active VFX profile by current tier level. |
@@ -78,12 +79,13 @@ Do not use display names as stable IDs.
 5. `TurretVFXProgressionSO` selects projectile, beam, muzzle VFX data, and optional beam attack profile data.
 6. `TurretDefinitionSO.frostStatusProfile` provides Frost-specific status values when the selected attack is a beam Frost turret.
 7. `TurretDefinitionSO.poisonStatusProfile` provides Poison-specific status values when the selected attack is a projectile Poison turret.
-8. `TurretProjectileScaleProgressionSO` selects projectile scale.
-9. Projectile firing logic applies projectile prefab, speed, damage, pierce count, scale, collision ignore rules, and optional Poison payload per spawn.
-10. Beam firing logic keeps the beam VFX alive between fire requests and applies damage by `BeamAttackProfileSO.damageTickInterval`.
-11. `ProjectileDamageDealer` applies projectile damage to `IDamageable` targets and forwards Poison payloads to `IPoisonStatusEffectReceiver`.
-12. `ProjectileHitDetector` handles tracked target, trigger/collision, and movement raycast hit paths.
-13. Damage receivers spawn damage popups where appropriate.
+8. `TurretDefinitionSO.electroStatusProfile` provides Electro-specific chain, Shock stack, Overload trigger policy, Overload burst, and stun values when the selected attack is an Electro projectile turret.
+9. `TurretProjectileScaleProgressionSO` selects projectile scale.
+10. Projectile firing logic applies projectile prefab, speed, damage, pierce count, scale, collision ignore rules, and optional Poison/Electro payloads per spawn.
+11. Beam firing logic keeps the beam VFX alive between fire requests and applies damage by `BeamAttackProfileSO.damageTickInterval`.
+12. `ProjectileDamageDealer` applies projectile damage to `IDamageable` targets, forwards Poison payloads to `IPoisonStatusEffectReceiver`, and triggers Electro chain damage when an Electro payload is active.
+13. `ProjectileHitDetector` handles tracked target, trigger/collision, and movement raycast hit paths.
+14. Damage receivers spawn damage popups where appropriate.
 
 ## Beam Attack Runtime Flow
 
@@ -235,6 +237,34 @@ Poison data ownership:
 - `PoisonDeathBurstEffectUtility` uses the precomputed values inside `ProjectZDefense.StatusEffects.PoisonStatusPayload`, not raw profile values, so death-burst weak Poison stays level-scaled during chain explosions.
 - `PoisonStatusProfileSO.HasPoisonStatus` is only a base-profile quick check. Runtime activation is decided from the scaled payload so a profile with low base values can still become active through growth settings.
 - Per-target Poison state changes should be fixed in `PoisonStatusRuntime`, while pure tick math edge cases should be fixed in `PoisonStatusRuntimeUtility`.
+
+Electro status handling:
+
+- `ElectroStatusProfileSO` stores chain lightning count/radius/damage falloff, Shock stack duration, Overload trigger policy, Overload burst values, and short stun timing.
+- `TurretDefinitionRuntimeController.ApplyVFX` creates an Electro payload only for projectile VFX profiles and passes it to the runtime `Turret`.
+- The base projectile firing path carries the Electro payload from `Turret` to `FiringEvent`, `Gun`, and `ProjectileDamageDealer`.
+- `ProjectileDamageDealer.TryApplyDamage` applies direct projectile damage first, then forwards Electro status to targets implementing `ProjectZDefense.StatusEffects.IElectroStatusEffectReceiver`.
+- `ElectroChainLightningUtility` starts from the directly hit target, finds the nearest living `IDamageable` inside `chainRadius` with `Physics.OverlapSphereNonAlloc`, deduplicates targets, and applies reduced chain damage per jump.
+- Chain damage uses the same `IDamageable.TakeDamage` path as direct projectile damage, so HP, damage popups, rewards, and death flow stay consistent.
+- `ElectroChainLinkEffectUtility` renders a short chain-link particle effect between each chained target pair using the VFX settings stored in `ElectroStatusProfileSO`.
+- Current chain-link VFX uses project-owned `PS_Electro_ChainLink`, a duplicate of `PS_LightiningStrike 1` with floor/impact children disabled and `Lightning`, `Lightning_Arc`, `Sparks`, and `Flare` kept active.
+- Tune `chainLinkEffectDuration`, `chainLinkVerticalOffset`, `chainLinkSourceAxis`, `chainLinkLocalPositionOffset`, `chainLinkRotationEulerOffset`, `chainLinkLengthScaleMultiplier`, and `chainLinkThicknessScale` first when the chain effect is too short, too high/low, rotated incorrectly, offset from targets, too stretched, or too thick.
+- When `useChainLinkEndpointFit` is enabled, `chainLinkLocalStartPoint` and `chainLinkLocalEndPoint` define the local-space visual segment that should be mapped to the previous and next chained target positions. The current `PS_Electro_ChainLink` default is `(0,0,0)` to `(0,0,15)` because the main lightning children extend along local Z.
+- Chain-link VFX reads live values from `ElectroStatusProfileSO` through the payload's source profile reference, so play-mode Inspector edits to those VFX fields affect newly spawned chain links without reapplying the turret definition.
+- Shock stack, Overload, and stun receiver behavior should be implemented in enemy-side runtime receivers after the chain damage skeleton is verified in play mode.
+
+Electro runtime pipeline:
+
+1. `Electro_Turret_Definition.electroStatusProfile` points to the active `ElectroStatusProfileSO`.
+2. `TurretDefinitionRuntimeController.ApplyVFX` creates a `ProjectZDefense.StatusEffects.ElectroStatusPayload` from `ElectroStatusProfileSO` when the selected VFX is projectile-based.
+3. The payload is stored on the runtime `Turret` and passed through `FiringEvent`, `Gun`, and `ProjectileDamageDealer` each projectile spawn.
+4. `ProjectileDamageDealer.TryApplyDamage` applies direct projectile damage first through `IDamageable.TakeDamage`.
+5. If the damaged target still lives and implements `ProjectZDefense.StatusEffects.IElectroStatusEffectReceiver`, `ProjectileDamageDealer` calls `ApplyElectroStatus` with chain index `0`.
+6. `ElectroChainLightningUtility` searches from the direct hit position and applies chain damage to up to `maxChainTargets - 1` additional targets.
+7. Each bounced target receives damage scaled by `1 - chainDamageFalloffPerJump * chainIndex`, clamped at `0`.
+8. Each bounced target that implements `ProjectZDefense.StatusEffects.IElectroStatusEffectReceiver` also receives `ApplyElectroStatus` with its chain index.
+9. A short chain-link particle effect is spawned from the previous target position to the bounced target position.
+10. Hit or overload particle bursts remain separate from the line VFX and can be layered later.
 
 Poison growth fields on `PoisonTurretStatGrowthProfileSO`:
 

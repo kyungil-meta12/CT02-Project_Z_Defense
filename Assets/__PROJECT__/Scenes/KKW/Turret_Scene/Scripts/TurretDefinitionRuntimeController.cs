@@ -425,12 +425,14 @@ public class TurretDefinitionRuntimeController : MonoBehaviour
             targetTurret.SetProjectilePrefab(vfxProfile.projectilePrefab, runtimeStat.projectileSpeed);
             targetTurret.SetProjectileScale(GetProjectileScale());
             targetTurret.SetPoisonStatusPayload(CreatePoisonStatusPayload());
+            targetTurret.SetElectroStatusPayload(CreateElectroStatusPayload());
         }
         else if (targetTurret != null && vfxProfile.attackVfxType == TurretAttackVfxType.Beam && vfxProfile.beamPrefab != null)
         {
             targetTurret.SetProjectilePrefab(vfxProfile.beamPrefab, runtimeStat.projectileSpeed);
             targetTurret.SetProjectileScale(GetProjectileScale());
             targetTurret.SetPoisonStatusPayload(default);
+            targetTurret.SetElectroStatusPayload(default);
         }
 
         if (targetFiringEvent != null)
@@ -471,6 +473,18 @@ public class TurretDefinitionRuntimeController : MonoBehaviour
 
         PoisonStatusPayload payload = turretDefinition.poisonStatusProfile.CreatePayload(level, turretDefinition.statGrowthProfile);
         return payload.hasPoisonStatus ? payload : default;
+    }
+
+    // 현재 터렛 정의에 맞는 Electro 상태 payload를 생성한다
+    private ElectroStatusPayload CreateElectroStatusPayload()
+    {
+        if (turretDefinition == null || turretDefinition.electroStatusProfile == null)
+        {
+            return default;
+        }
+
+        ElectroStatusPayload payload = turretDefinition.electroStatusProfile.CreatePayload();
+        return payload.hasElectroStatus ? payload : default;
     }
 
     // 진화 엔트리에 설정된 연출 효과를 재생한다

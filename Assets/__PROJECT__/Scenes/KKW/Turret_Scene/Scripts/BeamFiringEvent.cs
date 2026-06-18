@@ -62,7 +62,7 @@ public class BeamFiringEvent : FiringEvent
     }
 
     // 빔 발사 요청마다 현재 타겟과 빔 유지 상태를 갱신한다
-    public override void Fire(GameObject projectilePrefab, GameObject target, float projectileSpeed, float projectileScale_, float projectileDamage, int projectilePierceCount, bool logProjectileDamage, PoisonStatusPayload poisonStatusPayload)
+    public override void Fire(GameObject projectilePrefab, GameObject target, float projectileSpeed, float projectileScale_, float projectileDamage, int projectilePierceCount, bool logProjectileDamage, PoisonStatusPayload poisonStatusPayload, ElectroStatusPayload electroStatusPayload)
     {
         if (beamPrefab == null || target == null || !target.activeInHierarchy)
         {

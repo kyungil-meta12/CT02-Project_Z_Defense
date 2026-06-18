@@ -274,7 +274,7 @@ public class InventorySystem : MonoBehaviour
             item.Count += amount;
             item.CountString = item.Count.ToString();
             InvokeEvent(item);
-            print($"[InventorySystem] 아이템 획득함 | 타입: {itemType} | 현재 개수: {item.Count}");
+            //print($"[InventorySystem] 아이템 획득함 | 타입: {itemType} | 현재 개수: {item.Count}");
         }
     }
 

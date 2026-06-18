@@ -282,8 +282,15 @@ public class Survivor : MonoBehaviour
     // 치료 버튼 입력으로 병원 이동을 시작한다
     public bool TryStartTreatment()
     {
-        if (!CanRequestTreatment || hospitalPoint == null)
+        if (!CanRequestTreatment)
         {
+            Debug.LogWarning("[Survivor] 치료를 시작할 수 없는 상태입니다.", this);
+            return false;
+        }
+
+        if (hospitalPoint == null)
+        {
+            Debug.LogWarning("[Survivor] 병원 이동 포인트가 없어 치료를 시작할 수 없습니다.", this);
             return false;
         }
 
@@ -666,12 +673,50 @@ public class Survivor : MonoBehaviour
             return;
         }
 
-        if ((state == SurvivorState.Retreating || state == SurvivorState.ReturningToDefensePoint) && defenseMoveTarget == null)
+        if (state != SurvivorState.MoveToTarget && defenseMoveTarget == null)
         {
             return;
         }
 
-        transform.position = anim.rootPosition;
+        Vector3 moveDelta = anim.deltaPosition;
+        moveDelta.y = 0f;
+
+        float moveDistance = moveDelta.magnitude;
+        if (moveDistance <= 0.0001f)
+        {
+            moveDistance = spec != null ? spec.GetMoveSpeed() * Time.deltaTime : agent.speed * Time.deltaTime;
+        }
+
+        if (moveDistance <= 0.0001f)
+        {
+            return;
+        }
+
+        Vector3 moveDirection = agent.desiredVelocity;
+        moveDirection.y = 0f;
+
+        if (moveDirection.sqrMagnitude <= 0.0001f)
+        {
+            moveDirection = GetDirectionToCurrentMoveTarget();
+        }
+
+        if (moveDirection.sqrMagnitude <= 0.0001f)
+        {
+            return;
+        }
+
+        moveDirection.Normalize();
+        Vector3 targetPosition = transform.position + moveDirection * moveDistance;
+        targetPosition.y = transform.position.y;
+
+        Vector3 currentTargetDirection = GetDirectionToCurrentMoveTarget();
+        if (currentTargetDirection.sqrMagnitude > 0.0001f && moveDistance * moveDistance >= currentTargetDirection.sqrMagnitude)
+        {
+            targetPosition = transform.position + currentTargetDirection;
+            targetPosition.y = transform.position.y;
+        }
+
+        transform.position = targetPosition;
         agent.nextPosition = transform.position;
     }
 

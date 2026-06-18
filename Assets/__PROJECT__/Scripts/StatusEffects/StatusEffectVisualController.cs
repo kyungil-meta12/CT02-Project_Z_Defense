@@ -44,6 +44,7 @@ public sealed class StatusEffectVisualSlot
 
     [System.NonSerialized] public GameObject[] runtimeInstances;
     [System.NonSerialized] public GameObject[] lethalIndicatorInstances;
+    [System.NonSerialized] public Material[][] originalSharedMaterials;
 }
 
 /// <summary>
@@ -82,6 +83,7 @@ public class StatusEffectVisualController : MonoBehaviour
         if (isActive)
         {
             EnsureVisualSlotInstances(StatusEffectVisualType.FrostSlow);
+            CacheVisualSlotOriginalMaterials(StatusEffectVisualType.FrostSlow);
         }
 
         SetVisualSlotInstancesActive(StatusEffectVisualType.FrostSlow, isActive);
@@ -89,7 +91,7 @@ public class StatusEffectVisualController : MonoBehaviour
 
         if (!isActive)
         {
-            StripVisualSlotOverlayMaterials(StatusEffectVisualType.FrostSlow);
+            RestoreVisualSlotOriginalMaterials(StatusEffectVisualType.FrostSlow);
         }
     }
 
@@ -104,6 +106,7 @@ public class StatusEffectVisualController : MonoBehaviour
         if (isActive)
         {
             EnsureVisualSlotInstances(StatusEffectVisualType.Poison);
+            CacheVisualSlotOriginalMaterials(StatusEffectVisualType.Poison);
         }
 
         SetVisualSlotInstancesActive(StatusEffectVisualType.Poison, isActive);
@@ -112,7 +115,7 @@ public class StatusEffectVisualController : MonoBehaviour
         if (!isActive)
         {
             SetPoisonLethalIndicatorActive(false);
-            StripVisualSlotOverlayMaterials(StatusEffectVisualType.Poison);
+            RestoreVisualSlotOriginalMaterials(StatusEffectVisualType.Poison);
         }
     }
 
@@ -471,6 +474,7 @@ public class StatusEffectVisualController : MonoBehaviour
         ClearInstances(slot.runtimeInstances);
         slot.runtimeInstances = null;
         slot.lethalIndicatorInstances = null;
+        slot.originalSharedMaterials = null;
     }
 
     // 인스턴스 배열에 생성된 비주얼 오브젝트를 모두 제거한다
@@ -494,8 +498,8 @@ public class StatusEffectVisualController : MonoBehaviour
         }
     }
 
-    // 지정한 상태이상 타입에 해당하는 확장 슬롯 Overlay 머티리얼을 제거한다
-    private void StripVisualSlotOverlayMaterials(StatusEffectVisualType visualType)
+    // 지정한 상태이상 타입의 RendererOverlay 슬롯 원본 머티리얼 배열을 캐시한다
+    private void CacheVisualSlotOriginalMaterials(StatusEffectVisualType visualType)
     {
         if (visualSlots == null)
         {
@@ -510,74 +514,77 @@ public class StatusEffectVisualController : MonoBehaviour
                 continue;
             }
 
-            StripRuntimeOverlayMaterials(slot.targetRenderers, GetOverlayMaterialName(slot.visualPrefab));
+            CacheOriginalSharedMaterials(slot);
         }
     }
 
-    // 지정한 렌더러 배열에서 지정한 OverlayFX 런타임 머티리얼 슬롯을 제거한다
-    private static void StripRuntimeOverlayMaterials(Renderer[] targetRenderers, string overlayMaterialName)
+    // RendererOverlay 슬롯 대상 렌더러의 현재 머티리얼 배열을 저장한다
+    private static void CacheOriginalSharedMaterials(StatusEffectVisualSlot slot)
     {
-        if (targetRenderers == null)
+        if (slot == null || slot.targetRenderers == null)
         {
             return;
         }
 
-        for (int i = 0; i < targetRenderers.Length; i++)
+        if (slot.originalSharedMaterials != null && slot.originalSharedMaterials.Length == slot.targetRenderers.Length)
         {
-            Renderer targetRenderer = targetRenderers[i];
+            return;
+        }
+
+        slot.originalSharedMaterials = new Material[slot.targetRenderers.Length][];
+        for (int i = 0; i < slot.targetRenderers.Length; i++)
+        {
+            Renderer targetRenderer = slot.targetRenderers[i];
             if (targetRenderer == null)
             {
                 continue;
             }
 
-            StripRuntimeOverlayMaterial(targetRenderer, overlayMaterialName);
+            slot.originalSharedMaterials[i] = targetRenderer.sharedMaterials;
         }
     }
 
-    // 지정한 OverlayFX 프리팹에서 제거할 Overlay 머티리얼 이름을 얻는다
-    private static string GetOverlayMaterialName(GameObject visualPrefab)
+    // 지정한 상태이상 타입의 RendererOverlay 슬롯 머티리얼을 원본 배열로 복구한다
+    private void RestoreVisualSlotOriginalMaterials(StatusEffectVisualType visualType)
     {
-        OverlayFX overlayFx = visualPrefab == null ? null : visualPrefab.GetComponent<OverlayFX>();
-        if (overlayFx == null || overlayFx.overlayMaterial == null)
+        if (visualSlots == null)
         {
-            return string.Empty;
+            return;
         }
 
-        return overlayFx.overlayMaterial.name;
-    }
-
-    // 단일 렌더러에서 OverlayFX 런타임 머티리얼을 제거한다
-    private static void StripRuntimeOverlayMaterial(Renderer targetRenderer, string overlayMaterialName)
-    {
-        Material[] materials = targetRenderer.sharedMaterials;
-        bool changed = false;
-
-        for (int i = 0; i < materials.Length; i++)
+        for (int i = 0; i < visualSlots.Length; i++)
         {
-            Material material = materials[i];
-            if (material == null || !IsRuntimeOverlayMaterial(material, overlayMaterialName))
+            StatusEffectVisualSlot slot = visualSlots[i];
+            if (slot == null || slot.visualType != visualType || slot.attachMode != StatusEffectVisualAttachMode.RendererOverlay)
             {
                 continue;
             }
 
-            materials[i] = null;
-            changed = true;
-        }
-
-        if (changed)
-        {
-            targetRenderer.sharedMaterials = materials;
+            RestoreOriginalSharedMaterials(slot);
         }
     }
 
-    // 지정한 머티리얼이 이 컨트롤러가 추가한 런타임 OverlayFX 머티리얼인지 확인한다
-    private static bool IsRuntimeOverlayMaterial(Material material, string overlayMaterialName)
+    // RendererOverlay 슬롯 대상 렌더러의 머티리얼 배열을 저장된 원본으로 되돌린다
+    private static void RestoreOriginalSharedMaterials(StatusEffectVisualSlot slot)
     {
-        if (string.IsNullOrEmpty(overlayMaterialName))
+        if (slot == null || slot.targetRenderers == null || slot.originalSharedMaterials == null)
         {
-            return material.name.EndsWith("(Runtime)");
+            return;
         }
 
-        return material.name.StartsWith(overlayMaterialName) && material.name.EndsWith("(Runtime)");
+        int count = Mathf.Min(slot.targetRenderers.Length, slot.originalSharedMaterials.Length);
+        for (int i = 0; i < count; i++)
+        {
+            Renderer targetRenderer = slot.targetRenderers[i];
+            Material[] originalMaterials = slot.originalSharedMaterials[i];
+            if (targetRenderer == null || originalMaterials == null)
+            {
+                continue;
+            }
+
+            targetRenderer.sharedMaterials = originalMaterials;
+        }
+
+        slot.originalSharedMaterials = null;
     }
 }

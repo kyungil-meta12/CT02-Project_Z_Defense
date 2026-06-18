@@ -12,7 +12,7 @@ public static class ElectroChainLightningUtility
     private static readonly IDamageable[] ChainedTargets = new IDamageable[CHAIN_BUFFER_SIZE];
 
     // 직접 피격 대상에서 시작해 주변 유효 대상에게 체인 데미지를 순차 적용한다
-    public static void ApplyChain(ElectroStatusPayload payload, IDamageable primaryTarget, Vector3 primaryPosition, float sourceDamage)
+    public static void ApplyChain(ElectroStatusPayload payload, IDamageable primaryTarget, Collider primaryCollider, Vector3 primaryPosition, float sourceDamage)
     {
         if (!CanApplyChain(payload, primaryTarget, sourceDamage))
         {
@@ -22,21 +22,26 @@ public static class ElectroChainLightningUtility
         int chainedTargetCount = 0;
         RegisterChainedTarget(primaryTarget, ref chainedTargetCount);
 
-        Vector3 currentPosition = primaryPosition;
+        Collider currentCollider = primaryCollider;
+        Transform currentTransform = ResolveTargetTransform(primaryTarget);
+        Vector3 currentPosition = ResolveTargetPosition(primaryTarget, primaryCollider, primaryPosition);
         for (int chainIndex = 1; chainIndex < payload.maxChainTargets && chainedTargetCount < CHAIN_BUFFER_SIZE; chainIndex++)
         {
-            IDamageable nextTarget = FindNearestChainTarget(payload, currentPosition, chainedTargetCount);
+            IDamageable nextTarget = FindNearestChainTarget(payload, currentPosition, chainedTargetCount, out Collider nextCollider);
             if (nextTarget == null)
             {
                 break;
             }
 
             float chainDamage = sourceDamage * CalculateChainDamageMultiplier(payload, chainIndex);
-            Vector3 nextPosition = ResolveTargetPosition(nextTarget, currentPosition);
-            ElectroChainLinkEffectUtility.Play(payload, currentPosition, nextPosition);
+            Vector3 nextPosition = ResolveTargetPosition(nextTarget, nextCollider, currentPosition);
+            Transform nextTransform = ResolveTargetTransform(nextTarget);
+            ElectroChainLinkEffectUtility.Play(payload, currentCollider, nextCollider, currentTransform, nextTransform, currentPosition, nextPosition);
             nextTarget.TakeDamage(chainDamage);
             ApplyElectroStatus(payload, nextTarget, chainIndex, sourceDamage);
             RegisterChainedTarget(nextTarget, ref chainedTargetCount);
+            currentCollider = nextCollider;
+            currentTransform = nextTransform;
             currentPosition = nextPosition;
         }
 
@@ -54,7 +59,7 @@ public static class ElectroChainLightningUtility
     }
 
     // 지정 위치 주변에서 아직 체인되지 않은 가장 가까운 데미지 대상을 찾는다
-    private static IDamageable FindNearestChainTarget(ElectroStatusPayload payload, Vector3 position, int chainedTargetCount)
+    private static IDamageable FindNearestChainTarget(ElectroStatusPayload payload, Vector3 position, int chainedTargetCount, out Collider nearestCollider)
     {
         int hitCount = Physics.OverlapSphereNonAlloc(
             position,
@@ -64,6 +69,7 @@ public static class ElectroChainLightningUtility
             QueryTriggerInteraction.Collide);
 
         IDamageable nearestTarget = null;
+        nearestCollider = null;
         float nearestDistanceSqr = float.MaxValue;
 
         for (int i = 0; i < hitCount; i++)
@@ -80,7 +86,7 @@ public static class ElectroChainLightningUtility
                 continue;
             }
 
-            Vector3 candidatePosition = ResolveTargetPosition(candidate, hitCollider.bounds.center);
+            Vector3 candidatePosition = ResolveTargetPosition(candidate, hitCollider, hitCollider.bounds.center);
             float distanceSqr = (candidatePosition - position).sqrMagnitude;
             if (distanceSqr >= nearestDistanceSqr)
             {
@@ -89,6 +95,7 @@ public static class ElectroChainLightningUtility
 
             nearestDistanceSqr = distanceSqr;
             nearestTarget = candidate;
+            nearestCollider = hitCollider;
         }
 
         ClearHitBuffer(hitCount);
@@ -152,14 +159,30 @@ public static class ElectroChainLightningUtility
     }
 
     // 데미지 대상의 위치를 컴포넌트 기준으로 확인하고 실패 시 대체 위치를 반환한다
-    private static Vector3 ResolveTargetPosition(IDamageable target, Vector3 fallbackPosition)
+    private static Vector3 ResolveTargetPosition(IDamageable target, Collider targetCollider, Vector3 fallbackPosition)
     {
+        if (targetCollider != null)
+        {
+            return targetCollider.bounds.center;
+        }
+
         if (target is Component targetComponent)
         {
             return targetComponent.transform.position;
         }
 
         return fallbackPosition;
+    }
+
+    // 데미지 대상의 Transform 참조를 반환한다
+    private static Transform ResolveTargetTransform(IDamageable target)
+    {
+        if (target is Component targetComponent)
+        {
+            return targetComponent.transform;
+        }
+
+        return null;
     }
 
     // 체인 탐색에 사용한 콜라이더 버퍼를 비운다

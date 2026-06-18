@@ -35,7 +35,7 @@ public class ElectroStatusProfileSO : ScriptableObject
     public bool playChainLinkEffect = true;
     public GameObject chainLinkEffectPrefab;
     [Min(0.01f)] public float chainLinkEffectDuration = 0.65f;
-    [Min(0.0f)] public float chainLinkVerticalOffset = 0.8f;
+    [Min(0.0f)] public float chainLinkVerticalOffset = 0.15f;
 
     [Header("체인 링크 위치 보정")]
     public Vector3 chainLinkSourceAxis = Vector3.forward;
@@ -47,7 +47,7 @@ public class ElectroStatusProfileSO : ScriptableObject
 
     [Header("체인 링크 스케일")]
     [Min(0.01f)] public float chainLinkLengthScaleMultiplier = 0.55f;
-    [Min(0.01f)] public float chainLinkThicknessScale = 0.35f;
+    [Min(0.01f)] public float chainLinkThicknessScale = 0.55f;
 
     public bool HasElectroStatus
     {

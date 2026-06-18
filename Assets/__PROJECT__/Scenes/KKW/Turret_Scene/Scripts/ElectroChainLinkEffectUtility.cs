@@ -16,24 +16,84 @@ public static class ElectroChainLinkEffectUtility
             return null;
         }
 
-        float verticalOffset = ResolveVerticalOffset(payload);
-        Vector3 elevatedStart = startPosition + Vector3.up * verticalOffset;
-        Vector3 elevatedEnd = endPosition + Vector3.up * verticalOffset;
-        Vector3 direction = elevatedEnd - elevatedStart;
-        float distance = direction.magnitude;
-        Quaternion effectRotation = ResolveEffectRotation(payload, direction);
-        Vector3 effectScale = ResolveEffectScale(payload, distance);
-        Vector3 effectPosition = ResolveEffectPosition(payload, elevatedStart, elevatedEnd, effectRotation, effectScale);
-
-        GameObject effectObject = PooledObjectUtility.Spawn(ResolveEffectPrefab(payload), effectPosition, effectRotation);
+        GameObject effectObject = SpawnEffect(payload, startPosition, endPosition);
         if (effectObject == null)
         {
             return null;
         }
 
-        ApplyEffectScale(effectObject, effectScale);
         InitEffectReturner(effectObject, ResolveEffectDuration(payload));
         return effectObject;
+    }
+
+    // 지정한 두 대상 Transform 사이에 체인 링크 이펙트를 재생하고 짧게 위치를 추적한다
+    public static GameObject Play(ElectroStatusPayload payload, Transform startTransform, Transform endTransform, Vector3 fallbackStartPosition, Vector3 fallbackEndPosition)
+    {
+        Vector3 startPosition = ResolveAnchorPosition(startTransform, fallbackStartPosition);
+        Vector3 endPosition = ResolveAnchorPosition(endTransform, fallbackEndPosition);
+        if (!CanPlay(payload, startPosition, endPosition))
+        {
+            return null;
+        }
+
+        GameObject effectObject = SpawnEffect(payload, startPosition, endPosition);
+        if (effectObject == null)
+        {
+            return null;
+        }
+
+        InitAnchorTracker(effectObject, payload, startTransform, endTransform, fallbackStartPosition, fallbackEndPosition);
+        InitEffectReturner(effectObject, ResolveEffectDuration(payload));
+        return effectObject;
+    }
+
+    // 지정한 두 대상 Collider 사이에 체인 링크 이펙트를 재생하고 짧게 위치를 추적한다
+    public static GameObject Play(ElectroStatusPayload payload, Collider startCollider, Collider endCollider, Transform startTransform, Transform endTransform, Vector3 fallbackStartPosition, Vector3 fallbackEndPosition)
+    {
+        Vector3 startPosition = ResolveAnchorPosition(startCollider, startTransform, fallbackStartPosition);
+        Vector3 endPosition = ResolveAnchorPosition(endCollider, endTransform, fallbackEndPosition);
+        if (!CanPlay(payload, startPosition, endPosition))
+        {
+            return null;
+        }
+
+        GameObject effectObject = SpawnEffect(payload, startPosition, endPosition);
+        if (effectObject == null)
+        {
+            return null;
+        }
+
+        InitAnchorTracker(effectObject, payload, startCollider, endCollider, startTransform, endTransform, fallbackStartPosition, fallbackEndPosition);
+        InitEffectReturner(effectObject, ResolveEffectDuration(payload));
+        return effectObject;
+    }
+
+    // 체인 링크 이펙트를 생성하고 현재 시작/끝 위치에 맞춰 배치한다
+    private static GameObject SpawnEffect(ElectroStatusPayload payload, Vector3 startPosition, Vector3 endPosition)
+    {
+        PlacementData placementData = CalculatePlacement(payload, startPosition, endPosition);
+        GameObject effectObject = PooledObjectUtility.Spawn(ResolveEffectPrefab(payload), placementData.Position, placementData.Rotation);
+        if (effectObject == null)
+        {
+            return null;
+        }
+
+        ApplyEffectScale(effectObject, placementData.Scale);
+        return effectObject;
+    }
+
+    // 생성된 체인 링크 이펙트를 최신 시작/끝 위치에 다시 맞춘다
+    public static void ApplyPlacement(GameObject effectObject, ElectroStatusPayload payload, Vector3 startPosition, Vector3 endPosition)
+    {
+        if (effectObject == null || !CanPlay(payload, startPosition, endPosition))
+        {
+            return;
+        }
+
+        PlacementData placementData = CalculatePlacement(payload, startPosition, endPosition);
+        Transform effectTransform = effectObject.transform;
+        effectTransform.SetPositionAndRotation(placementData.Position, placementData.Rotation);
+        effectTransform.localScale = placementData.Scale;
     }
 
     // 체인 링크 이펙트를 재생할 수 있는지 확인한다
@@ -43,6 +103,20 @@ public static class ElectroChainLinkEffectUtility
                ResolveEffectPrefab(payload) != null &&
                ResolveEffectDuration(payload) > 0.0f &&
                (endPosition - startPosition).sqrMagnitude > MIN_DIRECTION_SQR;
+    }
+
+    // 체인 링크 이펙트의 위치, 회전, 스케일을 계산한다
+    private static PlacementData CalculatePlacement(ElectroStatusPayload payload, Vector3 startPosition, Vector3 endPosition)
+    {
+        float verticalOffset = ResolveVerticalOffset(payload);
+        Vector3 elevatedStart = startPosition + Vector3.up * verticalOffset;
+        Vector3 elevatedEnd = endPosition + Vector3.up * verticalOffset;
+        Vector3 direction = elevatedEnd - elevatedStart;
+        float distance = direction.magnitude;
+        Quaternion effectRotation = ResolveEffectRotation(payload, direction);
+        Vector3 effectScale = ResolveEffectScale(payload, distance);
+        Vector3 effectPosition = ResolveEffectPosition(payload, elevatedStart, elevatedEnd, effectRotation, effectScale);
+        return new PlacementData(effectPosition, effectRotation, effectScale);
     }
 
     // 이펙트 프리팹을 체인 거리와 굵기 설정에 맞춰 스케일링한다
@@ -63,6 +137,23 @@ public static class ElectroChainLinkEffectUtility
             baseScale.x * ResolveAxisScale(sourceAxis.x, lengthScale, safeThicknessScale),
             baseScale.y * ResolveAxisScale(sourceAxis.y, lengthScale, safeThicknessScale),
             baseScale.z * ResolveAxisScale(sourceAxis.z, lengthScale, safeThicknessScale));
+    }
+
+    // 대상 Transform이 살아있으면 최신 위치를 사용하고 아니면 대체 위치를 사용한다
+    private static Vector3 ResolveAnchorPosition(Transform anchorTransform, Vector3 fallbackPosition)
+    {
+        return anchorTransform != null ? anchorTransform.position : fallbackPosition;
+    }
+
+    // 대상 Collider가 살아있으면 콜라이더 중심을 우선 사용하고 아니면 Transform 또는 대체 위치를 사용한다
+    private static Vector3 ResolveAnchorPosition(Collider anchorCollider, Transform anchorTransform, Vector3 fallbackPosition)
+    {
+        if (anchorCollider != null)
+        {
+            return anchorCollider.bounds.center;
+        }
+
+        return ResolveAnchorPosition(anchorTransform, fallbackPosition);
     }
 
     // 설정에 따라 루트 위치를 중간점 또는 로컬 시작점 기준으로 계산한다
@@ -195,5 +286,45 @@ public static class ElectroChainLinkEffectUtility
         }
 
         returner.Init(duration);
+    }
+
+    // 체인 링크 이펙트가 파티클 지연 시간 동안 대상 이동을 따라가도록 초기화한다
+    private static void InitAnchorTracker(GameObject effectObject, ElectroStatusPayload payload, Transform startTransform, Transform endTransform, Vector3 fallbackStartPosition, Vector3 fallbackEndPosition)
+    {
+        ElectroChainLinkAnchorTracker anchorTracker = effectObject.GetComponent<ElectroChainLinkAnchorTracker>();
+        if (anchorTracker == null)
+        {
+            anchorTracker = effectObject.AddComponent<ElectroChainLinkAnchorTracker>();
+        }
+
+        anchorTracker.Init(payload, startTransform, endTransform, fallbackStartPosition, fallbackEndPosition, ResolveEffectDuration(payload));
+    }
+
+    // 체인 링크 이펙트가 파티클 지연 시간 동안 대상 콜라이더 중심을 따라가도록 초기화한다
+    private static void InitAnchorTracker(GameObject effectObject, ElectroStatusPayload payload, Collider startCollider, Collider endCollider, Transform startTransform, Transform endTransform, Vector3 fallbackStartPosition, Vector3 fallbackEndPosition)
+    {
+        ElectroChainLinkAnchorTracker anchorTracker = effectObject.GetComponent<ElectroChainLinkAnchorTracker>();
+        if (anchorTracker == null)
+        {
+            anchorTracker = effectObject.AddComponent<ElectroChainLinkAnchorTracker>();
+        }
+
+        anchorTracker.Init(payload, startCollider, endCollider, startTransform, endTransform, fallbackStartPosition, fallbackEndPosition, ResolveEffectDuration(payload));
+    }
+
+    // 체인 링크 배치 계산 결과를 보관한다
+    private struct PlacementData
+    {
+        public Vector3 Position;
+        public Quaternion Rotation;
+        public Vector3 Scale;
+
+        // 계산된 위치, 회전, 스케일을 저장한다
+        public PlacementData(Vector3 position, Quaternion rotation, Vector3 scale)
+        {
+            Position = position;
+            Rotation = rotation;
+            Scale = scale;
+        }
     }
 }

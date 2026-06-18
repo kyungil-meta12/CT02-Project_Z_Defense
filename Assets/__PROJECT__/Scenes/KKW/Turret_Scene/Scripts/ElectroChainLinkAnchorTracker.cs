@@ -17,6 +17,7 @@ public class ElectroChainLinkAnchorTracker : MonoBehaviour
     private float trackDuration;
     private float elapsedTime;
     private bool isTracking;
+    private ElectroChainCoreLineEffect coreLineEffect;
 
     // 체인 링크가 추적할 시작/끝 대상과 대체 위치를 초기화한다
     public void Init(ElectroStatusPayload payload_, Transform startTransform_, Transform endTransform_, Vector3 fallbackStartPosition_, Vector3 fallbackEndPosition_, float trackDuration_)
@@ -31,6 +32,7 @@ public class ElectroChainLinkAnchorTracker : MonoBehaviour
         trackDuration = Mathf.Max(0.0f, trackDuration_);
         elapsedTime = 0.0f;
         isTracking = trackDuration > 0.0f;
+        CacheCoreLineEffect();
         ApplyCurrentPlacement();
     }
 
@@ -47,6 +49,7 @@ public class ElectroChainLinkAnchorTracker : MonoBehaviour
         trackDuration = Mathf.Max(0.0f, trackDuration_);
         elapsedTime = 0.0f;
         isTracking = trackDuration > 0.0f;
+        CacheCoreLineEffect();
         ApplyCurrentPlacement();
     }
 
@@ -58,6 +61,7 @@ public class ElectroChainLinkAnchorTracker : MonoBehaviour
         endCollider = null;
         startTransform = null;
         endTransform = null;
+        coreLineEffect = null;
         elapsedTime = 0.0f;
     }
 
@@ -83,6 +87,16 @@ public class ElectroChainLinkAnchorTracker : MonoBehaviour
         Vector3 startPosition = ResolveAnchorPosition(startCollider, startTransform, fallbackStartPosition);
         Vector3 endPosition = ResolveAnchorPosition(endCollider, endTransform, fallbackEndPosition);
         ElectroChainLinkEffectUtility.ApplyPlacement(gameObject, payload, startPosition, endPosition);
+        if (coreLineEffect != null)
+        {
+            coreLineEffect.Apply(payload, startPosition, endPosition, elapsedTime);
+        }
+    }
+
+    // 코어 라인 컴포넌트를 캐시한다
+    private void CacheCoreLineEffect()
+    {
+        coreLineEffect = GetComponent<ElectroChainCoreLineEffect>();
     }
 
     // 대상 Transform이 유효하면 최신 위치를 반환하고 아니면 대체 위치를 반환한다

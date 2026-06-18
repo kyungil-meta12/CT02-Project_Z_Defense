@@ -35,6 +35,13 @@ namespace ProjectZDefense.StatusEffects
         public Vector3 chainLinkRotationEulerOffset;
         public float chainLinkLengthScaleMultiplier;
         public float chainLinkThicknessScale;
+        public bool playChainCoreLine;
+        public Material chainCoreLineMaterial;
+        public Color chainCoreLineStartColor;
+        public Color chainCoreLineEndColor;
+        public float chainCoreLineWidth;
+        public float chainCoreLineStartDelay;
+        public float chainCoreLineDuration;
     }
 
     /// <summary>

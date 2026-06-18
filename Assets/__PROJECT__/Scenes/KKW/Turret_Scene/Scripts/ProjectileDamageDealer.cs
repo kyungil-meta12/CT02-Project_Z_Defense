@@ -19,6 +19,7 @@ public class ProjectileDamageDealer : MonoBehaviour
     private IDamageable trackedTargetDamageable;
     private ProjectileHitDetector hitDetector;
     private PoisonStatusPayload poisonStatusPayload;
+    private ElectroStatusPayload electroStatusPayload;
 
     public bool HasReachedPierceLimit
     {
@@ -57,10 +58,17 @@ public class ProjectileDamageDealer : MonoBehaviour
     // 데미지 처리 상태, 추적 타겟, Poison 상태 정보를 초기화한다
     public void Init(float damage_, int pierceCount_, bool logDamage_, GameObject target, PoisonStatusPayload poisonStatusPayload_)
     {
+        Init(damage_, pierceCount_, logDamage_, target, poisonStatusPayload_, default);
+    }
+
+    // 데미지 처리 상태, 추적 타겟, 상태이상 정보를 초기화한다
+    public void Init(float damage_, int pierceCount_, bool logDamage_, GameObject target, PoisonStatusPayload poisonStatusPayload_, ElectroStatusPayload electroStatusPayload_)
+    {
         damage = Mathf.Max(0.0f, damage_);
         pierceCount = Mathf.Max(0, pierceCount_);
         logDamage = logDamage_;
         poisonStatusPayload = poisonStatusPayload_;
+        electroStatusPayload = electroStatusPayload_;
         hitDamageables.Clear();
         trackedTargetDamageable = ResolveDamageable(target);
         enabled = true;
@@ -85,6 +93,8 @@ public class ProjectileDamageDealer : MonoBehaviour
         damageable.TakeDamage(damage);
         hitDamageables.Add(damageable);
         ApplyPoisonStatus(damageable);
+        ApplyElectroStatus(hitCollider, damageable, 0);
+        ElectroChainLightningUtility.ApplyChain(electroStatusPayload, damageable, ResolveChainStartPosition(hitCollider, damageable), damage);
 
         if (logDamage)
         {
@@ -109,6 +119,39 @@ public class ProjectileDamageDealer : MonoBehaviour
         }
 
         poisonReceiver.ApplyPoisonStatus(poisonStatusPayload);
+    }
+
+    // 데미지가 적용된 대상에게 Electro 상태 효과를 전달한다
+    private void ApplyElectroStatus(Collider hitCollider, IDamageable damageable, int chainIndex)
+    {
+        if (!electroStatusPayload.hasElectroStatus || damageable == null || !damageable.IsAlive)
+        {
+            return;
+        }
+
+        IElectroStatusEffectReceiver electroReceiver = damageable as IElectroStatusEffectReceiver;
+        if (electroReceiver == null)
+        {
+            return;
+        }
+
+        electroReceiver.ApplyElectroStatus(electroStatusPayload, chainIndex, damage);
+    }
+
+    // 체인 탐색 시작 위치를 피격 콜라이더 또는 대상 컴포넌트 기준으로 계산한다
+    private static Vector3 ResolveChainStartPosition(Collider hitCollider, IDamageable damageable)
+    {
+        if (hitCollider != null)
+        {
+            return hitCollider.bounds.center;
+        }
+
+        if (damageable is Component damageableComponent)
+        {
+            return damageableComponent.transform.position;
+        }
+
+        return Vector3.zero;
     }
 
     // 지정 레이어가 데미지 레이어 마스크에 포함되는지 확인한다

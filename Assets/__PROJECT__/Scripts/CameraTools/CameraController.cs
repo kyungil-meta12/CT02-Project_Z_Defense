@@ -2,13 +2,9 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
-// UI 이벤트를 받기 위해 IPointerDownHandler, IPointerUpHandler, IDragHandler, IScrollHandler 인터페이스를 추가합니다.
 public class CameraController : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, IDragHandler, IScrollHandler
 {
     public static CameraController Inst;
-
-    [Header("터치 컨트롤 모드 사용")] public bool UsingTouchControl;
-    [Space(5f)]
 
     [Header("줌 감도")] public float zoomSensitivity;
     [Header("최대 줌")] public float maxZoom;
@@ -31,9 +27,12 @@ public class CameraController : MonoBehaviour, IPointerDownHandler, IPointerUpHa
     private float shakeTimeDest = 0.016f; // 목표 흔들림 간격 시간
     private Vector3 shakeOffset = new(); // 흔들림 오프셋
 
+    // 포인터 ID와 해당 포인터의 '현재/이전 위치'를 저장하기 위한 딕셔너리
+    private Dictionary<int, PointerEventData> activePointers = new Dictionary<int, PointerEventData>();
+    private float lastTouchDistance = 0f;
+
     // UI 터치/드래그 컨트롤용 변수
     private Vector2 dragDelta = Vector2.zero; // 현재 프레임의 드래그 이동량
-    private List<int> activePointers = new List<int>(); // 현재 패널을 누르고 있는 포인터(손가락/마우스) ID 목록
 
     void Awake()
     {
@@ -76,38 +75,75 @@ public class CameraController : MonoBehaviour, IPointerDownHandler, IPointerUpHa
         dragDelta = Vector2.zero;
     }
 
-    // 패널을 터치/클릭하기 시작했을 때
     public void OnPointerDown(PointerEventData eventData)
     {
-        if (!activePointers.Contains(eventData.pointerId))
+        if (!activePointers.ContainsKey(eventData.pointerId))
         {
-            activePointers.Add(eventData.pointerId);
+            activePointers.Add(eventData.pointerId, eventData);
+        }
+
+        // 손가락이 2개가 되는 순간 초기 거리 계산
+        if (activePointers.Count == 2)
+        {
+            var keys = new List<int>(activePointers.Keys);
+            Vector2 pos0 = activePointers[keys[0]].position;
+            Vector2 pos1 = activePointers[keys[1]].position;
+            lastTouchDistance = Vector2.Distance(pos0, pos1);
         }
     }
 
-    // 패널에서 손을 떼거나 마우스 클릭을 해제했을 때
     public void OnPointerUp(PointerEventData eventData)
     {
-        if (activePointers.Contains(eventData.pointerId))
+        if (activePointers.ContainsKey(eventData.pointerId))
         {
             activePointers.Remove(eventData.pointerId);
         }
+
+        // 손가락을 떼면 거리 초기화
+        if (activePointers.Count < 2)
+        {
+            lastTouchDistance = 0f;
+        }
     }
 
-    // 패널 위에서 드래그 중일 때
     public void OnDrag(PointerEventData eventData)
     {
-        // 손가락이 하나일 때만 (또는 마우스일 때만) 드래그 이동 처리
+        // 실시간 위치 갱신
+        if (activePointers.ContainsKey(eventData.pointerId))
+        {
+            activePointers[eventData.pointerId] = eventData;
+        }
+
+        // 1개 이하일 때만 드래그 이동 처리 (멀티 터치 줌 할 때는 화면이 이동하지 않도록 방지)
         if (activePointers.Count <= 1)
         {
             dragDelta += eventData.delta;
         }
+        else if (activePointers.Count == 2)
+        {
+            // 두 손가락 드래그 중일 때 실시간으로 핀치 줌 계산
+            var keys = new List<int>(activePointers.Keys);
+            Vector2 pos0 = activePointers[keys[0]].position;
+            Vector2 pos1 = activePointers[keys[1]].position;
+
+            float currentDistance = Vector2.Distance(pos0, pos1);
+
+            if (lastTouchDistance > 0f)
+            {
+                // 이전 거리와 현재 거리의 차이를 구함
+                float deltaDist = currentDistance - lastTouchDistance;
+
+                // 스크린 높이 비율로 환산하여 줌 타겟 변경
+                float zoomDelta = (deltaDist / Screen.height) * 1000f;
+                currSizeDest -= zoomDelta * zoomSensitivity;
+            }
+
+            lastTouchDistance = currentDistance;
+        }
     }
 
-    // PC 환경에서 패널 위에 마우스를 올리고 휠을 굴렸을 때
     public void OnScroll(PointerEventData eventData)
     {
-        // 스크롤 방향에 따라 줌 적용 (기존 마우스 휠 로직 대체)
         currSizeDest -= eventData.scrollDelta.y * zoomSensitivity;
     }
 
@@ -192,26 +228,6 @@ public class CameraController : MonoBehaviour, IPointerDownHandler, IPointerUpHa
 
     void UpdateZoom()
     {
-        float zoomDelta = 0f;
-
-        // 모바일 멀티 터치 (핀치 줌) 로직
-       if (activePointers.Count >= 2)
-        {
-            Touch touchZero;
-            Touch touchOne;
-
-            if (TryGetTouch(activePointers[0], out touchZero) && TryGetTouch(activePointers[1], out touchOne))
-            {
-                Vector2 touchZeroPrevPos = touchZero.position - touchZero.deltaPosition;
-                Vector2 touchOnePrevPos = touchOne.position - touchOne.deltaPosition;
-                float prevTouchDeltaMag = (touchZeroPrevPos - touchOnePrevPos).magnitude;
-                float touchDeltaMag = (touchZero.position - touchOne.position).magnitude;
-                zoomDelta = (touchDeltaMag - prevTouchDeltaMag) / Screen.height * 1000f;
-            }
-        }
-
-        // 카메라 줌 반영 (OnScroll 이벤트에서 처리된 데스크톱 마우스 휠 결과와 함께 갱신)
-        currSizeDest -= zoomDelta * zoomSensitivity;
         currSizeDest = Mathf.Clamp(currSizeDest, minZoom, maxZoom);
         currSize = Mathf.Lerp(currSize, currSizeDest, Time.deltaTime * 10f);
     }

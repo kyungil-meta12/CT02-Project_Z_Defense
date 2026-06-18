@@ -1,3 +1,4 @@
+using IncrementalLib;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
@@ -54,7 +55,7 @@ public class InventoryUI : MonoBehaviour
     }
 
     // 아이템 개수가 변경 될 때마다 아이템에 해당하는 인덱스의 정보를 업데이트 한다.
-    public void OnItemValueChanged(ItemData data)
+    public void OnItemValueChanged(ItemData data, Incremental prev)
     {
         if(!openState)
         {
@@ -67,7 +68,7 @@ public class InventoryUI : MonoBehaviour
             SetImageVisibility(images[index], true);
             images[index].sprite = metaDataList.Find(meta => meta.Type == data.Type).ItemImage;
         }
-        texts[index].text = data.String;
+        texts[index].text = data.CountString;
     }
 
     /// <summary>

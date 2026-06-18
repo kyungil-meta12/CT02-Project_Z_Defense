@@ -24,7 +24,7 @@ MonoBehaviour:
   freezeExplosionDamageDelay: 2.8
   freezeCooldownPerTarget: 8
   freezeExplosionRadius: 2.5
-  freezeExplosionDamage: 15000
+  freezeExplosionDamage: 200
   freezePrimaryTargetMaxHpDamageRatio: 0.8
   freezeExplosionLayerMask:
     serializedVersion: 2

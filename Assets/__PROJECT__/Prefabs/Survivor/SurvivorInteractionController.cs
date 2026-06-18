@@ -1,3 +1,4 @@
+using System.Collections;
 using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -66,13 +67,22 @@ public class SurvivorInteractionController : MonoBehaviour
     // 치료 버튼 입력을 처리한다
     public void OnTreatmentButtonClicked()
     {
-        if (selectedSurvivor == null || !selectedSurvivor.TryStartTreatment())
+        Survivor survivor = selectedSurvivor;
+        if (survivor == null)
+        {
+            Debug.LogWarning("[SurvivorInteractionController] 선택된 생존자가 없어 치료 명령을 처리할 수 없습니다.", this);
+            HidePopup();
+            return;
+        }
+
+        if (!survivor.TryStartTreatment())
         {
             RefreshPopup();
             return;
         }
 
-        HidePopup();
+        Debug.Log("[SurvivorInteractionController] 생존자 치료 이동 명령을 전달했습니다.", survivor);
+        StartCoroutine(HidePopupAfterCommandFrame());
     }
 
     // 건축노동자 역할 버튼 입력을 처리한다
@@ -120,14 +130,19 @@ public class SurvivorInteractionController : MonoBehaviour
         ClearPendingEngineerPlacement();
     }
 
+    // 배경 클릭 입력으로 생존자 관련 UI를 닫는다
+    public void OnBackgroundButtonClicked()
+    {
+        ClearPendingEngineerPlacement();
+        HidePopup();
+        HideEngineerBuffTargetPanel();
+    }
+
     // 클릭한 월드 대상에 따라 생존자를 선택하거나 엔지니어 터렛 배치를 처리한다
     private void HandleWorldPointerDown(Vector2 pointerPosition)
     {
         if (!TrySelectSurvivor(pointerPosition, out Survivor survivor))
         {
-            ClearPendingEngineerPlacement();
-            HidePopup();
-            HideEngineerBuffTargetPanel();
             return;
         }
 
@@ -211,13 +226,25 @@ public class SurvivorInteractionController : MonoBehaviour
     // 선택된 생존자에게 역할을 부여하고 UI를 갱신한다
     private void AssignSelectedRole(SurvivorRole role)
     {
-        if (selectedSurvivor == null || !selectedSurvivor.TryAssignRole(role))
+        Survivor survivor = selectedSurvivor;
+        Debug.Log("[SurvivorInteractionController] 생존자 역할 부여 버튼 입력을 받았습니다.", this);
+
+        if (survivor == null)
         {
+            Debug.LogWarning("[SurvivorInteractionController] 선택된 생존자가 없어 역할 부여 명령을 처리할 수 없습니다.", this);
+            HidePopup();
+            return;
+        }
+
+        if (!survivor.TryAssignRole(role))
+        {
+            Debug.LogWarning("[SurvivorInteractionController] 생존자 역할 부여 조건을 만족하지 못했습니다.", survivor);
             RefreshPopup();
             return;
         }
 
-        HidePopup();
+        Debug.Log("[SurvivorInteractionController] 생존자 역할 부여 명령을 처리했습니다.", survivor);
+        StartCoroutine(HidePopupAfterCommandFrame());
     }
 
     // 선택 생존자 상태에 맞춰 팝업을 표시한다
@@ -240,6 +267,13 @@ public class SurvivorInteractionController : MonoBehaviour
         {
             popupPanel.SetActive(false);
         }
+    }
+
+    // UI 클릭 프레임이 끝난 뒤 팝업을 숨겨 입력 처리 순서를 안정화한다
+    private IEnumerator HidePopupAfterCommandFrame()
+    {
+        yield return new WaitForEndOfFrame();
+        HidePopup();
     }
 
     // 선택된 생존자 상태에 맞춰 텍스트와 버튼을 갱신한다

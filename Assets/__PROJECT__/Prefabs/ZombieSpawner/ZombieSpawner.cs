@@ -256,7 +256,7 @@ public class ZombieSpawner : MonoBehaviour
             return;
         }
 
-        // NavMesh 펴면 위치로 이동시킨다.
+        // NavMesh 표면 위치로 이동시킨다.
         NavMesh.SamplePosition(spawnPoint.position, out var hit, 10f, NavMesh.AllAreas);
         spawnPoint.position = hit.position;
         zombie.SetPosition(spawnPoint);

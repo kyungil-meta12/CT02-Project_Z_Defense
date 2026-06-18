@@ -1,12 +1,12 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
-public class CameraController : MonoBehaviour
+public class CameraController : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, IDragHandler, IScrollHandler
 {
     public static CameraController Inst;
 
     [Header("줌 감도")] public float zoomSensitivity;
-    [Header("드래그 감도")] public float dragSensitivity;
     [Header("최대 줌")] public float maxZoom;
     [Header("최소 줌")] public float minZoom;
     [Header("최대 앞 오프셋")] public float maxForwardOffset;
@@ -27,16 +27,16 @@ public class CameraController : MonoBehaviour
     private float shakeTimeDest = 0.016f; // 목표 흔들림 간격 시간
     private Vector3 shakeOffset = new(); // 흔들림 오프셋
 
-    #if UNITY_EDITOR
-    private Vector3 lastMousePosition;
-    private bool isDragging = false; // 에디터용 드래그 상태 추적
-    #else
-    private int activeDragFingerId = -1; // 모바일용 드래그 손가락 ID 추적
-    #endif
+    // 포인터 ID와 해당 포인터의 '현재/이전 위치'를 저장하기 위한 딕셔너리
+    private Dictionary<int, PointerEventData> activePointers = new Dictionary<int, PointerEventData>();
+    private float lastTouchDistance = 0f;
+
+    // UI 터치/드래그 컨트롤용 변수
+    private Vector2 dragDelta = Vector2.zero; // 현재 프레임의 드래그 이동량
 
     void Awake()
     {
-        if(Inst && Inst != this)
+        if (Inst && Inst != this)
         {
             DestroyImmediate(gameObject);
         }
@@ -65,29 +65,105 @@ public class CameraController : MonoBehaviour
         UpdateShake();
         UpdateDrag();
         UpdateZoom();
+        UpdateMove();
 
         // 업데이트 후에 최종 적용
         cam.transform.position = currPos + shakeOffset;
         cam.orthographicSize = currSize;
+
+        // 처리가 끝난 후 이번 프레임의 드래그 델타 초기화
+        dragDelta = Vector2.zero;
+    }
+
+    public void OnPointerDown(PointerEventData eventData)
+    {
+        if (!activePointers.ContainsKey(eventData.pointerId))
+        {
+            activePointers.Add(eventData.pointerId, eventData);
+        }
+
+        // 손가락이 2개가 되는 순간 초기 거리 계산
+        if (activePointers.Count == 2)
+        {
+            var keys = new List<int>(activePointers.Keys);
+            Vector2 pos0 = activePointers[keys[0]].position;
+            Vector2 pos1 = activePointers[keys[1]].position;
+            lastTouchDistance = Vector2.Distance(pos0, pos1);
+        }
+    }
+
+    public void OnPointerUp(PointerEventData eventData)
+    {
+        if (activePointers.ContainsKey(eventData.pointerId))
+        {
+            activePointers.Remove(eventData.pointerId);
+        }
+
+        // 손가락을 떼면 거리 초기화
+        if (activePointers.Count < 2)
+        {
+            lastTouchDistance = 0f;
+        }
+    }
+
+    public void OnDrag(PointerEventData eventData)
+    {
+        // 실시간 위치 갱신
+        if (activePointers.ContainsKey(eventData.pointerId))
+        {
+            activePointers[eventData.pointerId] = eventData;
+        }
+
+        // 1개 이하일 때만 드래그 이동 처리 (멀티 터치 줌 할 때는 화면이 이동하지 않도록 방지)
+        if (activePointers.Count <= 1)
+        {
+            dragDelta += eventData.delta;
+        }
+        else if (activePointers.Count == 2)
+        {
+            // 두 손가락 드래그 중일 때 실시간으로 핀치 줌 계산
+            var keys = new List<int>(activePointers.Keys);
+            Vector2 pos0 = activePointers[keys[0]].position;
+            Vector2 pos1 = activePointers[keys[1]].position;
+
+            float currentDistance = Vector2.Distance(pos0, pos1);
+
+            if (lastTouchDistance > 0f)
+            {
+                // 이전 거리와 현재 거리의 차이를 구함
+                float deltaDist = currentDistance - lastTouchDistance;
+
+                // 스크린 높이 비율로 환산하여 줌 타겟 변경
+                float zoomDelta = (deltaDist / Screen.height) * 1000f;
+                currSizeDest -= zoomDelta * zoomSensitivity;
+            }
+
+            lastTouchDistance = currentDistance;
+        }
+    }
+
+    public void OnScroll(PointerEventData eventData)
+    {
+        currSizeDest -= eventData.scrollDelta.y * zoomSensitivity;
     }
 
     void UpdateShake()
     {
         shakeTime += Time.deltaTime;
 
-        if(shakeTime >= shakeTimeDest)
+        if (shakeTime >= shakeTimeDest)
         {
             shakeTime -= shakeTimeDest;
 
             float randomX = 0f;
             float randomZ = 0f;
 
-            if(shakeForce > 0.0001f)
+            if (shakeForce > 0.0001f)
             {
                 randomX = Random.Range(-shakeForce, shakeForce);
                 randomZ = Random.Range(-shakeForce, shakeForce);
             }
-           
+
             shakeOffset.x = randomX;
             shakeOffset.z = randomZ;
         }
@@ -97,80 +173,31 @@ public class CameraController : MonoBehaviour
 
     void UpdateDrag()
     {
-        Vector2 dragDelta = Vector2.zero;
+        if (dragDelta == Vector2.zero)
+            return;
 
-    #if UNITY_EDITOR
-        // 1. 마우스를 처음 누른 순간
-        if (Input.GetMouseButtonDown(0))
-        {
-            if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject())
-            {
-                isDragging = false;
-            }
-            else
-            {
-                isDragging = true;
-                lastMousePosition = Input.mousePosition;
-            }
-        }
-        // 2. 마우스를 누르고 있는 동안
-        else if (Input.GetMouseButton(0) && isDragging)
-        {
-            Vector3 currentMousePosition = Input.mousePosition;
-            dragDelta = currentMousePosition - lastMousePosition;
-            lastMousePosition = currentMousePosition;
-        }
-        
-        if (Input.GetMouseButtonUp(0))
-        {
-            isDragging = false;
-        }
-    #else
-        if (Input.touchCount > 0)
-        {
-            Touch touch = Input.GetTouch(0);
+        float pixelToWorldScale = (currSizeDest * 2f) / Screen.height;
 
-            if (touch.phase == TouchPhase.Began)
-            {
-                if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject(touch.fingerId))
-                {
-                    activeDragFingerId = -1;
-                }
-                else
-                {
-                    activeDragFingerId = touch.fingerId;
-                }
-            }
-
-            if (touch.fingerId == activeDragFingerId && touch.phase == TouchPhase.Moved)
-            {
-                dragDelta = touch.deltaPosition;
-            }
-
-            if (touch.phase == TouchPhase.Ended || touch.phase == TouchPhase.Canceled)
-            {
-                if (touch.fingerId == activeDragFingerId) activeDragFingerId = -1;
-            }
-        }
-        else
-        {
-            activeDragFingerId = -1;
-        }
-    #endif
-
-        // 카메라 위치 조정
-        float camHalfHeight = currSizeDest; 
-        float camHalfWidth = currSizeDest * cam.aspect;
+        float worldDeltaX = dragDelta.x * pixelToWorldScale;
+        float worldDeltaY = dragDelta.y * pixelToWorldScale;
 
         float pitchAngle = cam.transform.eulerAngles.x;
         float pitchRad = pitchAngle * Mathf.Deg2Rad;
-
-        // 1. Sin 값의 절댓값을 구합니다.
         float sinPitch = Mathf.Abs(Mathf.Sin(pitchRad));
+
+        if (sinPitch > 0.001f)
+        {
+            worldDeltaY /= sinPitch;
+        }
+
+        currPosDest.x += worldDeltaY;
+        currPosDest.z -= worldDeltaX;
+
+        float camHalfHeight = currSizeDest;
+        float camHalfWidth = currSizeDest * cam.aspect;
         float adjustedHalfHeight = camHalfHeight;
 
-        // 2. Sin 값이 0에 가까워 무한대가 되는 것을 미리 방지합니다.
-        if (sinPitch > 0.001f) 
+        if (sinPitch > 0.001f)
         {
             adjustedHalfHeight = camHalfHeight / sinPitch;
         }
@@ -180,62 +207,45 @@ public class CameraController : MonoBehaviour
         var minZ = originPos.z - maxLeftOffset;
         var maxZ = originPos.z + maxRightOffset;
 
-        var zoomVal = currSizeDest / originSize;
-        var currSensitivity = dragSensitivity * zoomVal;
-
-        currPosDest.x += dragDelta.y * currSensitivity;
-        currPosDest.z -= dragDelta.x * currSensitivity;
         currPosDest.x = Mathf.Clamp(currPosDest.x, minX + adjustedHalfHeight, maxX - adjustedHalfHeight);
         currPosDest.z = Mathf.Clamp(currPosDest.z, minZ + camHalfWidth, maxZ - camHalfWidth);
-        
-        if (minX + adjustedHalfHeight > maxX - adjustedHalfHeight) 
+
+        if (minX + adjustedHalfHeight > maxX - adjustedHalfHeight)
         {
             currPosDest.x = (minX + maxX) * 0.5f;
         }
-        if (minZ + camHalfWidth > maxZ - camHalfWidth) 
+        if (minZ + camHalfWidth > maxZ - camHalfWidth)
         {
             currPosDest.z = (minZ + maxZ) * 0.5f;
         }
 
+    }
+
+    void UpdateMove()
+    {
         currPos = Vector3.Lerp(currPos, currPosDest, Time.deltaTime * 10f);
     }
 
     void UpdateZoom()
     {
-        float zoomDelta = 0f;
-
-    #if UNITY_EDITOR
-        float scroll = Input.GetAxis("Mouse ScrollWheel");
-        if (scroll != 0)
-        {
-            zoomDelta = scroll;
-        }
-    #else
-        if (Input.touchCount == 2)
-        {
-            Touch touchZero = Input.GetTouch(0);
-            Touch touchOne = Input.GetTouch(1);
-
-            bool zeroStartedOnUI = touchZero.phase == TouchPhase.Began && EventSystem.current != null && EventSystem.current.IsPointerOverGameObject(touchZero.fingerId);
-            bool oneStartedOnUI = touchOne.phase == TouchPhase.Began && EventSystem.current != null && EventSystem.current.IsPointerOverGameObject(touchOne.fingerId);
-
-            if (!zeroStartedOnUI && !oneStartedOnUI)
-            {
-                Vector2 touchZeroPrevPos = touchZero.position - touchZero.deltaPosition;
-                Vector2 touchOnePrevPos = touchOne.position - touchOne.deltaPosition;
-
-                float prevTouchDeltaMag = (touchZeroPrevPos - touchOnePrevPos).magnitude;
-                float touchDeltaMag = (touchZero.position - touchOne.position).magnitude;
-
-                zoomDelta = touchDeltaMag - prevTouchDeltaMag;
-            }
-        }
-    #endif
-
-        // 카메라 줌 반영
-        currSizeDest -= zoomDelta * zoomSensitivity;
         currSizeDest = Mathf.Clamp(currSizeDest, minZoom, maxZoom);
         currSize = Mathf.Lerp(currSize, currSizeDest, Time.deltaTime * 10f);
+    }
+
+    // FingerID를 기반으로 현재 터치 상태를 가져오는 헬퍼 메서드
+    private bool TryGetTouch(int fingerId, out Touch result)
+    {
+        for (int i = 0; i < Input.touchCount; i++)
+        {
+            Touch t = Input.GetTouch(i);
+            if (t.fingerId == fingerId)
+            {
+                result = t;
+                return true;
+            }
+        }
+        result = new Touch();
+        return false;
     }
 
     /// <summary>

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using Unity.Behavior;
@@ -123,8 +123,6 @@ public class BossZombie : PoolObject, IDamageable, IFrostStatusEffectReceiver, I
         hpUI.gameObject.SetActive(false);
         
         SetCollidersEnabled(true);
-        agent.enabled = true;
-        agent.isStopped = false;
         isDieBV.Value = false;
 
         // 코루틴 동작 상태 초기화

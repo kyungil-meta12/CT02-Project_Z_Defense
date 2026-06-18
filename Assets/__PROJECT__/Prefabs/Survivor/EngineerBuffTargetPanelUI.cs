@@ -90,6 +90,12 @@ public class EngineerBuffTargetPanelUI : MonoBehaviour
         }
     }
 
+    // 배경 클릭 입력으로 엔지니어 버프 대상 선택을 취소한다
+    public void OnBackgroundButtonClicked()
+    {
+        OnCloseButtonClicked();
+    }
+
     // 닫기 버튼 입력으로 선택을 취소한다
     private void OnCloseButtonClicked()
     {

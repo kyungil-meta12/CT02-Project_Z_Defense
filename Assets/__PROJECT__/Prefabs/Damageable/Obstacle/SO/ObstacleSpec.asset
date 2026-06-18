@@ -12,8 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d56484c8367049d5ab5b0483ef2a2217, type: 3}
   m_Name: ObstacleSpec
   m_EditorClassIdentifier: Assembly-CSharp::ObstacleSpec
-  level: 0
-  levelWeight: 0.05
+  level: 1
+  levelWeight: 50
   Hp: 1000
   HpWeight: 0.05
   MinHp: 0.9

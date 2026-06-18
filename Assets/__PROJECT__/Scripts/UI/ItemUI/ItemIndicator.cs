@@ -85,11 +85,11 @@ public class ItemIndicator : MonoBehaviour
     //    specialPartTextScale = originSpecialPartTextScale * animValue.OnValueChangeScale;
     //}
 
-    public void OnValueChanged(ItemData data)
+    public void OnValueChanged(ItemData data, Incremental prev)
     {
        // if(data.Type == RewardCurrencyType.Coin)
       //  {
-            OnCoinValueChanged(data.String);
+            OnCoinValueChanged(data.CountString);
        // } 
         //else if(data.Type == RewardCurrencyType.FirePart)
         //{

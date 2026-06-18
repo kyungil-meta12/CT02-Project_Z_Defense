@@ -6,8 +6,10 @@ using UnityEngine.EventSystems;
 
 public class CameraController : MonoBehaviour
 {
-
     public static CameraController Inst;
+
+    [Header("터치 컨트롤 모드 사용")] public bool UsingTouchControl;
+    [Space(5f)]
 
     [Header("줌 감도")] public float zoomSensitivity;
     [Header("드래그 감도")] public float dragSensitivity;
@@ -31,12 +33,12 @@ public class CameraController : MonoBehaviour
     private float shakeTimeDest = 0.016f; // 목표 흔들림 간격 시간
     private Vector3 shakeOffset = new(); // 흔들림 오프셋
 
-#if USING_TOUCH_CONTROL // 이 전처리기를 주석처리하면 유니티 에디터용 코드로 전환됨
+    // 터치 컨트롤용 변수
     private int activeDragFingerId = -1; // 모바일용 드래그 손가락 ID 추적
-#else
+
+    // 에디터 컨트롤용 변수
     private Vector3 lastMousePosition;
     private bool isDragging = false; // 에디터용 드래그 상태 추적
-#endif
 
 
     void Awake()
@@ -104,65 +106,68 @@ public class CameraController : MonoBehaviour
     {
         Vector2 dragDelta = Vector2.zero;
 
-#if USING_TOUCH_CONTROL // 이 전처리기를 주석처리하면 유니티 에디터용 코드로 전환됨
-        if (Input.touchCount > 0)
+        if (UsingTouchControl)
         {
-            Touch touch = Input.GetTouch(0);
-
-            if (touch.phase == TouchPhase.Began)
+            if (Input.touchCount > 0)
             {
-                if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject(touch.fingerId))
+                Touch touch = Input.GetTouch(0);
+
+                if (touch.phase == TouchPhase.Began)
                 {
-                    activeDragFingerId = -1;
+                    if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject(touch.fingerId))
+                    {
+                        activeDragFingerId = -1;
+                    }
+                    else
+                    {
+                        activeDragFingerId = touch.fingerId;
+                    }
                 }
-                else
+
+                if (touch.fingerId == activeDragFingerId && touch.phase == TouchPhase.Moved)
                 {
-                    activeDragFingerId = touch.fingerId;
+                    dragDelta = touch.deltaPosition;
+                }
+
+                if (touch.phase == TouchPhase.Ended || touch.phase == TouchPhase.Canceled)
+                {
+                    if (touch.fingerId == activeDragFingerId)
+                        activeDragFingerId = -1;
                 }
             }
-
-            if (touch.fingerId == activeDragFingerId && touch.phase == TouchPhase.Moved)
+            else
             {
-                dragDelta = touch.deltaPosition;
-            }
-
-            if (touch.phase == TouchPhase.Ended || touch.phase == TouchPhase.Canceled)
-            {
-                if (touch.fingerId == activeDragFingerId)
-                    activeDragFingerId = -1;
+                activeDragFingerId = -1;
             }
         }
         else
         {
-            activeDragFingerId = -1;
-        }
-#else
-         // 1. 마우스를 처음 누른 순간
-        if (Input.GetMouseButtonDown(0))
-        {
-            if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject())
+            // 1. 마우스를 처음 누른 순간
+            if (Input.GetMouseButtonDown(0))
+            {
+                if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject())
+                {
+                    isDragging = false;
+                }
+                else
+                {
+                    isDragging = true;
+                    lastMousePosition = Input.mousePosition;
+                }
+            }
+            // 2. 마우스를 누르고 있는 동안
+            else if (Input.GetMouseButton(0) && isDragging)
+            {
+                Vector3 currentMousePosition = Input.mousePosition;
+                dragDelta = currentMousePosition - lastMousePosition;
+                lastMousePosition = currentMousePosition;
+            }
+
+            if (Input.GetMouseButtonUp(0))
             {
                 isDragging = false;
             }
-            else
-            {
-                isDragging = true;
-                lastMousePosition = Input.mousePosition;
-            }
         }
-        // 2. 마우스를 누르고 있는 동안
-        else if (Input.GetMouseButton(0) && isDragging)
-        {
-            Vector3 currentMousePosition = Input.mousePosition;
-            dragDelta = currentMousePosition - lastMousePosition;
-            lastMousePosition = currentMousePosition;
-        }
-        
-        if (Input.GetMouseButtonUp(0))
-        {
-            isDragging = false;
-        }
-#endif
 
         // 카메라 위치 조정
         float camHalfHeight = currSizeDest; 
@@ -210,33 +215,36 @@ public class CameraController : MonoBehaviour
     {
         float zoomDelta = 0f;
 
-#if USING_TOUCH_CONTROL // 이 전처리기를 주석처리하면 유니티 에디터용 코드로 전환됨
-        if (Input.touchCount == 2)
+        if (UsingTouchControl)
         {
-            Touch touchZero = Input.GetTouch(0);
-            Touch touchOne = Input.GetTouch(1);
-
-            bool zeroStartedOnUI = touchZero.phase == TouchPhase.Began && EventSystem.current != null && EventSystem.current.IsPointerOverGameObject(touchZero.fingerId);
-            bool oneStartedOnUI = touchOne.phase == TouchPhase.Began && EventSystem.current != null && EventSystem.current.IsPointerOverGameObject(touchOne.fingerId);
-
-            if (!zeroStartedOnUI && !oneStartedOnUI)
+            if (Input.touchCount == 2)
             {
-                Vector2 touchZeroPrevPos = touchZero.position - touchZero.deltaPosition;
-                Vector2 touchOnePrevPos = touchOne.position - touchOne.deltaPosition;
+                Touch touchZero = Input.GetTouch(0);
+                Touch touchOne = Input.GetTouch(1);
 
-                float prevTouchDeltaMag = (touchZeroPrevPos - touchOnePrevPos).magnitude;
-                float touchDeltaMag = (touchZero.position - touchOne.position).magnitude;
+                bool zeroStartedOnUI = touchZero.phase == TouchPhase.Began && EventSystem.current != null && EventSystem.current.IsPointerOverGameObject(touchZero.fingerId);
+                bool oneStartedOnUI = touchOne.phase == TouchPhase.Began && EventSystem.current != null && EventSystem.current.IsPointerOverGameObject(touchOne.fingerId);
 
-                zoomDelta = touchDeltaMag - prevTouchDeltaMag;
+                if (!zeroStartedOnUI && !oneStartedOnUI)
+                {
+                    Vector2 touchZeroPrevPos = touchZero.position - touchZero.deltaPosition;
+                    Vector2 touchOnePrevPos = touchOne.position - touchOne.deltaPosition;
+
+                    float prevTouchDeltaMag = (touchZeroPrevPos - touchOnePrevPos).magnitude;
+                    float touchDeltaMag = (touchZero.position - touchOne.position).magnitude;
+
+                    zoomDelta = touchDeltaMag - prevTouchDeltaMag;
+                }
             }
         }
-#else
-        float scroll = Input.GetAxis("Mouse ScrollWheel");
-        if (scroll != 0)
+        else
         {
-            zoomDelta = scroll;
+            float scroll = Input.GetAxis("Mouse ScrollWheel");
+            if (scroll != 0)
+            {
+                zoomDelta = scroll;
+            }
         }
-#endif
 
         // 카메라 줌 반영
         currSizeDest -= zoomDelta * zoomSensitivity;

@@ -1,5 +1,36 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
+--- !u!1 &5784300023425552803
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2388030009367825554}
+  m_Layer: 0
+  m_Name: FireNozzle
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &2388030009367825554
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5784300023425552803}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0.775, z: 0.949}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 4771805901434271848}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &6737432569134321213
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -8,6 +39,18 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: -8679921383154817045, guid: cfd6087ed72c9564f887d529e9064f28, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 1.8
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: cfd6087ed72c9564f887d529e9064f28, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 1.8
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: cfd6087ed72c9564f887d529e9064f28, type: 3}
+      propertyPath: m_LocalScale.z
+      value: 1.8
+      objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: cfd6087ed72c9564f887d529e9064f28, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
@@ -18,7 +61,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: cfd6087ed72c9564f887d529e9064f28, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 2
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: cfd6087ed72c9564f887d529e9064f28, type: 3}
       propertyPath: m_LocalRotation.w
@@ -48,9 +91,13 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: cfd6087ed72c9564f887d529e9064f28, type: 3}
+      propertyPath: m_ConstrainProportionsScale
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: cfd6087ed72c9564f887d529e9064f28, type: 3}
       propertyPath: m_Name
-      value: SM_Railgun_Turret
+      value: Electro_Turret
       objectReference: {fileID: 0}
     - target: {fileID: 5811418422459520564, guid: cfd6087ed72c9564f887d529e9064f28, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
@@ -94,6 +141,190 @@ PrefabInstance:
       objectReference: {fileID: 2100000, guid: a590a3a9f321c1e448e39cf642472eb5, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
-    m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedGameObjects:
+    - targetCorrespondingSourceObject: {fileID: -6937523548722547115, guid: cfd6087ed72c9564f887d529e9064f28, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 2388030009367825554}
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: cfd6087ed72c9564f887d529e9064f28, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 65223075314266543}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: cfd6087ed72c9564f887d529e9064f28, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 5938120677705805003}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: cfd6087ed72c9564f887d529e9064f28, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 4864819784614934862}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: cfd6087ed72c9564f887d529e9064f28, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 8027993897541913169}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: cfd6087ed72c9564f887d529e9064f28, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 6899824003833288466}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: cfd6087ed72c9564f887d529e9064f28, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 2440990073118968165}
   m_SourcePrefab: {fileID: 100100000, guid: cfd6087ed72c9564f887d529e9064f28, type: 3}
+--- !u!4 &4771805901434271848 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: -6937523548722547115, guid: cfd6087ed72c9564f887d529e9064f28, type: 3}
+  m_PrefabInstance: {fileID: 6737432569134321213}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &5855034555855745900 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: cfd6087ed72c9564f887d529e9064f28, type: 3}
+  m_PrefabInstance: {fileID: 6737432569134321213}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &65223075314266543
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5855034555855745900}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: be3681d4c0e9f644d851459332a10c61, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ProjectZima.PolygonModularTurretsPack.Turret
+  rotatorMesh: {fileID: 6813425837912968537}
+  headMesh: {fileID: 6813425837912968537}
+  projectilePrefab: {fileID: 0}
+  canRotateXRotator: 1
+  canRotateHeadSeparately: 1
+  rotateSpeed: 500
+  turretAngleAttack: 5
+  closeRangePredictionDistance: 2
+  closeRangeFireDistance: 2
+  closeRangeTurretAngleAttack: 60
+  requireAimAngleBeforeFire: 0
+  fireTick: 0.1
+  targetSearchInterval: 0.1
+  aimPointLerpSpeed: 18
+  targetVelocityLerpSpeed: 10
+  maxPredictionLeadTime: 0.25
+  useInterceptPrediction: 1
+  useProjectileSpeedBasedPrediction: 1
+  slowProjectileSpeedThreshold: 40
+  fastProjectileSpeedThreshold: 120
+  slowProjectileMaxLeadTime: 0.85
+  fastProjectileMaxLeadTime: 0.2
+  ignoreVerticalPrediction: 1
+  predictionVelocityDeadZone: 0.05
+  showDebug: 0
+--- !u!114 &5938120677705805003
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5855034555855745900}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a31afd3a38f12d846bcc57f9abf2944d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ProjectZima.PolygonModularTurretsPack.TargetFinder
+  radius: 10
+  targetTag: Enemy
+  targetLayer:
+    serializedVersion: 2
+    m_Bits: 128
+  pivotObject: {fileID: 5784300023425552803}
+  aimHeightRatio: 0
+  targetCandidateFilterBehaviours: []
+  showDebug: 0
+  useHorizontalDistance: 1
+  requireLineOfSight: 1
+  lineOfSightBlockingMask:
+    serializedVersion: 2
+    m_Bits: 576
+  ignoreObstacleBuildSlotColliders: 1
+  ignorePlacedObstacleColliders: 1
+  additionalLineOfSightIgnoreMask:
+    serializedVersion: 2
+    m_Bits: 0
+  showRangeGizmo: 1
+  drawRangeOnlyWhenSelected: 1
+  rangeGizmoColor: {r: 0, g: 1, b: 0, a: 1}
+--- !u!114 &4864819784614934862
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5855034555855745900}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 17296b2ce492c0d469b41f99c4838a6b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TurretStatProfileApplier
+  statProfile: {fileID: 11400000, guid: 8ac27e6c9b40bae4facb314e59801ce5, type: 2}
+  targetTurret: {fileID: 65223075314266543}
+  targetFinder: {fileID: 5938120677705805003}
+  targetGuns: []
+  applyOnStart: 1
+  applyOnInspectorChange: 1
+  damageMultiplier: 1
+--- !u!114 &8027993897541913169
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5855034555855745900}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a87f91c13a2143e4aa6e691bd2b48bc7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TurretDefinitionRuntimeController
+  turretDefinition: {fileID: 11400000, guid: 5313aa0eda7a9704095355d7b500ebdd, type: 2}
+  level: 1
+  totalLevel: 1
+  applyOnStart: 1
+  applyOnInspectorChange: 1
+  applyStatsToTurret: 1
+  applyVFXToTurret: 1
+  logRuntimeStat: 1
+  logProjectileDamage: 1
+  statProfileApplier: {fileID: 4864819784614934862}
+  targetTurret: {fileID: 65223075314266543}
+  targetFiringEvent: {fileID: 2440990073118968165}
+  currentTurretName: 
+  availableEvolutionNames: 
+--- !u!114 &6899824003833288466
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5855034555855745900}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f89ead4bf227d574e9d1fafefd001433, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ProjectZima.PolygonModularTurretsPack.Gun
+  muzzleObject: {fileID: 5784300023425552803}
+  burstFireCount: 1
+  useMuzzleForwardDirection: 1
+  extraCollisionIgnoreRoots: []
+--- !u!114 &2440990073118968165
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5855034555855745900}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b41aab23c1c36d94aa4af80b1de3076a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ProjectZima.PolygonModularTurretsPack.SimpleFire
+  gunPrefabs:
+  - {fileID: 5855034555855745900}
+  muzzleVFX: {fileID: 0}
+  muzzleVFXDuration: 2
+--- !u!1 &6813425837912968537 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 220128322190000996, guid: cfd6087ed72c9564f887d529e9064f28, type: 3}
+  m_PrefabInstance: {fileID: 6737432569134321213}
+  m_PrefabAsset: {fileID: 0}

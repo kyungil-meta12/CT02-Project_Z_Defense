@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3bdc0c7b9357a70449f6f4bff47f2e82, type: 3}
   m_Name: Electro_Turret_VFX Progression SO
   m_EditorClassIdentifier: Assembly-CSharp::TurretVFXProgressionSO
-  defaultProfile: {fileID: 11400000, guid: ef171364a72a2d844b92829f7f78f809, type: 2}
+  defaultProfile: {fileID: 11400000, guid: 2659c0ce3dee22647a8c504f840012c5, type: 2}
   levelEntries:
   - requiredLevel: 0
-    vfxProfile: {fileID: 11400000, guid: ef171364a72a2d844b92829f7f78f809, type: 2}
+    vfxProfile: {fileID: 11400000, guid: 2659c0ce3dee22647a8c504f840012c5, type: 2}

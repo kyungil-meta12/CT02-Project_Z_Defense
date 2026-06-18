@@ -31,7 +31,7 @@ MonoBehaviour:
   playChainLinkEffect: 1
   chainLinkEffectPrefab: {fileID: 3485206932582624865, guid: 3a9c3931b20d4d9cb6934b337c65174e, type: 3}
   chainLinkEffectDuration: 1.5
-  chainLinkVerticalOffset: 0.8
+  chainLinkVerticalOffset: 0.15
   chainLinkSourceAxis: {x: 0, y: 0, z: 1}
   useChainLinkEndpointFit: 1
   chainLinkLocalStartPoint: {x: 0, y: 0, z: 0}
@@ -39,4 +39,4 @@ MonoBehaviour:
   chainLinkLocalPositionOffset: {x: 0, y: 0, z: 0}
   chainLinkRotationEulerOffset: {x: 0, y: 0, z: 0}
   chainLinkLengthScaleMultiplier: 0.55
-  chainLinkThicknessScale: 0.35
+  chainLinkThicknessScale: 0.55

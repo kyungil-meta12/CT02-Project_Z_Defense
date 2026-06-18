@@ -13,8 +13,9 @@ public class ItemData
     public RewardCurrencyType Type;
     public string Name;
     public string InfoText;
+    public Incremental PrevCount = new();
     public Incremental Count = new();
-    public string String;
+    public string CountString;
 }
 
 
@@ -36,7 +37,7 @@ public class InventorySystem : MonoBehaviour
     private Dictionary<RewardCurrencyType, int> itemCostDict = new();
 
     // 아이템 개수 변경 이벤트
-    public Action<ItemData> OnItemCountChange;
+    public Action<ItemData, Incremental> OnItemCountChange;
 
     // 웨이브 동안에 얻은 코인 개수
     public Incremental WaveCollectCoinCount { get; private set; } = new(0);
@@ -130,9 +131,12 @@ public class InventorySystem : MonoBehaviour
     }
 
     // 값 변경 이벤트를 발생시킨다.
+    // 이전 값과의 차이도 이벤트로 전달한다.
     private void InvokeEvent(ItemData data)
     {
-        OnItemCountChange?.Invoke(data);
+        var prevCountCopy = new Incremental(data.PrevCount);
+        OnItemCountChange?.Invoke(data, prevCountCopy);
+        data.PrevCount = new Incremental(data.Count);
     }
 
 
@@ -154,7 +158,7 @@ public class InventorySystem : MonoBehaviour
     /// <returns></returns>
     public string GetCountString(RewardCurrencyType itemType)
     {
-        return itemDict.ContainsKey(itemType) ? itemDict[itemType].String : "0";
+        return itemDict.ContainsKey(itemType) ? itemDict[itemType].CountString : "0";
     }
 
     // 아이템 이름과 개수를 합친 형식으로 리턴한다.
@@ -252,7 +256,7 @@ public class InventorySystem : MonoBehaviour
                 InfoText = metaData.InfoText,
                 Count = amount
             };
-            newItem.String = newItem.Count.ToString();
+            newItem.CountString = newItem.Count.ToString();
             itemDict.Add(itemType, newItem);
             InvokeEvent(newItem);
 
@@ -268,7 +272,7 @@ public class InventorySystem : MonoBehaviour
         {
             var item = itemDict[itemType];
             item.Count += amount;
-            item.String = item.Count.ToString();
+            item.CountString = item.Count.ToString();
             InvokeEvent(item);
             print($"[InventorySystem] 아이템 획득함 | 타입: {itemType} | 현재 개수: {item.Count}");
         }
@@ -306,7 +310,7 @@ public class InventorySystem : MonoBehaviour
             else
             {
                 item.Count -= amount;
-                item.String = item.Count.ToString();
+                item.CountString = item.Count.ToString();
                 InvokeEvent(item);
                 print($"[InventorySystem] 아이템 사용됨 | 사용 타입: {itemType} | 사용 개수: {amount} | 현재 개수: {item.Count}");
                 return true;
@@ -355,7 +359,7 @@ public class InventorySystem : MonoBehaviour
             else
             {
                 item.Count -= amount;
-                item.String = item.Count.ToString();
+                item.CountString = item.Count.ToString();
                 InvokeEvent(item);
                 amountUsed = amount;
                 print($"[InventorySystem] 아이템 사용됨 | 사용 타입: {itemType} | 사용 개수: {amount} | 남은 개수: {item.Count}");

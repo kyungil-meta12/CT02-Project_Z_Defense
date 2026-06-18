@@ -31831,7 +31831,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3589851116711044012}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0.7071068, z: -0, w: 0.7071068}
+  m_LocalRotation: {x: -0.16542259, y: -0.5641292, z: -0.11657648, w: 0.80050206}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -32151,7 +32151,7 @@ ParticleSystem:
     boxThickness: {x: 0, y: 0, z: 0}
     radiusThickness: 0
     donutRadius: 0.2
-    m_Position: {x: 0, y: 0, z: 2.5}
+    m_Position: {x: 0, y: 0, z: 4.4529033}
     m_Rotation: {x: 0, y: 90, z: 0}
     m_Scale: {x: 1, y: 1, z: 1}
     placementMode: 0
@@ -32196,7 +32196,7 @@ ParticleSystem:
     sphericalDirectionAmount: 0
     randomPositionAmount: 0.2
     radius:
-      value: 2.5
+      value: 4.4529033
       mode: 0
       spread: 0
       speed:
@@ -32243,7 +32243,7 @@ ParticleSystem:
     rateOverTime:
       serializedVersion: 2
       minMaxState: 0
-      scalar: 30
+      scalar: 53.434837
       minScalar: 10
       maxCurve:
         serializedVersion: 2
@@ -34781,8 +34781,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3883281308277794006}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: 0.7071068, z: -0, w: 0.7071068}
-  m_LocalPosition: {x: -5, y: 0, z: 0}
+  m_LocalRotation: {x: 0.11657647, y: 0.80050206, z: -0.16542259, w: 0.5641292}
+  m_LocalPosition: {x: -7.6999993, y: 3.53, z: 2.75}
   m_LocalScale: {x: 0.2, y: 0.2, z: 0.2}
   m_ConstrainProportionsScale: 1
   m_Children:
@@ -42100,7 +42100,7 @@ LineRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_Positions:
-  - {x: -5.57, y: 0, z: 0}
+  - {x: -8.2699995, y: 3.53, z: 2.75}
   - {x: -0.57, y: 0, z: 0}
   m_Parameters:
     serializedVersion: 3
@@ -42170,7 +42170,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4925658353331062187}
   m_Layer: 0
-  m_Name: holder
+  m_Name: holder_Main
   m_TagString: Untagged
   m_Icon: {fileID: 2488908585195742037, guid: 0000000000000000d000000000000000, type: 0}
   m_NavMeshLayer: 0
@@ -42185,7 +42185,7 @@ Transform:
   m_GameObject: {fileID: 4925658353331062184}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -5, y: 0, z: 0}
+  m_LocalPosition: {x: -7.7, y: 3.53, z: 2.75}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -47123,7 +47123,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 5874217515163150333}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0.7071068, z: -0, w: 0.7071068}
+  m_LocalRotation: {x: -0.16542259, y: -0.5641292, z: -0.11657648, w: 0.80050206}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -47443,7 +47443,7 @@ ParticleSystem:
     boxThickness: {x: 0, y: 0, z: 0}
     radiusThickness: 0
     donutRadius: 0.2
-    m_Position: {x: 0, y: 0, z: 2.5}
+    m_Position: {x: 0, y: 0, z: 4.4529033}
     m_Rotation: {x: 0, y: 90, z: 0}
     m_Scale: {x: 1, y: 1, z: 1}
     placementMode: 0
@@ -47488,7 +47488,7 @@ ParticleSystem:
     sphericalDirectionAmount: 0
     randomPositionAmount: 0.2
     radius:
-      value: 2.5
+      value: 4.4529033
       mode: 0
       spread: 0
       speed:
@@ -47535,7 +47535,7 @@ ParticleSystem:
     rateOverTime:
       serializedVersion: 2
       minMaxState: 0
-      scalar: 30
+      scalar: 53.434837
       minScalar: 10
       maxCurve:
         serializedVersion: 2
@@ -52473,7 +52473,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 6623628931139675395}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0.7071068, z: -0, w: 0.7071068}
+  m_LocalRotation: {x: -0.16542259, y: -0.5641292, z: -0.11657648, w: 0.80050206}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -52757,7 +52757,7 @@ ParticleSystem:
     boxThickness: {x: 0, y: 0, z: 0}
     radiusThickness: 0
     donutRadius: 0.2
-    m_Position: {x: 0, y: 0, z: 2.5}
+    m_Position: {x: 0, y: 0, z: 4.4529033}
     m_Rotation: {x: 0, y: 90, z: 0}
     m_Scale: {x: 1, y: 1, z: 1}
     placementMode: 0
@@ -52802,7 +52802,7 @@ ParticleSystem:
     sphericalDirectionAmount: 0
     randomPositionAmount: 0.1
     radius:
-      value: 2.5
+      value: 4.4529033
       mode: 0
       spread: 0
       speed:
@@ -52849,7 +52849,7 @@ ParticleSystem:
     rateOverTime:
       serializedVersion: 2
       minMaxState: 0
-      scalar: 60
+      scalar: 106.869675
       minScalar: 10
       maxCurve:
         serializedVersion: 2

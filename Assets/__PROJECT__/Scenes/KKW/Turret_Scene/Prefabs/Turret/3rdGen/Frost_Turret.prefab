@@ -1,4 +1,4 @@
-﻿%YAML 1.1
+%YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
 --- !u!1 &2412428816443099788
 GameObject:
@@ -271,20 +271,6 @@ MonoBehaviour:
   showRangeGizmo: 1
   drawRangeOnlyWhenSelected: 1
   rangeGizmoColor: {r: 0, g: 1, b: 0, a: 1}
---- !u!114 &7379124635086214584
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8581458487753932061}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f23bb1fa74874e3990cc8334cd33d21c, type: 3}
-  m_Name:
-  m_EditorClassIdentifier: Assembly-CSharp::FrostFreezeSuppressedTargetCandidateFilter
-  excludeFrozenTargets: 1
-  excludeFreezeCooldownTargets: 1
 --- !u!114 &5767384991507708237
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -350,15 +336,10 @@ MonoBehaviour:
   beamPrefab: {fileID: 7663338732539269153, guid: 6a81ea742aa11bf4ba7ff915bed86c4c, type: 3}
   attackProfile: {fileID: 0}
   frostStatusProfile: {fileID: 0}
-  scaleBeamLengthAlongLocalX: 1
-  beamBaseLength: 5
   beamVisibleDuration: 0.15
   minBeamDistance: 0.1
   targetValidationInterval: 0.1
   useTargetAimPoint: 1
-  keepWorldScaleChildNames:
-  - Smoke_Twirly_Add
-  - Flecks_Shiny_Alpha
 --- !u!114 &8538779154782827799
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -375,3 +356,17 @@ MonoBehaviour:
   burstFireCount: 1
   useMuzzleForwardDirection: 1
   extraCollisionIgnoreRoots: []
+--- !u!114 &7379124635086214584
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8581458487753932061}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f23bb1fa74874e3990cc8334cd33d21c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::FrostFreezeSuppressedTargetCandidateFilter
+  excludeFrozenTargets: 1
+  excludeFreezeCooldownTargets: 1

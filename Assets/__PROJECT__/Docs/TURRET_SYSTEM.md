@@ -356,6 +356,7 @@ Recommended Poison Death Burst Profile values for first testing:
 | --- | ---: | --- |
 | `burstEffectPrefab` | poison burst VFX prefab | Use a project-owned duplicate or pool-compatible prefab when possible. |
 | `effectDuration` | `3.0` | Match the particle lifetime. |
+| `effectFadeOutDuration` | `0.5` | Fades pooled particle alpha before return so the burst does not disappear abruptly. |
 | `radius` | `2.5` | First test range for weak area Poison. |
 | `targetLayerMask` | zombie damage layers | Must include normal and boss zombie damage layers if bosses should receive weak area Poison. |
 | `maxHpDamageRatioPerTick` | `0.002` | Weak Poison should be much lower than direct Poison. |
@@ -370,6 +371,7 @@ Current `Poison Death Burst Profile SO` test values:
 
 - `burstEffectPrefab = 3_Poison_MushRoom 1` or the currently connected project-owned Poison burst prefab.
 - `effectDuration = 2.0`
+- `effectFadeOutDuration = 0.5`
 - `radius = 3.5`
 - `targetLayerMask.m_Bits = 17536`
 - `maxHpDamageRatioPerTick = 0.02`

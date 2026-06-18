@@ -14,7 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PoisonDeathBurstProfileSO
   burstEffectPrefab: {fileID: 2316660028970656133, guid: c217c2fda05b34046b5fa5fb627dd1c0, type: 3}
   effectDuration: 2
-  effectPositionOffset: {x: 0, y: 0, z: 0}
+  effectFadeOutDuration: 0.5
+  effectPositionOffset: {x: 0, y: 2, z: 0}
   radius: 3.5
   targetLayerMask:
     serializedVersion: 2

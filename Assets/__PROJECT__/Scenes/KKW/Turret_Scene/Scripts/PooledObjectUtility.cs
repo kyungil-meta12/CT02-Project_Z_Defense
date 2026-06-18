@@ -48,6 +48,12 @@ public static class PooledObjectUtility
     // 이펙트를 생성하고 지정 시간 뒤 풀로 반환되도록 초기화한다
     public static GameObject SpawnEffect(GameObject prefab, Vector3 position, Quaternion rotation, float duration)
     {
+        return SpawnEffect(prefab, position, rotation, duration, 0.0f);
+    }
+
+    // 이펙트를 생성하고 지정 시간 뒤 선택적 페이드아웃을 거쳐 풀로 반환되도록 초기화한다
+    public static GameObject SpawnEffect(GameObject prefab, Vector3 position, Quaternion rotation, float duration, float fadeOutDuration)
+    {
         GameObject effect = Spawn(prefab, position, rotation);
         if (effect == null)
         {
@@ -60,7 +66,7 @@ public static class PooledObjectUtility
             returner = effect.AddComponent<PooledEffectReturner>();
         }
 
-        returner.Init(duration);
+        returner.Init(duration, fadeOutDuration);
         return effect;
     }
 

@@ -10,6 +10,7 @@ public class PoisonDeathBurstProfileSO : ScriptableObject
     [Header("폭발 이펙트")]
     public GameObject burstEffectPrefab;
     [Min(0.0f)] public float effectDuration = 3.0f;
+    [Min(0.0f)] public float effectFadeOutDuration = 0.5f;
     public Vector3 effectPositionOffset;
 
     [Header("범위 중독")]
@@ -47,6 +48,7 @@ public class PoisonDeathBurstProfileSO : ScriptableObject
     private void OnValidate()
     {
         effectDuration = Mathf.Max(0.0f, effectDuration);
+        effectFadeOutDuration = Mathf.Clamp(effectFadeOutDuration, 0.0f, effectDuration);
         radius = Mathf.Max(0.0f, radius);
         maxHpDamageRatioPerTick = Mathf.Clamp01(maxHpDamageRatioPerTick);
         tickInterval = Mathf.Max(0.01f, tickInterval);

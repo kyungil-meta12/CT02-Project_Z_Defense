@@ -32,7 +32,7 @@ public static class PoisonDeathBurstEffectUtility
             return;
         }
 
-        PooledObjectUtility.SpawnEffect(profile.burstEffectPrefab, position, Quaternion.identity, profile.effectDuration);
+        PooledObjectUtility.SpawnEffect(profile.burstEffectPrefab, position, Quaternion.identity, profile.effectDuration, profile.effectFadeOutDuration);
     }
 
     // 폭발 범위 안의 생존 대상에게 약한 Poison 상태를 중복 없이 적용한다

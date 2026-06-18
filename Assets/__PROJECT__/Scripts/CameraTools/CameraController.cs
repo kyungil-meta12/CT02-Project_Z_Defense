@@ -1,8 +1,12 @@
+#define USING_TOUCH_CONTROL // 이 전처리기를 주석처리하면 유니티 에디터용 코드로 전환됨
+
 using UnityEngine;
 using UnityEngine.EventSystems;
 
+
 public class CameraController : MonoBehaviour
 {
+
     public static CameraController Inst;
 
     [Header("줌 감도")] public float zoomSensitivity;
@@ -27,12 +31,13 @@ public class CameraController : MonoBehaviour
     private float shakeTimeDest = 0.016f; // 목표 흔들림 간격 시간
     private Vector3 shakeOffset = new(); // 흔들림 오프셋
 
-    #if UNITY_EDITOR
+#if USING_TOUCH_CONTROL // 이 전처리기를 주석처리하면 유니티 에디터용 코드로 전환됨
+    private int activeDragFingerId = -1; // 모바일용 드래그 손가락 ID 추적
+#else
     private Vector3 lastMousePosition;
     private bool isDragging = false; // 에디터용 드래그 상태 추적
-    #else
-    private int activeDragFingerId = -1; // 모바일용 드래그 손가락 ID 추적
-    #endif
+#endif
+
 
     void Awake()
     {
@@ -99,8 +104,40 @@ public class CameraController : MonoBehaviour
     {
         Vector2 dragDelta = Vector2.zero;
 
-    #if UNITY_EDITOR
-        // 1. 마우스를 처음 누른 순간
+#if USING_TOUCH_CONTROL // 이 전처리기를 주석처리하면 유니티 에디터용 코드로 전환됨
+        if (Input.touchCount > 0)
+        {
+            Touch touch = Input.GetTouch(0);
+
+            if (touch.phase == TouchPhase.Began)
+            {
+                if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject(touch.fingerId))
+                {
+                    activeDragFingerId = -1;
+                }
+                else
+                {
+                    activeDragFingerId = touch.fingerId;
+                }
+            }
+
+            if (touch.fingerId == activeDragFingerId && touch.phase == TouchPhase.Moved)
+            {
+                dragDelta = touch.deltaPosition;
+            }
+
+            if (touch.phase == TouchPhase.Ended || touch.phase == TouchPhase.Canceled)
+            {
+                if (touch.fingerId == activeDragFingerId)
+                    activeDragFingerId = -1;
+            }
+        }
+        else
+        {
+            activeDragFingerId = -1;
+        }
+#else
+         // 1. 마우스를 처음 누른 순간
         if (Input.GetMouseButtonDown(0))
         {
             if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject())
@@ -125,38 +162,7 @@ public class CameraController : MonoBehaviour
         {
             isDragging = false;
         }
-    #else
-        if (Input.touchCount > 0)
-        {
-            Touch touch = Input.GetTouch(0);
-
-            if (touch.phase == TouchPhase.Began)
-            {
-                if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject(touch.fingerId))
-                {
-                    activeDragFingerId = -1;
-                }
-                else
-                {
-                    activeDragFingerId = touch.fingerId;
-                }
-            }
-
-            if (touch.fingerId == activeDragFingerId && touch.phase == TouchPhase.Moved)
-            {
-                dragDelta = touch.deltaPosition;
-            }
-
-            if (touch.phase == TouchPhase.Ended || touch.phase == TouchPhase.Canceled)
-            {
-                if (touch.fingerId == activeDragFingerId) activeDragFingerId = -1;
-            }
-        }
-        else
-        {
-            activeDragFingerId = -1;
-        }
-    #endif
+#endif
 
         // 카메라 위치 조정
         float camHalfHeight = currSizeDest; 
@@ -204,13 +210,7 @@ public class CameraController : MonoBehaviour
     {
         float zoomDelta = 0f;
 
-    #if UNITY_EDITOR
-        float scroll = Input.GetAxis("Mouse ScrollWheel");
-        if (scroll != 0)
-        {
-            zoomDelta = scroll;
-        }
-    #else
+#if USING_TOUCH_CONTROL // 이 전처리기를 주석처리하면 유니티 에디터용 코드로 전환됨
         if (Input.touchCount == 2)
         {
             Touch touchZero = Input.GetTouch(0);
@@ -230,7 +230,13 @@ public class CameraController : MonoBehaviour
                 zoomDelta = touchDeltaMag - prevTouchDeltaMag;
             }
         }
-    #endif
+#else
+        float scroll = Input.GetAxis("Mouse ScrollWheel");
+        if (scroll != 0)
+        {
+            zoomDelta = scroll;
+        }
+#endif
 
         // 카메라 줌 반영
         currSizeDest -= zoomDelta * zoomSensitivity;

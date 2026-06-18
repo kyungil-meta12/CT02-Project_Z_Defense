@@ -11447,7 +11447,7 @@ MonoBehaviour:
   gameOverPanelUI: {fileID: 0}
   gameOverFadeInDuration: 10
   gameOverFadeOutDuration: 10
-  startWave: 333
+  startWave: 88
   startTimeScale: 1
   baseFixedDeltaTime: 0.02
 --- !u!4 &270030000

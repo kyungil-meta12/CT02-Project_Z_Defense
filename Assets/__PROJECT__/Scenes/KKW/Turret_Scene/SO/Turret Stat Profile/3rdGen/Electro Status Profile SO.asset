@@ -30,7 +30,7 @@ MonoBehaviour:
   bossStunDurationMultiplier: 0
   playChainLinkEffect: 1
   chainLinkEffectPrefab: {fileID: 3485206932582624865, guid: 3a9c3931b20d4d9cb6934b337c65174e, type: 3}
-  chainLinkEffectDuration: 1.5
+  chainLinkEffectDuration: 0.8
   chainLinkVerticalOffset: 0.15
   chainLinkSourceAxis: {x: 0, y: 0, z: 1}
   useChainLinkEndpointFit: 1
@@ -40,3 +40,10 @@ MonoBehaviour:
   chainLinkRotationEulerOffset: {x: 0, y: 0, z: 0}
   chainLinkLengthScaleMultiplier: 0.55
   chainLinkThicknessScale: 0.55
+  playChainCoreLine: 1
+  chainCoreLineMaterial: {fileID: 2100000, guid: 5923168c41505a341b20182ce7444fa2, type: 2}
+  chainCoreLineStartColor: {r: 0.7, g: 1, b: 1, a: 0.95}
+  chainCoreLineEndColor: {r: 1, g: 0.7, b: 1, a: 0.85}
+  chainCoreLineWidth: 0.06
+  chainCoreLineStartDelay: 0.2
+  chainCoreLineDuration: 0.2

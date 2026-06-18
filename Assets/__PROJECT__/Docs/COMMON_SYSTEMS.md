@@ -32,11 +32,13 @@ Current receiver interfaces:
 
 - `ProjectZDefense.StatusEffects.IFrostStatusEffectReceiver`
 - `ProjectZDefense.StatusEffects.IPoisonStatusEffectReceiver`
+- `ProjectZDefense.StatusEffects.IElectroStatusEffectReceiver`
 
 Current payload value types:
 
 - `ProjectZDefense.StatusEffects.FrostStatusPayload`
 - `ProjectZDefense.StatusEffects.PoisonStatusPayload`
+- `ProjectZDefense.StatusEffects.ElectroStatusPayload`
 
 Rules:
 
@@ -56,6 +58,13 @@ Poison-specific shared contract:
 - Visual systems should receive lethal state from the damage receiver and should not calculate lethal damage themselves.
 - Weak area Poison from death burst uses the same receiver contract as direct Poison projectile hits.
 - Boss receivers can accept Poison and weak area Poison, but boss death-burst triggering is a zombie implementation rule, not part of the shared interface.
+
+Electro-specific shared contract:
+
+- `ProjectZDefense.StatusEffects.ElectroStatusPayload` carries chain lightning count/radius/falloff, Shock stack duration, Overload trigger policy, Overload burst values, stun values, and chain VFX settings.
+- `ProjectZDefense.StatusEffects.IElectroStatusEffectReceiver.ApplyElectroStatus` receives the payload, chain index, and source damage so enemies can apply Shock, Overload, and stun rules consistently for direct and chained hits.
+- Chain damage itself is applied by `ElectroChainLightningUtility` through `IDamageable.TakeDamage`; enemy receivers should own only their mutable Electro status state.
+- Electro chain VFX is turret-owned presentation. Enemy receivers should not instantiate chain-link particle or core-line visuals.
 
 ## MemoryPool
 

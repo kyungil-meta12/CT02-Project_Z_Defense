@@ -79,6 +79,7 @@ public static class ElectroChainLinkEffectUtility
         }
 
         ApplyEffectScale(effectObject, placementData.Scale);
+        ApplyCoreLineEffect(effectObject, payload, startPosition, endPosition);
         return effectObject;
     }
 
@@ -123,6 +124,29 @@ public static class ElectroChainLinkEffectUtility
     private static void ApplyEffectScale(GameObject effectObject, Vector3 effectScale)
     {
         effectObject.transform.localScale = effectScale;
+    }
+
+    // 코어 라인을 현재 체인 시작점과 끝점에 맞춰 갱신한다
+    private static void ApplyCoreLineEffect(GameObject effectObject, ElectroStatusPayload payload, Vector3 startPosition, Vector3 endPosition)
+    {
+        if (!ResolvePlayChainCoreLine(payload))
+        {
+            ElectroChainCoreLineEffect existingCoreLine = effectObject.GetComponent<ElectroChainCoreLineEffect>();
+            if (existingCoreLine != null)
+            {
+                existingCoreLine.DisableLine();
+            }
+
+            return;
+        }
+
+        ElectroChainCoreLineEffect coreLine = effectObject.GetComponent<ElectroChainCoreLineEffect>();
+        if (coreLine == null)
+        {
+            coreLine = effectObject.AddComponent<ElectroChainCoreLineEffect>();
+        }
+
+        coreLine.Apply(payload, startPosition, endPosition);
     }
 
     // 이펙트 프리팹을 체인 거리와 굵기 설정에 맞춰 스케일값으로 계산한다
@@ -274,6 +298,12 @@ public static class ElectroChainLinkEffectUtility
     private static float ResolveThicknessScale(ElectroStatusPayload payload)
     {
         return payload.sourceProfile != null ? payload.sourceProfile.chainLinkThicknessScale : payload.chainLinkThicknessScale;
+    }
+
+    // 현재 체인 코어 라인을 재생할지 반환한다
+    private static bool ResolvePlayChainCoreLine(ElectroStatusPayload payload)
+    {
+        return payload.sourceProfile != null ? payload.sourceProfile.playChainCoreLine : payload.playChainCoreLine;
     }
 
     // 체인 링크 이펙트를 지정 시간 뒤 풀로 반환하도록 초기화한다

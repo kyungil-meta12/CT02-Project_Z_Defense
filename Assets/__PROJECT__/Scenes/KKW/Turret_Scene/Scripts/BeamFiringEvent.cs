@@ -10,13 +10,10 @@ public class BeamFiringEvent : FiringEvent
     [SerializeField] private GameObject beamPrefab;
     [SerializeField] private BeamAttackProfileSO attackProfile;
     [SerializeField] private FrostStatusProfileSO frostStatusProfile;
-    [SerializeField] private bool scaleBeamLengthAlongLocalX = true;
-    [SerializeField, Min(0.01f)] private float beamBaseLength = 5.0f;
     [SerializeField, Min(0.01f)] private float beamVisibleDuration = 0.15f;
     [SerializeField, Min(0.01f)] private float minBeamDistance = 0.1f;
     [SerializeField, Min(0.01f)] private float targetValidationInterval = 0.1f;
     [SerializeField] private bool useTargetAimPoint = true;
-    [SerializeField] private string[] keepWorldScaleChildNames = { "Smoke_Twirly_Add", "Flecks_Shiny_Alpha" };
 
     private BeamInstance[] beamInstances;
     private GameObject currentTarget;
@@ -175,8 +172,7 @@ public class BeamFiringEvent : FiringEvent
                 beamObject,
                 muzzleTransform,
                 ResolveBeamTarget(beamObject.transform),
-                ResolveBeamHitEffect(beamObject.transform),
-                ResolveKeepWorldScaleChildren(beamObject.transform));
+                ResolveBeamHitEffect(beamObject.transform));
         }
     }
 
@@ -267,8 +263,7 @@ public class BeamFiringEvent : FiringEvent
         Transform beamTransform = beamInstance.BeamObject.transform;
         beamTransform.position = startPosition;
         beamTransform.rotation = Quaternion.FromToRotation(Vector3.left, safeDirection);
-        ApplyBeamScale(beamTransform, distance);
-        ApplyKeepWorldScaleChildren(beamInstance);
+        ApplyBeamScale(beamTransform);
 
         if (beamInstance.TargetTransform != null)
         {
@@ -286,52 +281,10 @@ public class BeamFiringEvent : FiringEvent
         }
     }
 
-    // 빔 프리팹의 기준 길이와 현재 타겟 거리로 루트 스케일을 갱신한다
-    private void ApplyBeamScale(Transform beamTransform, float distance)
+    // 빔 루트에는 진행도 스케일만 균일하게 적용한다
+    private void ApplyBeamScale(Transform beamTransform)
     {
-        if (!scaleBeamLengthAlongLocalX)
-        {
-            beamTransform.localScale = Vector3.one * projectileScale;
-            return;
-        }
-
-        float lengthScale = Mathf.Max(minBeamDistance, distance) / Mathf.Max(0.01f, beamBaseLength);
-        beamTransform.localScale = new Vector3(projectileScale * lengthScale, projectileScale, projectileScale);
-    }
-
-    // 루트 빔 스케일에 따라 커지면 안 되는 하위 파티클의 원본 크기를 유지한다
-    private void ApplyKeepWorldScaleChildren(BeamInstance beamInstance)
-    {
-        if (beamInstance.ScaleProtectedChildren == null || beamInstance.BeamObject == null)
-        {
-            return;
-        }
-
-        Vector3 rootScale = beamInstance.BeamObject.transform.localScale;
-        for (int i = 0; i < beamInstance.ScaleProtectedChildren.Length; i++)
-        {
-            BeamScaleProtectedChild protectedChild = beamInstance.ScaleProtectedChildren[i];
-            if (!protectedChild.IsValid)
-            {
-                continue;
-            }
-
-            protectedChild.Transform.localScale = new Vector3(
-                protectedChild.OriginalLocalScale.x / Mathf.Max(0.0001f, rootScale.x),
-                protectedChild.OriginalLocalScale.y / Mathf.Max(0.0001f, rootScale.y),
-                protectedChild.OriginalLocalScale.z / Mathf.Max(0.0001f, rootScale.z));
-        }
-    }
-
-    // 빔 끝점 역할의 내부 타겟 로컬 위치를 반환한다
-    private Vector3 GetBeamTargetLocalPosition(float distance)
-    {
-        if (scaleBeamLengthAlongLocalX)
-        {
-            return Vector3.left * beamBaseLength;
-        }
-
-        return Vector3.left * (distance / projectileScale);
+        beamTransform.localScale = Vector3.one * projectileScale;
     }
 
     // 빔 공격 프로필 기준으로 데미지 틱 시간을 누적하고 적용한다
@@ -633,6 +586,12 @@ public class BeamFiringEvent : FiringEvent
         }
 
         Transform[] children = beamRoot.GetComponentsInChildren<Transform>(true);
+        Transform namedTarget = FindChildByName(children, beamRoot, "holder_Main");
+        if (namedTarget != null)
+        {
+            return namedTarget;
+        }
+
         Transform fallbackTarget = null;
 
         for (int i = 0; i < children.Length; i++)
@@ -674,55 +633,6 @@ public class BeamFiringEvent : FiringEvent
         }
 
         return null;
-    }
-
-    // 빔 길이 스케일과 별도로 원본 크기를 유지할 하위 파티클 목록을 찾는다
-    private BeamScaleProtectedChild[] ResolveKeepWorldScaleChildren(Transform beamRoot)
-    {
-        if (beamRoot == null || keepWorldScaleChildNames == null || keepWorldScaleChildNames.Length == 0)
-        {
-            return null;
-        }
-
-        Transform[] children = beamRoot.GetComponentsInChildren<Transform>(true);
-        BeamScaleProtectedChild[] protectedChildren = new BeamScaleProtectedChild[keepWorldScaleChildNames.Length];
-        int protectedCount = 0;
-
-        for (int nameIndex = 0; nameIndex < keepWorldScaleChildNames.Length; nameIndex++)
-        {
-            string targetName = keepWorldScaleChildNames[nameIndex];
-            if (string.IsNullOrEmpty(targetName))
-            {
-                continue;
-            }
-
-            Transform targetTransform = FindChildByName(children, beamRoot, targetName);
-            if (targetTransform == null)
-            {
-                continue;
-            }
-
-            protectedChildren[protectedCount] = new BeamScaleProtectedChild(targetTransform, targetTransform.localScale);
-            protectedCount++;
-        }
-
-        if (protectedCount == 0)
-        {
-            return null;
-        }
-
-        if (protectedCount == protectedChildren.Length)
-        {
-            return protectedChildren;
-        }
-
-        BeamScaleProtectedChild[] compactChildren = new BeamScaleProtectedChild[protectedCount];
-        for (int i = 0; i < protectedCount; i++)
-        {
-            compactChildren[i] = protectedChildren[i];
-        }
-
-        return compactChildren;
     }
 
     // 캐시된 트랜스폼 배열에서 지정한 이름의 하위 오브젝트를 찾는다
@@ -842,7 +752,6 @@ public class BeamFiringEvent : FiringEvent
         public readonly Transform MuzzleTransform;
         public readonly Transform TargetTransform;
         public readonly Transform HitEffectTransform;
-        public readonly BeamScaleProtectedChild[] ScaleProtectedChildren;
 
         public bool IsValid
         {
@@ -853,35 +762,12 @@ public class BeamFiringEvent : FiringEvent
         }
 
         // 빔 인스턴스 참조를 초기화한다
-        public BeamInstance(GameObject beamObject, Transform muzzleTransform, Transform targetTransform, Transform hitEffectTransform, BeamScaleProtectedChild[] scaleProtectedChildren)
+        public BeamInstance(GameObject beamObject, Transform muzzleTransform, Transform targetTransform, Transform hitEffectTransform)
         {
             BeamObject = beamObject;
             MuzzleTransform = muzzleTransform;
             TargetTransform = targetTransform;
             HitEffectTransform = hitEffectTransform;
-            ScaleProtectedChildren = scaleProtectedChildren;
-        }
-    }
-
-    // 루트 빔 스케일에서 제외할 하위 파티클의 원본 로컬 스케일을 보관한다
-    private struct BeamScaleProtectedChild
-    {
-        public readonly Transform Transform;
-        public readonly Vector3 OriginalLocalScale;
-
-        public bool IsValid
-        {
-            get
-            {
-                return Transform != null;
-            }
-        }
-
-        // 크기 보정 대상 파티클 참조와 원본 스케일을 초기화한다
-        public BeamScaleProtectedChild(Transform transform, Vector3 originalLocalScale)
-        {
-            Transform = transform;
-            OriginalLocalScale = originalLocalScale;
         }
     }
 }

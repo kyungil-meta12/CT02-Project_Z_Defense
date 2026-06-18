@@ -529,8 +529,9 @@ FrostRay VFX notes:
 - The actual line target is `BeamEmitter.beamTarget`; there are several objects named `holder`, so name-based lookup is not reliable.
 - The hit effect is `BeamEmitter.beamTargetHitFX`, currently `Hit_Spikes`.
 - `BeamFiringEvent` resolves those `BeamEmitter` references at runtime and moves them to the current target position every frame.
-- The FrostRay beam visual is authored around a base length of `5`. `BeamFiringEvent.scaleBeamLengthAlongLocalX` scales local X by `targetDistance / beamBaseLength`.
-- `BeamFiringEvent.keepWorldScaleChildNames` preserves configured child particle sizes after root beam length scaling. Current Frost turret excludes `Smoke_Twirly_Add` and `Flecks_Shiny_Alpha` so muzzle/fleck particles keep their original size at long range.
+- The FrostRay beam visual now uses the `BeamEmitter.beamTarget` transform, currently named `holder_Main`, as the runtime endpoint.
+- `BeamFiringEvent` moves `holder_Main` and `BeamEmitter.beamTargetHitFX` to the current target position every frame, so the Frost turret no longer needs root X scaling for beam length.
+- The old root X scale and child inverse-scale correction path has been removed from `BeamFiringEvent`; beam length should be driven by the endpoint holder instead.
 - To reduce only the hit effect size, scale the `Hit_Spikes` object or its children, not the root `FrostRay_TurretBeam` object. Scaling the root changes the whole beam length and width.
 - Current duplicated `Hit_Spikes` transform scale is `0.2, 0.2, 0.2` for the Frost turret test prefab.
 - If VFX density or particle emission looks wrong after length scaling, tune the duplicated `FrostRay_TurretBeam` prefab under the project folder, not the Private Assets original.

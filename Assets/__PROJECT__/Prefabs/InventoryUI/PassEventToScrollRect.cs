@@ -2,30 +2,34 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
-public class PassEventToScrollRect : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler
+// IPointerDownHandler 인터페이스가 반드시 함께 추가되어야 합니다!
+public class PassEventToScrollRect : MonoBehaviour, IPointerDownHandler, IBeginDragHandler, IDragHandler, IEndDragHandler
 {
     private ScrollRect scrollRect;
 
     void Start()
     {
-        scrollRect = GetComponentInParent<ScrollRect>();
+        var backPannel = transform.root.Find("InventoryUI/MainController/BackPannel");
+        scrollRect = backPannel.GetComponent<ScrollRect>();
+    }
+
+    public void OnPointerDown(PointerEventData eventData)
+    {
+        scrollRect.OnInitializePotentialDrag(eventData);
     }
 
     public void OnBeginDrag(PointerEventData eventData)
     {
-        if (scrollRect != null)
-            scrollRect.OnBeginDrag(eventData);
+        scrollRect.OnBeginDrag(eventData);
     }
 
     public void OnDrag(PointerEventData eventData)
     {
-        if (scrollRect != null)
-            scrollRect.OnDrag(eventData);
+        scrollRect.OnDrag(eventData);
     }
 
     public void OnEndDrag(PointerEventData eventData)
     {
-        if (scrollRect != null)
-            scrollRect.OnEndDrag(eventData);
+        scrollRect.OnEndDrag(eventData);
     }
 }

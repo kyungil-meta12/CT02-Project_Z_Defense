@@ -62,6 +62,44 @@ public class ObstacleUpgradePopupUI : MonoBehaviour
         HidePopup();
     }
 
+    void Start()
+    {
+        CameraTouchHandler.Inst.OnCameraTargetTouchEvent += OnTargetTouchEvent;
+        CameraTouchHandler.Inst.OnCameraOtherTouchEvent += OnOtherTouchEvent;
+    }
+
+    void OnDestroy()
+    {
+        if(CameraTouchHandler.Inst)
+        {
+            CameraTouchHandler.Inst.OnCameraTargetTouchEvent -= OnTargetTouchEvent;
+            CameraTouchHandler.Inst.OnCameraOtherTouchEvent -= OnOtherTouchEvent;
+        }
+        
+    }
+
+    // 다른 곳을 터치하면 팝업을 숨긴다.
+    public void OnOtherTouchEvent()
+    {
+        HidePopup();
+        return;
+    }
+
+    // Obstalce 터치 시
+    public void OnTargetTouchEvent(RaycastHit hit)
+    {
+        // 타겟 터치 이벤트가 발생했는데 Obstacle 컴포넌트를 찾을 수 없다면 장애물을 터치 하지 않은 것으로 간주하고 팝업을 숨긴다.
+        Obstacle hitObstacle = hit.collider.GetComponentInParent<Obstacle>();
+        if (hitObstacle == null)
+        {
+            HidePopup();
+            return;
+        }
+        var obstacle = hitObstacle;
+        var upgradeController = hitObstacle.GetComponent<ObstacleUpgradeRuntimeController>();
+        SelectObstacle(obstacle, upgradeController);
+    }
+
     // 포인터 입력으로 장애물을 선택하거나 팝업을 닫는다
     private void Update()
     {
@@ -71,29 +109,29 @@ public class ObstacleUpgradePopupUI : MonoBehaviour
             return;
         }
 
-        if (placementController != null && placementController.IsPlacing)
+        if (/*placementController != null && */placementController.IsPlacing)
         {
             HidePopup();
             return;
         }
 
-        if (!WasPrimaryPointerPressed() || IsPointerOverUI() || IsPointerInsidePopup())
-        {
-            return;
-        }
+        //if (!WasPrimaryPointerPressed() || IsPointerOverUI() || IsPointerInsidePopup())
+        //{
+        //    return;
+        //}
 
-        if (!TryGetPrimaryPointerPosition(out Vector2 pointerPosition))
-        {
-            return;
-        }
+        //if (!TryGetPrimaryPointerPosition(out Vector2 pointerPosition))
+        //{
+        //    return;
+        //}
 
-        if (TrySelectObstacle(pointerPosition, out Obstacle obstacle, out ObstacleUpgradeRuntimeController upgradeController))
-        {
-            SelectObstacle(obstacle, upgradeController);
-            return;
-        }
+        //if (TrySelectObstacle(pointerPosition, out Obstacle obstacle, out ObstacleUpgradeRuntimeController upgradeController))
+        //{
+        //    SelectObstacle(obstacle, upgradeController);
+        //    return;
+        //}
 
-        HidePopup();
+        //HidePopup();
     }
 
     [ContextMenu("참조 다시 연결")]
@@ -150,51 +188,51 @@ public class ObstacleUpgradePopupUI : MonoBehaviour
         RefreshUI();
     }
 
-    // 포인터 위치에서 선택 가능한 장애물을 찾는다
-    private bool TrySelectObstacle(Vector2 pointerPosition, out Obstacle obstacle, out ObstacleUpgradeRuntimeController upgradeController)
-    {
-        obstacle = null;
-        upgradeController = null;
+    //// 포인터 위치에서 선택 가능한 장애물을 찾는다
+    //private bool TrySelectObstacle(Vector2 pointerPosition, out Obstacle obstacle, out ObstacleUpgradeRuntimeController upgradeController)
+    //{
+    //    obstacle = null;
+    //    upgradeController = null;
 
-        if (targetCamera == null)
-        {
-            targetCamera = Camera.main;
-        }
+    //    if (targetCamera == null)
+    //    {
+    //        targetCamera = Camera.main;
+    //    }
 
-        if (targetCamera == null)
-        {
-            return false;
-        }
+    //    if (targetCamera == null)
+    //    {
+    //        return false;
+    //    }
 
-        Ray ray = targetCamera.ScreenPointToRay(pointerPosition);
-        int hitCount = Physics.RaycastNonAlloc(ray, selectionHits, maxRayDistance, selectionLayerMask, QueryTriggerInteraction.Collide);
-        if (hitCount <= 0)
-        {
-            return false;
-        }
+    //    Ray ray = targetCamera.ScreenPointToRay(pointerPosition);
+    //    int hitCount = Physics.RaycastNonAlloc(ray, selectionHits, maxRayDistance, selectionLayerMask, QueryTriggerInteraction.Collide);
+    //    if (hitCount <= 0)
+    //    {
+    //        return false;
+    //    }
 
-        float nearestDistance = Mathf.Infinity;
-        for (int i = 0; i < hitCount; i++)
-        {
-            RaycastHit hit = selectionHits[i];
-            if (hit.collider == null || hit.distance >= nearestDistance)
-            {
-                continue;
-            }
+    //    float nearestDistance = Mathf.Infinity;
+    //    for (int i = 0; i < hitCount; i++)
+    //    {
+    //        RaycastHit hit = selectionHits[i];
+    //        if (hit.collider == null || hit.distance >= nearestDistance)
+    //        {
+    //            continue;
+    //        }
 
-            Obstacle hitObstacle = hit.collider.GetComponentInParent<Obstacle>();
-            if (hitObstacle == null)
-            {
-                continue;
-            }
+    //        Obstacle hitObstacle = hit.collider.GetComponentInParent<Obstacle>();
+    //        if (hitObstacle == null)
+    //        {
+    //            continue;
+    //        }
 
-            obstacle = hitObstacle;
-            upgradeController = hitObstacle.GetComponent<ObstacleUpgradeRuntimeController>();
-            nearestDistance = hit.distance;
-        }
+    //        obstacle = hitObstacle;
+    //        upgradeController = hitObstacle.GetComponent<ObstacleUpgradeRuntimeController>();
+    //        nearestDistance = hit.distance;
+    //    }
 
-        return obstacle != null;
-    }
+    //    return obstacle != null;
+    //}
 
     // 선택된 장애물 상태를 기준으로 팝업 텍스트와 버튼을 갱신한다
     private void RefreshUI()

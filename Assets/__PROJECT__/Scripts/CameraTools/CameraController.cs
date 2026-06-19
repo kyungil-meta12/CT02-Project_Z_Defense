@@ -232,20 +232,11 @@ public class CameraController : MonoBehaviour, IPointerDownHandler, IPointerUpHa
         currSize = Mathf.Lerp(currSize, currSizeDest, Time.deltaTime * 10f);
     }
 
-    // FingerID를 기반으로 현재 터치 상태를 가져오는 헬퍼 메서드
-    private bool TryGetTouch(int fingerId, out Touch result)
+    // 카메라를 초기 상태로 되돌림
+    public void Reset()
     {
-        for (int i = 0; i < Input.touchCount; i++)
-        {
-            Touch t = Input.GetTouch(i);
-            if (t.fingerId == fingerId)
-            {
-                result = t;
-                return true;
-            }
-        }
-        result = new Touch();
-        return false;
+        currSizeDest = originSize;
+        currPosDest = originPos;
     }
 
     /// <summary>

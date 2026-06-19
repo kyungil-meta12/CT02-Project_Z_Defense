@@ -17,3 +17,7 @@ MonoBehaviour:
     spawnChance: 1
   - wave: 10
     spawnChance: 0.3
+  - wave: 100
+    spawnChance: 1
+  - wave: 101
+    spawnChance: 1

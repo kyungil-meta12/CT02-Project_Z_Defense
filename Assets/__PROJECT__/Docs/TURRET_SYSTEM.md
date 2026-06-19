@@ -135,14 +135,18 @@ Frost status handling:
 - `NormalZombie` and `BossZombie` implement `ProjectZDefense.StatusEffects.IFrostStatusEffectReceiver`.
 - `FrostStatusRuntime` owns Frost exposure, hold timer, freeze timer, freeze cooldown, visual toggles, and optional freeze explosion effects.
 - `NormalZombie` initializes `FrostStatusRuntime` with freeze explosion enabled and only applies the calculated speed multiplier to cached `MoveSpeed` and `AttackSpeed` animator parameters.
-- `BossZombie` initializes `FrostStatusRuntime` with freeze explosion disabled and only applies the calculated speed multiplier to the cached behavior blackboard `speed` value plus the `AttackSpeed` animator parameter. Boss Frost is slow-only by design.
+- `BossZombie` initializes `FrostStatusRuntime` with freeze explosion disabled. Boss Frost is slow-only by current code, so `canTriggerFreeze = false` blocks freeze explosion but does not block Frost slow payload delivery.
+- `BossZombie` no longer uses the behavior blackboard `speed` variable as the C# runtime speed source. Root-motion movement speed is driven by the Animator `speed` parameter from `baseMoveSpeed * frostSpeedMultiplier`, while `OnAnimatorMove` applies `anim.deltaPosition` through `NavMeshAgent.Move`.
+- `BossZombie.ApplyFrostSpeedMultiplier` clamps the applied Frost speed multiplier to at least `0.5`, so Frost can slow bosses by up to 50% but cannot fully stop their movement or attack animation.
+- `BossZombie.UpdateMoveAnimatorSpeed` must not write `agent.speed` back into the Animator `speed` parameter. `agent.speed` is only an indirect navigation value from `NavigateToTargetAction`; using it as the root-motion speed source disconnects runtime Frost multipliers from actual movement.
 - `FrostStatusRuntime.IsFreezeRetargetSuppressed` becomes true only for freeze-capable targets after freeze starts or while the per-target freeze cooldown remains. Slow buildup alone does not suppress targeting.
 - `FrostFreezeSuppressedTargetCandidateFilter` lets `Frost_Turret` stop retargeting enemies that are already frozen or waiting for their next freeze eligibility window. Bosses are not excluded because Boss Frost is slow-only.
 - `FrostStatusEffectUtility` owns freeze effect spawning and non-alloc overlap explosion damage so future Frost skills can reuse the same explosion behavior.
 - `FrostFreezeExplosionDamageTimer` keeps `Ice_Cubes_Explosion` following the original frozen target while it is alive and delays explosion damage so the damage lands at the current effect position when the visual burst happens.
 - `FrostStatusRuntime` keeps the active `Ice_Cubes_Explosion` handle and cancels the effect plus pending explosion damage when the original frozen target dies or is reset for pooling.
 - `FrostStatusRuntime.TriggerFreezeDeathEffectIfNeeded` spawns the configured `freezeDeathEffectPrefab` when a target dies while its freeze timer is still active. This is separate from `Ice_Cubes_Explosion`, which is still cancelled on death to prevent delayed damage from a dead original target.
-- `StatusEffectVisualController` owns enemy-side status VFX slots. It can spawn one `MeshFX_Frozen 1` instance per configured target renderer, inject the renderer into `OverlayFX`, and remove the runtime overlay material when Frost slow ends.
+- `StatusEffectVisualController` owns enemy-side status VFX slots. It can spawn one `MeshFX_Frozen 1` instance per configured target renderer, inject the renderer into `OverlayFX`, and restore each renderer's cached `sharedMaterials` array when Frost slow ends.
+- Frost overlay material cleanup must restore the original `sharedMaterials` arrays instead of stripping overlay slots by assigning `null`. Null material slots can render magenta on normal zombies after the Frost/slow visual ends.
 - `FrostStatusRuntime` reports Frost active/inactive state to `StatusEffectVisualController`; zombies do not directly instantiate or configure mesh VFX.
 - `NormalZombie` exposes runtime base speed setters so external buffs such as Screamer speed buffs can change the non-Frost base speed without overwriting the active Frost multiplier.
 - `maxSlowRatio` is interpreted as a maximum reduction ratio, so `0.9` means the target keeps `10%` speed when Frost buildup reaches the cap.
@@ -176,6 +180,7 @@ Enemy Frost visual setup:
 - For boss zombies, assign body and attachment renderers selectively so hair, eyes, or props can be excluded if needed.
 - If boss Frost particles look too large, lower `Frost Particle Scale Multiplier` on the boss `StatusEffectVisualController` instead of scaling the source MeshFX prefab.
 - Do not modify the original `OverlayFX` script from Private Assets; project-side lifecycle and material cleanup are handled by `StatusEffectVisualController`.
+- RendererOverlay slots cache original renderer material arrays when Frost/Poison visuals are activated and restore those arrays on deactivation or slot cleanup. This is required to avoid magenta fallback materials after `MeshFX_Frozen 1` finishes.
 - `freezeCooldownPerTarget` must prevent the same target from triggering freeze explosions every damage tick.
 - `freezeDuration > 0` temporarily applies a `0` speed multiplier and overrides slow until the freeze timer expires.
 - `freezeEffectPrefab` is owned by the attack/status profile, not by every zombie prefab. Zombies only provide receiver logic and effect position.

@@ -40,6 +40,7 @@ namespace ProjectZDefense.StatusEffects
         public float stunDuration;
         public float stunDurationFalloffPerJump;
         public float minimumStunDuration;
+        public float bossHitStunDurationMultiplier;
         public float bossStunDurationMultiplier;
         public bool playChainLinkEffect;
         public global::ElectroStatusProfileSO sourceProfile;

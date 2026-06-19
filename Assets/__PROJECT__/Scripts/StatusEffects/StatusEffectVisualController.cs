@@ -3,7 +3,8 @@ using UnityEngine;
 public enum StatusEffectVisualType
 {
     FrostSlow,
-    Poison
+    Poison,
+    ElectroStun
 }
 
 public enum StatusEffectVisualAttachMode
@@ -57,12 +58,14 @@ public class StatusEffectVisualController : MonoBehaviour
 
     private bool frostSlowVisualActive;
     private bool poisonVisualActive;
+    private bool electroStunVisualActive;
 
     // 컴포넌트가 비활성화될 때 상태이상 비주얼과 임시 머티리얼을 정리한다
     private void OnDisable()
     {
         SetFrostSlowActive(false);
         SetPoisonActive(false);
+        SetElectroStunActive(false);
     }
 
     // 오브젝트가 파괴될 때 상태이상 비주얼과 임시 머티리얼을 정리한다
@@ -70,6 +73,7 @@ public class StatusEffectVisualController : MonoBehaviour
     {
         SetFrostSlowActive(false);
         SetPoisonActive(false);
+        SetElectroStunActive(false);
     }
 
     // 프로스트 슬로우 상태에 맞춰 얼음 메시 이펙트를 활성화하거나 비활성화한다
@@ -117,6 +121,23 @@ public class StatusEffectVisualController : MonoBehaviour
             SetPoisonLethalIndicatorActive(false);
             RestoreVisualSlotOriginalMaterials(StatusEffectVisualType.Poison);
         }
+    }
+
+    // Electro 경직 상태에 맞춰 전기 경직 이펙트를 활성화하거나 비활성화한다
+    public void SetElectroStunActive(bool isActive)
+    {
+        if (electroStunVisualActive == isActive)
+        {
+            return;
+        }
+
+        if (isActive)
+        {
+            EnsureVisualSlotInstances(StatusEffectVisualType.ElectroStun);
+        }
+
+        SetVisualSlotInstancesActive(StatusEffectVisualType.ElectroStun, isActive);
+        electroStunVisualActive = isActive;
     }
 
     // 포이즌 틱데미지로 사망이 확정된 대상의 표시 아이콘을 켜거나 끈다

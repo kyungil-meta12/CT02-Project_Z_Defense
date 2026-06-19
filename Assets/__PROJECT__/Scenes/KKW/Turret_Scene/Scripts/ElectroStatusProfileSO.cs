@@ -56,6 +56,7 @@ public class ElectroStatusProfileSO : ScriptableObject
     [Min(0.0f)] public float stunDuration = 0.35f;
     [Range(0.0f, 1.0f)] public float stunDurationFalloffPerJump = 0.1f;
     [Min(0.0f)] public float minimumStunDuration = 0.1f;
+    [Range(0.0f, 1.0f)] public float bossHitStunDurationMultiplier = 0.0f;
     [Range(0.0f, 1.0f)] public float bossStunDurationMultiplier = 0.0f;
 
     [Header("체인 링크 VFX")]
@@ -134,6 +135,7 @@ public class ElectroStatusProfileSO : ScriptableObject
             stunDuration = Mathf.Max(0.0f, stunDuration),
             stunDurationFalloffPerJump = Mathf.Clamp01(stunDurationFalloffPerJump),
             minimumStunDuration = Mathf.Max(0.0f, minimumStunDuration),
+            bossHitStunDurationMultiplier = Mathf.Clamp01(bossHitStunDurationMultiplier),
             bossStunDurationMultiplier = Mathf.Clamp01(bossStunDurationMultiplier),
             playChainLinkEffect = playChainLinkEffect,
             sourceProfile = this,
@@ -202,6 +204,7 @@ public class ElectroStatusProfileSO : ScriptableObject
         stunDuration = Mathf.Max(0.0f, stunDuration);
         stunDurationFalloffPerJump = Mathf.Clamp01(stunDurationFalloffPerJump);
         minimumStunDuration = Mathf.Clamp(minimumStunDuration, 0.0f, stunDuration);
+        bossHitStunDurationMultiplier = Mathf.Clamp01(bossHitStunDurationMultiplier);
         bossStunDurationMultiplier = Mathf.Clamp01(bossStunDurationMultiplier);
         chainLinkEffectDuration = Mathf.Max(0.01f, chainLinkEffectDuration);
         chainLinkVerticalOffset = Mathf.Max(0.0f, chainLinkVerticalOffset);

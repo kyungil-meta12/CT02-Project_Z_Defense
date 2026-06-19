@@ -49,7 +49,8 @@ MonoBehaviour:
   stunDuration: 0.2
   stunDurationFalloffPerJump: 0.01
   minimumStunDuration: 0.1
-  bossStunDurationMultiplier: 0
+  bossHitStunDurationMultiplier: 0
+  bossStunDurationMultiplier: 1
   playChainLinkEffect: 1
   chainLinkEffectPrefab: {fileID: 3485206932582624865, guid: 3a9c3931b20d4d9cb6934b337c65174e, type: 3}
   chainLinkEffectDuration: 0.8

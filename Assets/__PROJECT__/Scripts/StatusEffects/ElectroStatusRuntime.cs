@@ -16,6 +16,7 @@ public sealed class ElectroStatusRuntime : MonoBehaviour
     private ElectroStatusPayload activePayload;
     private Transform visualRoot;
     private Transform cachedCameraTransform;
+    private IElectroStunRuntimeOwner stunOwner;
     private float shockStackRemainingDuration;
     private float orbitAngle;
     private int shockStackCount;
@@ -30,6 +31,7 @@ public sealed class ElectroStatusRuntime : MonoBehaviour
         damageable = damageable_;
         isBoss = isBoss_;
         cachedTargetCollider = GetComponentInChildren<Collider>(true);
+        stunOwner = GetComponent<IElectroStunRuntimeOwner>();
     }
 
     // Electro 투사체 또는 체인으로 전달된 Shock 스택 데이터를 갱신한다
@@ -49,6 +51,7 @@ public sealed class ElectroStatusRuntime : MonoBehaviour
         int maxStackCount = Mathf.Min(MAX_VISUAL_STACK_COUNT, Mathf.Max(1, payload.maxShockStackCount));
         shockStackCount = Mathf.Min(maxStackCount, shockStackCount + 1);
         shockStackRemainingDuration = Mathf.Max(0.0f, payload.shockStackDuration);
+        ApplyElectroStun(payload, chainIndex);
         RefreshShockStackVisuals();
     }
 
@@ -83,7 +86,46 @@ public sealed class ElectroStatusRuntime : MonoBehaviour
         shockStackRemainingDuration = 0.0f;
         orbitAngle = 0.0f;
         shockStackCount = 0;
+        ResetElectroStun();
         SetShockStackVisualCount(0);
+    }
+
+    // Electro 적중 시 짧은 경직 시간을 대상 소유자에게 전달한다
+    private void ApplyElectroStun(ElectroStatusPayload payload, int chainIndex)
+    {
+        if (stunOwner == null)
+        {
+            return;
+        }
+
+        float stunDuration = CalculateElectroStunDuration(payload, chainIndex);
+        if (stunDuration <= 0.0f)
+        {
+            return;
+        }
+
+        stunOwner.ApplyElectroStun(stunDuration);
+    }
+
+    // 체인 순번과 보스 정책을 반영한 Electro 경직 시간을 계산한다
+    private float CalculateElectroStunDuration(ElectroStatusPayload payload, int chainIndex)
+    {
+        int safeChainIndex = Mathf.Max(0, chainIndex);
+        float stunMultiplier = 1.0f - Mathf.Clamp01(payload.stunDurationFalloffPerJump) * safeChainIndex;
+        float calculatedDuration = Mathf.Max(0.0f, payload.stunDuration) * Mathf.Max(0.0f, stunMultiplier);
+        float clampedDuration = calculatedDuration > 0.0f ? Mathf.Max(Mathf.Max(0.0f, payload.minimumStunDuration), calculatedDuration) : 0.0f;
+        return isBoss ? clampedDuration * Mathf.Clamp01(payload.bossHitStunDurationMultiplier) : clampedDuration;
+    }
+
+    // Electro 경직 상태를 소유자에게 초기화 요청한다
+    private void ResetElectroStun()
+    {
+        if (stunOwner == null)
+        {
+            return;
+        }
+
+        stunOwner.ResetElectroStun();
     }
 
     // 현재 스택 수에 맞춰 비주얼 인스턴스를 준비하고 활성 개수를 맞춘다
@@ -401,4 +443,16 @@ public sealed class ElectroStatusRuntime : MonoBehaviour
             particleSystem.Play(true);
         }
     }
+}
+
+/// <summary>
+/// Electro 런타임이 계산한 짧은 경직을 대상별 이동/공격 시스템에 반영하는 계약이다.
+/// </summary>
+public interface IElectroStunRuntimeOwner
+{
+    // Electro 적중으로 발생한 짧은 경직 시간을 실제 대상 상태에 반영한다
+    void ApplyElectroStun(float duration);
+
+    // 풀 재사용이나 사망 시 Electro 경직 상태를 초기화한다
+    void ResetElectroStun();
 }

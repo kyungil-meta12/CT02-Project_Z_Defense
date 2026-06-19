@@ -224,8 +224,9 @@
  * 8. Shock 스택은 현재 최대 3개까지 시각화되며, Volt Sphere 1 인스턴스가 대상 몸 중앙 주변을 회전한다.
  * 8-1. ElectroStatusProfileSO에서 일반/보스 회전 반지름, 높이, 회전 속도, 스케일, 카메라 기준 뒤쪽 알파 페이드를 조정한다.
  * 8-2. 기본 Electro 프로필은 1~2스택에서 일부 반짝임 자식을 끄고, 3스택에서 전체 Volt Sphere 1 파츠를 켜 완전 충전 상태를 강조한다.
- * 9. 현재 Electro 자체 공격은 3스택을 소모하거나 Overload를 발동하지 않는다.
- * 10. 다음 단계는 3스택 대상이 비-Electro 피해를 받을 때 Overload VFX, 큰 데미지, 긴 기절을 적용하는 것이다.
+ * 9. Electro 적중은 IElectroStunRuntimeOwner를 통해 일반 좀비에게 짧은 경직을 적용하고, StatusEffectVisualController.ElectroStun 슬롯으로 경직 VFX를 켤 수 있다. 보스는 bossHitStunDurationMultiplier = 0으로 짧은 경직에서 제외하며, 향후 Overload 긴 스턴은 bossStunDurationMultiplier로 별도 조정한다.
+ * 10. 현재 Electro 자체 공격은 3스택을 소모하거나 Overload를 발동하지 않는다.
+ * 11. 다음 단계는 3스택 대상이 비-Electro 피해를 받을 때 Overload VFX, 큰 데미지, 긴 기절을 적용하는 것이다.
  *
  * Poison 주요 에디터 필드:
  * - PoisonStatusProfileSO.maxHpDamageRatioPerTick
@@ -270,6 +271,7 @@
  * - 보스 Shock 스택은 useBossShockStackOrbitRadius와 bossShockStackOrbitRadius로 일반 좀비보다 큰 궤도를 사용할 수 있다.
  * - 뒤쪽 Shock 스택은 ElectroShockStackVisualFader가 파티클 렌더러를 캐시한 뒤 MaterialPropertyBlock으로 인스턴스 알파만 부드럽게 조절한다.
  * - 1~2스택 약한 전하 모드는 ElectroShockStackVisualModeController가 지정된 자식 오브젝트만 인스턴스 단위로 꺼서 구현한다.
+ * - ElectroStun 슬롯에는 FX_Electricity_02 1 같은 Anchor 방식 짧은 파티클을 연결한다.
  * - Poison 처형 표시는 Lethal Indicator Child Name으로 캐시한 자식 오브젝트를 토글한다.
  * - PoisonIcon이 몸에 묻히면 Lethal Indicator Local Position Offset으로 앞으로 빼거나 위로 올린다.
  *

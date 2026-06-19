@@ -7,7 +7,7 @@ using ProjectZDefense.StatusEffects;
 /// <summary>
 /// 일반 좀비의 웨이브 스탯 초기화, 이동/공격, 피격, 사망, 처치 보상 지급을 담당한다.
 /// </summary>
-public class NormalZombie : PoolObject, IDamageable, IFrostStatusEffectReceiver, IPoisonStatusEffectReceiver, IElectroStatusEffectReceiver, IFrostStatusRuntimeOwner
+public class NormalZombie : PoolObject, IDamageable, IFrostStatusEffectReceiver, IPoisonStatusEffectReceiver, IElectroStatusEffectReceiver, IFrostStatusRuntimeOwner, IElectroStunRuntimeOwner
 {
     [Header("일반 좀비 기본 스펙")] public NormalZombieSpec spec;
     [Header("프리팹별 처치 보상 Override")] [SerializeField] private ZombieRewardProfileSO rewardProfileOverride;
@@ -48,6 +48,8 @@ public class NormalZombie : PoolObject, IDamageable, IFrostStatusEffectReceiver,
     private FrostStatusRuntime frostStatusRuntime;
     private PoisonStatusRuntime poisonStatusRuntime;
     private ElectroStatusRuntime electroStatusRuntime;
+    private float electroStunRemainingDuration;
+    private bool electroStunActive;
 
     // 사망 시 최종 보상값을 저장하는 구조체
     private RewardResult rewardResult = new();
@@ -172,6 +174,7 @@ public class NormalZombie : PoolObject, IDamageable, IFrostStatusEffectReceiver,
         {
             electroStatusRuntime.Tick(Time.deltaTime);
         }
+        UpdateElectroStun(Time.deltaTime);
         UpdateDeath();
         UpdateMoveAndAttack();
     }
@@ -200,6 +203,11 @@ public class NormalZombie : PoolObject, IDamageable, IFrostStatusEffectReceiver,
     private void UpdateMoveAndAttack()
     {
         if (!IsAlive)
+        {
+            return;
+        }
+
+        if (electroStunActive)
         {
             return;
         }
@@ -234,6 +242,12 @@ public class NormalZombie : PoolObject, IDamageable, IFrostStatusEffectReceiver,
     {
         if (!IsAlive)
         {
+            return;
+        }
+
+        if (electroStunActive)
+        {
+            agent.nextPosition = transform.position;
             return;
         }
 
@@ -401,6 +415,84 @@ public class NormalZombie : PoolObject, IDamageable, IFrostStatusEffectReceiver,
         float safeSpeedMultiplier = Mathf.Clamp01(speedMultiplier);
         anim.SetFloat("MoveSpeed", baseMoveSpeed * safeSpeedMultiplier);
         anim.SetFloat("AttackSpeed", baseAttackSpeed * safeSpeedMultiplier);
+    }
+
+    // Electro 적중으로 발생한 짧은 경직을 갱신하고 전기 경직 비주얼을 켠다
+    public void ApplyElectroStun(float duration)
+    {
+        if (!IsAlive || duration <= 0.0f)
+        {
+            return;
+        }
+
+        electroStunRemainingDuration = Mathf.Max(electroStunRemainingDuration, duration);
+        electroStunActive = true;
+        ApplyElectroStunSpeedStop();
+        SetElectroStunVisualActive(true);
+    }
+
+    // Electro 경직 상태와 비주얼을 초기화한다
+    public void ResetElectroStun()
+    {
+        electroStunRemainingDuration = 0.0f;
+        electroStunActive = false;
+        SetElectroStunVisualActive(false);
+        RefreshFrostSpeedAfterElectroStun();
+    }
+
+    // Electro 경직 타이머를 감소시키고 종료 시 속도를 복구한다
+    private void UpdateElectroStun(float deltaTime)
+    {
+        if (!electroStunActive)
+        {
+            return;
+        }
+
+        electroStunRemainingDuration = Mathf.Max(0.0f, electroStunRemainingDuration - deltaTime);
+        ApplyElectroStunSpeedStop();
+        if (electroStunRemainingDuration > 0.0f)
+        {
+            return;
+        }
+
+        electroStunActive = false;
+        SetElectroStunVisualActive(false);
+        RefreshFrostSpeedAfterElectroStun();
+    }
+
+    // Electro 경직 중 이동과 공격 애니메이션 속도를 0으로 고정한다
+    private void ApplyElectroStunSpeedStop()
+    {
+        if (anim == null)
+        {
+            return;
+        }
+
+        anim.SetFloat("MoveSpeed", 0.0f);
+        anim.SetFloat("AttackSpeed", 0.0f);
+    }
+
+    // Electro 경직 종료 후 Frost 상태를 기준으로 속도를 다시 반영한다
+    private void RefreshFrostSpeedAfterElectroStun()
+    {
+        if (frostStatusRuntime != null)
+        {
+            frostStatusRuntime.RefreshSpeedModifier();
+            return;
+        }
+
+        ApplyFrostSpeedMultiplier(1.0f);
+    }
+
+    // Electro 경직 비주얼 슬롯을 활성화하거나 비활성화한다
+    private void SetElectroStunVisualActive(bool isActive)
+    {
+        if (statusEffectVisualController == null)
+        {
+            return;
+        }
+
+        statusEffectVisualController.SetElectroStunActive(isActive);
     }
 
     // 풀 재사용이나 사망 시 Frost 상태를 초기화하고 원래 속도를 복구한다

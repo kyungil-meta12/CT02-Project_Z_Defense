@@ -176,7 +176,6 @@ public class BossZombie : PoolObject, IDamageable, IFrostStatusEffectReceiver, I
     }
 
     // 매 프레임 사망 처리와 루트모션 이동 방향을 갱신한다
-    // 매 프레임 사망 처리와 루트모션 이동 방향을 갱신한다
     void Update()
     {
         if (frostStatusRuntime != null)
@@ -534,7 +533,6 @@ public class BossZombie : PoolObject, IDamageable, IFrostStatusEffectReceiver, I
         electroStatusRuntime.NotifyNonElectroDamageReceived(damage);
     }
 
-    // Frost 상태가 계산한 속도 배율을 비헤이비어 이동 속도와 애니메이터 공격 속도에 반영한다
     // Frost 상태가 계산한 속도 배율을 애니메이터 이동/공격 속도에 반영한다
     public void ApplyFrostSpeedMultiplier(float speedMultiplier)
     {
@@ -593,14 +591,9 @@ public class BossZombie : PoolObject, IDamageable, IFrostStatusEffectReceiver, I
         RefreshFrostSpeedAfterElectroStun();
     }
 
-    // Electro 경직 중 비헤이비어 이동 속도와 공격 애니메이션 속도를 0으로 고정한다
+    // Electro 경직 중 애니메이터 이동과 공격 속도를 0으로 고정한다
     private void ApplyElectroStunSpeedStop()
     {
-        if (speedBV != null)
-        {
-            speedBV.Value = 0.0f;
-        }
-
         if (anim != null)
         {
             anim.SetFloat("AttackSpeed", 0.0f);
@@ -629,6 +622,8 @@ public class BossZombie : PoolObject, IDamageable, IFrostStatusEffectReceiver, I
         }
 
         statusEffectVisualController.SetElectroStunActive(isActive);
+    }
+
     // 현재 보스 루트모션 재생에 사용할 이동 속도 값을 반환한다
     private float GetCurrentMoveAnimatorSpeed()
     {

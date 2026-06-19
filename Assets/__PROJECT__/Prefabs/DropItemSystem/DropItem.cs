@@ -2,7 +2,7 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 
 
-public class DropItem : PoolObject, IPointerDownHandler
+public class DropItem : PoolObject
 {
     [HideInInspector] public RewardCurrencyType rewardType;
     [HideInInspector] public int dropCount;
@@ -14,6 +14,19 @@ public class DropItem : PoolObject, IPointerDownHandler
     void Awake()
     {
         particle = GetComponentInChildren<ParticleSystem>();
+    }
+
+    void Start()
+    {
+        CameraTouchHandler.Inst.OnCameraTargetTouchEvent += OnTouchEvent;
+    }
+
+    void OnDestroy()
+    {
+        if (CameraTouchHandler.Inst)
+        {
+            CameraTouchHandler.Inst.OnCameraTargetTouchEvent -= OnTouchEvent;
+        }
     }
 
     public override void OnSpawn()
@@ -42,19 +55,13 @@ public class DropItem : PoolObject, IPointerDownHandler
         ReturnInstance();
     }
 
-    /// <summary>
-    /// 아이템을 터치하면 회수되면서 월드 상에서 인스턴스가 메모리 풀로 회수된다.
-    /// </summary>
-    /// <param name="eventData"></param>
-    public void OnPointerDown(PointerEventData eventData)
+    // 아이템을 터치하면 회수되면서 월드 상에서 인스턴스가 메모리 풀로 회수된다.
+    public void OnTouchEvent(RaycastHit hit)
     {
-        if (eventData.pointerCurrentRaycast.isValid)
+        if (hit.collider.gameObject == gameObject)
         {
-            if (eventData.pointerCurrentRaycast.gameObject == this.gameObject)
-            {
-                GetItem(); // 아이템 획득
-                DropItemManager.Inst.RemoveItem(this); // 드롭된 아이템 목록에서 아이템 제거
-            }
+            GetItem(); // 아이템 획득
+            DropItemManager.Inst.RemoveItem(this); // 드롭된 아이템 목록에서 아이템 제거
         }
     }
 }

@@ -134,7 +134,7 @@ public class InventorySystem : MonoBehaviour
     // 이전 값과의 차이도 이벤트로 전달한다.
     private void InvokeEvent(ItemData data)
     {
-        var prevCountCopy = new Incremental(data.PrevCount);
+        var prevCountCopy = new Incremental(data.Count - data.PrevCount);
         OnItemCountChange?.Invoke(data, prevCountCopy);
         data.PrevCount = new Incremental(data.Count);
     }

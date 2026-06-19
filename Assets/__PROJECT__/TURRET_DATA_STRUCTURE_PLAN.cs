@@ -226,6 +226,11 @@
  * - Current responsibilities: slow buildup, max slow ratio, slow hold duration, freeze trigger ratio, freeze duration, freeze VFX prefab/duration, explosion damage delay, explosion radius/damage, primary-target max-HP damage ratio, explosion slow, cooldown, and layer mask.
  * - Current growth responsibility is intentionally limited to primary-target max-HP damage ratio growth.
  * - Slow ratio, freeze timing, explosion timing, radius, cooldown, and secondary explosion slow are treated as fixed feel values unless a future balance pass explicitly reopens them.
+ * - BossZombie currently initializes FrostStatusRuntime with canTriggerFreeze = false. This disables freeze explosion only; it does not make the boss immune to Frost slow payloads.
+ * - BossZombie root-motion speed is controlled by the Animator speed parameter, not by the behavior blackboard speed variable. C# runtime speed changes should update baseMoveSpeed/frostSpeedMultiplier and let BossZombie.UpdateMoveAnimatorSpeed write the Animator speed parameter.
+ * - BossZombie clamps its applied Frost speed multiplier to at least 0.5, so Frost can slow bosses by up to 50% but cannot fully stop movement or attack animation.
+ * - Do not use NavMeshAgent.speed as the source of root-motion speed on BossZombie. NavigateToTargetAction can write agent.speed, but actual movement comes from anim.deltaPosition applied through NavMeshAgent.Move.
+ * - StatusEffectVisualController must restore cached renderer sharedMaterials arrays when Frost RendererOverlay visuals end. Do not remove overlay materials by leaving null material slots, because normal zombies can render magenta after the Frost effect is disabled.
  *
  * 12. PoisonStatusProfileSO
  * - Holds Poison-specific status values referenced from TurretDefinitionSO.

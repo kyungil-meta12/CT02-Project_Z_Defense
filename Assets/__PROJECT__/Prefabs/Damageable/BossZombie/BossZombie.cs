@@ -13,6 +13,7 @@ using ProjectZDefense.StatusEffects;
 public class BossZombie : PoolObject, IDamageable, IFrostStatusEffectReceiver, IPoisonStatusEffectReceiver, IFrostStatusRuntimeOwner
 {
     private static readonly int SpeedHash = Animator.StringToHash("speed");
+    private const float MinimumFrostSpeedMultiplier = 0.5f;
 
     public BossZombieSpec spec;
     [Header("프리팹별 처치 보상 Override")] [SerializeField] private ZombieRewardProfileSO rewardProfileOverride;
@@ -46,9 +47,9 @@ public class BossZombie : PoolObject, IDamageable, IFrostStatusEffectReceiver, I
     private BlackboardVariable<bool> isDieBV;
     private BlackboardVariable<int> hitCountBV;
     private BlackboardVariable<int> curAttackCountBV;
-    private BlackboardVariable<float> speedBV;
     private float baseMoveSpeed;
     private float baseAttackSpeed;
+    private float frostSpeedMultiplier = 1.0f;
     private FrostStatusRuntime frostStatusRuntime;
     private PoisonStatusRuntime poisonStatusRuntime;
     
@@ -81,7 +82,6 @@ public class BossZombie : PoolObject, IDamageable, IFrostStatusEffectReceiver, I
         behaviorAgent.GetVariable("isDie", out isDieBV);
         behaviorAgent.GetVariable("hitCount", out hitCountBV);
         behaviorAgent.GetVariable("curAttackCount", out curAttackCountBV);
-        behaviorAgent.GetVariable("speed", out speedBV);
     }
 
     // 풀에서 꺼낼 때 스펙 기반 보스 스탯과 런타임 상태를 초기화한다
@@ -97,7 +97,8 @@ public class BossZombie : PoolObject, IDamageable, IFrostStatusEffectReceiver, I
         // 이동/공격 속도
         baseMoveSpeed = spec.MoveSpeed * randomMoveAttackSpeed;
         baseAttackSpeed = spec.AttackSpeed * randomMoveAttackSpeed;
-        speedBV.Value = baseMoveSpeed;
+        frostSpeedMultiplier = 1.0f;
+        anim.SetFloat(SpeedHash, 0.0f);
         anim.SetFloat("AttackSpeed", baseAttackSpeed);
 
         // 공격 대미지
@@ -139,11 +140,7 @@ public class BossZombie : PoolObject, IDamageable, IFrostStatusEffectReceiver, I
         attackDamage *= safeModifiers.attackDamageMultiplier;
         rewardMultiplier = safeModifiers.rewardMultiplier;
 
-        if (speedBV != null)
-        {
-            speedBV.Value *= safeModifiers.moveAttackSpeedMultiplier;
-            baseMoveSpeed = speedBV.Value;
-        }
+        baseMoveSpeed *= safeModifiers.moveAttackSpeedMultiplier;
 
         if (anim != null)
         {
@@ -229,7 +226,7 @@ public class BossZombie : PoolObject, IDamageable, IFrostStatusEffectReceiver, I
         transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime * navigationRotationSpeed);
     }
 
-    // NavMeshAgent의 설정 속도를 애니메이터 이동 속도 파라미터에 반영한다
+    // 현재 보스 이동 속도를 애니메이터 이동 속도 파라미터에 반영한다
     private void UpdateMoveAnimatorSpeed()
     {
         if (!anim)
@@ -243,7 +240,7 @@ public class BossZombie : PoolObject, IDamageable, IFrostStatusEffectReceiver, I
             return;
         }
 
-        anim.SetFloat(SpeedHash, agent.speed);
+        anim.SetFloat(SpeedHash, GetCurrentMoveAnimatorSpeed());
     }
 
     // 애니메이터 루트모션 이동량을 최상위 트랜스폼과 NavMeshAgent에 적용한다
@@ -498,20 +495,22 @@ public class BossZombie : PoolObject, IDamageable, IFrostStatusEffectReceiver, I
         poisonStatusRuntime.ApplyPoisonStatus(payload);
     }
 
-    // Frost 상태가 계산한 속도 배율을 비헤이비어 이동 속도와 애니메이터 공격 속도에 반영한다
+    // Frost 상태가 계산한 속도 배율을 애니메이터 이동/공격 속도에 반영한다
     public void ApplyFrostSpeedMultiplier(float speedMultiplier)
     {
-        float safeSpeedMultiplier = Mathf.Clamp01(speedMultiplier);
-
-        if (speedBV != null)
-        {
-            speedBV.Value = baseMoveSpeed * safeSpeedMultiplier;
-        }
+        float safeSpeedMultiplier = Mathf.Max(MinimumFrostSpeedMultiplier, Mathf.Clamp01(speedMultiplier));
+        frostSpeedMultiplier = safeSpeedMultiplier;
 
         if (anim != null)
         {
             anim.SetFloat("AttackSpeed", baseAttackSpeed * safeSpeedMultiplier);
         }
+    }
+
+    // 현재 보스 루트모션 재생에 사용할 이동 속도 값을 반환한다
+    private float GetCurrentMoveAnimatorSpeed()
+    {
+        return Mathf.Max(0.0f, baseMoveSpeed * frostSpeedMultiplier);
     }
 
     // 풀 재사용이나 사망 시 Frost 상태를 초기화하고 원래 속도를 복구한다

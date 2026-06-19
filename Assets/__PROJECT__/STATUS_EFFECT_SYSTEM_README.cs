@@ -143,6 +143,7 @@
  * 6. FrostStatusRuntime은 slowBuildUpDuration, maxSlowRatio, slowHoldDuration을 기준으로 슬로우를 누적한다.
  * 7. 일반 좀비는 canTriggerFreeze = true이므로 frostSlowRatio가 freezeTriggerRatio에 도달하면 빙결이 발동된다.
  * 8. 보스는 canTriggerFreeze = false이므로 슬로우만 받고 빙결 폭발은 발생하지 않는다.
+ *    BossZombie는 적용 배율을 최소 0.5로 보정해 Frost로 이동/공격 애니메이션이 완전히 멈추지 않게 한다.
  * 9. 빙결 발동 시 FrostStatusRuntime은 activeFreezePayload를 저장하고 Ice_Cubes_Explosion을 생성한다.
  * 10. FrostFreezeExplosionDamageTimer가 Ice_Cubes_Explosion을 대상에 따라가게 하며 지연 폭발 데미지를 예약한다.
  * 11. 대상이 죽거나 풀로 리셋되면 FrostStatusRuntime.ResetStatus가 Ice_Cubes_Explosion과 예약 데미지를 취소한다.
@@ -293,7 +294,7 @@
  *
  * Normal / Boss 정책 차이:
  * - NormalZombie Frost: canTriggerFreeze = true.
- * - BossZombie Frost: canTriggerFreeze = false. 현재는 slow-only.
+ * - BossZombie Frost: canTriggerFreeze = false. 현재는 최대 50% 감속만 허용하는 slow-only.
  * - NormalZombie Poison: bossDamageMultiplier 미사용, death burst 허용.
  * - BossZombie Poison: bossDamageMultiplier 사용, death burst 비허용.
  *

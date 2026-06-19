@@ -11455,7 +11455,7 @@ MonoBehaviour:
   gameOverPanelUI: {fileID: 0}
   gameOverFadeInDuration: 10
   gameOverFadeOutDuration: 10
-  startWave: 133
+  startWave: 444
   startTimeScale: 1
   baseFixedDeltaTime: 0.02
 --- !u!4 &270030000
@@ -31364,7 +31364,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8581458487753932061, guid: c5531d7a9900bd5449481e7ab8b5d38e, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 8961221714325612455, guid: c5531d7a9900bd5449481e7ab8b5d38e, type: 3}
       propertyPath: m_LocalPosition.x
@@ -42417,7 +42417,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6742232223660785589, guid: 40e131c3e8da7a143983e2535cfd498a, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -94545,7 +94545,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8380518456665748796, guid: 6081b4a2e925e8342ba74707ba893cf4, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 9153079772918247302, guid: 6081b4a2e925e8342ba74707ba893cf4, type: 3}
       propertyPath: m_LocalPosition.x
@@ -97242,8 +97242,8 @@ SceneRoots:
   - {fileID: 270030000}
   - {fileID: 2761432208392593429}
   - {fileID: 1440176257}
-  - {fileID: 916259969}
   - {fileID: 1085509772}
+  - {fileID: 916259969}
   - {fileID: 2088277249}
   - {fileID: 691071062}
   - {fileID: 4014525365000736846}

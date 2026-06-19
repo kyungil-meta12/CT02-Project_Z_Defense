@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 329d190776cdf654b89c3f3daf7b9b3b, type: 3}
   m_Name: Poison_Status_Profile_SO
   m_EditorClassIdentifier: Assembly-CSharp::PoisonStatusProfileSO
-  maxHpDamageRatioPerTick: 0.1
+  maxHpDamageRatioPerTick: 0.05
   tickInterval: 1
   duration: 12
   maxStackCount: 1

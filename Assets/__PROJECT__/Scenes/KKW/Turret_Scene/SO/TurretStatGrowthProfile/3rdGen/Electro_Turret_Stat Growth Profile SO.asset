@@ -25,7 +25,7 @@ MonoBehaviour:
   maxProjectileCount: 1
   maxPierceCount: 1
   shockStackDurationPerLevel: 0
-  maxShockStackDuration: 0
+  maxShockStackDuration: 30
   chainTargetCountIntervalLevel: 0
   chainTargetCountPerInterval: 0
   maxChainTargetCount: 15

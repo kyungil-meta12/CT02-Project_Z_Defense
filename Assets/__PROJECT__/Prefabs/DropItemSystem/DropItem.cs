@@ -18,14 +18,14 @@ public class DropItem : PoolObject
 
     void Start()
     {
-        CameraTouchHandler.Inst.OnCameraTouchEvent += OnTouchEvent;
+        CameraTouchHandler.Inst.OnCameraTargetTouchEvent += OnTouchEvent;
     }
 
     void OnDestroy()
     {
         if (CameraTouchHandler.Inst)
         {
-            CameraTouchHandler.Inst.OnCameraTouchEvent -= OnTouchEvent;
+            CameraTouchHandler.Inst.OnCameraTargetTouchEvent -= OnTouchEvent;
         }
     }
 

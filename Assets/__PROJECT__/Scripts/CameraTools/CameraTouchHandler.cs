@@ -10,7 +10,11 @@ public class CameraTouchHandler : MonoBehaviour, IPointerDownHandler, IPointerUp
     public LayerMask[] raycastTargetLayers;
 
     // 터치 이벤트 감지 시 발생시키는 이벤트
-    public Action<RaycastHit> OnCameraTouchEvent;
+    // 대상을 터치했을 때
+    public Action<RaycastHit> OnCameraTargetTouchEvent;
+
+    // 대상이 아닌 것을 선택했을 때
+    public Action OnCameraOtherTouchEvent;
 
     // 현재 드래그 상태. true일 시 터치 이벤트가 발생하지 않는다.
     private bool isDragging = false;
@@ -78,7 +82,11 @@ public class CameraTouchHandler : MonoBehaviour, IPointerDownHandler, IPointerUp
         if (hitCount > 0)
         {
             RaycastHit hit = hitResult[0];
-            OnCameraTouchEvent?.Invoke(hit);
+            OnCameraTargetTouchEvent?.Invoke(hit);
+        }
+        else
+        {
+            OnCameraOtherTouchEvent?.Invoke();
         }
     }
 }

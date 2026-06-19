@@ -9,7 +9,7 @@ public class CameraTouchHandler : MonoBehaviour, IPointerDownHandler, IPointerUp
     [Header("화면 터치 시 레이캐스팅 할 대상 레이어 목록")] 
     public LayerMask[] raycastTargetLayers;
 
-    [Header("더블탭 간격")] public float doubleTapInterval;
+    [Header("더블탭 간격")] public float tapInterval;
 
     // 터치 이벤트 감지 시 발생시키는 이벤트
     // 대상을 터치했을 때
@@ -101,7 +101,7 @@ public class CameraTouchHandler : MonoBehaviour, IPointerDownHandler, IPointerUp
         else
         {
             OnCameraOtherTouchEvent?.Invoke();
-            tapTime = doubleTapInterval;
+            tapTime = tapInterval;
             tapCount++;
         }
     }
@@ -110,7 +110,7 @@ public class CameraTouchHandler : MonoBehaviour, IPointerDownHandler, IPointerUp
     void UpdateDoubleTap()
     {
         tapTime -= Time.deltaTime;
-        tapTime = Mathf.Clamp(tapTime, 0f, doubleTapInterval);
+        tapTime = Mathf.Clamp(tapTime, 0f, tapInterval);
         if (tapTime > 0f)
         {
             if (tapCount == 2)

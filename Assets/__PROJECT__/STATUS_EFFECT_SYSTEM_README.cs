@@ -28,6 +28,10 @@
  *   대상 단위 Poison 런타임. 지속시간, 틱 타이머, 스택, 틱데미지,
  *   처형 예측, Poison 비주얼, 처형 사망 폭발 트리거를 담당한다.
  *
+ * - Assets/__PROJECT__/Scripts/StatusEffects/ElectroStatusRuntime.cs
+ *   대상 단위 Electro 런타임. Shock 스택 수, 스택 유지시간,
+ *   Volt Sphere 1 기반 스택 비주얼 생성/회전/해제를 담당한다.
+ *
  * - Assets/__PROJECT__/Scripts/StatusEffects/StatusEffectVisualController.cs
  *   좀비 프리팹 측 상태이상 비주얼 슬롯 관리자.
  *   Frost overlay, Poison body/foot aura, Poison lethal indicator 같은 표시를
@@ -40,11 +44,18 @@
  * - Assets/__PROJECT__/Scenes/KKW/Turret_Scene/Scripts/IPoisonStatusEffectReceiver.cs
  *   ProjectZDefense.StatusEffects.PoisonStatusPayload와 IPoisonStatusEffectReceiver를 정의한다.
  *
+ * - Assets/__PROJECT__/Scenes/KKW/Turret_Scene/Scripts/IElectroStatusEffectReceiver.cs
+ *   ProjectZDefense.StatusEffects.ElectroStatusPayload와 IElectroStatusEffectReceiver를 정의한다.
+ *
  * - Assets/__PROJECT__/Scenes/KKW/Turret_Scene/Scripts/FrostStatusProfileSO.cs
  *   Frost 기본 밸런스와 VFX 참조를 관리한다.
  *
  * - Assets/__PROJECT__/Scenes/KKW/Turret_Scene/Scripts/PoisonStatusProfileSO.cs
  *   Poison 기본 틱 데미지, 지속시간, 스택, 보스 배율, 사망 폭발 프로필 참조를 관리한다.
+ *
+ * - Assets/__PROJECT__/Scenes/KKW/Turret_Scene/Scripts/ElectroStatusProfileSO.cs
+ *   Electro 체인 라이트닝, Shock 스택 유지시간, Shock 스택 VFX,
+ *   향후 Overload/경직 값, 체인 링크 VFX 값을 관리한다.
  *
  * - Assets/__PROJECT__/Scenes/KKW/Turret_Scene/Scripts/PoisonDeathBurstProfileSO.cs
  *   Poison 처형 사망 폭발 VFX, 범위, 약한 Poison, 연쇄 허용 여부를 관리한다.
@@ -198,6 +209,26 @@
  * 14. 일반 좀비가 IsPoisonLethalPending 상태로 죽으면 PoisonDeathBurstEffectUtility가 사망 폭발을 실행한다.
  * 15. PoisonDeathBurstProfileSO.allowChainDeathBurst가 true이면 약한 Poison도 처형 표시와 연쇄 폭발을 만들 수 있다.
  *
+ * ==========================================================================================
+ * 4-1. ELECTRO CURRENT FLOW
+ * ==========================================================================================
+ *
+ * Electro_Turret은 기존 투사체 터렛 구조를 재사용하고, 직접 피격 후 체인 라이트닝을 전파한다.
+ *
+ * 1. TurretDefinitionSO.electroStatusProfile에 ElectroStatusProfileSO를 연결한다.
+ * 2. TurretDefinitionRuntimeController가 ElectroStatusProfileSO.CreatePayload로 payload를 만든다.
+ * 3. Turret, FiringEvent, Gun, ProjectileDamageDealer가 payload를 투사체에 전달한다.
+ * 4. ProjectileDamageDealer는 직접 데미지를 먼저 적용한 뒤 IElectroStatusEffectReceiver에 ApplyElectroStatus를 호출한다.
+ * 5. ElectroChainLightningUtility는 주변 대상에게 체인 데미지를 주고, 체인 대상에게도 ApplyElectroStatus를 호출한다.
+ * 6. NormalZombie / BossZombie는 ElectroStatusRuntime.ApplyElectroStatus로 위임한다.
+ * 7. ElectroStatusRuntime은 Electro 피격마다 Shock 스택을 1개 추가하고 shockStackDuration으로 유지시간을 갱신한다.
+ * 8. Shock 스택은 현재 최대 3개까지 시각화되며, Volt Sphere 1 인스턴스가 대상 몸 중앙 주변을 회전한다.
+ * 8-1. ElectroStatusProfileSO에서 일반/보스 회전 반지름, 높이, 회전 속도, 스케일, 카메라 기준 뒤쪽 알파 페이드를 조정한다.
+ * 8-2. 기본 Electro 프로필은 1~2스택에서 일부 반짝임 자식을 끄고, 3스택에서 전체 Volt Sphere 1 파츠를 켜 완전 충전 상태를 강조한다.
+ * 9. Electro 적중은 IElectroStunRuntimeOwner를 통해 일반 좀비에게 짧은 경직을 적용하고, StatusEffectVisualController.ElectroStun 슬롯으로 경직 VFX를 켤 수 있다. 보스는 bossHitStunDurationMultiplier = 0으로 짧은 경직에서 제외하며, 향후 Overload 긴 스턴은 bossStunDurationMultiplier로 별도 조정한다.
+ * 10. 현재 Electro 자체 공격은 3스택을 소모하거나 Overload를 발동하지 않는다.
+ * 11. 다음 단계는 3스택 대상이 비-Electro 피해를 받을 때 Overload VFX, 큰 데미지, 긴 기절을 적용하는 것이다.
+ *
  * Poison 주요 에디터 필드:
  * - PoisonStatusProfileSO.maxHpDamageRatioPerTick
  *   각 Poison 틱의 최대체력 비례 데미지.
@@ -236,6 +267,12 @@
  * 현재 정책:
  * - FrostSlow는 RendererOverlay 슬롯을 사용한다.
  * - Poison은 Anchor 슬롯을 사용해 발 밑/몸 중앙 VFX를 붙인다.
+ * - Electro Shock 스택은 ElectroStatusProfileSO.shockStackVisualPrefab을 사용해
+ *   ElectroStatusRuntime이 대상별로 최대 3개를 지연 생성하고 재사용한다.
+ * - 보스 Shock 스택은 useBossShockStackOrbitRadius와 bossShockStackOrbitRadius로 일반 좀비보다 큰 궤도를 사용할 수 있다.
+ * - 뒤쪽 Shock 스택은 ElectroShockStackVisualFader가 파티클 렌더러를 캐시한 뒤 MaterialPropertyBlock으로 인스턴스 알파만 부드럽게 조절한다.
+ * - 1~2스택 약한 전하 모드는 ElectroShockStackVisualModeController가 지정된 자식 오브젝트만 인스턴스 단위로 꺼서 구현한다.
+ * - ElectroStun 슬롯에는 FX_Electricity_02 1 같은 Anchor 방식 짧은 파티클을 연결한다.
  * - Poison 처형 표시는 Lethal Indicator Child Name으로 캐시한 자식 오브젝트를 토글한다.
  * - PoisonIcon이 몸에 묻히면 Lethal Indicator Local Position Offset으로 앞으로 빼거나 위로 올린다.
  *
@@ -379,6 +416,14 @@
  *   PoisonLethalTargetCandidateFilter 연결.
  * - Poison 시각효과는 StatusEffectVisualController Visual Slots에 연결.
  * - PoisonIcon은 Lethal Indicator Child Name과 Local Position Offset으로 조정.
+ *
+ * Electro_Turret:
+ * - Electro_Turret_Definition.electroStatusProfile 연결.
+ * - ElectroStatusProfileSO.shockStackVisualPrefab에 Volt Sphere 1 연결.
+ * - ElectroStatusProfileSO.maxShockStackCount = 3.
+ * - ElectroStatusProfileSO.shockStackDuration = 15.
+ * - canElectroHitTriggerOverload는 현재 false 유지.
+ * - Overload는 다음 단계에서 비-Electro 피해 경로와 연결한다.
  *
  * Zombie Prefabs:
  * - StatusEffectVisualController 존재 여부.

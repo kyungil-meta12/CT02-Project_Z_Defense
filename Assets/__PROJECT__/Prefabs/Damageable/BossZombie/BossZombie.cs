@@ -10,7 +10,7 @@ using ProjectZDefense.StatusEffects;
 /// <summary>
 /// 보스 좀비의 웨이브 스탯 초기화, 스킬, 피격, 사망, 처치 보상 지급을 담당한다.
 /// </summary>
-public class BossZombie : PoolObject, IDamageable, IFrostStatusEffectReceiver, IPoisonStatusEffectReceiver, IFrostStatusRuntimeOwner
+public class BossZombie : PoolObject, IDamageable, IFrostStatusEffectReceiver, IPoisonStatusEffectReceiver, IElectroStatusEffectReceiver, IFrostStatusRuntimeOwner, IElectroStunRuntimeOwner
 {
     private static readonly int SpeedHash = Animator.StringToHash("speed");
     private const float MinimumFrostSpeedMultiplier = 0.5f;
@@ -52,6 +52,9 @@ public class BossZombie : PoolObject, IDamageable, IFrostStatusEffectReceiver, I
     private float frostSpeedMultiplier = 1.0f;
     private FrostStatusRuntime frostStatusRuntime;
     private PoisonStatusRuntime poisonStatusRuntime;
+    private ElectroStatusRuntime electroStatusRuntime;
+    private float electroStunRemainingDuration;
+    private bool electroStunActive;
     
     public float TotalHp { get; private set; }
     public float CurrHp { get; private set; }
@@ -72,6 +75,7 @@ public class BossZombie : PoolObject, IDamageable, IFrostStatusEffectReceiver, I
         CacheStatusEffectVisualController();
         CacheFrostStatusRuntime();
         CachePoisonStatusRuntime();
+        CacheElectroStatusRuntime();
         GetComponentsInChildren(false, colliders);
 
         ConfigureBehaviorNavigation();
@@ -116,6 +120,7 @@ public class BossZombie : PoolObject, IDamageable, IFrostStatusEffectReceiver, I
         attackTargetBV.Value = null;
         ResetFrostStatus();
         ResetPoisonStatus();
+        ResetElectroStatus();
 
         // 체력 UI 슬라이더 값 지정
         hpUI.gameObject.SetActive(true);
@@ -167,6 +172,7 @@ public class BossZombie : PoolObject, IDamageable, IFrostStatusEffectReceiver, I
         RestoreAllScreamerSpeedBuffs();
         ResetFrostStatus();
         ResetPoisonStatus();
+        ResetElectroStatus();
     }
 
     // 매 프레임 사망 처리와 루트모션 이동 방향을 갱신한다
@@ -181,6 +187,11 @@ public class BossZombie : PoolObject, IDamageable, IFrostStatusEffectReceiver, I
         {
             poisonStatusRuntime.Tick(Time.deltaTime);
         }
+        if (electroStatusRuntime != null)
+        {
+            electroStatusRuntime.Tick(Time.deltaTime);
+        }
+        UpdateElectroStun(Time.deltaTime);
         UpdateDeath();
         UpdateRootMotionNavigation();
         UpdateMoveAnimatorSpeed();
@@ -206,7 +217,7 @@ public class BossZombie : PoolObject, IDamageable, IFrostStatusEffectReceiver, I
     // NavMeshAgent가 계산한 진행 방향으로 보스의 회전만 갱신한다
     private void UpdateRootMotionNavigation()
     {
-        if (!IsAlive || !agent || !agent.enabled || !agent.isOnNavMesh)
+        if (!IsAlive || electroStunActive || !agent || !agent.enabled || !agent.isOnNavMesh)
         {
             return;
         }
@@ -234,7 +245,7 @@ public class BossZombie : PoolObject, IDamageable, IFrostStatusEffectReceiver, I
             return;
         }
 
-        if (!IsAlive || !agent || !agent.enabled || !agent.isOnNavMesh || agent.isStopped || attackTargetBV.Value == null)
+        if (!IsAlive || electroStunActive || !agent || !agent.enabled || !agent.isOnNavMesh || agent.isStopped || attackTargetBV.Value == null)
         {
             anim.SetFloat(SpeedHash, 0f);
             return;
@@ -261,6 +272,12 @@ public class BossZombie : PoolObject, IDamageable, IFrostStatusEffectReceiver, I
 
         if (!agent || !agent.enabled || !agent.isOnNavMesh)
         {
+            return;
+        }
+
+        if (electroStunActive)
+        {
+            agent.nextPosition = transform.position;
             return;
         }
 
@@ -495,6 +512,18 @@ public class BossZombie : PoolObject, IDamageable, IFrostStatusEffectReceiver, I
         poisonStatusRuntime.ApplyPoisonStatus(payload);
     }
 
+    // Electro 투사체와 체인 라이트닝으로 전달된 Shock 스택 데이터를 갱신한다
+    public void ApplyElectroStatus(ElectroStatusPayload payload, int chainIndex, float sourceDamage)
+    {
+        if (!IsAlive || electroStatusRuntime == null)
+        {
+            return;
+        }
+
+        electroStatusRuntime.ApplyElectroStatus(payload, chainIndex, sourceDamage);
+    }
+
+    // Frost 상태가 계산한 속도 배율을 비헤이비어 이동 속도와 애니메이터 공격 속도에 반영한다
     // Frost 상태가 계산한 속도 배율을 애니메이터 이동/공격 속도에 반영한다
     public void ApplyFrostSpeedMultiplier(float speedMultiplier)
     {
@@ -507,6 +536,85 @@ public class BossZombie : PoolObject, IDamageable, IFrostStatusEffectReceiver, I
         }
     }
 
+    // Electro 적중으로 발생한 짧은 경직을 갱신하고 전기 경직 비주얼을 켠다
+    public void ApplyElectroStun(float duration)
+    {
+        if (!IsAlive || duration <= 0.0f)
+        {
+            return;
+        }
+
+        electroStunRemainingDuration = Mathf.Max(electroStunRemainingDuration, duration);
+        electroStunActive = true;
+        ApplyElectroStunSpeedStop();
+        SetElectroStunVisualActive(true);
+    }
+
+    // Electro 경직 상태와 비주얼을 초기화한다
+    public void ResetElectroStun()
+    {
+        electroStunRemainingDuration = 0.0f;
+        electroStunActive = false;
+        SetElectroStunVisualActive(false);
+        RefreshFrostSpeedAfterElectroStun();
+    }
+
+    // Electro 경직 타이머를 감소시키고 종료 시 속도를 복구한다
+    private void UpdateElectroStun(float deltaTime)
+    {
+        if (!electroStunActive)
+        {
+            return;
+        }
+
+        electroStunRemainingDuration = Mathf.Max(0.0f, electroStunRemainingDuration - deltaTime);
+        ApplyElectroStunSpeedStop();
+        if (electroStunRemainingDuration > 0.0f)
+        {
+            return;
+        }
+
+        electroStunActive = false;
+        SetElectroStunVisualActive(false);
+        RefreshFrostSpeedAfterElectroStun();
+    }
+
+    // Electro 경직 중 비헤이비어 이동 속도와 공격 애니메이션 속도를 0으로 고정한다
+    private void ApplyElectroStunSpeedStop()
+    {
+        if (speedBV != null)
+        {
+            speedBV.Value = 0.0f;
+        }
+
+        if (anim != null)
+        {
+            anim.SetFloat("AttackSpeed", 0.0f);
+            anim.SetFloat(SpeedHash, 0.0f);
+        }
+    }
+
+    // Electro 경직 종료 후 Frost 상태를 기준으로 속도를 다시 반영한다
+    private void RefreshFrostSpeedAfterElectroStun()
+    {
+        if (frostStatusRuntime != null)
+        {
+            frostStatusRuntime.RefreshSpeedModifier();
+            return;
+        }
+
+        ApplyFrostSpeedMultiplier(1.0f);
+    }
+
+    // Electro 경직 비주얼 슬롯을 활성화하거나 비활성화한다
+    private void SetElectroStunVisualActive(bool isActive)
+    {
+        if (statusEffectVisualController == null)
+        {
+            return;
+        }
+
+        statusEffectVisualController.SetElectroStunActive(isActive);
     // 현재 보스 루트모션 재생에 사용할 이동 속도 값을 반환한다
     private float GetCurrentMoveAnimatorSpeed()
     {
@@ -533,6 +641,17 @@ public class BossZombie : PoolObject, IDamageable, IFrostStatusEffectReceiver, I
         }
 
         poisonStatusRuntime.ResetStatus();
+    }
+
+    // 풀 재사용이나 사망 시 Electro Shock 스택과 비주얼을 끈다
+    private void ResetElectroStatus()
+    {
+        if (electroStatusRuntime == null)
+        {
+            return;
+        }
+
+        electroStatusRuntime.ResetStatus();
     }
 
     // 상태이상 비주얼 컨트롤러를 자식까지 포함해 캐시한다
@@ -568,6 +687,18 @@ public class BossZombie : PoolObject, IDamageable, IFrostStatusEffectReceiver, I
         }
 
         poisonStatusRuntime.Initialize(this, statusEffectVisualController, true, false);
+    }
+
+    // Electro 상태 런타임 컴포넌트를 캐시하고 보스 좀비 정책으로 초기화한다
+    private void CacheElectroStatusRuntime()
+    {
+        electroStatusRuntime = GetComponent<ElectroStatusRuntime>();
+        if (electroStatusRuntime == null)
+        {
+            electroStatusRuntime = gameObject.AddComponent<ElectroStatusRuntime>();
+        }
+
+        electroStatusRuntime.Initialize(this, true);
     }
 
     float storeDamage = 0;
@@ -629,6 +760,7 @@ public class BossZombie : PoolObject, IDamageable, IFrostStatusEffectReceiver, I
         TriggerFrostDeathEffectIfNeeded();
         ResetFrostStatus();
         ResetPoisonStatus();
+        ResetElectroStatus();
 
         if (agent.enabled)
         {

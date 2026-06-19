@@ -80,7 +80,8 @@
  * - Frost_Turret runtime status structure is implemented and uses FrostStatusProfileSO through TurretDefinitionSO.
  * - Poison_Turret projectile Definition/stat/growth/cost/VFX/scale assets exist, and Poison_Turret_Definition is wired to its active PoisonStatusProfileSO.
  * - Electro_Turret projectile Definition/stat/VFX assets exist, and Electro_Turret_Definition is wired to its active ElectroStatusProfileSO.
- * - Electro_Turret currently has chain damage and hybrid chain VFX implemented; enemy-side Shock stack, Overload, and stun runtime behavior is the next gameplay step.
+ * - Electro_Turret currently has chain damage, hybrid chain VFX, and receiver-side Shock stack runtime with Volt Sphere 1 stack visuals implemented.
+ * - Electro_Turret Overload consumption, burst damage, and long stun from non-Electro damage are the next gameplay step.
  * - Current additional visual plan candidates:
  *   CuteStarTurret
  *   FlameThrower/LameThrower name still needs confirmation.
@@ -241,8 +242,8 @@
  *
  * 13. ElectroStatusProfileSO
  * - Holds Electro-specific status and chain-lightning VFX values referenced from TurretDefinitionSO.
- * - Current gameplay responsibilities: chain target count, chain search radius, per-jump damage falloff, Shock stack duration, Overload trigger policy, Overload burst values, and short stun timing.
- * - Current visual responsibilities: particle chain-link prefab, effect lifetime, vertical endpoint offset, local endpoint fitting, rotation/position offsets, length/thickness scale, exact core line toggle, core line material/color/width, and core line timing.
+ * - Current gameplay responsibilities: chain target count, chain search radius, per-jump damage falloff, Shock stack duration, short Electro hit stun, Overload trigger policy, Overload burst values, and stun timing.
+ * - Current visual responsibilities: Shock stack visual prefab/orbit controls, boss-only Shock stack orbit radius/scale, camera-facing back-side Shock stack alpha fade, charged Shock stack visual mode, particle chain-link prefab, effect lifetime, vertical endpoint offset, local endpoint fitting, rotation/position offsets, length/thickness scale, exact core line toggle, core line material/color/width, and core line timing.
  * - Electro uses the normal projectile attack path for the direct hit. The chain behavior starts only after ProjectileDamageDealer successfully applies direct hit damage.
  * - The active chain particle prefab is project-owned PS_Electro_ChainLink under Scenes/KKW/Turret_Scene/Prefabs/Status Effect/Electro_Turret.
  * - PS_Electro_ChainLink is a project duplicate/adaptation of PS_LightiningStrike 1. Private Assets originals should not be edited directly for Electro runtime tuning.
@@ -296,10 +297,12 @@
  * 7. ElectroChainLightningUtility uses Physics.OverlapSphereNonAlloc from the current chain anchor to find the nearest living IDamageable not already hit by this chain.
  * 8. Each bounced target takes reduced damage using 1 - chainDamageFalloffPerJump * chainIndex, clamped at 0.
  * 9. Each bounced target that implements IElectroStatusEffectReceiver receives Electro status with its chain index.
- * 10. Each visual link prefers Collider.bounds.center for both endpoints, then falls back to target Transform.position, then to the cached fallback position.
- * 11. ElectroChainLinkEffectUtility spawns PS_Electro_ChainLink between the previous and next chain anchors.
- * 12. ElectroChainLinkAnchorTracker keeps the spawned link following current collider centers while the effect is alive, so moving zombies do not leave delayed lightning at stale hit positions.
- * 13. ElectroChainCoreLineEffect draws a two-point world-space LineRenderer over the particle effect during its configured timing window so endpoint readability stays exact.
+ * 10. NormalZombie and BossZombie delegate Electro receiver calls to ElectroStatusRuntime.
+ * 11. ElectroStatusRuntime adds one Shock stack, refreshes duration, applies short Electro hit stun through IElectroStunRuntimeOwner, and shows up to three orbiting Volt Sphere 1 visuals around the target body center. Boss targets can use a separate orbit radius, ElectroShockStackVisualFader can fade the rear half of the orbit by camera-facing alpha, and ElectroShockStackVisualModeController can keep 1-2 stacks calmer until the charged threshold is reached.
+ * 12. Each visual link prefers Collider.bounds.center for both endpoints, then falls back to target Transform.position, then to the cached fallback position.
+ * 13. ElectroChainLinkEffectUtility spawns PS_Electro_ChainLink between the previous and next chain anchors.
+ * 14. ElectroChainLinkAnchorTracker keeps the spawned link following current collider centers while the effect is alive, so moving zombies do not leave delayed lightning at stale hit positions.
+ * 15. ElectroChainCoreLineEffect draws a two-point world-space LineRenderer over the particle effect during its configured timing window so endpoint readability stays exact.
  *
  * Electro Chain VFX Field Responsibilities
  *

@@ -95,6 +95,8 @@ public class GameManager : MonoBehaviour
 
         // 기기의 현재 화면 주사율을 받아와 타겟 프레임으로 설정
         Application.targetFrameRate = (int)Screen.currentResolution.refreshRateRatio.value;
+
+        print($"디바이스 주사율: {Application.targetFrameRate}hz | 주사율 적용됨");
     }
 
     // 싱글톤 인스턴스가 제거될 때 정적 참조를 정리한다

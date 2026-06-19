@@ -17,6 +17,33 @@ public class ElectroStatusProfileSO : ScriptableObject
     [Min(1)] public int maxShockStackCount = 3;
     [Min(0.0f)] public float shockStackDuration = 15.0f;
 
+    [Header("쇼크 스택 VFX")]
+    public GameObject shockStackVisualPrefab;
+    [Min(0.0f)] public float shockStackOrbitRadius = 0.55f;
+    [Min(0.0f)] public float shockStackVerticalOffset = 0.1f;
+    public float shockStackOrbitDegreesPerSecond = 180.0f;
+    public Vector3 shockStackVisualScale = Vector3.one;
+    public bool hideBackSideShockStackVisuals;
+    [Range(-1.0f, 1.0f)] public float backSideHideDotThreshold;
+
+    [Header("쇼크 스택 알파 페이드")]
+    public bool useShockStackBackSideAlphaFade = true;
+    [Range(0.0f, 1.0f)] public float shockStackFrontAlpha = 1.0f;
+    [Range(0.0f, 1.0f)] public float shockStackBackAlpha = 0.16f;
+    [Min(0.01f)] public float shockStackAlphaFadeSharpness = 1.25f;
+    [Min(0.0f)] public float shockStackAlphaLerpSpeed = 14.0f;
+
+    [Header("쇼크 스택 충전 연출")]
+    public bool useShockStackChargedVisualMode = true;
+    [Min(1)] public int chargedShockStackVisualThreshold = 3;
+    public string[] subtleShockStackDisabledChildNames = { "TriangleShape", "Flare", "Volt" };
+
+    [Header("보스 쇼크 스택 VFX")]
+    public bool useBossShockStackOrbitRadius = true;
+    [Min(0.0f)] public float bossShockStackOrbitRadius = 1.1f;
+    public bool useBossShockStackVisualScale = true;
+    public Vector3 bossShockStackVisualScale = Vector3.one;
+
     [Header("오버로드 발동 정책")]
     public bool canElectroHitTriggerOverload;
     public bool canNonElectroDamageTriggerOverload = true;
@@ -81,6 +108,25 @@ public class ElectroStatusProfileSO : ScriptableObject
             chainTargetLayerMask = chainTargetLayerMask,
             maxShockStackCount = Mathf.Max(1, maxShockStackCount),
             shockStackDuration = Mathf.Max(0.0f, shockStackDuration),
+            shockStackVisualPrefab = shockStackVisualPrefab,
+            shockStackOrbitRadius = Mathf.Max(0.0f, shockStackOrbitRadius),
+            shockStackVerticalOffset = Mathf.Max(0.0f, shockStackVerticalOffset),
+            shockStackOrbitDegreesPerSecond = shockStackOrbitDegreesPerSecond,
+            shockStackVisualScale = GetSafeShockStackVisualScale(),
+            useBossShockStackOrbitRadius = useBossShockStackOrbitRadius,
+            bossShockStackOrbitRadius = Mathf.Max(0.0f, bossShockStackOrbitRadius),
+            useBossShockStackVisualScale = useBossShockStackVisualScale,
+            bossShockStackVisualScale = GetSafeBossShockStackVisualScale(),
+            hideBackSideShockStackVisuals = hideBackSideShockStackVisuals,
+            backSideHideDotThreshold = Mathf.Clamp(backSideHideDotThreshold, -1.0f, 1.0f),
+            useShockStackBackSideAlphaFade = useShockStackBackSideAlphaFade,
+            shockStackFrontAlpha = Mathf.Clamp01(shockStackFrontAlpha),
+            shockStackBackAlpha = Mathf.Clamp01(shockStackBackAlpha),
+            shockStackAlphaFadeSharpness = Mathf.Max(0.01f, shockStackAlphaFadeSharpness),
+            shockStackAlphaLerpSpeed = Mathf.Max(0.0f, shockStackAlphaLerpSpeed),
+            useShockStackChargedVisualMode = useShockStackChargedVisualMode,
+            chargedShockStackVisualThreshold = Mathf.Max(1, chargedShockStackVisualThreshold),
+            subtleShockStackDisabledChildNames = subtleShockStackDisabledChildNames,
             canElectroHitTriggerOverload = canElectroHitTriggerOverload,
             canNonElectroDamageTriggerOverload = canNonElectroDamageTriggerOverload,
             overloadRadius = Mathf.Max(0.0f, overloadRadius),
@@ -140,6 +186,17 @@ public class ElectroStatusProfileSO : ScriptableObject
         chainDamageFalloffPerJump = Mathf.Clamp01(chainDamageFalloffPerJump);
         maxShockStackCount = Mathf.Max(1, maxShockStackCount);
         shockStackDuration = Mathf.Max(0.0f, shockStackDuration);
+        shockStackOrbitRadius = Mathf.Max(0.0f, shockStackOrbitRadius);
+        shockStackVerticalOffset = Mathf.Max(0.0f, shockStackVerticalOffset);
+        shockStackVisualScale = GetSafeShockStackVisualScale();
+        bossShockStackOrbitRadius = Mathf.Max(0.0f, bossShockStackOrbitRadius);
+        bossShockStackVisualScale = GetSafeBossShockStackVisualScale();
+        backSideHideDotThreshold = Mathf.Clamp(backSideHideDotThreshold, -1.0f, 1.0f);
+        shockStackFrontAlpha = Mathf.Clamp01(shockStackFrontAlpha);
+        shockStackBackAlpha = Mathf.Clamp01(shockStackBackAlpha);
+        shockStackAlphaFadeSharpness = Mathf.Max(0.01f, shockStackAlphaFadeSharpness);
+        shockStackAlphaLerpSpeed = Mathf.Max(0.0f, shockStackAlphaLerpSpeed);
+        chargedShockStackVisualThreshold = Mathf.Max(1, chargedShockStackVisualThreshold);
         overloadRadius = Mathf.Max(0.0f, overloadRadius);
         overloadDamageMultiplier = Mathf.Max(0.0f, overloadDamageMultiplier);
         stunDuration = Mathf.Max(0.0f, stunDuration);
@@ -160,6 +217,24 @@ public class ElectroStatusProfileSO : ScriptableObject
     private Vector3 GetSafeChainLinkSourceAxis()
     {
         return NormalizeSafeAxis(chainLinkSourceAxis);
+    }
+
+    // 쇼크 스택 비주얼 스케일을 0 이하로 눌리지 않게 보정한다
+    private Vector3 GetSafeShockStackVisualScale()
+    {
+        return new Vector3(
+            Mathf.Max(0.01f, shockStackVisualScale.x),
+            Mathf.Max(0.01f, shockStackVisualScale.y),
+            Mathf.Max(0.01f, shockStackVisualScale.z));
+    }
+
+    // 보스 쇼크 스택 비주얼 스케일을 0 이하로 눌리지 않게 보정한다
+    private Vector3 GetSafeBossShockStackVisualScale()
+    {
+        return new Vector3(
+            Mathf.Max(0.01f, bossShockStackVisualScale.x),
+            Mathf.Max(0.01f, bossShockStackVisualScale.y),
+            Mathf.Max(0.01f, bossShockStackVisualScale.z));
     }
 
     // 입력 축이 너무 작으면 전기 프리팹 기본 길이 방향인 Z축을 사용한다

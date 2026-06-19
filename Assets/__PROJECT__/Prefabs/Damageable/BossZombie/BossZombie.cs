@@ -10,7 +10,7 @@ using ProjectZDefense.StatusEffects;
 /// <summary>
 /// 보스 좀비의 웨이브 스탯 초기화, 스킬, 피격, 사망, 처치 보상 지급을 담당한다.
 /// </summary>
-public class BossZombie : PoolObject, IDamageable, IFrostStatusEffectReceiver, IPoisonStatusEffectReceiver, IFrostStatusRuntimeOwner
+public class BossZombie : PoolObject, IDamageable, IFrostStatusEffectReceiver, IPoisonStatusEffectReceiver, IElectroStatusEffectReceiver, IFrostStatusRuntimeOwner
 {
     private static readonly int SpeedHash = Animator.StringToHash("speed");
 
@@ -51,6 +51,7 @@ public class BossZombie : PoolObject, IDamageable, IFrostStatusEffectReceiver, I
     private float baseAttackSpeed;
     private FrostStatusRuntime frostStatusRuntime;
     private PoisonStatusRuntime poisonStatusRuntime;
+    private ElectroStatusRuntime electroStatusRuntime;
     
     public float TotalHp { get; private set; }
     public float CurrHp { get; private set; }
@@ -71,6 +72,7 @@ public class BossZombie : PoolObject, IDamageable, IFrostStatusEffectReceiver, I
         CacheStatusEffectVisualController();
         CacheFrostStatusRuntime();
         CachePoisonStatusRuntime();
+        CacheElectroStatusRuntime();
         GetComponentsInChildren(false, colliders);
 
         ConfigureBehaviorNavigation();
@@ -115,6 +117,7 @@ public class BossZombie : PoolObject, IDamageable, IFrostStatusEffectReceiver, I
         attackTargetBV.Value = null;
         ResetFrostStatus();
         ResetPoisonStatus();
+        ResetElectroStatus();
 
         // 체력 UI 슬라이더 값 지정
         hpUI.gameObject.SetActive(true);
@@ -170,6 +173,7 @@ public class BossZombie : PoolObject, IDamageable, IFrostStatusEffectReceiver, I
         RestoreAllScreamerSpeedBuffs();
         ResetFrostStatus();
         ResetPoisonStatus();
+        ResetElectroStatus();
     }
 
     // 매 프레임 사망 처리와 루트모션 이동 방향을 갱신한다
@@ -183,6 +187,10 @@ public class BossZombie : PoolObject, IDamageable, IFrostStatusEffectReceiver, I
         if (poisonStatusRuntime != null)
         {
             poisonStatusRuntime.Tick(Time.deltaTime);
+        }
+        if (electroStatusRuntime != null)
+        {
+            electroStatusRuntime.Tick(Time.deltaTime);
         }
         UpdateDeath();
         UpdateRootMotionNavigation();
@@ -498,6 +506,17 @@ public class BossZombie : PoolObject, IDamageable, IFrostStatusEffectReceiver, I
         poisonStatusRuntime.ApplyPoisonStatus(payload);
     }
 
+    // Electro 투사체와 체인 라이트닝으로 전달된 Shock 스택 데이터를 갱신한다
+    public void ApplyElectroStatus(ElectroStatusPayload payload, int chainIndex, float sourceDamage)
+    {
+        if (!IsAlive || electroStatusRuntime == null)
+        {
+            return;
+        }
+
+        electroStatusRuntime.ApplyElectroStatus(payload, chainIndex, sourceDamage);
+    }
+
     // Frost 상태가 계산한 속도 배율을 비헤이비어 이동 속도와 애니메이터 공격 속도에 반영한다
     public void ApplyFrostSpeedMultiplier(float speedMultiplier)
     {
@@ -536,6 +555,17 @@ public class BossZombie : PoolObject, IDamageable, IFrostStatusEffectReceiver, I
         poisonStatusRuntime.ResetStatus();
     }
 
+    // 풀 재사용이나 사망 시 Electro Shock 스택과 비주얼을 끈다
+    private void ResetElectroStatus()
+    {
+        if (electroStatusRuntime == null)
+        {
+            return;
+        }
+
+        electroStatusRuntime.ResetStatus();
+    }
+
     // 상태이상 비주얼 컨트롤러를 자식까지 포함해 캐시한다
     private void CacheStatusEffectVisualController()
     {
@@ -569,6 +599,18 @@ public class BossZombie : PoolObject, IDamageable, IFrostStatusEffectReceiver, I
         }
 
         poisonStatusRuntime.Initialize(this, statusEffectVisualController, true, false);
+    }
+
+    // Electro 상태 런타임 컴포넌트를 캐시하고 보스 좀비 정책으로 초기화한다
+    private void CacheElectroStatusRuntime()
+    {
+        electroStatusRuntime = GetComponent<ElectroStatusRuntime>();
+        if (electroStatusRuntime == null)
+        {
+            electroStatusRuntime = gameObject.AddComponent<ElectroStatusRuntime>();
+        }
+
+        electroStatusRuntime.Initialize(this, true);
     }
 
     float storeDamage = 0;
@@ -630,6 +672,7 @@ public class BossZombie : PoolObject, IDamageable, IFrostStatusEffectReceiver, I
         TriggerFrostDeathEffectIfNeeded();
         ResetFrostStatus();
         ResetPoisonStatus();
+        ResetElectroStatus();
 
         if (agent.enabled)
         {

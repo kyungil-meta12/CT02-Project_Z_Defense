@@ -20,6 +20,28 @@ MonoBehaviour:
     m_Bits: 1152
   maxShockStackCount: 3
   shockStackDuration: 15
+  shockStackVisualPrefab: {fileID: 7650930533217633329, guid: 1984f063e11ac39458b696f36d6d8b78, type: 3}
+  shockStackOrbitRadius: 0.55
+  shockStackVerticalOffset: 0.1
+  shockStackOrbitDegreesPerSecond: 180
+  shockStackVisualScale: {x: 0.4, y: 0.4, z: 0.4}
+  hideBackSideShockStackVisuals: 0
+  backSideHideDotThreshold: 0
+  useShockStackBackSideAlphaFade: 1
+  shockStackFrontAlpha: 1
+  shockStackBackAlpha: 0.16
+  shockStackAlphaFadeSharpness: 1.25
+  shockStackAlphaLerpSpeed: 14
+  useShockStackChargedVisualMode: 1
+  chargedShockStackVisualThreshold: 3
+  subtleShockStackDisabledChildNames:
+  - TriangleShape
+  - Flare
+  - Volt
+  useBossShockStackOrbitRadius: 1
+  bossShockStackOrbitRadius: 1.8
+  useBossShockStackVisualScale: 1
+  bossShockStackVisualScale: {x: 0.85, y: 0.85, z: 0.85}
   canElectroHitTriggerOverload: 0
   canNonElectroDamageTriggerOverload: 1
   overloadRadius: 2
@@ -46,4 +68,4 @@ MonoBehaviour:
   chainCoreLineEndColor: {r: 1, g: 0.7, b: 1, a: 0.85}
   chainCoreLineWidth: 0.06
   chainCoreLineStartDelay: 0.2
-  chainCoreLineDuration: 0.2
+  chainCoreLineDuration: 0.22

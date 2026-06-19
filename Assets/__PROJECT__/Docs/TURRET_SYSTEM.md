@@ -62,7 +62,7 @@ Do not use display names as stable IDs.
 | `BeamAttackProfileSO` | Beam-specific attack rules: damage tick interval, damage multiplier, DPS interpretation, target mode, pierce radius, max targets, and damage layer mask. |
 | `FrostStatusProfileSO` | Frost-specific status rules: slow buildup, max slow, freeze timing, freeze explosion, max-HP damage, secondary explosion slow, related VFX references, and optional primary-target max-HP damage growth. |
 | `PoisonStatusProfileSO` | Poison-specific status rules: max-HP tick damage ratio, tick interval, duration, stack limit, stack refresh mode, boss damage multiplier, and optional death burst profile reference. |
-| `ElectroStatusProfileSO` | Electro-specific status rules and chain VFX controls: chain lightning count/radius/falloff, Shock stack duration, Overload trigger policy, Overload burst, short stun timing, chain-link particle VFX, and optional core line VFX. |
+| `ElectroStatusProfileSO` | Electro-specific status rules and chain VFX controls: chain lightning count/radius/falloff, Shock stack duration and stack VFX, Overload trigger policy, Overload burst, short stun timing, chain-link particle VFX, and optional core line VFX. |
 | `PoisonDeathBurstProfileSO` | Poison lethal-death burst rules: burst VFX, radius, weak Poison values, target layer mask, and boss damage multiplier for secondary weak Poison. |
 | `PoisonTurretStatGrowthProfileSO` | Poison_Turret-only stat growth profile. Inherits common turret stat growth and adds Poison status/death-burst growth fields without exposing them on non-Poison turrets. |
 | `TurretVFXProgressionSO` | Selects active VFX profile by current tier level. |
@@ -246,6 +246,12 @@ Electro status handling:
 - `ProjectileDamageDealer.TryApplyDamage` applies direct projectile damage first, then forwards Electro status to targets implementing `ProjectZDefense.StatusEffects.IElectroStatusEffectReceiver`.
 - `ElectroChainLightningUtility` starts from the directly hit target, finds the nearest living `IDamageable` inside `chainRadius` with `Physics.OverlapSphereNonAlloc`, deduplicates targets, and applies reduced chain damage per jump.
 - Chain damage uses the same `IDamageable.TakeDamage` path as direct projectile damage, so HP, damage popups, rewards, and death flow stay consistent.
+- `NormalZombie` and `BossZombie` implement `ProjectZDefense.StatusEffects.IElectroStatusEffectReceiver` and delegate Shock stack state to `ElectroStatusRuntime`.
+- `ElectroStatusRuntime` adds one Shock stack whenever an Electro direct hit or chain hit is received, refreshes the stack timer to `shockStackDuration`, and caps visible stacks at the configured max up to three.
+- Current Shock stack VFX uses `Volt Sphere 1` from `Scenes/KKW/Turret_Scene/Prefabs/Status Effect/Electro_Turret`. The runtime keeps up to three instances around the target body center and rotates them like orbiting rings while the stack timer is active.
+- `ElectroStatusProfileSO` controls normal Shock stack orbit radius, optional boss-only orbit radius, vertical offset, rotation speed, normal/boss visual scale, and camera-facing back-side alpha fade. Hard back-side hiding still exists as a fallback, but the default depth cue is smooth alpha fading instead of instant activation toggling.
+- Shock stack VFX can use charged visual mode. In the default Electro profile, 1-2 stacks keep a calmer Volt Sphere by disabling selected sparkle children, and 3 stacks re-enable all children to show the fully charged state.
+- Electro attacks currently do not consume three Shock stacks. Overload consumption, burst damage, and long stun are reserved for the next implementation step and should be triggered only by non-Electro damage.
 - `ElectroChainLinkEffectUtility` renders the chain visual between each chained target pair using the VFX settings stored in `ElectroStatusProfileSO`.
 - Electro chain visuals are hybrid by design. `PS_Electro_ChainLink` provides the wide stylized particle lightning, while `ElectroChainCoreLineEffect` provides a thin exact `LineRenderer` connection so the start and end points read clearly.
 - Current chain-link particle VFX uses project-owned `PS_Electro_ChainLink`, a duplicate of `PS_LightiningStrike 1` with floor/impact children disabled and lightning/spark children kept active. Current kept children are `Holder`, `Lightning_Arc`, `Lightning`, `Lightning_Big`, `Sparks`, and `Flare`.
@@ -258,7 +264,7 @@ Electro status handling:
 - Core line timing is controlled separately through `chainCoreLineStartDelay` and `chainCoreLineDuration`. Use this to align the exact line with the delayed lightning particle flash without keeping a straight line visible longer than intended.
 - `chainCoreLineDuration <= 0` means the core line remains visible from `chainCoreLineStartDelay` until the chain-link effect returns to the pool.
 - Chain-link VFX reads live values from `ElectroStatusProfileSO` through the payload's source profile reference, so play-mode Inspector edits to those VFX fields affect newly spawned chain links without reapplying the turret definition.
-- Enemy-side Shock stack, Overload, and stun runtime behavior is not implemented yet. `ElectroStatusPayload` already carries the required data; the next gameplay step is adding receiver-side mutable state to normal and boss zombies.
+- Enemy-side Shock stack runtime behavior is implemented through `ElectroStatusRuntime`. Overload consumption, burst damage, and long stun runtime behavior are not implemented yet.
 
 Electro runtime pipeline:
 
@@ -273,7 +279,8 @@ Electro runtime pipeline:
 9. A short chain-link particle effect is spawned between the previous target collider center and the bounced target collider center.
 10. `ElectroChainLinkAnchorTracker` updates the spawned link every `LateUpdate` while alive so moving zombies do not leave the visual stuck at the original hit position.
 11. `ElectroChainCoreLineEffect` overlays a thin exact line between the same endpoints during its configured timing window.
-12. Hit or overload particle bursts remain separate from the chain-link/core-line VFX and can be layered later.
+12. `ElectroStatusRuntime` refreshes Shock stack duration and shows one to three orbiting `Volt Sphere 1` instances around the target body center.
+13. Hit or overload particle bursts remain separate from the chain-link/core-line VFX and can be layered later.
 
 Electro chain VFX field guide:
 

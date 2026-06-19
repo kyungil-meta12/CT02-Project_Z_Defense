@@ -51,6 +51,27 @@ public class ElectroStatusProfileSO : ScriptableObject
     [Header("과부하")]
     [Min(0.0f)] public float overloadRadius = 2.0f;
     [Min(0.0f)] public float overloadDamageMultiplier = 1.0f;
+    [Range(0.0f, 1.0f)] public float overloadMaxHpDamageRatio = 0.2f;
+    [Range(0.0f, 1.0f)] public float bossOverloadMaxHpDamageRatio = 0.05f;
+    [Min(0.0f)] public float overloadStunDuration = 5.0f;
+
+    [Header("과부하 폭발 VFX")]
+    public GameObject overloadImpactEffectPrefab;
+    [Min(0.0f)] public float overloadImpactEffectDuration = 1.0f;
+    public Vector3 overloadImpactEffectOffset = Vector3.zero;
+    public Vector3 overloadImpactEffectScale = Vector3.one;
+    public bool useBossOverloadImpactEffectScale = true;
+    public Vector3 bossOverloadImpactEffectScale = Vector3.one;
+
+    [Header("과부하 기절 VFX")]
+    public GameObject overloadStunEffectPrefab;
+    [Min(0.0f)] public float overloadStunEffectDuration = 5.0f;
+    public Vector3 overloadStunEffectOffset = Vector3.zero;
+    public bool useBossOverloadStunEffectOffset = true;
+    public Vector3 bossOverloadStunEffectOffset = Vector3.zero;
+    public Vector3 overloadStunEffectScale = Vector3.one;
+    public bool useBossOverloadStunEffectScale = true;
+    public Vector3 bossOverloadStunEffectScale = Vector3.one;
 
     [Header("경직")]
     [Min(0.0f)] public float stunDuration = 0.35f;
@@ -132,6 +153,23 @@ public class ElectroStatusProfileSO : ScriptableObject
             canNonElectroDamageTriggerOverload = canNonElectroDamageTriggerOverload,
             overloadRadius = Mathf.Max(0.0f, overloadRadius),
             overloadDamageMultiplier = Mathf.Max(0.0f, overloadDamageMultiplier),
+            overloadMaxHpDamageRatio = Mathf.Clamp01(overloadMaxHpDamageRatio),
+            bossOverloadMaxHpDamageRatio = Mathf.Clamp01(bossOverloadMaxHpDamageRatio),
+            overloadStunDuration = Mathf.Max(0.0f, overloadStunDuration),
+            overloadImpactEffectPrefab = overloadImpactEffectPrefab,
+            overloadImpactEffectDuration = Mathf.Max(0.0f, overloadImpactEffectDuration),
+            overloadImpactEffectOffset = overloadImpactEffectOffset,
+            overloadImpactEffectScale = GetSafeOverloadImpactEffectScale(),
+            useBossOverloadImpactEffectScale = useBossOverloadImpactEffectScale,
+            bossOverloadImpactEffectScale = GetSafeBossOverloadImpactEffectScale(),
+            overloadStunEffectPrefab = overloadStunEffectPrefab,
+            overloadStunEffectDuration = Mathf.Max(0.0f, overloadStunEffectDuration),
+            overloadStunEffectOffset = overloadStunEffectOffset,
+            useBossOverloadStunEffectOffset = useBossOverloadStunEffectOffset,
+            bossOverloadStunEffectOffset = bossOverloadStunEffectOffset,
+            overloadStunEffectScale = GetSafeOverloadStunEffectScale(),
+            useBossOverloadStunEffectScale = useBossOverloadStunEffectScale,
+            bossOverloadStunEffectScale = GetSafeBossOverloadStunEffectScale(),
             stunDuration = Mathf.Max(0.0f, stunDuration),
             stunDurationFalloffPerJump = Mathf.Clamp01(stunDurationFalloffPerJump),
             minimumStunDuration = Mathf.Max(0.0f, minimumStunDuration),
@@ -201,6 +239,15 @@ public class ElectroStatusProfileSO : ScriptableObject
         chargedShockStackVisualThreshold = Mathf.Max(1, chargedShockStackVisualThreshold);
         overloadRadius = Mathf.Max(0.0f, overloadRadius);
         overloadDamageMultiplier = Mathf.Max(0.0f, overloadDamageMultiplier);
+        overloadMaxHpDamageRatio = Mathf.Clamp01(overloadMaxHpDamageRatio);
+        bossOverloadMaxHpDamageRatio = Mathf.Clamp01(bossOverloadMaxHpDamageRatio);
+        overloadStunDuration = Mathf.Max(0.0f, overloadStunDuration);
+        overloadImpactEffectDuration = Mathf.Max(0.0f, overloadImpactEffectDuration);
+        overloadImpactEffectScale = GetSafeOverloadImpactEffectScale();
+        bossOverloadImpactEffectScale = GetSafeBossOverloadImpactEffectScale();
+        overloadStunEffectDuration = Mathf.Max(0.0f, overloadStunEffectDuration);
+        overloadStunEffectScale = GetSafeOverloadStunEffectScale();
+        bossOverloadStunEffectScale = GetSafeBossOverloadStunEffectScale();
         stunDuration = Mathf.Max(0.0f, stunDuration);
         stunDurationFalloffPerJump = Mathf.Clamp01(stunDurationFalloffPerJump);
         minimumStunDuration = Mathf.Clamp(minimumStunDuration, 0.0f, stunDuration);
@@ -238,6 +285,39 @@ public class ElectroStatusProfileSO : ScriptableObject
             Mathf.Max(0.01f, bossShockStackVisualScale.x),
             Mathf.Max(0.01f, bossShockStackVisualScale.y),
             Mathf.Max(0.01f, bossShockStackVisualScale.z));
+    }
+
+    // 과부하 폭발 이펙트 스케일을 0 이하로 눌리지 않게 보정한다
+    private Vector3 GetSafeOverloadImpactEffectScale()
+    {
+        return GetSafeScale(overloadImpactEffectScale);
+    }
+
+    // 보스 과부하 폭발 이펙트 스케일을 0 이하로 눌리지 않게 보정한다
+    private Vector3 GetSafeBossOverloadImpactEffectScale()
+    {
+        return GetSafeScale(bossOverloadImpactEffectScale);
+    }
+
+    // 과부하 기절 이펙트 스케일을 0 이하로 눌리지 않게 보정한다
+    private Vector3 GetSafeOverloadStunEffectScale()
+    {
+        return GetSafeScale(overloadStunEffectScale);
+    }
+
+    // 보스 과부하 기절 이펙트 스케일을 0 이하로 눌리지 않게 보정한다
+    private Vector3 GetSafeBossOverloadStunEffectScale()
+    {
+        return GetSafeScale(bossOverloadStunEffectScale);
+    }
+
+    // 입력 스케일 벡터의 각 축을 안전한 양수 값으로 보정한다
+    private static Vector3 GetSafeScale(Vector3 scale)
+    {
+        return new Vector3(
+            Mathf.Max(0.01f, scale.x),
+            Mathf.Max(0.01f, scale.y),
+            Mathf.Max(0.01f, scale.z));
     }
 
     // 입력 축이 너무 작으면 전기 프리팹 기본 길이 방향인 Z축을 사용한다

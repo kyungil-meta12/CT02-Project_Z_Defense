@@ -10,7 +10,7 @@ using ProjectZDefense.StatusEffects;
 /// <summary>
 /// 보스 좀비의 웨이브 스탯 초기화, 스킬, 피격, 사망, 처치 보상 지급을 담당한다.
 /// </summary>
-public class BossZombie : PoolObject, IDamageable, IFrostStatusEffectReceiver, IPoisonStatusEffectReceiver, IElectroStatusEffectReceiver, IFrostStatusRuntimeOwner, IElectroStunRuntimeOwner
+public class BossZombie : PoolObject, IDamageable, IFrostStatusEffectReceiver, IPoisonStatusEffectReceiver, IElectroStatusEffectReceiver, IElectroOverloadTriggerReceiver, IFrostStatusRuntimeOwner, IElectroStunRuntimeOwner
 {
     private static readonly int SpeedHash = Animator.StringToHash("speed");
 
@@ -526,6 +526,17 @@ public class BossZombie : PoolObject, IDamageable, IFrostStatusEffectReceiver, I
         electroStatusRuntime.ApplyElectroStatus(payload, chainIndex, sourceDamage);
     }
 
+    // 비-Electro 피해가 적용되는 시점에 Electro Overload 발동 여부를 갱신한다
+    public void NotifyNonElectroDamageReceived(float damage)
+    {
+        if (!IsAlive || electroStatusRuntime == null)
+        {
+            return;
+        }
+
+        electroStatusRuntime.NotifyNonElectroDamageReceived(damage);
+    }
+
     // Frost 상태가 계산한 속도 배율을 비헤이비어 이동 속도와 애니메이터 공격 속도에 반영한다
     public void ApplyFrostSpeedMultiplier(float speedMultiplier)
     {
@@ -542,8 +553,8 @@ public class BossZombie : PoolObject, IDamageable, IFrostStatusEffectReceiver, I
         }
     }
 
-    // Electro 적중으로 발생한 짧은 경직을 갱신하고 전기 경직 비주얼을 켠다
-    public void ApplyElectroStun(float duration)
+    // Electro 경직을 갱신하고 필요 시 짧은 전기 경직 비주얼을 켠다
+    public void ApplyElectroStun(float duration, bool playHitStunVisual)
     {
         if (!IsAlive || duration <= 0.0f)
         {
@@ -553,7 +564,10 @@ public class BossZombie : PoolObject, IDamageable, IFrostStatusEffectReceiver, I
         electroStunRemainingDuration = Mathf.Max(electroStunRemainingDuration, duration);
         electroStunActive = true;
         ApplyElectroStunSpeedStop();
-        SetElectroStunVisualActive(true);
+        if (playHitStunVisual)
+        {
+            SetElectroStunVisualActive(true);
+        }
     }
 
     // Electro 경직 상태와 비주얼을 초기화한다

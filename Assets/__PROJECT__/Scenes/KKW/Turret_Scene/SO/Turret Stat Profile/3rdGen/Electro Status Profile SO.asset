@@ -46,7 +46,24 @@ MonoBehaviour:
   canNonElectroDamageTriggerOverload: 1
   overloadRadius: 2
   overloadDamageMultiplier: 1
-  stunDuration: 0.2
+  overloadMaxHpDamageRatio: 0.2
+  bossOverloadMaxHpDamageRatio: 0.05
+  overloadStunDuration: 5
+  overloadImpactEffectPrefab: {fileID: 3485206932582624865, guid: 161a959f1c835224b96e68f5ef7f7730, type: 3}
+  overloadImpactEffectDuration: 1
+  overloadImpactEffectOffset: {x: 0, y: 0, z: 0}
+  overloadImpactEffectScale: {x: 1, y: 1, z: 1}
+  useBossOverloadImpactEffectScale: 1
+  bossOverloadImpactEffectScale: {x: 2, y: 2, z: 2}
+  overloadStunEffectPrefab: {fileID: 1763937973439912649, guid: 041a5f19ad2042948b457e27cdc19a6c, type: 3}
+  overloadStunEffectDuration: 5
+  overloadStunEffectOffset: {x: 0, y: 1.2, z: 0}
+  useBossOverloadStunEffectOffset: 1
+  bossOverloadStunEffectOffset: {x: 0, y: 2.4, z: 0}
+  overloadStunEffectScale: {x: 1, y: 1, z: 1}
+  useBossOverloadStunEffectScale: 1
+  bossOverloadStunEffectScale: {x: 2, y: 2, z: 2}
+  stunDuration: 1
   stunDurationFalloffPerJump: 0.01
   minimumStunDuration: 0.1
   bossHitStunDurationMultiplier: 0

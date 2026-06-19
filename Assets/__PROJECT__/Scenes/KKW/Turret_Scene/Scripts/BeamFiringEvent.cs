@@ -399,6 +399,7 @@ public class BeamFiringEvent : FiringEvent
         }
 
         float safeDamage = Mathf.Max(0.0f, projectileDamage);
+        NotifyNonElectroDamageReceived(damageable, safeDamage);
         damageable.TakeDamage(safeDamage);
         ApplyFrostStatus(damageable);
 
@@ -769,5 +770,22 @@ public class BeamFiringEvent : FiringEvent
             TargetTransform = targetTransform;
             HitEffectTransform = hitEffectTransform;
         }
+    }
+
+    // Beam 계열 비-Electro 피해가 적용되기 전 대상에게 Overload 발동 검사를 요청한다
+    private static void NotifyNonElectroDamageReceived(IDamageable damageable, float appliedDamage)
+    {
+        if (damageable == null || !damageable.IsAlive)
+        {
+            return;
+        }
+
+        IElectroOverloadTriggerReceiver overloadReceiver = damageable as IElectroOverloadTriggerReceiver;
+        if (overloadReceiver == null)
+        {
+            return;
+        }
+
+        overloadReceiver.NotifyNonElectroDamageReceived(appliedDamage);
     }
 }

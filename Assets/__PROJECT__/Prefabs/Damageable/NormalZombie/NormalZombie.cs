@@ -7,7 +7,7 @@ using ProjectZDefense.StatusEffects;
 /// <summary>
 /// 일반 좀비의 웨이브 스탯 초기화, 이동/공격, 피격, 사망, 처치 보상 지급을 담당한다.
 /// </summary>
-public class NormalZombie : PoolObject, IDamageable, IFrostStatusEffectReceiver, IPoisonStatusEffectReceiver, IElectroStatusEffectReceiver, IFrostStatusRuntimeOwner, IElectroStunRuntimeOwner
+public class NormalZombie : PoolObject, IDamageable, IFrostStatusEffectReceiver, IPoisonStatusEffectReceiver, IElectroStatusEffectReceiver, IElectroOverloadTriggerReceiver, IFrostStatusRuntimeOwner, IElectroStunRuntimeOwner
 {
     [Header("일반 좀비 기본 스펙")] public NormalZombieSpec spec;
     [Header("프리팹별 처치 보상 Override")] [SerializeField] private ZombieRewardProfileSO rewardProfileOverride;
@@ -387,6 +387,17 @@ public class NormalZombie : PoolObject, IDamageable, IFrostStatusEffectReceiver,
         electroStatusRuntime.ApplyElectroStatus(payload, chainIndex, sourceDamage);
     }
 
+    // 비-Electro 피해가 적용되는 시점에 Electro Overload 발동 여부를 갱신한다
+    public void NotifyNonElectroDamageReceived(float damage)
+    {
+        if (!IsAlive || electroStatusRuntime == null)
+        {
+            return;
+        }
+
+        electroStatusRuntime.NotifyNonElectroDamageReceived(damage);
+    }
+
     // Frost 상태를 제외한 현재 이동/공격 기준 속도를 반환한다
     public Vector2 GetRuntimeBaseSpeeds()
     {
@@ -417,8 +428,8 @@ public class NormalZombie : PoolObject, IDamageable, IFrostStatusEffectReceiver,
         anim.SetFloat("AttackSpeed", baseAttackSpeed * safeSpeedMultiplier);
     }
 
-    // Electro 적중으로 발생한 짧은 경직을 갱신하고 전기 경직 비주얼을 켠다
-    public void ApplyElectroStun(float duration)
+    // Electro 경직을 갱신하고 필요 시 짧은 전기 경직 비주얼을 켠다
+    public void ApplyElectroStun(float duration, bool playHitStunVisual)
     {
         if (!IsAlive || duration <= 0.0f)
         {
@@ -428,7 +439,10 @@ public class NormalZombie : PoolObject, IDamageable, IFrostStatusEffectReceiver,
         electroStunRemainingDuration = Mathf.Max(electroStunRemainingDuration, duration);
         electroStunActive = true;
         ApplyElectroStunSpeedStop();
-        SetElectroStunVisualActive(true);
+        if (playHitStunVisual)
+        {
+            SetElectroStunVisualActive(true);
+        }
     }
 
     // Electro 경직 상태와 비주얼을 초기화한다

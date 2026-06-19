@@ -37,6 +37,23 @@ namespace ProjectZDefense.StatusEffects
         public bool canNonElectroDamageTriggerOverload;
         public float overloadRadius;
         public float overloadDamageMultiplier;
+        public float overloadMaxHpDamageRatio;
+        public float bossOverloadMaxHpDamageRatio;
+        public float overloadStunDuration;
+        public GameObject overloadImpactEffectPrefab;
+        public float overloadImpactEffectDuration;
+        public Vector3 overloadImpactEffectOffset;
+        public Vector3 overloadImpactEffectScale;
+        public bool useBossOverloadImpactEffectScale;
+        public Vector3 bossOverloadImpactEffectScale;
+        public GameObject overloadStunEffectPrefab;
+        public float overloadStunEffectDuration;
+        public Vector3 overloadStunEffectOffset;
+        public bool useBossOverloadStunEffectOffset;
+        public Vector3 bossOverloadStunEffectOffset;
+        public Vector3 overloadStunEffectScale;
+        public bool useBossOverloadStunEffectScale;
+        public Vector3 bossOverloadStunEffectScale;
         public float stunDuration;
         public float stunDurationFalloffPerJump;
         public float minimumStunDuration;
@@ -71,5 +88,14 @@ namespace ProjectZDefense.StatusEffects
     {
         // 대상에게 Electro 상태 효과를 적용한다
         void ApplyElectroStatus(ElectroStatusPayload payload, int chainIndex, float sourceDamage);
+    }
+
+    /// <summary>
+    /// 비-Electro 피해를 받은 대상이 Electro Overload 발동 여부를 판단하도록 알리는 인터페이스다.
+    /// </summary>
+    public interface IElectroOverloadTriggerReceiver
+    {
+        // 비-Electro 피해가 적용되는 시점에 Overload 발동 여부를 판단한다
+        void NotifyNonElectroDamageReceived(float damage);
     }
 }

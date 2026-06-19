@@ -17,6 +17,7 @@ public sealed class ElectroStatusRuntime : MonoBehaviour
     private Transform visualRoot;
     private Transform cachedCameraTransform;
     private IElectroStunRuntimeOwner stunOwner;
+    private GameObject activeOverloadStunEffect;
     private float shockStackRemainingDuration;
     private float orbitAngle;
     private int shockStackCount;
@@ -24,6 +25,22 @@ public sealed class ElectroStatusRuntime : MonoBehaviour
 
     public bool IsActive => shockStackCount > 0;
     public int ShockStackCount => shockStackCount;
+
+    // 비-Electro 피해 시점에 3스택 과부하 발동 조건을 검사한다
+    public void NotifyNonElectroDamageReceived(float damage)
+    {
+        if (damageable == null || !damageable.IsAlive || shockStackCount < ResolveRequiredOverloadStackCount())
+        {
+            return;
+        }
+
+        if (!activePayload.canNonElectroDamageTriggerOverload)
+        {
+            return;
+        }
+
+        TriggerOverload();
+    }
 
     // Electro 런타임이 참조할 대상과 중심 위치 계산용 콜라이더를 초기화한다
     public void Initialize(IDamageable damageable_, bool isBoss_)
@@ -86,8 +103,158 @@ public sealed class ElectroStatusRuntime : MonoBehaviour
         shockStackRemainingDuration = 0.0f;
         orbitAngle = 0.0f;
         shockStackCount = 0;
+        CancelActiveOverloadStunEffect();
         ResetElectroStun();
         SetShockStackVisualCount(0);
+    }
+
+    // 과부하 폭발, 단일 대상 최대체력 비례 데미지, 긴 기절을 적용한다
+    private void TriggerOverload()
+    {
+        ElectroStatusPayload overloadPayload = activePayload;
+        Vector3 effectCenter = ResolveVisualCenterPosition();
+
+        PlayOverloadImpactEffect(overloadPayload, effectCenter);
+        ApplyOverloadLongStun(overloadPayload, effectCenter);
+        ClearShockStacksAfterOverload();
+        ApplyOverloadDamage(overloadPayload);
+    }
+
+    // 과부하 발동에 필요한 스택 수를 반환한다
+    private int ResolveRequiredOverloadStackCount()
+    {
+        int configuredMaxStackCount = activePayload.maxShockStackCount > 0 ? activePayload.maxShockStackCount : MAX_VISUAL_STACK_COUNT;
+        return Mathf.Min(MAX_VISUAL_STACK_COUNT, Mathf.Max(1, configuredMaxStackCount));
+    }
+
+    // 과부하 폭발 이펙트를 대상 중심 위치에 재생한다
+    private void PlayOverloadImpactEffect(ElectroStatusPayload payload, Vector3 effectCenter)
+    {
+        if (payload.overloadImpactEffectPrefab == null)
+        {
+            return;
+        }
+
+        Vector3 effectPosition = effectCenter + payload.overloadImpactEffectOffset;
+        GameObject effectObject = PooledObjectUtility.SpawnEffect(payload.overloadImpactEffectPrefab, effectPosition, Quaternion.identity, payload.overloadImpactEffectDuration);
+        if (effectObject == null)
+        {
+            return;
+        }
+
+        effectObject.transform.localScale = ResolveOverloadImpactEffectScale(payload);
+    }
+
+    // 과부하 긴 기절과 기절 유지 이펙트를 적용한다
+    private void ApplyOverloadLongStun(ElectroStatusPayload payload, Vector3 effectCenter)
+    {
+        float stunDuration = CalculateOverloadStunDuration(payload);
+        if (stunDuration > 0.0f && stunOwner != null)
+        {
+            stunOwner.ApplyElectroStun(stunDuration, false);
+        }
+
+        PlayOverloadStunEffect(payload, effectCenter, stunDuration);
+    }
+
+    // 과부하 기절 이펙트를 대상에 부착해 재생한다
+    private void PlayOverloadStunEffect(ElectroStatusPayload payload, Vector3 effectCenter, float stunDuration)
+    {
+        CancelActiveOverloadStunEffect();
+        if (payload.overloadStunEffectPrefab == null)
+        {
+            return;
+        }
+
+        float effectDuration = payload.overloadStunEffectDuration > 0.0f ? payload.overloadStunEffectDuration : stunDuration;
+        Vector3 effectPosition = effectCenter + ResolveOverloadStunEffectOffset(payload);
+        activeOverloadStunEffect = PooledObjectUtility.SpawnEffect(payload.overloadStunEffectPrefab, effectPosition, Quaternion.identity, effectDuration);
+        if (activeOverloadStunEffect == null)
+        {
+            return;
+        }
+
+        activeOverloadStunEffect.transform.localScale = ResolveOverloadStunEffectScale(payload);
+    }
+
+    // 과부하 단일 대상 데미지를 최대체력 비율로 적용한다
+    private void ApplyOverloadDamage(ElectroStatusPayload payload)
+    {
+        if (damageable == null || !damageable.IsAlive)
+        {
+            return;
+        }
+
+        float damageRatio = isBoss ? payload.bossOverloadMaxHpDamageRatio : payload.overloadMaxHpDamageRatio;
+        float overloadDamage = Mathf.Max(0.0f, damageable.TotalHp) * Mathf.Clamp01(damageRatio) * Mathf.Max(0.0f, payload.overloadDamageMultiplier);
+        if (overloadDamage <= 0.0f)
+        {
+            return;
+        }
+
+        damageable.TakeDamage(overloadDamage);
+    }
+
+    // 과부하 긴 기절 시간을 보스 배율까지 반영해 계산한다
+    private float CalculateOverloadStunDuration(ElectroStatusPayload payload)
+    {
+        float stunDuration = Mathf.Max(0.0f, payload.overloadStunDuration);
+        return isBoss ? stunDuration * Mathf.Clamp01(payload.bossStunDurationMultiplier) : stunDuration;
+    }
+
+    // 과부하 발동 후 Shock 스택과 스택 비주얼만 소모한다
+    private void ClearShockStacksAfterOverload()
+    {
+        activePayload = default;
+        shockStackRemainingDuration = 0.0f;
+        orbitAngle = 0.0f;
+        shockStackCount = 0;
+        SetShockStackVisualCount(0);
+    }
+
+    // 대상 종류에 맞는 과부하 폭발 이펙트 스케일을 반환한다
+    private Vector3 ResolveOverloadImpactEffectScale(ElectroStatusPayload payload)
+    {
+        if (isBoss && payload.useBossOverloadImpactEffectScale)
+        {
+            return payload.bossOverloadImpactEffectScale;
+        }
+
+        return payload.overloadImpactEffectScale;
+    }
+
+    // 대상 종류에 맞는 과부하 기절 이펙트 위치 보정값을 반환한다
+    private Vector3 ResolveOverloadStunEffectOffset(ElectroStatusPayload payload)
+    {
+        if (isBoss && payload.useBossOverloadStunEffectOffset)
+        {
+            return payload.bossOverloadStunEffectOffset;
+        }
+
+        return payload.overloadStunEffectOffset;
+    }
+
+    // 대상 종류에 맞는 과부하 기절 이펙트 스케일을 반환한다
+    private Vector3 ResolveOverloadStunEffectScale(ElectroStatusPayload payload)
+    {
+        if (isBoss && payload.useBossOverloadStunEffectScale)
+        {
+            return payload.bossOverloadStunEffectScale;
+        }
+
+        return payload.overloadStunEffectScale;
+    }
+
+    // 활성 과부하 기절 이펙트를 즉시 반환하거나 제거한다
+    private void CancelActiveOverloadStunEffect()
+    {
+        if (activeOverloadStunEffect == null)
+        {
+            return;
+        }
+
+        PooledObjectUtility.ReturnOrDestroy(activeOverloadStunEffect);
+        activeOverloadStunEffect = null;
     }
 
     // Electro 적중 시 짧은 경직 시간을 대상 소유자에게 전달한다
@@ -104,7 +271,7 @@ public sealed class ElectroStatusRuntime : MonoBehaviour
             return;
         }
 
-        stunOwner.ApplyElectroStun(stunDuration);
+        stunOwner.ApplyElectroStun(stunDuration, true);
     }
 
     // 체인 순번과 보스 정책을 반영한 Electro 경직 시간을 계산한다
@@ -450,8 +617,8 @@ public sealed class ElectroStatusRuntime : MonoBehaviour
 /// </summary>
 public interface IElectroStunRuntimeOwner
 {
-    // Electro 적중으로 발생한 짧은 경직 시간을 실제 대상 상태에 반영한다
-    void ApplyElectroStun(float duration);
+    // Electro 경직 시간을 실제 대상 상태에 반영하고 필요 시 짧은 경직 비주얼을 켠다
+    void ApplyElectroStun(float duration, bool playHitStunVisual);
 
     // 풀 재사용이나 사망 시 Electro 경직 상태를 초기화한다
     void ResetElectroStun();

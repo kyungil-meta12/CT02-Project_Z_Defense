@@ -252,7 +252,8 @@ Electro status handling:
 - `ElectroStatusProfileSO` controls normal Shock stack orbit radius, optional boss-only orbit radius, vertical offset, rotation speed, normal/boss visual scale, and camera-facing back-side alpha fade. Hard back-side hiding still exists as a fallback, but the default depth cue is smooth alpha fading instead of instant activation toggling.
 - Shock stack VFX can use charged visual mode. In the default Electro profile, 1-2 stacks keep a calmer Volt Sphere by disabling selected sparkle children, and 3 stacks re-enable all children to show the fully charged state.
 - Electro hits also apply a short stun through `IElectroStunRuntimeOwner`. The active profile currently uses `stunDuration = 0.2`, excludes bosses from short hit stun with `bossHitStunDurationMultiplier = 0`, and keeps `bossStunDurationMultiplier` available for later Overload long-stun tuning. `StatusEffectVisualController` exposes an `ElectroStun` visual slot for short stun VFX such as `FX_Electricity_02 1`.
-- Electro attacks currently do not consume three Shock stacks. Overload consumption, burst damage, and long stun are reserved for the next implementation step and should be triggered only by non-Electro damage.
+- Electro attacks do not consume three Shock stacks. When a target has full Shock stacks, non-Electro projectile or beam damage can trigger Overload through `IElectroOverloadTriggerReceiver`.
+- Overload currently consumes Shock stacks, plays `overloadImpactEffectPrefab`, applies single-target max-HP ratio damage, and applies long stun using `overloadStunDuration`. Bosses use separate max-HP damage ratio and boss stun multiplier values.
 - `ElectroChainLinkEffectUtility` renders the chain visual between each chained target pair using the VFX settings stored in `ElectroStatusProfileSO`.
 - Electro chain visuals are hybrid by design. `PS_Electro_ChainLink` provides the wide stylized particle lightning, while `ElectroChainCoreLineEffect` provides a thin exact `LineRenderer` connection so the start and end points read clearly.
 - Current chain-link particle VFX uses project-owned `PS_Electro_ChainLink`, a duplicate of `PS_LightiningStrike 1` with floor/impact children disabled and lightning/spark children kept active. Current kept children are `Holder`, `Lightning_Arc`, `Lightning`, `Lightning_Big`, `Sparks`, and `Flare`.
@@ -265,7 +266,7 @@ Electro status handling:
 - Core line timing is controlled separately through `chainCoreLineStartDelay` and `chainCoreLineDuration`. Use this to align the exact line with the delayed lightning particle flash without keeping a straight line visible longer than intended.
 - `chainCoreLineDuration <= 0` means the core line remains visible from `chainCoreLineStartDelay` until the chain-link effect returns to the pool.
 - Chain-link VFX reads live values from `ElectroStatusProfileSO` through the payload's source profile reference, so play-mode Inspector edits to those VFX fields affect newly spawned chain links without reapplying the turret definition.
-- Enemy-side Shock stack runtime behavior is implemented through `ElectroStatusRuntime`. Overload consumption, burst damage, and long stun runtime behavior are not implemented yet.
+- Enemy-side Shock stack runtime behavior is implemented through `ElectroStatusRuntime`, including Shock stack visuals, short Electro hit stun, and non-Electro Overload consumption.
 
 Electro runtime pipeline:
 

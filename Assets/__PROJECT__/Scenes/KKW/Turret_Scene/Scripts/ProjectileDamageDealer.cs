@@ -90,6 +90,7 @@ public class ProjectileDamageDealer : MonoBehaviour
             return false;
         }
 
+        NotifyNonElectroDamageReceived(damageable, damage);
         damageable.TakeDamage(damage);
         hitDamageables.Add(damageable);
         ApplyPoisonStatus(damageable);
@@ -119,6 +120,23 @@ public class ProjectileDamageDealer : MonoBehaviour
         }
 
         poisonReceiver.ApplyPoisonStatus(poisonStatusPayload);
+    }
+
+    // Electro가 아닌 투사체 피해가 적용되기 전 대상에게 Overload 발동 검사를 요청한다
+    private void NotifyNonElectroDamageReceived(IDamageable damageable, float appliedDamage)
+    {
+        if (electroStatusPayload.hasElectroStatus || damageable == null || !damageable.IsAlive)
+        {
+            return;
+        }
+
+        IElectroOverloadTriggerReceiver overloadReceiver = damageable as IElectroOverloadTriggerReceiver;
+        if (overloadReceiver == null)
+        {
+            return;
+        }
+
+        overloadReceiver.NotifyNonElectroDamageReceived(appliedDamage);
     }
 
     // 데미지가 적용된 대상에게 Electro 상태 효과를 전달한다

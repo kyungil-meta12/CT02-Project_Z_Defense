@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Electro Status Profile SO
   m_EditorClassIdentifier: Assembly-CSharp::ElectroStatusProfileSO
   maxChainTargets: 10
-  chainRadius: 10
+  chainRadius: 20
   chainDamageFalloffPerJump: 0.05
   chainTargetLayerMask:
     serializedVersion: 2
@@ -30,13 +30,20 @@ MonoBehaviour:
   bossStunDurationMultiplier: 0
   playChainLinkEffect: 1
   chainLinkEffectPrefab: {fileID: 3485206932582624865, guid: 3a9c3931b20d4d9cb6934b337c65174e, type: 3}
-  chainLinkEffectDuration: 1.5
-  chainLinkVerticalOffset: 0.8
+  chainLinkEffectDuration: 0.8
+  chainLinkVerticalOffset: 0.15
   chainLinkSourceAxis: {x: 0, y: 0, z: 1}
   useChainLinkEndpointFit: 1
   chainLinkLocalStartPoint: {x: 0, y: 0, z: 0}
   chainLinkLocalEndPoint: {x: 0, y: 0, z: 15}
   chainLinkLocalPositionOffset: {x: 0, y: 0, z: 0}
   chainLinkRotationEulerOffset: {x: 0, y: 0, z: 0}
-  chainLinkLengthScaleMultiplier: 0.55
-  chainLinkThicknessScale: 0.35
+  chainLinkLengthScaleMultiplier: 0.3
+  chainLinkThicknessScale: 0.3
+  playChainCoreLine: 1
+  chainCoreLineMaterial: {fileID: 2100000, guid: 5923168c41505a341b20182ce7444fa2, type: 2}
+  chainCoreLineStartColor: {r: 0.7, g: 1, b: 1, a: 0.95}
+  chainCoreLineEndColor: {r: 1, g: 0.7, b: 1, a: 0.85}
+  chainCoreLineWidth: 0.06
+  chainCoreLineStartDelay: 0.2
+  chainCoreLineDuration: 0.2

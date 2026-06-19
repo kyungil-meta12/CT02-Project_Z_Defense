@@ -78,11 +78,11 @@
  * 7. Third Generation Turrets
  * - Third generation setup is in progress.
  * - Frost_Turret runtime status structure is implemented and uses FrostStatusProfileSO through TurretDefinitionSO.
- * - Poison_Turret base projectile Definition/stat/growth/cost/VFX/scale assets exist, and Poison status runtime code is implemented through PoisonStatusProfileSO.
- * - Poison_Turret still needs editor wiring for the actual PoisonStatusProfileSO asset on Poison_Turret_Definition.
+ * - Poison_Turret projectile Definition/stat/growth/cost/VFX/scale assets exist, and Poison_Turret_Definition is wired to its active PoisonStatusProfileSO.
+ * - Electro_Turret projectile Definition/stat/VFX assets exist, and Electro_Turret_Definition is wired to its active ElectroStatusProfileSO.
+ * - Electro_Turret currently has chain damage and hybrid chain VFX implemented; enemy-side Shock stack, Overload, and stun runtime behavior is the next gameplay step.
  * - Current additional visual plan candidates:
  *   CuteStarTurret
- *   ElectroTurret
  *   FlameThrower/LameThrower name still needs confirmation.
  *
  * Runtime Level Model
@@ -128,6 +128,7 @@
  * public TurretProjectileScaleProgressionSO projectileScaleProgressionProfile;
  * public FrostStatusProfileSO frostStatusProfile;
  * public PoisonStatusProfileSO poisonStatusProfile;
+ * public ElectroStatusProfileSO electroStatusProfile;
  * public TurretEvolutionProgressionSO evolutionProgressionProfile;
  *
  * Recommended turretId format:
@@ -238,6 +239,17 @@
  * - Poison uses the normal projectile attack path, so direct hit damage stays in TurretStatProfileSO/TurretStatGrowthProfileSO and only the damage-over-time status behavior lives here.
  * - Current asset handoff: create the Poison status profile in Unity and assign it to Poison_Turret_Definition.poisonStatusProfile before play-mode testing.
  *
+ * 13. ElectroStatusProfileSO
+ * - Holds Electro-specific status and chain-lightning VFX values referenced from TurretDefinitionSO.
+ * - Current gameplay responsibilities: chain target count, chain search radius, per-jump damage falloff, Shock stack duration, Overload trigger policy, Overload burst values, and short stun timing.
+ * - Current visual responsibilities: particle chain-link prefab, effect lifetime, vertical endpoint offset, local endpoint fitting, rotation/position offsets, length/thickness scale, exact core line toggle, core line material/color/width, and core line timing.
+ * - Electro uses the normal projectile attack path for the direct hit. The chain behavior starts only after ProjectileDamageDealer successfully applies direct hit damage.
+ * - The active chain particle prefab is project-owned PS_Electro_ChainLink under Scenes/KKW/Turret_Scene/Prefabs/Status Effect/Electro_Turret.
+ * - PS_Electro_ChainLink is a project duplicate/adaptation of PS_LightiningStrike 1. Private Assets originals should not be edited directly for Electro runtime tuning.
+ * - The visual design is hybrid: PS_Electro_ChainLink provides the stylized lightning particles, while ElectroChainCoreLineEffect provides a thin exact LineRenderer connection between chained targets.
+ * - The particle prefab is not expected to perfectly connect two endpoints by itself because its imported particle meshes and delayed emitters are not authored as a deterministic two-point beam.
+ * - Keep exact endpoint readability in ElectroChainCoreLineEffect and keep particle richness in PS_Electro_ChainLink.
+ *
  * Evolution Runtime Flow
  *
  * 1. TurretDefinitionRuntimeController checks the current turret's evolutionProgressionProfile using current tier level.
@@ -264,13 +276,59 @@
  * 6. Beam VFX profiles can provide BeamAttackProfileSO for beam-specific hit rules.
  * 7. TurretDefinitionSO can provide FrostStatusProfileSO for Frost-specific slow, freeze, and explosion rules.
  * 8. TurretDefinitionSO can provide PoisonStatusProfileSO for Poison-specific max-HP tick damage rules.
- * 9. It selects projectile scale through TurretProjectileScaleProgressionSO.
- * 10. Turret stores the selected projectile prefab, projectile speed, damage, pierce count, scale, and optional Poison payload.
- * 11. Gun/RocketFire applies damage, speed, scale, pooling reset, collision ignore rules, and optional Poison payload to each spawned projectile.
- * 12. BeamFiringEvent applies beam damage ticks and forwards Frost status payloads when configured.
- * 13. ProjectileDamageDealer refreshes damage, pierce count, logging state, hit detector state, and optional Poison payload on spawn.
- * 14. ProjectileHitDetector applies damage to tracked targets, trigger/collision hits, or movement raycast hits.
- * 15. DamagePopupSpawner displays damage values when IDamageable implementations report damage.
+ * 9. TurretDefinitionSO can provide ElectroStatusProfileSO for Electro chain lightning, Shock, Overload, stun, and chain VFX rules.
+ * 10. It selects projectile scale through TurretProjectileScaleProgressionSO.
+ * 11. Turret stores the selected projectile prefab, projectile speed, damage, pierce count, scale, and optional Poison/Electro payloads.
+ * 12. Gun/RocketFire applies damage, speed, scale, pooling reset, collision ignore rules, and optional Poison/Electro payloads to each spawned projectile.
+ * 13. BeamFiringEvent applies beam damage ticks and forwards Frost status payloads when configured.
+ * 14. ProjectileDamageDealer refreshes damage, pierce count, logging state, hit detector state, and optional Poison/Electro payloads on spawn.
+ * 15. ProjectileHitDetector applies damage to tracked targets, trigger/collision hits, or movement raycast hits.
+ * 16. DamagePopupSpawner displays damage values when IDamageable implementations report damage.
+ *
+ * Electro Chain Lightning Runtime Flow
+ *
+ * 1. Electro_Turret_Definition.electroStatusProfile points to the active ElectroStatusProfileSO.
+ * 2. TurretDefinitionRuntimeController creates an ElectroStatusPayload only when the selected attack VFX is projectile-based.
+ * 3. The Electro payload is carried through Turret, FiringEvent, Gun, and ProjectileDamageDealer with each projectile spawn.
+ * 4. ProjectileDamageDealer.TryApplyDamage applies direct projectile damage first.
+ * 5. If the damaged target implements IElectroStatusEffectReceiver and is still alive, ProjectileDamageDealer forwards Electro status with chain index 0.
+ * 6. ProjectileDamageDealer passes the direct hit collider and collider center into ElectroChainLightningUtility.
+ * 7. ElectroChainLightningUtility uses Physics.OverlapSphereNonAlloc from the current chain anchor to find the nearest living IDamageable not already hit by this chain.
+ * 8. Each bounced target takes reduced damage using 1 - chainDamageFalloffPerJump * chainIndex, clamped at 0.
+ * 9. Each bounced target that implements IElectroStatusEffectReceiver receives Electro status with its chain index.
+ * 10. Each visual link prefers Collider.bounds.center for both endpoints, then falls back to target Transform.position, then to the cached fallback position.
+ * 11. ElectroChainLinkEffectUtility spawns PS_Electro_ChainLink between the previous and next chain anchors.
+ * 12. ElectroChainLinkAnchorTracker keeps the spawned link following current collider centers while the effect is alive, so moving zombies do not leave delayed lightning at stale hit positions.
+ * 13. ElectroChainCoreLineEffect draws a two-point world-space LineRenderer over the particle effect during its configured timing window so endpoint readability stays exact.
+ *
+ * Electro Chain VFX Field Responsibilities
+ *
+ * - chainLinkEffectPrefab: project-owned particle link prefab, currently PS_Electro_ChainLink.
+ * - chainLinkEffectDuration: total pooled lifetime for a spawned link. Must exceed delayed particle child start delays.
+ * - chainLinkVerticalOffset: shared height offset applied after collider-center endpoint resolution.
+ * - chainLinkSourceAxis: prefab local axis treated as the length direction. Current default is local Z.
+ * - useChainLinkEndpointFit: maps chainLinkLocalStartPoint and chainLinkLocalEndPoint onto runtime endpoints.
+ * - chainLinkLocalStartPoint / chainLinkLocalEndPoint: local-space visual segment endpoints. Current default is (0,0,0) to (0,0,15).
+ * - chainLinkLocalPositionOffset / chainLinkRotationEulerOffset: small final visual offset controls.
+ * - chainLinkLengthScaleMultiplier: manual length multiplier fallback when endpoint fit is disabled or invalid.
+ * - chainLinkThicknessScale: non-length-axis scale for the particle link thickness.
+ * - playChainCoreLine: enables exact endpoint LineRenderer overlay.
+ * - chainCoreLineMaterial / chainCoreLineStartColor / chainCoreLineEndColor / chainCoreLineWidth: core line presentation.
+ * - chainCoreLineStartDelay / chainCoreLineDuration: core line timing. A duration of 0 means keep visible until the link effect returns.
+ *
+ * Current Electro Status Profile SO VFX test values:
+ * - chainLinkEffectDuration = 1.5
+ * - chainLinkVerticalOffset = 0.15
+ * - chainLinkSourceAxis = (0, 0, 1)
+ * - useChainLinkEndpointFit = true
+ * - chainLinkLocalStartPoint = (0, 0, 0)
+ * - chainLinkLocalEndPoint = (0, 0, 15)
+ * - chainLinkLengthScaleMultiplier = 0.55
+ * - chainLinkThicknessScale = 0.55
+ * - playChainCoreLine = true
+ * - chainCoreLineWidth = 0.06
+ * - chainCoreLineStartDelay = 0.2
+ * - chainCoreLineDuration = 0.2
  *
  * Second Generation VFX Mapping
  *
@@ -361,6 +419,7 @@
  * - Owns damage and pierce count for each projectile instance.
  * - Applies damage through hitCollider.GetComponentInParent<IDamageable>().
  * - For Poison projectile turrets, forwards the current PoisonStatusPayload to targets implementing IPoisonStatusEffectReceiver after direct hit damage succeeds.
+ * - For Electro projectile turrets, forwards the current ElectroStatusPayload to targets implementing IElectroStatusEffectReceiver after direct hit damage succeeds, then starts ElectroChainLightningUtility from the direct hit collider.
  * - Allows colliders under the tracked target IDamageable even if the specific child collider is not on the damage layer.
  * - Keeps a per-projectile hit list so one projectile does not hit the same damageable repeatedly.
  * - HovlProjectilePierceGuard prevents HOVL target-hit return from running before the ProjectileDamageDealer pierce limit is reached.

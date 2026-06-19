@@ -35,7 +35,7 @@ public class ElectroStatusProfileSO : ScriptableObject
     public bool playChainLinkEffect = true;
     public GameObject chainLinkEffectPrefab;
     [Min(0.01f)] public float chainLinkEffectDuration = 0.65f;
-    [Min(0.0f)] public float chainLinkVerticalOffset = 0.8f;
+    [Min(0.0f)] public float chainLinkVerticalOffset = 0.15f;
 
     [Header("체인 링크 위치 보정")]
     public Vector3 chainLinkSourceAxis = Vector3.forward;
@@ -47,7 +47,16 @@ public class ElectroStatusProfileSO : ScriptableObject
 
     [Header("체인 링크 스케일")]
     [Min(0.01f)] public float chainLinkLengthScaleMultiplier = 0.55f;
-    [Min(0.01f)] public float chainLinkThicknessScale = 0.35f;
+    [Min(0.01f)] public float chainLinkThicknessScale = 0.55f;
+
+    [Header("체인 코어 라인 VFX")]
+    public bool playChainCoreLine = true;
+    public Material chainCoreLineMaterial;
+    public Color chainCoreLineStartColor = new Color(0.7f, 1.0f, 1.0f, 0.95f);
+    public Color chainCoreLineEndColor = new Color(1.0f, 0.7f, 1.0f, 0.85f);
+    [Min(0.001f)] public float chainCoreLineWidth = 0.06f;
+    [Min(0.0f)] public float chainCoreLineStartDelay = 0.28f;
+    [Min(0.0f)] public float chainCoreLineDuration = 0.25f;
 
     public bool HasElectroStatus
     {
@@ -92,7 +101,14 @@ public class ElectroStatusProfileSO : ScriptableObject
             chainLinkLocalPositionOffset = chainLinkLocalPositionOffset,
             chainLinkRotationEulerOffset = chainLinkRotationEulerOffset,
             chainLinkLengthScaleMultiplier = Mathf.Max(0.01f, chainLinkLengthScaleMultiplier),
-            chainLinkThicknessScale = Mathf.Max(0.01f, chainLinkThicknessScale)
+            chainLinkThicknessScale = Mathf.Max(0.01f, chainLinkThicknessScale),
+            playChainCoreLine = playChainCoreLine,
+            chainCoreLineMaterial = chainCoreLineMaterial,
+            chainCoreLineStartColor = chainCoreLineStartColor,
+            chainCoreLineEndColor = chainCoreLineEndColor,
+            chainCoreLineWidth = Mathf.Max(0.001f, chainCoreLineWidth),
+            chainCoreLineStartDelay = Mathf.Max(0.0f, chainCoreLineStartDelay),
+            chainCoreLineDuration = Mathf.Max(0.0f, chainCoreLineDuration)
         };
 
         return payload;
@@ -135,6 +151,9 @@ public class ElectroStatusProfileSO : ScriptableObject
         chainLinkSourceAxis = NormalizeSafeAxis(chainLinkSourceAxis);
         chainLinkLengthScaleMultiplier = Mathf.Max(0.01f, chainLinkLengthScaleMultiplier);
         chainLinkThicknessScale = Mathf.Max(0.01f, chainLinkThicknessScale);
+        chainCoreLineWidth = Mathf.Max(0.001f, chainCoreLineWidth);
+        chainCoreLineStartDelay = Mathf.Max(0.0f, chainCoreLineStartDelay);
+        chainCoreLineDuration = Mathf.Max(0.0f, chainCoreLineDuration);
     }
 
     // 체인 링크 프리팹의 기준 축을 안전한 단위 벡터로 반환한다

@@ -94,7 +94,7 @@ public class ProjectileDamageDealer : MonoBehaviour
         hitDamageables.Add(damageable);
         ApplyPoisonStatus(damageable);
         ApplyElectroStatus(hitCollider, damageable, 0);
-        ElectroChainLightningUtility.ApplyChain(electroStatusPayload, damageable, ResolveChainStartPosition(hitCollider, damageable), damage);
+        ElectroChainLightningUtility.ApplyChain(electroStatusPayload, damageable, hitCollider, ResolveChainStartPosition(hitCollider, damageable), damage);
 
         if (logDamage)
         {

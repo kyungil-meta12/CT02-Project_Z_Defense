@@ -62,7 +62,7 @@ Do not use display names as stable IDs.
 | `BeamAttackProfileSO` | Beam-specific attack rules: damage tick interval, damage multiplier, DPS interpretation, target mode, pierce radius, max targets, and damage layer mask. |
 | `FrostStatusProfileSO` | Frost-specific status rules: slow buildup, max slow, freeze timing, freeze explosion, max-HP damage, secondary explosion slow, related VFX references, and optional primary-target max-HP damage growth. |
 | `PoisonStatusProfileSO` | Poison-specific status rules: max-HP tick damage ratio, tick interval, duration, stack limit, stack refresh mode, boss damage multiplier, and optional death burst profile reference. |
-| `ElectroStatusProfileSO` | Electro-specific status rules: chain lightning count/radius/falloff, Shock stack duration, Overload trigger policy, Overload burst, and short stun timing. |
+| `ElectroStatusProfileSO` | Electro-specific status rules and chain VFX controls: chain lightning count/radius/falloff, Shock stack duration, Overload trigger policy, Overload burst, short stun timing, chain-link particle VFX, and optional core line VFX. |
 | `PoisonDeathBurstProfileSO` | Poison lethal-death burst rules: burst VFX, radius, weak Poison values, target layer mask, and boss damage multiplier for secondary weak Poison. |
 | `PoisonTurretStatGrowthProfileSO` | Poison_Turret-only stat growth profile. Inherits common turret stat growth and adds Poison status/death-burst growth fields without exposing them on non-Poison turrets. |
 | `TurretVFXProgressionSO` | Selects active VFX profile by current tier level. |
@@ -251,12 +251,19 @@ Electro status handling:
 - `ProjectileDamageDealer.TryApplyDamage` applies direct projectile damage first, then forwards Electro status to targets implementing `ProjectZDefense.StatusEffects.IElectroStatusEffectReceiver`.
 - `ElectroChainLightningUtility` starts from the directly hit target, finds the nearest living `IDamageable` inside `chainRadius` with `Physics.OverlapSphereNonAlloc`, deduplicates targets, and applies reduced chain damage per jump.
 - Chain damage uses the same `IDamageable.TakeDamage` path as direct projectile damage, so HP, damage popups, rewards, and death flow stay consistent.
-- `ElectroChainLinkEffectUtility` renders a short chain-link particle effect between each chained target pair using the VFX settings stored in `ElectroStatusProfileSO`.
-- Current chain-link VFX uses project-owned `PS_Electro_ChainLink`, a duplicate of `PS_LightiningStrike 1` with floor/impact children disabled and `Lightning`, `Lightning_Arc`, `Sparks`, and `Flare` kept active.
-- Tune `chainLinkEffectDuration`, `chainLinkVerticalOffset`, `chainLinkSourceAxis`, `chainLinkLocalPositionOffset`, `chainLinkRotationEulerOffset`, `chainLinkLengthScaleMultiplier`, and `chainLinkThicknessScale` first when the chain effect is too short, too high/low, rotated incorrectly, offset from targets, too stretched, or too thick.
+- `ElectroChainLinkEffectUtility` renders the chain visual between each chained target pair using the VFX settings stored in `ElectroStatusProfileSO`.
+- Electro chain visuals are hybrid by design. `PS_Electro_ChainLink` provides the wide stylized particle lightning, while `ElectroChainCoreLineEffect` provides a thin exact `LineRenderer` connection so the start and end points read clearly.
+- Current chain-link particle VFX uses project-owned `PS_Electro_ChainLink`, a duplicate of `PS_LightiningStrike 1` with floor/impact children disabled and lightning/spark children kept active. Current kept children are `Holder`, `Lightning_Arc`, `Lightning`, `Lightning_Big`, `Sparks`, and `Flare`.
+- The particle link is still approximate because the imported lightning particle meshes do not map perfectly to two exact endpoint anchors. Do not try to make the particle prefab alone solve exact endpoint readability; the core line owns exact connection readability.
+- Tune `chainLinkEffectDuration`, `chainLinkVerticalOffset`, `chainLinkSourceAxis`, `chainLinkLocalPositionOffset`, `chainLinkRotationEulerOffset`, `chainLinkLengthScaleMultiplier`, and `chainLinkThicknessScale` first when the particle link is too short, too high/low, rotated incorrectly, offset from targets, too stretched, or too thick.
 - When `useChainLinkEndpointFit` is enabled, `chainLinkLocalStartPoint` and `chainLinkLocalEndPoint` define the local-space visual segment that should be mapped to the previous and next chained target positions. The current `PS_Electro_ChainLink` default is `(0,0,0)` to `(0,0,15)` because the main lightning children extend along local Z.
+- `ProjectileDamageDealer` passes the first hit collider into `ElectroChainLightningUtility`. Later chain jumps use the collider returned by the non-alloc overlap search. VFX anchors prefer `Collider.bounds.center`, then fall back to target `Transform.position`, then to the cached fallback position.
+- `ElectroChainLinkAnchorTracker` keeps a spawned chain-link effect following the latest collider centers while the effect is alive. This compensates for the imported particle prefab's delayed start timing and moving zombies.
+- `ElectroChainCoreLineEffect` is attached at runtime to the spawned chain-link effect object. It creates or reuses a two-point world-space `LineRenderer`, uses the same vertical offset as the particle link, and updates the line endpoints from `ElectroChainLinkAnchorTracker`.
+- Core line timing is controlled separately through `chainCoreLineStartDelay` and `chainCoreLineDuration`. Use this to align the exact line with the delayed lightning particle flash without keeping a straight line visible longer than intended.
+- `chainCoreLineDuration <= 0` means the core line remains visible from `chainCoreLineStartDelay` until the chain-link effect returns to the pool.
 - Chain-link VFX reads live values from `ElectroStatusProfileSO` through the payload's source profile reference, so play-mode Inspector edits to those VFX fields affect newly spawned chain links without reapplying the turret definition.
-- Shock stack, Overload, and stun receiver behavior should be implemented in enemy-side runtime receivers after the chain damage skeleton is verified in play mode.
+- Enemy-side Shock stack, Overload, and stun runtime behavior is not implemented yet. `ElectroStatusPayload` already carries the required data; the next gameplay step is adding receiver-side mutable state to normal and boss zombies.
 
 Electro runtime pipeline:
 
@@ -265,11 +272,60 @@ Electro runtime pipeline:
 3. The payload is stored on the runtime `Turret` and passed through `FiringEvent`, `Gun`, and `ProjectileDamageDealer` each projectile spawn.
 4. `ProjectileDamageDealer.TryApplyDamage` applies direct projectile damage first through `IDamageable.TakeDamage`.
 5. If the damaged target still lives and implements `ProjectZDefense.StatusEffects.IElectroStatusEffectReceiver`, `ProjectileDamageDealer` calls `ApplyElectroStatus` with chain index `0`.
-6. `ElectroChainLightningUtility` searches from the direct hit position and applies chain damage to up to `maxChainTargets - 1` additional targets.
+6. `ElectroChainLightningUtility` searches from the direct hit collider center and applies chain damage to up to `maxChainTargets - 1` additional targets.
 7. Each bounced target receives damage scaled by `1 - chainDamageFalloffPerJump * chainIndex`, clamped at `0`.
 8. Each bounced target that implements `ProjectZDefense.StatusEffects.IElectroStatusEffectReceiver` also receives `ApplyElectroStatus` with its chain index.
-9. A short chain-link particle effect is spawned from the previous target position to the bounced target position.
-10. Hit or overload particle bursts remain separate from the line VFX and can be layered later.
+9. A short chain-link particle effect is spawned between the previous target collider center and the bounced target collider center.
+10. `ElectroChainLinkAnchorTracker` updates the spawned link every `LateUpdate` while alive so moving zombies do not leave the visual stuck at the original hit position.
+11. `ElectroChainCoreLineEffect` overlays a thin exact line between the same endpoints during its configured timing window.
+12. Hit or overload particle bursts remain separate from the chain-link/core-line VFX and can be layered later.
+
+Electro chain VFX field guide:
+
+| Field | Runtime effect |
+| --- | --- |
+| `playChainLinkEffect` | Enables the particle chain-link effect. |
+| `chainLinkEffectPrefab` | Project-owned chain particle prefab, currently `PS_Electro_ChainLink`. |
+| `chainLinkEffectDuration` | Total lifetime before `PooledEffectReturner` returns the spawned link effect. Must be long enough for delayed particle children such as `Lightning` and `Lightning_Arc` to start. |
+| `chainLinkVerticalOffset` | Shared height offset added to particle and core-line endpoints after resolving collider centers. Lower this when using collider-center anchors instead of root pivots. |
+| `chainLinkSourceAxis` | Local axis treated as the prefab's length direction. Current default is local Z. |
+| `useChainLinkEndpointFit` | Maps `chainLinkLocalStartPoint` and `chainLinkLocalEndPoint` onto the runtime endpoints. Keep enabled for `PS_Electro_ChainLink`. |
+| `chainLinkLocalStartPoint` | Local point that should align to the previous chained target. |
+| `chainLinkLocalEndPoint` | Local point that should align to the next chained target. |
+| `chainLinkLocalPositionOffset` | Extra local position offset after endpoint fitting. Use only for small visual centering fixes. |
+| `chainLinkRotationEulerOffset` | Extra rotation offset after aligning `chainLinkSourceAxis` to the chain direction. |
+| `chainLinkLengthScaleMultiplier` | Manual length multiplier used when endpoint fit is disabled or local endpoint distance is invalid. |
+| `chainLinkThicknessScale` | Width/thickness scale for non-length axes. |
+| `playChainCoreLine` | Enables the exact two-point core `LineRenderer`. |
+| `chainCoreLineMaterial` | Material used by the core line. Current asset uses the same lightning material as the particle chain. |
+| `chainCoreLineStartColor` | Start color for the core line. |
+| `chainCoreLineEndColor` | End color for the core line. |
+| `chainCoreLineWidth` | Core line width. Keep thin enough to act as an exact connection guide rather than replacing the particle VFX. |
+| `chainCoreLineStartDelay` | Delay before the core line appears. Tune to match the imported particle's delayed lightning flash. |
+| `chainCoreLineDuration` | How long the core line remains visible after start delay. `0` keeps it visible until the link effect returns. |
+
+Current `Electro Status Profile SO` VFX test values:
+
+- `chainLinkEffectDuration = 1.5`
+- `chainLinkVerticalOffset = 0.15`
+- `chainLinkSourceAxis = (0, 0, 1)`
+- `useChainLinkEndpointFit = true`
+- `chainLinkLocalStartPoint = (0, 0, 0)`
+- `chainLinkLocalEndPoint = (0, 0, 15)`
+- `chainLinkLengthScaleMultiplier = 0.55`
+- `chainLinkThicknessScale = 0.55`
+- `playChainCoreLine = true`
+- `chainCoreLineWidth = 0.06`
+- `chainCoreLineStartDelay = 0.2`
+- `chainCoreLineDuration = 0.2`
+
+Electro VFX optimization notes:
+
+- Chain target search uses `Physics.OverlapSphereNonAlloc` and static reusable buffers. Do not replace it with allocating overlap calls.
+- Each chain jump can spawn one particle link and one two-point core line. With `maxChainTargets = 10`, a single hit can create up to `9` link visuals.
+- `ElectroChainLinkAnchorTracker` runs only while the spawned link effect is alive. Keep `chainLinkEffectDuration` reasonable if many Electro turrets can fire at once.
+- `LineRenderer` work is intentionally limited to two world-space points. Avoid adding per-frame generated multi-point noise unless profiling confirms headroom.
+- If many Electro turrets become common, reduce cost in this order: lower `chainLinkEffectDuration`, lower `maxChainTargets`, lower `chainCoreLineDuration`, disable `Lightning_Big`, then consider skipping VFX on some later chain jumps.
 
 Poison growth fields on `PoisonTurretStatGrowthProfileSO`:
 
@@ -453,13 +509,11 @@ Poison troubleshooting notes:
 - If bursts do not chain, check `PoisonDeathBurstProfileSO.allowChainDeathBurst`, weak Poison damage values, and whether the dying target is a normal zombie rather than a boss.
 - If bursts hit nothing, check `PoisonDeathBurstProfileSO.targetLayerMask` against the zombie damage layers.
 
-Poison next-session handoff:
+Poison current setup checklist:
 
-- C# runtime structure is implemented, but the Poison status SO asset has not been created yet.
-- Start the next session by creating a Poison status profile asset through `Create > Project Z Defense > Poison Status Profile`.
-- Assign that asset to `Poison_Turret_Definition.poisonStatusProfile`.
-- Run `Project Z Defense/Validation/Validate Turret Economy`; the validator should report no missing `poisonStatusProfile` for `poison_turret` after wiring.
-- Confirm `Poison_Turret.prefab` loads normally in Unity. It was seen as a prefab variant of `SM_Quad_Barrel_Gun`; if the source prefab reference is missing in editor, fix the prefab reference before gameplay testing.
+- `Poison_Turret_Definition.poisonStatusProfile` is connected to the active Poison status profile asset.
+- Run `Project Z Defense/Validation/Validate Turret Economy`; the validator should report no missing `poisonStatusProfile` for `poison_turret`.
+- Confirm `Poison_Turret.prefab` loads normally in Unity and keeps valid prefab/source references.
 - Confirm the Poison turret uses a projectile VFX profile, not a beam profile.
 - Play-mode test direct hit damage first, then verify Poison ticks start after `tickInterval`.
 - Verify stack behavior with repeated hits: `RefreshDurationOnly` should not increase stacks, while `AddStackAndRefreshDuration` should increase up to `maxStackCount`.

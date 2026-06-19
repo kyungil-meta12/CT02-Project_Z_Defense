@@ -88,6 +88,15 @@ public class GameManager : MonoBehaviour
         EnsureDefaultDefenseLineEntries();
     }
 
+    void Start()
+    {
+        // 수직동기화 해제
+        QualitySettings.vSyncCount = 0;
+
+        // 기기의 현재 화면 주사율을 받아와 타겟 프레임으로 설정
+        Application.targetFrameRate = (int)Screen.currentResolution.refreshRateRatio.value;
+    }
+
     // 싱글톤 인스턴스가 제거될 때 정적 참조를 정리한다
     private void OnDestroy()
     {

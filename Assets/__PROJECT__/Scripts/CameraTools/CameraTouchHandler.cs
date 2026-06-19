@@ -9,12 +9,21 @@ public class CameraTouchHandler : MonoBehaviour, IPointerDownHandler, IPointerUp
     [Header("화면 터치 시 레이캐스팅 할 대상 레이어 목록")] 
     public LayerMask[] raycastTargetLayers;
 
+    [Header("더블탭 간격")] public float doubleTapInterval;
+
     // 터치 이벤트 감지 시 발생시키는 이벤트
     // 대상을 터치했을 때
     public Action<RaycastHit> OnCameraTargetTouchEvent;
 
     // 대상이 아닌 것을 선택했을 때
     public Action OnCameraOtherTouchEvent;
+
+    /// <summary>
+    /// 더블탭 이벤트
+    /// </summary>
+    public Action OnDoubleTapEvent;
+    private float tapTime = 0f;
+    private int tapCount = 0;
 
     // 현재 드래그 상태. true일 시 터치 이벤트가 발생하지 않는다.
     private bool isDragging = false;
@@ -56,10 +65,15 @@ public class CameraTouchHandler : MonoBehaviour, IPointerDownHandler, IPointerUp
         Inst = null;
     }
 
+    void Update()
+    {
+        UpdateDoubleTap();
+    }
+
     // 터치 시작
     public void OnPointerDown(PointerEventData eventData)
     {
-        isDragging = false; 
+        isDragging = false;
     }
 
     // 드래그 시작
@@ -87,6 +101,28 @@ public class CameraTouchHandler : MonoBehaviour, IPointerDownHandler, IPointerUp
         else
         {
             OnCameraOtherTouchEvent?.Invoke();
+            tapTime = doubleTapInterval;
+            tapCount++;
+        }
+    }
+
+    // 더블탭 시 더블탭 이벤트 발생과 카메라 리셋
+    void UpdateDoubleTap()
+    {
+        tapTime -= Time.deltaTime;
+        tapTime = Mathf.Clamp(tapTime, 0f, doubleTapInterval);
+        if (tapTime > 0f)
+        {
+            if (tapCount == 2)
+            {
+                OnDoubleTapEvent?.Invoke();
+                CameraController.Inst.Reset();
+                tapCount = 0;
+            }
+        }
+        else
+        {
+            tapCount = 0;
         }
     }
 }

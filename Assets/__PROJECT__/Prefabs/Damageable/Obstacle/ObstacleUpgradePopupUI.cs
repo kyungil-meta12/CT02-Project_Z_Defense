@@ -70,8 +70,12 @@ public class ObstacleUpgradePopupUI : MonoBehaviour
 
     void OnDestroy()
     {
-        CameraTouchHandler.Inst.OnCameraTargetTouchEvent -= OnTargetTouchEvent;
-        CameraTouchHandler.Inst.OnCameraOtherTouchEvent -= OnOtherTouchEvent;
+        if(CameraTouchHandler.Inst)
+        {
+            CameraTouchHandler.Inst.OnCameraTargetTouchEvent -= OnTargetTouchEvent;
+            CameraTouchHandler.Inst.OnCameraOtherTouchEvent -= OnOtherTouchEvent;
+        }
+        
     }
 
     // 다른 곳을 터치하면 팝업을 숨긴다.

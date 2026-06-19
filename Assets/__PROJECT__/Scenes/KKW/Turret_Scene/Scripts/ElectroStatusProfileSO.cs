@@ -49,27 +49,36 @@ public class ElectroStatusProfileSO : ScriptableObject
     public bool canNonElectroDamageTriggerOverload = true;
 
     [Header("과부하")]
-    [Min(0.0f)] public float overloadRadius = 2.0f;
     [Min(0.0f)] public float overloadDamageMultiplier = 1.0f;
     [Range(0.0f, 1.0f)] public float overloadMaxHpDamageRatio = 0.2f;
     [Range(0.0f, 1.0f)] public float bossOverloadMaxHpDamageRatio = 0.05f;
     [Min(0.0f)] public float overloadStunDuration = 5.0f;
 
-    [Header("과부하 폭발 VFX")]
+    [Header("과부하 폭발 VFX - 공통")]
     public GameObject overloadImpactEffectPrefab;
     [Min(0.0f)] public float overloadImpactEffectDuration = 1.0f;
+
+    [Header("과부하 폭발 VFX - 일반 좀비")]
     public Vector3 overloadImpactEffectOffset = Vector3.zero;
     public Vector3 overloadImpactEffectScale = Vector3.one;
+
+    [Header("과부하 폭발 VFX - 보스 좀비")]
+    public bool useBossOverloadImpactEffectOffset = true;
+    public Vector3 bossOverloadImpactEffectOffset = Vector3.zero;
     public bool useBossOverloadImpactEffectScale = true;
     public Vector3 bossOverloadImpactEffectScale = Vector3.one;
 
-    [Header("과부하 기절 VFX")]
+    [Header("과부하 기절 VFX - 공통")]
     public GameObject overloadStunEffectPrefab;
     [Min(0.0f)] public float overloadStunEffectDuration = 5.0f;
+
+    [Header("과부하 기절 VFX - 일반 좀비")]
     public Vector3 overloadStunEffectOffset = Vector3.zero;
+    public Vector3 overloadStunEffectScale = Vector3.one;
+
+    [Header("과부하 기절 VFX - 보스 좀비")]
     public bool useBossOverloadStunEffectOffset = true;
     public Vector3 bossOverloadStunEffectOffset = Vector3.zero;
-    public Vector3 overloadStunEffectScale = Vector3.one;
     public bool useBossOverloadStunEffectScale = true;
     public Vector3 bossOverloadStunEffectScale = Vector3.one;
 
@@ -113,7 +122,7 @@ public class ElectroStatusProfileSO : ScriptableObject
         {
             return maxChainTargets > 0 && chainRadius > 0.0f
                 || maxShockStackCount > 0 && shockStackDuration > 0.0f
-                || overloadRadius > 0.0f && overloadDamageMultiplier > 0.0f
+                || overloadDamageMultiplier > 0.0f && (overloadMaxHpDamageRatio > 0.0f || bossOverloadMaxHpDamageRatio > 0.0f)
                 || stunDuration > 0.0f;
         }
     }
@@ -121,15 +130,21 @@ public class ElectroStatusProfileSO : ScriptableObject
     // 현재 프로필 값을 Electro 상태 전달 값으로 변환한다
     public ElectroStatusPayload CreatePayload()
     {
+        return CreatePayload(1, null);
+    }
+
+    // 현재 터렛 레벨과 성장 프로필 기준으로 Electro 상태 전달 값을 계산한다
+    public ElectroStatusPayload CreatePayload(int level, TurretStatGrowthProfileSO growthProfile)
+    {
         ElectroStatusPayload payload = new ElectroStatusPayload
         {
             hasElectroStatus = HasElectroStatus,
-            maxChainTargets = Mathf.Max(1, maxChainTargets),
+            maxChainTargets = CalculateMaxChainTargets(level, growthProfile),
             chainRadius = Mathf.Max(0.0f, chainRadius),
             chainDamageFalloffPerJump = Mathf.Clamp01(chainDamageFalloffPerJump),
             chainTargetLayerMask = chainTargetLayerMask,
             maxShockStackCount = Mathf.Max(1, maxShockStackCount),
-            shockStackDuration = Mathf.Max(0.0f, shockStackDuration),
+            shockStackDuration = CalculateShockStackDuration(level, growthProfile),
             shockStackVisualPrefab = shockStackVisualPrefab,
             shockStackOrbitRadius = Mathf.Max(0.0f, shockStackOrbitRadius),
             shockStackVerticalOffset = Mathf.Max(0.0f, shockStackVerticalOffset),
@@ -151,23 +166,24 @@ public class ElectroStatusProfileSO : ScriptableObject
             subtleShockStackDisabledChildNames = subtleShockStackDisabledChildNames,
             canElectroHitTriggerOverload = canElectroHitTriggerOverload,
             canNonElectroDamageTriggerOverload = canNonElectroDamageTriggerOverload,
-            overloadRadius = Mathf.Max(0.0f, overloadRadius),
             overloadDamageMultiplier = Mathf.Max(0.0f, overloadDamageMultiplier),
-            overloadMaxHpDamageRatio = Mathf.Clamp01(overloadMaxHpDamageRatio),
-            bossOverloadMaxHpDamageRatio = Mathf.Clamp01(bossOverloadMaxHpDamageRatio),
+            overloadMaxHpDamageRatio = CalculateOverloadMaxHpDamageRatio(level, growthProfile),
+            bossOverloadMaxHpDamageRatio = CalculateBossOverloadMaxHpDamageRatio(level, growthProfile),
             overloadStunDuration = Mathf.Max(0.0f, overloadStunDuration),
             overloadImpactEffectPrefab = overloadImpactEffectPrefab,
             overloadImpactEffectDuration = Mathf.Max(0.0f, overloadImpactEffectDuration),
             overloadImpactEffectOffset = overloadImpactEffectOffset,
             overloadImpactEffectScale = GetSafeOverloadImpactEffectScale(),
+            useBossOverloadImpactEffectOffset = useBossOverloadImpactEffectOffset,
+            bossOverloadImpactEffectOffset = bossOverloadImpactEffectOffset,
             useBossOverloadImpactEffectScale = useBossOverloadImpactEffectScale,
             bossOverloadImpactEffectScale = GetSafeBossOverloadImpactEffectScale(),
             overloadStunEffectPrefab = overloadStunEffectPrefab,
             overloadStunEffectDuration = Mathf.Max(0.0f, overloadStunEffectDuration),
             overloadStunEffectOffset = overloadStunEffectOffset,
+            overloadStunEffectScale = GetSafeOverloadStunEffectScale(),
             useBossOverloadStunEffectOffset = useBossOverloadStunEffectOffset,
             bossOverloadStunEffectOffset = bossOverloadStunEffectOffset,
-            overloadStunEffectScale = GetSafeOverloadStunEffectScale(),
             useBossOverloadStunEffectScale = useBossOverloadStunEffectScale,
             bossOverloadStunEffectScale = GetSafeBossOverloadStunEffectScale(),
             stunDuration = Mathf.Max(0.0f, stunDuration),
@@ -198,6 +214,38 @@ public class ElectroStatusProfileSO : ScriptableObject
         };
 
         return payload;
+    }
+
+    // 현재 레벨에 맞는 Shock 스택 유지시간을 계산한다
+    private float CalculateShockStackDuration(int level, TurretStatGrowthProfileSO growthProfile)
+    {
+        return growthProfile == null
+            ? Mathf.Max(0.0f, shockStackDuration)
+            : growthProfile.CalculateElectroShockStackDuration(shockStackDuration, level);
+    }
+
+    // 현재 레벨에 맞는 체인 대상 수를 계산한다
+    private int CalculateMaxChainTargets(int level, TurretStatGrowthProfileSO growthProfile)
+    {
+        return growthProfile == null
+            ? Mathf.Max(1, maxChainTargets)
+            : growthProfile.CalculateElectroMaxChainTargets(maxChainTargets, level);
+    }
+
+    // 현재 레벨에 맞는 일반 대상 과부하 최대체력 비례 데미지를 계산한다
+    private float CalculateOverloadMaxHpDamageRatio(int level, TurretStatGrowthProfileSO growthProfile)
+    {
+        return growthProfile == null
+            ? Mathf.Clamp01(overloadMaxHpDamageRatio)
+            : growthProfile.CalculateElectroOverloadMaxHpDamageRatio(overloadMaxHpDamageRatio, level);
+    }
+
+    // 현재 레벨에 맞는 보스 대상 과부하 최대체력 비례 데미지를 계산한다
+    private float CalculateBossOverloadMaxHpDamageRatio(int level, TurretStatGrowthProfileSO growthProfile)
+    {
+        return growthProfile == null
+            ? Mathf.Clamp01(bossOverloadMaxHpDamageRatio)
+            : growthProfile.CalculateElectroBossOverloadMaxHpDamageRatio(bossOverloadMaxHpDamageRatio, level);
     }
 
     // 지정한 체인 순번에서 적용할 데미지 배율을 계산한다
@@ -237,7 +285,6 @@ public class ElectroStatusProfileSO : ScriptableObject
         shockStackAlphaFadeSharpness = Mathf.Max(0.01f, shockStackAlphaFadeSharpness);
         shockStackAlphaLerpSpeed = Mathf.Max(0.0f, shockStackAlphaLerpSpeed);
         chargedShockStackVisualThreshold = Mathf.Max(1, chargedShockStackVisualThreshold);
-        overloadRadius = Mathf.Max(0.0f, overloadRadius);
         overloadDamageMultiplier = Mathf.Max(0.0f, overloadDamageMultiplier);
         overloadMaxHpDamageRatio = Mathf.Clamp01(overloadMaxHpDamageRatio);
         bossOverloadMaxHpDamageRatio = Mathf.Clamp01(bossOverloadMaxHpDamageRatio);

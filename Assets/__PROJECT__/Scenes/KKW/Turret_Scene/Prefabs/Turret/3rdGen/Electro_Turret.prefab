@@ -164,6 +164,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: cfd6087ed72c9564f887d529e9064f28, type: 3}
       insertIndex: -1
       addedObject: {fileID: 2440990073118968165}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: cfd6087ed72c9564f887d529e9064f28, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 5722722460641035124}
   m_SourcePrefab: {fileID: 100100000, guid: cfd6087ed72c9564f887d529e9064f28, type: 3}
 --- !u!4 &4771805901434271848 stripped
 Transform:
@@ -231,7 +234,8 @@ MonoBehaviour:
     m_Bits: 128
   pivotObject: {fileID: 5784300023425552803}
   aimHeightRatio: 0
-  targetCandidateFilterBehaviours: []
+  targetCandidateFilterBehaviours:
+  - {fileID: 5722722460641035124}
   showDebug: 0
   useHorizontalDistance: 1
   requireLineOfSight: 1
@@ -323,6 +327,21 @@ MonoBehaviour:
   - {fileID: 5855034555855745900}
   muzzleVFX: {fileID: 0}
   muzzleVFXDuration: 2
+--- !u!114 &5722722460641035124
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5855034555855745900}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7f0c8df76021486ab4f6d8c53f4b4a18, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ElectroShockTargetCandidateFilter
+  excludeOverloadStunnedTargets: 1
+  excludeFullShockStackTargets: 1
+  fullShockStackCount: 3
 --- !u!1 &6813425837912968537 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 220128322190000996, guid: cfd6087ed72c9564f887d529e9064f28, type: 3}

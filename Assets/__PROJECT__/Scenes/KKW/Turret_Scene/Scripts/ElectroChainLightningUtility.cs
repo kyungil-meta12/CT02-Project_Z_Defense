@@ -58,7 +58,7 @@ public static class ElectroChainLightningUtility
                primaryTarget != null;
     }
 
-    // 지정 위치 주변에서 아직 체인되지 않은 가장 가까운 데미지 대상을 찾는다
+    // 지정 위치 주변에서 Shock 스택을 가장 완성하기 쉬운 데미지 대상을 찾는다
     private static IDamageable FindNearestChainTarget(ElectroStatusPayload payload, Vector3 position, int chainedTargetCount, out Collider nearestCollider)
     {
         int hitCount = Physics.OverlapSphereNonAlloc(
@@ -70,7 +70,9 @@ public static class ElectroChainLightningUtility
 
         IDamageable nearestTarget = null;
         nearestCollider = null;
+        int bestShockStackPriority = -1;
         float nearestDistanceSqr = float.MaxValue;
+        int maxShockStackCount = ResolveMaxShockStackCount(payload);
 
         for (int i = 0; i < hitCount; i++)
         {
@@ -81,18 +83,21 @@ public static class ElectroChainLightningUtility
             }
 
             IDamageable candidate = hitCollider.GetComponentInParent<IDamageable>();
-            if (!IsValidChainTarget(candidate, chainedTargetCount))
+            ElectroStatusRuntime electroStatusRuntime = ResolveElectroStatusRuntime(candidate);
+            if (!IsValidChainTarget(candidate, electroStatusRuntime, chainedTargetCount, maxShockStackCount))
             {
                 continue;
             }
 
             Vector3 candidatePosition = ResolveTargetPosition(candidate, hitCollider, hitCollider.bounds.center);
             float distanceSqr = (candidatePosition - position).sqrMagnitude;
-            if (distanceSqr >= nearestDistanceSqr)
+            int shockStackPriority = ResolveShockStackPriority(electroStatusRuntime, maxShockStackCount);
+            if (!IsBetterChainTarget(shockStackPriority, distanceSqr, bestShockStackPriority, nearestDistanceSqr))
             {
                 continue;
             }
 
+            bestShockStackPriority = shockStackPriority;
             nearestDistanceSqr = distanceSqr;
             nearestTarget = candidate;
             nearestCollider = hitCollider;
@@ -102,10 +107,61 @@ public static class ElectroChainLightningUtility
         return nearestTarget;
     }
 
-    // 체인 대상이 생존 중이며 이미 맞은 대상이 아닌지 확인한다
-    private static bool IsValidChainTarget(IDamageable candidate, int chainedTargetCount)
+    // 체인 대상이 생존 중이며 전이 또는 스택 갱신이 가능한 대상인지 확인한다
+    private static bool IsValidChainTarget(IDamageable candidate, ElectroStatusRuntime electroStatusRuntime, int chainedTargetCount, int maxShockStackCount)
     {
-        return candidate != null && candidate.IsAlive && !ContainsChainedTarget(candidate, chainedTargetCount);
+        if (candidate == null || !candidate.IsAlive || ContainsChainedTarget(candidate, chainedTargetCount))
+        {
+            return false;
+        }
+
+        if (electroStatusRuntime == null)
+        {
+            return true;
+        }
+
+        return !electroStatusRuntime.IsOverloadStunActive;
+    }
+
+    // Shock 스택 우선순위와 거리 우선순위를 비교한다
+    private static bool IsBetterChainTarget(int shockStackPriority, float distanceSqr, int bestShockStackPriority, float bestDistanceSqr)
+    {
+        if (shockStackPriority > bestShockStackPriority)
+        {
+            return true;
+        }
+
+        return shockStackPriority == bestShockStackPriority && distanceSqr < bestDistanceSqr;
+    }
+
+    // 현재 payload 기준 최대 Shock 스택 수를 반환한다
+    private static int ResolveMaxShockStackCount(ElectroStatusPayload payload)
+    {
+        return Mathf.Min(3, Mathf.Max(1, payload.maxShockStackCount));
+    }
+
+    // 대상의 현재 Electro Shock 스택 수를 반환한다
+    private static int ResolveShockStackCount(ElectroStatusRuntime electroStatusRuntime)
+    {
+        return electroStatusRuntime == null ? 0 : electroStatusRuntime.ShockStackCount;
+    }
+
+    // 체인 후보 선택에 사용할 Shock 스택 우선순위를 계산한다
+    private static int ResolveShockStackPriority(ElectroStatusRuntime electroStatusRuntime, int maxShockStackCount)
+    {
+        int shockStackCount = ResolveShockStackCount(electroStatusRuntime);
+        return shockStackCount >= maxShockStackCount ? -1 : shockStackCount;
+    }
+
+    // 데미지 대상에서 Electro 런타임 컴포넌트를 찾는다
+    private static ElectroStatusRuntime ResolveElectroStatusRuntime(IDamageable target)
+    {
+        if (target is Component targetComponent)
+        {
+            return targetComponent.GetComponentInParent<ElectroStatusRuntime>();
+        }
+
+        return null;
     }
 
     // 대상이 이미 이번 체인에 포함되어 있는지 확인한다

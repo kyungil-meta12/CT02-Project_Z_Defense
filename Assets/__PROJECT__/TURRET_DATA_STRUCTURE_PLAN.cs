@@ -243,6 +243,7 @@
  * 13. ElectroStatusProfileSO
  * - Holds Electro-specific status and chain-lightning VFX values referenced from TurretDefinitionSO.
  * - Current gameplay responsibilities: chain target count, chain search radius, per-jump damage falloff, Shock stack duration, short Electro hit stun, Overload trigger policy, Overload max-HP damage ratios, and stun timing.
+ * - Level growth for Shock stack duration, chain target count, and Overload max-HP damage ratios is owned by ElectroTurretStatGrowthProfileSO. Keep chain radius, max Shock stack count, short stun, and Overload stun duration fixed unless a later balance pass reopens them.
  * - Current visual responsibilities: Shock stack visual prefab/orbit controls, boss-only Shock stack orbit radius/scale, camera-facing back-side Shock stack alpha fade, charged Shock stack visual mode, Overload impact/stun VFX, particle chain-link prefab, effect lifetime, vertical endpoint offset, local endpoint fitting, rotation/position offsets, length/thickness scale, exact core line toggle, core line material/color/width, and core line timing.
  * - Electro uses the normal projectile attack path for the direct hit. The chain behavior starts only after ProjectileDamageDealer successfully applies direct hit damage.
  * - The active chain particle prefab is project-owned PS_Electro_ChainLink under Scenes/KKW/Turret_Scene/Prefabs/Status Effect/Electro_Turret.
@@ -289,21 +290,23 @@
  * Electro Chain Lightning Runtime Flow
  *
  * 1. Electro_Turret_Definition.electroStatusProfile points to the active ElectroStatusProfileSO.
- * 2. TurretDefinitionRuntimeController creates an ElectroStatusPayload only when the selected attack VFX is projectile-based.
+ * 2. TurretDefinitionRuntimeController creates a level-scaled ElectroStatusPayload from ElectroStatusProfileSO and the current stat growth profile only when the selected attack VFX is projectile-based.
  * 3. The Electro payload is carried through Turret, FiringEvent, Gun, and ProjectileDamageDealer with each projectile spawn.
  * 4. ProjectileDamageDealer.TryApplyDamage applies direct projectile damage first.
  * 5. If the damaged target implements IElectroStatusEffectReceiver and is still alive, ProjectileDamageDealer forwards Electro status with chain index 0.
  * 6. ProjectileDamageDealer passes the direct hit collider and collider center into ElectroChainLightningUtility.
- * 7. ElectroChainLightningUtility uses Physics.OverlapSphereNonAlloc from the current chain anchor to find the nearest living IDamageable not already hit by this chain.
+ * 7. ElectroChainLightningUtility uses Physics.OverlapSphereNonAlloc from the current chain anchor to find living IDamageable targets not already hit by this chain, excluding Overload-stunned targets.
+ * 7-1. Chain target priority is non-full higher Shock stacks first, then distance. Full-Shock targets remain fallback candidates so Shock timers can be refreshed when no better target exists.
  * 8. Each bounced target takes reduced damage using 1 - chainDamageFalloffPerJump * chainIndex, clamped at 0.
  * 9. Each bounced target that implements IElectroStatusEffectReceiver receives Electro status with its chain index.
  * 10. NormalZombie and BossZombie delegate Electro receiver calls to ElectroStatusRuntime.
  * 11. ElectroStatusRuntime adds one Shock stack, refreshes duration, applies short Electro hit stun through IElectroStunRuntimeOwner, and shows up to three orbiting Volt Sphere 1 visuals around the target body center. Boss targets can use a separate orbit radius, ElectroShockStackVisualFader can fade the rear half of the orbit by camera-facing alpha, and ElectroShockStackVisualModeController can keep 1-2 stacks calmer until the charged threshold is reached.
  * 12. Non-Electro Projectile/Beam damage notifies IElectroOverloadTriggerReceiver. Full-stack targets consume Shock stacks, play Overload impact/stun VFX, take single-target max-HP ratio damage, and receive long stun.
- * 12. Each visual link prefers Collider.bounds.center for both endpoints, then falls back to target Transform.position, then to the cached fallback position.
- * 13. ElectroChainLinkEffectUtility spawns PS_Electro_ChainLink between the previous and next chain anchors.
- * 14. ElectroChainLinkAnchorTracker keeps the spawned link following current collider centers while the effect is alive, so moving zombies do not leave delayed lightning at stale hit positions.
- * 15. ElectroChainCoreLineEffect draws a two-point world-space LineRenderer over the particle effect during its configured timing window so endpoint readability stays exact.
+ * 13. While Overload long stun is active, Electro hits do not add new Shock stacks.
+ * 14. Each visual link prefers Collider.bounds.center for both endpoints, then falls back to target Transform.position, then to the cached fallback position.
+ * 15. ElectroChainLinkEffectUtility spawns PS_Electro_ChainLink between the previous and next chain anchors.
+ * 16. ElectroChainLinkAnchorTracker keeps the spawned link following current collider centers while the effect is alive, so moving zombies do not leave delayed lightning at stale hit positions.
+ * 17. ElectroChainCoreLineEffect draws a two-point world-space LineRenderer over the particle effect during its configured timing window so endpoint readability stays exact.
  *
  * Electro Chain VFX Field Responsibilities
  *

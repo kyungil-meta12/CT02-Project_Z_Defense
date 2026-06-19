@@ -61,9 +61,11 @@ Poison-specific shared contract:
 
 Electro-specific shared contract:
 
-- `ProjectZDefense.StatusEffects.ElectroStatusPayload` carries chain lightning count/radius/falloff, Shock stack duration, Overload trigger policy, Overload burst values, stun values, and chain VFX settings.
+- `ProjectZDefense.StatusEffects.ElectroStatusPayload` carries level-scaled chain lightning count, fixed chain radius/falloff, level-scaled Shock stack duration, Overload trigger policy, level-scaled single-target Overload values, stun values, and chain VFX settings.
 - `ProjectZDefense.StatusEffects.IElectroStatusEffectReceiver.ApplyElectroStatus` receives the payload, chain index, and source damage so enemies can apply Shock, Overload, and stun rules consistently for direct and chained hits.
 - Chain damage itself is applied by `ElectroChainLightningUtility` through `IDamageable.TakeDamage`; enemy receivers should own only their mutable Electro status state.
+- Enemy Electro runtimes should ignore new Shock stack application while an Overload long stun is active, so consumed stacks cannot immediately rebuild during the stun window.
+- Electro chain target selection should prefer non-full targets with existing Shock stacks before distance, while excluding Overload-stunned targets. Full-Shock targets should remain fallback candidates so their Shock timer can be refreshed when no better chain target exists.
 - Electro chain VFX is turret-owned presentation. Enemy receivers should not instantiate chain-link particle or core-line visuals.
 
 ## MemoryPool

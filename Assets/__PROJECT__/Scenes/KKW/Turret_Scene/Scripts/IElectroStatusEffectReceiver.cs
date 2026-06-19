@@ -35,7 +35,6 @@ namespace ProjectZDefense.StatusEffects
         public string[] subtleShockStackDisabledChildNames;
         public bool canElectroHitTriggerOverload;
         public bool canNonElectroDamageTriggerOverload;
-        public float overloadRadius;
         public float overloadDamageMultiplier;
         public float overloadMaxHpDamageRatio;
         public float bossOverloadMaxHpDamageRatio;
@@ -43,6 +42,8 @@ namespace ProjectZDefense.StatusEffects
         public GameObject overloadImpactEffectPrefab;
         public float overloadImpactEffectDuration;
         public Vector3 overloadImpactEffectOffset;
+        public bool useBossOverloadImpactEffectOffset;
+        public Vector3 bossOverloadImpactEffectOffset;
         public Vector3 overloadImpactEffectScale;
         public bool useBossOverloadImpactEffectScale;
         public Vector3 bossOverloadImpactEffectScale;

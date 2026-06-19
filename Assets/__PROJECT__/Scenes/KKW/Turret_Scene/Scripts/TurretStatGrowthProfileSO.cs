@@ -54,6 +54,30 @@ public class TurretStatGrowthProfileSO : ScriptableObject
         return Mathf.Max(0.0f, baseValue);
     }
 
+    // 현재 레벨에 맞는 Electro Shock 스택 유지시간을 계산한다
+    public virtual float CalculateElectroShockStackDuration(float baseValue, int level)
+    {
+        return Mathf.Max(0.0f, baseValue);
+    }
+
+    // 현재 레벨에 맞는 Electro 체인 대상 수를 계산한다
+    public virtual int CalculateElectroMaxChainTargets(int baseValue, int level)
+    {
+        return Mathf.Max(1, baseValue);
+    }
+
+    // 현재 레벨에 맞는 Electro 과부하 최대체력 비례 데미지를 계산한다
+    public virtual float CalculateElectroOverloadMaxHpDamageRatio(float baseValue, int level)
+    {
+        return Mathf.Clamp01(baseValue);
+    }
+
+    // 현재 레벨에 맞는 Electro 보스 과부하 최대체력 비례 데미지를 계산한다
+    public virtual float CalculateElectroBossOverloadMaxHpDamageRatio(float baseValue, int level)
+    {
+        return Mathf.Clamp01(baseValue);
+    }
+
     // 레벨 1을 기준으로 완료된 성장 단계 수를 반환한다
     protected static int GetCompletedGrowthLevel(int level)
     {

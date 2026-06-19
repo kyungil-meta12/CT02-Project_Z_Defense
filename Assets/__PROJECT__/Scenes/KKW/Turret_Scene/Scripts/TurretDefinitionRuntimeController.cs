@@ -475,7 +475,7 @@ public class TurretDefinitionRuntimeController : MonoBehaviour
         return payload.hasPoisonStatus ? payload : default;
     }
 
-    // 현재 터렛 정의에 맞는 Electro 상태 payload를 생성한다
+    // 현재 터렛 정의와 레벨에 맞는 Electro 상태 payload를 생성한다
     private ElectroStatusPayload CreateElectroStatusPayload()
     {
         if (turretDefinition == null || turretDefinition.electroStatusProfile == null)
@@ -483,7 +483,7 @@ public class TurretDefinitionRuntimeController : MonoBehaviour
             return default;
         }
 
-        ElectroStatusPayload payload = turretDefinition.electroStatusProfile.CreatePayload();
+        ElectroStatusPayload payload = turretDefinition.electroStatusProfile.CreatePayload(level, turretDefinition.statGrowthProfile);
         return payload.hasElectroStatus ? payload : default;
     }
 

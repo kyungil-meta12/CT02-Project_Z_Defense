@@ -54,8 +54,8 @@
  *   Poison 기본 틱 데미지, 지속시간, 스택, 보스 배율, 사망 폭발 프로필 참조를 관리한다.
  *
  * - Assets/__PROJECT__/Scenes/KKW/Turret_Scene/Scripts/ElectroStatusProfileSO.cs
- *   Electro 체인 라이트닝, Shock 스택 유지시간, Shock 스택 VFX,
- *   향후 Overload/경직 값, 체인 링크 VFX 값을 관리한다.
+ *   Electro 체인 라이트닝, Shock 스택 기본값, Shock 스택 VFX,
+ *   Overload/경직 기본값, 체인 링크 VFX 값을 관리한다.
  *
  * - Assets/__PROJECT__/Scenes/KKW/Turret_Scene/Scripts/PoisonDeathBurstProfileSO.cs
  *   Poison 처형 사망 폭발 VFX, 범위, 약한 Poison, 연쇄 허용 여부를 관리한다.
@@ -63,6 +63,10 @@
  * - Assets/__PROJECT__/Scenes/KKW/Turret_Scene/Scripts/PoisonTurretStatGrowthProfileSO.cs
  *   Poison_Turret 전용 성장값을 관리한다.
  *   공유 TurretStatGrowthProfileSO에 Poison 전용 필드를 직접 늘리지 않기 위한 분리 지점이다.
+ *
+ * - Assets/__PROJECT__/Scenes/KKW/Turret_Scene/Scripts/ElectroTurretStatGrowthProfileSO.cs
+ *   Electro_Turret 전용 Shock 유지시간, 체인 대상 수, Overload 최대체력 비례 데미지 성장값을 관리한다.
+ *   체인 반경, 최대 Shock 스택 수, 경직/기절 시간은 현재 ElectroStatusProfileSO 고정값으로 둔다.
  *
  * ■ 상태이상 Utility
  * - Assets/__PROJECT__/Scenes/KKW/Turret_Scene/Scripts/FrostStatusEffectUtility.cs
@@ -87,6 +91,10 @@
  *
  * - Assets/__PROJECT__/Scripts/Targeting/FrostFreezeSuppressedTargetCandidateFilter.cs
  *   Frost_Turret 전용 필터. 빙결 중이거나 재빙결 쿨타임 중인 일반 좀비를 후보에서 제외한다.
+ *
+ * - Assets/__PROJECT__/Scripts/Targeting/ElectroShockTargetCandidateFilter.cs
+ *   Electro_Turret 전용 필터. 과부하 긴 기절 중인 대상을 제외하고,
+ *   3스택 대상은 일반 후보가 없을 때 Shock 유지시간 갱신용 fallback 후보로 허용한다.
  *
  * ■ 수신 대상
  * - Assets/__PROJECT__/Prefabs/Damageable/NormalZombie/NormalZombie.cs
@@ -216,19 +224,21 @@
  * Electro_Turret은 기존 투사체 터렛 구조를 재사용하고, 직접 피격 후 체인 라이트닝을 전파한다.
  *
  * 1. TurretDefinitionSO.electroStatusProfile에 ElectroStatusProfileSO를 연결한다.
- * 2. TurretDefinitionRuntimeController가 ElectroStatusProfileSO.CreatePayload로 payload를 만든다.
+ * 2. TurretDefinitionRuntimeController가 ElectroStatusProfileSO와 ElectroTurretStatGrowthProfileSO를 조합해 현재 레벨 payload를 만든다.
  * 3. Turret, FiringEvent, Gun, ProjectileDamageDealer가 payload를 투사체에 전달한다.
  * 4. ProjectileDamageDealer는 직접 데미지를 먼저 적용한 뒤 IElectroStatusEffectReceiver에 ApplyElectroStatus를 호출한다.
  * 5. ElectroChainLightningUtility는 주변 대상에게 체인 데미지를 주고, 체인 대상에게도 ApplyElectroStatus를 호출한다.
+ *    체인 후보는 2스택, 1스택, 0스택 순으로 우선하며, 모든 후보가 3스택이면 3스택 대상도 fallback으로 선택해 유지시간을 갱신한다.
  * 6. NormalZombie / BossZombie는 ElectroStatusRuntime.ApplyElectroStatus로 위임한다.
  * 7. ElectroStatusRuntime은 Electro 피격마다 Shock 스택을 1개 추가하고 shockStackDuration으로 유지시간을 갱신한다.
  * 8. Shock 스택은 현재 최대 3개까지 시각화되며, Volt Sphere 1 인스턴스가 대상 몸 중앙 주변을 회전한다.
  * 8-1. ElectroStatusProfileSO에서 일반/보스 회전 반지름, 높이, 회전 속도, 스케일, 카메라 기준 뒤쪽 알파 페이드를 조정한다.
  * 8-2. 기본 Electro 프로필은 1~2스택에서 일부 반짝임 자식을 끄고, 3스택에서 전체 Volt Sphere 1 파츠를 켜 완전 충전 상태를 강조한다.
- * 9. Electro 적중은 IElectroStunRuntimeOwner를 통해 일반 좀비에게 짧은 경직을 적용하고, StatusEffectVisualController.ElectroStun 슬롯으로 경직 VFX를 켤 수 있다. 보스는 bossHitStunDurationMultiplier = 0으로 짧은 경직에서 제외하며, 향후 Overload 긴 스턴은 bossStunDurationMultiplier로 별도 조정한다.
+ * 9. Electro 적중은 IElectroStunRuntimeOwner를 통해 일반 좀비에게 짧은 경직을 적용하고, StatusEffectVisualController.ElectroStun 슬롯으로 경직 VFX를 켤 수 있다. 보스는 bossHitStunDurationMultiplier = 0으로 짧은 경직에서 제외하며, Overload 긴 스턴은 bossStunDurationMultiplier로 별도 조정한다.
  * 10. Electro 자체 공격은 3스택을 소모하거나 Overload를 발동하지 않는다.
  * 11. 3스택 대상이 비-Electro Projectile/Beam 피해를 받는 순간 Overload가 먼저 발동한다.
  * 12. Overload는 Shock 스택을 소모하고, 폭발 VFX, 단일 대상 최대체력 비례 데미지, 긴 기절과 기절 VFX를 적용한다.
+ * 13. Overload 긴 기절 중에는 Electro 피격을 받아도 새 Shock 스택을 쌓지 않는다.
  *
  * Poison 주요 에디터 필드:
  * - PoisonStatusProfileSO.maxHpDamageRatioPerTick
@@ -302,6 +312,10 @@
  *
  * - FrostFreezeSuppressedTargetCandidateFilter
  *   빙결 중 또는 재빙결 쿨타임 중인 대상 제외.
+ *
+ * - ElectroShockTargetCandidateFilter
+ *   과부하 긴 기절 중인 대상 제외.
+ *   3스택 대상은 우선순위를 낮추되, 일반 후보가 없으면 fallback 타겟으로 허용해 Shock 유지시간을 갱신한다.
  *
  * 프리팹 연결 위치:
  * - 터렛 프리팹 루트에 필터 컴포넌트를 붙인다.
@@ -421,11 +435,14 @@
  *
  * Electro_Turret:
  * - Electro_Turret_Definition.electroStatusProfile 연결.
+ * - Electro_Turret_Definition.statGrowthProfile은 ElectroTurretStatGrowthProfileSO 기반 Electro_Turret_Stat Growth Profile SO 연결.
  * - ElectroStatusProfileSO.shockStackVisualPrefab에 Volt Sphere 1 연결.
  * - ElectroStatusProfileSO.maxShockStackCount = 3.
  * - ElectroStatusProfileSO.shockStackDuration = 15.
  * - canElectroHitTriggerOverload는 현재 false 유지.
- * - Overload는 다음 단계에서 비-Electro 피해 경로와 연결한다.
+ * - ElectroStatusProfileSO.chainRadius는 현재 넓은 고정값으로 유지하고, 체인 대상 수 성장은 Electro_Turret_Stat Growth Profile SO에서 관리한다.
+ * - Electro_Turret.prefab TargetFinder.targetCandidateFilterBehaviours에 ElectroShockTargetCandidateFilter 연결.
+ * - Overload는 비-Electro Projectile/Beam 피해 경로에서 발동하며, 현재 단일 대상 최대체력 비례 데미지와 긴 기절을 적용한다.
  *
  * Zombie Prefabs:
  * - StatusEffectVisualController 존재 여부.

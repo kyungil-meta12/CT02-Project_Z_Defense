@@ -62,9 +62,10 @@ Do not use display names as stable IDs.
 | `BeamAttackProfileSO` | Beam-specific attack rules: damage tick interval, damage multiplier, DPS interpretation, target mode, pierce radius, max targets, and damage layer mask. |
 | `FrostStatusProfileSO` | Frost-specific status rules: slow buildup, max slow, freeze timing, freeze explosion, max-HP damage, secondary explosion slow, related VFX references, and optional primary-target max-HP damage growth. |
 | `PoisonStatusProfileSO` | Poison-specific status rules: max-HP tick damage ratio, tick interval, duration, stack limit, stack refresh mode, boss damage multiplier, and optional death burst profile reference. |
-| `ElectroStatusProfileSO` | Electro-specific status rules and chain VFX controls: chain lightning count/radius/falloff, Shock stack duration and stack VFX, Overload trigger policy, Overload burst, short stun timing, chain-link particle VFX, and optional core line VFX. |
+| `ElectroStatusProfileSO` | Electro-specific base status rules and chain VFX controls: chain lightning count/radius/falloff, base Shock stack duration and stack VFX, Overload trigger policy, base single-target Overload damage, short stun timing, chain-link particle VFX, and optional core line VFX. |
 | `PoisonDeathBurstProfileSO` | Poison lethal-death burst rules: burst VFX, radius, weak Poison values, target layer mask, and boss damage multiplier for secondary weak Poison. |
 | `PoisonTurretStatGrowthProfileSO` | Poison_Turret-only stat growth profile. Inherits common turret stat growth and adds Poison status/death-burst growth fields without exposing them on non-Poison turrets. |
+| `ElectroTurretStatGrowthProfileSO` | Electro_Turret-only stat growth profile. Inherits common turret stat growth and adds Shock duration, chain target count, and Overload max-HP damage growth fields without exposing them on non-Electro turrets. |
 | `TurretVFXProgressionSO` | Selects active VFX profile by current tier level. |
 | `TurretProjectileScaleProgressionSO` | Selects projectile scale by current tier level. |
 | `TurretEvolutionProgressionSO` | Defines available evolutions, required tier levels, branch-specific costs, icons, and effects. |
@@ -79,7 +80,7 @@ Do not use display names as stable IDs.
 5. `TurretVFXProgressionSO` selects projectile, beam, muzzle VFX data, and optional beam attack profile data.
 6. `TurretDefinitionSO.frostStatusProfile` provides Frost-specific status values when the selected attack is a beam Frost turret.
 7. `TurretDefinitionSO.poisonStatusProfile` provides Poison-specific status values when the selected attack is a projectile Poison turret.
-8. `TurretDefinitionSO.electroStatusProfile` provides Electro-specific chain, Shock stack, Overload trigger policy, Overload burst, and stun values when the selected attack is an Electro projectile turret.
+8. `TurretDefinitionSO.electroStatusProfile` provides Electro-specific chain, Shock stack, Overload trigger policy, single-target Overload damage, and stun values when the selected attack is an Electro projectile turret.
 9. `TurretProjectileScaleProgressionSO` selects projectile scale.
 10. Projectile firing logic applies projectile prefab, speed, damage, pierce count, scale, collision ignore rules, and optional Poison/Electro payloads per spawn.
 11. Beam firing logic keeps the beam VFX alive between fire requests and applies damage by `BeamAttackProfileSO.damageTickInterval`.
@@ -245,20 +246,22 @@ Poison data ownership:
 
 Electro status handling:
 
-- `ElectroStatusProfileSO` stores chain lightning count/radius/damage falloff, Shock stack duration, Overload trigger policy, Overload burst values, and short stun timing.
+- `ElectroStatusProfileSO` stores fixed/base Electro values: chain lightning count/radius/damage falloff, base Shock stack duration, Overload trigger policy, base single-target Overload damage values, max Shock stack count, Overload stun timing, and short stun timing.
+- `ElectroTurretStatGrowthProfileSO` owns Electro_Turret-only level growth for Shock stack duration, chain target count, normal Overload max-HP damage ratio, and boss Overload max-HP damage ratio. Keep `maxShockStackCount`, `chainRadius`, `overloadStunDuration`, and short stun timing fixed in `ElectroStatusProfileSO` unless the balance direction changes.
 - `TurretDefinitionRuntimeController.ApplyVFX` creates an Electro payload only for projectile VFX profiles and passes it to the runtime `Turret`.
 - The base projectile firing path carries the Electro payload from `Turret` to `FiringEvent`, `Gun`, and `ProjectileDamageDealer`.
 - `ProjectileDamageDealer.TryApplyDamage` applies direct projectile damage first, then forwards Electro status to targets implementing `ProjectZDefense.StatusEffects.IElectroStatusEffectReceiver`.
-- `ElectroChainLightningUtility` starts from the directly hit target, finds the nearest living `IDamageable` inside `chainRadius` with `Physics.OverlapSphereNonAlloc`, deduplicates targets, and applies reduced chain damage per jump.
+- `ElectroChainLightningUtility` starts from the directly hit target, finds living `IDamageable` targets inside `chainRadius` with `Physics.OverlapSphereNonAlloc`, deduplicates targets, excludes Overload-stunned targets, then prioritizes non-full higher Shock stack counts before distance. Full-Shock targets remain fallback candidates so Electro hits can refresh their Shock timer when no better chain candidate exists.
 - Chain damage uses the same `IDamageable.TakeDamage` path as direct projectile damage, so HP, damage popups, rewards, and death flow stay consistent.
 - `NormalZombie` and `BossZombie` implement `ProjectZDefense.StatusEffects.IElectroStatusEffectReceiver` and delegate Shock stack state to `ElectroStatusRuntime`.
 - `ElectroStatusRuntime` adds one Shock stack whenever an Electro direct hit or chain hit is received, refreshes the stack timer to `shockStackDuration`, and caps visible stacks at the configured max up to three.
+- `ElectroShockTargetCandidateFilter` can be attached to Electro turret `TargetFinder.targetCandidateFilterBehaviours` to exclude Overload-stunned targets and prefer non-full Shock targets for first-shot selection. Full-Shock targets can be used as fallback first-shot targets when every valid candidate is otherwise excluded, so Shock timers can still be refreshed.
 - Current Shock stack VFX uses `Volt Sphere 1` from `Scenes/KKW/Turret_Scene/Prefabs/Status Effect/Electro_Turret`. The runtime keeps up to three instances around the target body center and rotates them like orbiting rings while the stack timer is active.
 - `ElectroStatusProfileSO` controls normal Shock stack orbit radius, optional boss-only orbit radius, vertical offset, rotation speed, normal/boss visual scale, and camera-facing back-side alpha fade. Hard back-side hiding still exists as a fallback, but the default depth cue is smooth alpha fading instead of instant activation toggling.
 - Shock stack VFX can use charged visual mode. In the default Electro profile, 1-2 stacks keep a calmer Volt Sphere by disabling selected sparkle children, and 3 stacks re-enable all children to show the fully charged state.
-- Electro hits also apply a short stun through `IElectroStunRuntimeOwner`. The active profile currently uses `stunDuration = 0.2`, excludes bosses from short hit stun with `bossHitStunDurationMultiplier = 0`, and keeps `bossStunDurationMultiplier` available for later Overload long-stun tuning. `StatusEffectVisualController` exposes an `ElectroStun` visual slot for short stun VFX such as `FX_Electricity_02 1`.
+- Electro hits also apply a short stun through `IElectroStunRuntimeOwner`. The active profile controls short hit stun with `stunDuration`, excludes bosses from short hit stun when `bossHitStunDurationMultiplier = 0`, and uses `bossStunDurationMultiplier` for Overload long-stun tuning. `StatusEffectVisualController` exposes an `ElectroStun` visual slot for short stun VFX such as `FX_Electricity_02 1`.
 - Electro attacks do not consume three Shock stacks. When a target has full Shock stacks, non-Electro projectile or beam damage can trigger Overload through `IElectroOverloadTriggerReceiver`.
-- Overload currently consumes Shock stacks, plays `overloadImpactEffectPrefab`, applies single-target max-HP ratio damage, and applies long stun using `overloadStunDuration`. Bosses use separate max-HP damage ratio and boss stun multiplier values.
+- Overload currently consumes Shock stacks, plays `overloadImpactEffectPrefab`, applies single-target max-HP ratio damage, and applies long stun using `overloadStunDuration`. While the Overload long-stun timer is active, additional Electro hits do not add new Shock stacks. Bosses use separate max-HP damage ratio and boss stun multiplier values.
 - `ElectroChainLinkEffectUtility` renders the chain visual between each chained target pair using the VFX settings stored in `ElectroStatusProfileSO`.
 - Electro chain visuals are hybrid by design. `PS_Electro_ChainLink` provides the wide stylized particle lightning, while `ElectroChainCoreLineEffect` provides a thin exact `LineRenderer` connection so the start and end points read clearly.
 - Current chain-link particle VFX uses project-owned `PS_Electro_ChainLink`, a duplicate of `PS_LightiningStrike 1` with floor/impact children disabled and lightning/spark children kept active. Current kept children are `Holder`, `Lightning_Arc`, `Lightning`, `Lightning_Big`, `Sparks`, and `Flare`.
@@ -276,7 +279,7 @@ Electro status handling:
 Electro runtime pipeline:
 
 1. `Electro_Turret_Definition.electroStatusProfile` points to the active `ElectroStatusProfileSO`.
-2. `TurretDefinitionRuntimeController.ApplyVFX` creates a `ProjectZDefense.StatusEffects.ElectroStatusPayload` from `ElectroStatusProfileSO` when the selected VFX is projectile-based.
+2. `TurretDefinitionRuntimeController.ApplyVFX` creates a `ProjectZDefense.StatusEffects.ElectroStatusPayload` from `ElectroStatusProfileSO` and the current stat growth profile when the selected VFX is projectile-based.
 3. The payload is stored on the runtime `Turret` and passed through `FiringEvent`, `Gun`, and `ProjectileDamageDealer` each projectile spawn.
 4. `ProjectileDamageDealer.TryApplyDamage` applies direct projectile damage first through `IDamageable.TakeDamage`.
 5. If the damaged target still lives and implements `ProjectZDefense.StatusEffects.IElectroStatusEffectReceiver`, `ProjectileDamageDealer` calls `ApplyElectroStatus` with chain index `0`.
@@ -350,6 +353,20 @@ Poison growth fields on `PoisonTurretStatGrowthProfileSO`:
 | `maxPoisonDeathBurstMaxHpDamageRatioPerTick` | Caps weak area Poison max-HP tick damage ratio. |
 | `poisonDeathBurstDurationPerLevel` | Adds weak area Poison duration per completed tier level. |
 | `maxPoisonDeathBurstDuration` | Optional weak area Poison duration cap. `0` means uncapped. |
+
+Electro growth fields on `ElectroTurretStatGrowthProfileSO`:
+
+| Field | Runtime effect |
+| --- | --- |
+| `shockStackDurationPerLevel` | Adds to Shock stack duration per completed tier level. |
+| `maxShockStackDuration` | Optional Shock stack duration cap. `0` means uncapped. |
+| `chainTargetCountIntervalLevel` | Chain target count growth interval. `0` disables interval growth. |
+| `chainTargetCountPerInterval` | Adds to maximum chain target count each time the interval is completed. |
+| `maxChainTargetCount` | Optional maximum chain target count cap. `0` means uncapped. |
+| `overloadMaxHpDamageRatioPerLevel` | Adds to normal-target Overload max-HP damage ratio per completed tier level. |
+| `maxOverloadMaxHpDamageRatio` | Caps normal-target Overload max-HP damage ratio. |
+| `bossOverloadMaxHpDamageRatioPerLevel` | Adds to boss-target Overload max-HP damage ratio per completed tier level. |
+| `maxBossOverloadMaxHpDamageRatio` | Caps boss-target Overload max-HP damage ratio. |
 
 Poison lethal indicator pipeline:
 

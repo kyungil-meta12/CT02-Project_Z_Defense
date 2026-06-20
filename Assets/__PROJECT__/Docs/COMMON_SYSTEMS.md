@@ -146,7 +146,6 @@ Use it for:
 - projectile VFX
 - Frost freeze explosion effects
 - Poison lethal-death burst effects
-- helicopter missile skill objects
 
 Do not use it to bypass proper prefab setup or pooling reset rules.
 

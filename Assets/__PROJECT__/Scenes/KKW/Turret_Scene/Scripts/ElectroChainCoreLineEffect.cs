@@ -8,11 +8,24 @@ using ProjectZDefense.StatusEffects;
 public class ElectroChainCoreLineEffect : MonoBehaviour
 {
     private LineRenderer lineRenderer;
+    private Material sourceLineMaterial;
+    private Material runtimeLineMaterial;
 
     // 비활성화될 때 코어 라인을 숨긴다
     private void OnDisable()
     {
         DisableLine();
+    }
+
+    // 파괴될 때 런타임 머티리얼 인스턴스를 정리한다
+    private void OnDestroy()
+    {
+        if (runtimeLineMaterial != null)
+        {
+            Destroy(runtimeLineMaterial);
+            runtimeLineMaterial = null;
+            sourceLineMaterial = null;
+        }
     }
 
     // 코어 라인 설정을 적용하고 시작점과 끝점을 갱신한다
@@ -80,12 +93,13 @@ public class ElectroChainCoreLineEffect : MonoBehaviour
     // LineRenderer의 색상, 굵기, 머티리얼을 현재 프로필 값으로 갱신한다
     private void ConfigureLineRenderer(ElectroStatusPayload payload)
     {
-        lineRenderer.sharedMaterial = ResolveCoreLineMaterial(payload);
+        lineRenderer.sharedMaterial = ResolveRuntimeLineMaterial(payload);
         float lineWidth = Mathf.Max(0.001f, ResolveCoreLineWidth(payload));
         lineRenderer.startWidth = lineWidth;
         lineRenderer.endWidth = lineWidth;
         lineRenderer.startColor = ResolveCoreLineStartColor(payload);
         lineRenderer.endColor = ResolveCoreLineEndColor(payload);
+        lineRenderer.sortingOrder = 100;
     }
 
     // 현재 체인 코어 라인을 재생할지 반환한다
@@ -116,6 +130,62 @@ public class ElectroChainCoreLineEffect : MonoBehaviour
     private static Material ResolveCoreLineMaterial(ElectroStatusPayload payload)
     {
         return payload.sourceProfile != null ? payload.sourceProfile.chainCoreLineMaterial : payload.chainCoreLineMaterial;
+    }
+
+    // 코어라인이 씬 지형에 가려지지 않도록 런타임 전용 머티리얼을 반환한다
+    private Material ResolveRuntimeLineMaterial(ElectroStatusPayload payload)
+    {
+        Material resolvedMaterial = ResolveCoreLineMaterial(payload);
+        if (resolvedMaterial == null)
+        {
+            return null;
+        }
+
+        if (runtimeLineMaterial == null || sourceLineMaterial != resolvedMaterial)
+        {
+            if (runtimeLineMaterial != null)
+            {
+                Destroy(runtimeLineMaterial);
+            }
+
+            sourceLineMaterial = resolvedMaterial;
+            runtimeLineMaterial = new Material(resolvedMaterial);
+            runtimeLineMaterial.name = resolvedMaterial.name + "_RuntimeOverlay";
+        }
+
+        ConfigureOverlayMaterial(runtimeLineMaterial);
+        return runtimeLineMaterial;
+    }
+
+    // 머티리얼의 depth test를 항상 통과하도록 런타임 값만 보정한다
+    private static void ConfigureOverlayMaterial(Material material)
+    {
+        if (material == null)
+        {
+            return;
+        }
+
+        if (material.HasProperty("_ZTest"))
+        {
+            material.SetFloat("_ZTest", 8.0f);
+        }
+
+        if (material.HasProperty("_Zwrite"))
+        {
+            material.SetFloat("_Zwrite", 0.0f);
+        }
+
+        if (material.HasProperty("_ZWrite"))
+        {
+            material.SetFloat("_ZWrite", 0.0f);
+        }
+
+        if (material.HasProperty("_SoftParticles"))
+        {
+            material.SetFloat("_SoftParticles", 0.0f);
+        }
+
+        material.renderQueue = 5000;
     }
 
     // 현재 사용할 코어 라인 시작 색상을 반환한다

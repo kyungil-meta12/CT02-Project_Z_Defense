@@ -79,6 +79,7 @@ public static class ElectroChainLinkEffectUtility
         }
 
         ApplyEffectScale(effectObject, placementData.Scale);
+        ApplyParticleRendererOverlay(effectObject);
         ApplyCoreLineEffect(effectObject, payload, startPosition, endPosition);
         return effectObject;
     }
@@ -124,6 +125,76 @@ public static class ElectroChainLinkEffectUtility
     private static void ApplyEffectScale(GameObject effectObject, Vector3 effectScale)
     {
         effectObject.transform.localScale = effectScale;
+    }
+
+    // 체인 링크 파티클이 Main 씬 지형에 가려지지 않도록 렌더러 머티리얼을 런타임 보정한다
+    private static void ApplyParticleRendererOverlay(GameObject effectObject)
+    {
+        if (effectObject == null)
+        {
+            return;
+        }
+
+        ElectroChainLinkOverlayMaterialState overlayState = effectObject.GetComponent<ElectroChainLinkOverlayMaterialState>();
+        if (overlayState != null && overlayState.IsApplied)
+        {
+            return;
+        }
+
+        ParticleSystemRenderer[] particleRenderers = effectObject.GetComponentsInChildren<ParticleSystemRenderer>(true);
+        for (int i = 0; i < particleRenderers.Length; i++)
+        {
+            ParticleSystemRenderer particleRenderer = particleRenderers[i];
+            if (particleRenderer == null)
+            {
+                continue;
+            }
+
+            particleRenderer.sortingOrder = 100;
+            Material[] materials = particleRenderer.materials;
+            for (int materialIndex = 0; materialIndex < materials.Length; materialIndex++)
+            {
+                ConfigureOverlayMaterial(materials[materialIndex]);
+            }
+        }
+
+        if (overlayState == null)
+        {
+            overlayState = effectObject.AddComponent<ElectroChainLinkOverlayMaterialState>();
+        }
+
+        overlayState.MarkApplied();
+    }
+
+    // 파티클 머티리얼의 depth test를 항상 통과하도록 런타임 값만 보정한다
+    private static void ConfigureOverlayMaterial(Material material)
+    {
+        if (material == null)
+        {
+            return;
+        }
+
+        if (material.HasProperty("_ZTest"))
+        {
+            material.SetFloat("_ZTest", 8.0f);
+        }
+
+        if (material.HasProperty("_Zwrite"))
+        {
+            material.SetFloat("_Zwrite", 0.0f);
+        }
+
+        if (material.HasProperty("_ZWrite"))
+        {
+            material.SetFloat("_ZWrite", 0.0f);
+        }
+
+        if (material.HasProperty("_SoftParticles"))
+        {
+            material.SetFloat("_SoftParticles", 0.0f);
+        }
+
+        material.renderQueue = 5000;
     }
 
     // 코어 라인을 현재 체인 시작점과 끝점에 맞춰 갱신한다
@@ -356,5 +427,18 @@ public static class ElectroChainLinkEffectUtility
             Rotation = rotation;
             Scale = scale;
         }
+    }
+}
+
+// 체인 링크 파티클 렌더러 오버레이 머티리얼 적용 여부를 보관한다.
+[DisallowMultipleComponent]
+internal class ElectroChainLinkOverlayMaterialState : MonoBehaviour
+{
+    public bool IsApplied { get; private set; }
+
+    // 렌더러 오버레이 머티리얼 적용 완료 상태로 표시한다
+    public void MarkApplied()
+    {
+        IsApplied = true;
     }
 }

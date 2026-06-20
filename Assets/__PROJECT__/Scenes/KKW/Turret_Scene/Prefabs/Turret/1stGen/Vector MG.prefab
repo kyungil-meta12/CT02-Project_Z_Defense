@@ -746,15 +746,15 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: -8679921383154817045, guid: 069723a5a664cfa4a83d609667cbf8fa, type: 3}
       propertyPath: m_LocalScale.x
-      value: 1
+      value: 0.8
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 069723a5a664cfa4a83d609667cbf8fa, type: 3}
       propertyPath: m_LocalScale.y
-      value: 1
+      value: 0.8
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 069723a5a664cfa4a83d609667cbf8fa, type: 3}
       propertyPath: m_LocalScale.z
-      value: 1
+      value: 0.8
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 069723a5a664cfa4a83d609667cbf8fa, type: 3}
       propertyPath: m_LocalPosition.x
@@ -894,6 +894,8 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 128
   pivotObject: {fileID: 5546561854665069273}
+  aimHeightRatio: 0.35
+  targetCandidateFilterBehaviours: []
   showDebug: 0
   useHorizontalDistance: 1
   requireLineOfSight: 1
@@ -997,6 +999,7 @@ MonoBehaviour:
   - {fileID: 1216955966848438413}
   applyOnStart: 1
   applyOnInspectorChange: 1
+  damageMultiplier: 1
 --- !u!4 &7999298050119078665 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 069723a5a664cfa4a83d609667cbf8fa, type: 3}

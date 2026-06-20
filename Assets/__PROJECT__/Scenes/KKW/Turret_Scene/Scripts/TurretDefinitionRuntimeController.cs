@@ -286,7 +286,6 @@ public class TurretDefinitionRuntimeController : MonoBehaviour
 
         PlayEvolutionEffect(evolutionEntry);
         GameObject evolvedObject = Instantiate(evolutionEntry.targetDefinition.basePrefab, transform.position, transform.rotation, transform.parent);
-        evolvedObject.transform.localScale = transform.localScale;
 
         TurretDefinitionRuntimeController evolvedRuntimeController = evolvedObject.GetComponent<TurretDefinitionRuntimeController>();
         if (evolvedRuntimeController == null)

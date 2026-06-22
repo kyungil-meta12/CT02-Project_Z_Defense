@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System;
 using UnityEngine;
 
 /// <summary>
@@ -20,6 +21,7 @@ public class TurretEngineerBuffReceiver : MonoBehaviour
 
     private readonly List<Survivor> engineers = new List<Survivor>(4);
 
+    public static event Action<TurretEngineerBuffReceiver> OnBuffStateChanged;
     public int EngineerCount => engineers.Count;
 
     // 컴포넌트 추가 시 필요한 참조를 자동으로 수집한다
@@ -44,6 +46,19 @@ public class TurretEngineerBuffReceiver : MonoBehaviour
     // 엔지니어를 중복 없이 등록하고 버프를 갱신한다
     public bool TryRegisterEngineer(Survivor engineer)
     {
+        if (!CanRegisterEngineer(engineer))
+        {
+            return false;
+        }
+
+        engineers.Add(engineer);
+        ApplyBuff();
+        return true;
+    }
+
+    // 지정 엔지니어를 새로 등록할 수 있는지 확인한다
+    public bool CanRegisterEngineer(Survivor engineer)
+    {
         if (engineer == null)
         {
             return false;
@@ -57,9 +72,18 @@ public class TurretEngineerBuffReceiver : MonoBehaviour
             }
         }
 
-        engineers.Add(engineer);
-        ApplyBuff();
         return true;
+    }
+
+    // 지정 인덱스의 탑승 엔지니어를 반환한다
+    public Survivor GetEngineerAt(int index)
+    {
+        if (index < 0 || index >= engineers.Count)
+        {
+            return null;
+        }
+
+        return engineers[index];
     }
 
     // 엔지니어 등록을 해제하고 버프를 갱신한다
@@ -96,6 +120,8 @@ public class TurretEngineerBuffReceiver : MonoBehaviour
         {
             runtimeController.Apply();
         }
+
+        OnBuffStateChanged?.Invoke(this);
     }
 
     // 등록된 모든 엔지니어에게 배치 해제를 알리고 목록을 비운다

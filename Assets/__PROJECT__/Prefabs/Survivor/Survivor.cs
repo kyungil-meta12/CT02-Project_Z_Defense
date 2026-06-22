@@ -24,6 +24,7 @@ public class Survivor : MonoBehaviour
         EngineerReady,
         MovingToEngineerStandby,
         EngineerAssigned,
+        ReturningToEngineerGathering,
         Vaulting
     }
 
@@ -342,7 +343,7 @@ public class Survivor : MonoBehaviour
             return false;
         }
 
-        if (!buffReceiver.TryRegisterEngineer(this))
+        if (!buffReceiver.CanRegisterEngineer(this))
         {
             return false;
         }
@@ -353,7 +354,12 @@ public class Survivor : MonoBehaviour
 
         if (standbyPoint == null)
         {
-            ChangeState(SurvivorState.EngineerReady);
+            if (!CompleteEngineerBoarding())
+            {
+                ClearEngineerAssignment();
+                ChangeState(SurvivorState.EngineerReady);
+                return false;
+            }
         }
         else
         {
@@ -392,9 +398,34 @@ public class Survivor : MonoBehaviour
         assignedEngineerBuffReceiver = null;
         if (role == SurvivorRole.engineer)
         {
+            SetInteractionVisible(true);
             defenseMoveTarget = null;
             ChangeState(SurvivorState.EngineerReady);
         }
+    }
+
+    // 탑승 중인 엔지니어를 터렛에서 내리고 집결 지점으로 이동시킨다
+    public bool TryDismountEngineerFromTurret()
+    {
+        if (role != SurvivorRole.engineer || assignedEngineerBuffReceiver == null)
+        {
+            return false;
+        }
+
+        ClearEngineerAssignment();
+        assignedTurretSlot = null;
+        SetInteractionVisible(true);
+
+        if (finalRearPoint == null)
+        {
+            defenseMoveTarget = null;
+            ChangeState(SurvivorState.EngineerReady);
+            return true;
+        }
+
+        defenseMoveTarget = finalRearPoint;
+        ChangeState(SurvivorState.ReturningToEngineerGathering);
+        return true;
     }
 
     // NavMeshAgent 이동 수치를 지정한 정지 거리로 맞춘다
@@ -431,6 +462,7 @@ public class Survivor : MonoBehaviour
             case SurvivorState.MovingToHospital:
             case SurvivorState.ReturningFromHospital:
             case SurvivorState.MovingToEngineerStandby:
+            case SurvivorState.ReturningToEngineerGathering:
                 UpdateDefensePointMove();
                 break;
             case SurvivorState.InTreatment:
@@ -832,6 +864,9 @@ public class Survivor : MonoBehaviour
             case SurvivorState.MovingToEngineerStandby:
                 defenseMoveTarget = assignedTurretSlot == null ? null : assignedTurretSlot.BuildPoint;
                 break;
+            case SurvivorState.ReturningToEngineerGathering:
+                defenseMoveTarget = finalRearPoint;
+                break;
         }
 
         return defenseMoveTarget != null;
@@ -1136,7 +1171,8 @@ public class Survivor : MonoBehaviour
             || state == SurvivorState.RescueEntering
             || state == SurvivorState.MovingToHospital
             || state == SurvivorState.ReturningFromHospital
-            || state == SurvivorState.MovingToEngineerStandby;
+            || state == SurvivorState.MovingToEngineerStandby
+            || state == SurvivorState.ReturningToEngineerGathering;
     }
 
     // 상태를 변경하고 진입 처리를 적용한다
@@ -1175,7 +1211,8 @@ public class Survivor : MonoBehaviour
         if (state == SurvivorState.RescueEntering ||
             state == SurvivorState.MovingToHospital ||
             state == SurvivorState.ReturningFromHospital ||
-            state == SurvivorState.MovingToEngineerStandby)
+            state == SurvivorState.MovingToEngineerStandby ||
+            state == SurvivorState.ReturningToEngineerGathering)
         {
             ConfigureAgent(defensePointStoppingDistance);
             destinationRefreshTimer = 0f;
@@ -1222,10 +1259,17 @@ public class Survivor : MonoBehaviour
                 ChangeState(SurvivorState.TreatmentReady);
                 break;
             case SurvivorState.MovingToEngineerStandby:
-                ChangeState(SurvivorState.EngineerAssigned);
+                if (!CompleteEngineerBoarding())
+                {
+                    ClearEngineerAssignment();
+                    ChangeState(SurvivorState.EngineerReady);
+                }
                 break;
             case SurvivorState.ReturningFromHospital:
                 ChangeState(SurvivorState.RoleSelectionReady);
+                break;
+            case SurvivorState.ReturningToEngineerGathering:
+                ChangeState(SurvivorState.EngineerReady);
                 break;
             case SurvivorState.MovingToHospital:
                 ChangeState(SurvivorState.InTreatment);
@@ -1252,6 +1296,26 @@ public class Survivor : MonoBehaviour
 
         assignedEngineerBuffReceiver.UnregisterEngineer(this);
         assignedEngineerBuffReceiver = null;
+    }
+
+    // 엔지니어가 터렛 위치에 도착했을 때 실제 버프 등록과 탑승 숨김 처리를 완료한다
+    private bool CompleteEngineerBoarding()
+    {
+        if (assignedEngineerBuffReceiver == null)
+        {
+            return false;
+        }
+
+        if (!assignedEngineerBuffReceiver.TryRegisterEngineer(this))
+        {
+            Debug.LogWarning("[Survivor] 엔지니어 터렛 탑승 등록에 실패했습니다.", this);
+            return false;
+        }
+
+        defenseMoveTarget = null;
+        ChangeState(SurvivorState.EngineerAssigned);
+        SetInteractionVisible(false);
+        return true;
     }
 
     // 치료 중 시각 오브젝트와 상호작용 콜라이더 노출을 전환한다

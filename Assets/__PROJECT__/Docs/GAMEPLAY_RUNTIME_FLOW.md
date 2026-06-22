@@ -189,8 +189,11 @@ Runtime behavior:
 7. Rescue survivors can spawn at wave start from `SurvivorRescueSpawner`; `SurvivorRescueSpawnProfileSO` decides whether the current wave attempts a spawn and which chance to use.
 8. Spawned rescue survivors move from zombie spawn points to the final rear point, wait for treatment, move to the hospital, hide for the treatment timer, return, and then wait for role selection.
 9. Treated survivors can become `constructionWorker` or `engineer` through `SurvivorInteractionController`.
-10. Engineers can be clicked first and then assigned by selecting a turret target button in the engineer buff target UI; the target turret receives a stackable damage buff through `TurretEngineerBuffReceiver`.
-11. Long movement time logs a throttled warning but does not cancel the current movement target.
+10. Engineers can be clicked first and then assigned by selecting a turret target button in the engineer buff target UI.
+11. The selected engineer moves to the target turret's standby/build point before the turret receives the stackable damage buff through `TurretEngineerBuffReceiver`.
+12. When the engineer reaches the turret, the survivor is hidden as a mounted engineer and the turret upgrade popup can show an engineer seat trigger for that turret.
+13. Clicking an active engineer seat trigger dismounts that engineer, removes the turret buff, shows the survivor again, and sends the engineer back to the rear gathering point when one is assigned.
+14. Long movement time logs a throttled warning but does not cancel the current movement target.
 
 Repair target policy:
 
@@ -259,3 +262,4 @@ Runtime policy:
 - Spawner wait coroutine running when game over starts.
 - Destroyed or missing stored obstacle definition during defense-line rebuild.
 - Engineer assigned turret slot missing or empty during reassign.
+- Mounted engineer hidden state not restored after dismount, turret disable, or game-over reset.

@@ -222,6 +222,7 @@ Minimum scene requirements:
 - Keep `TurretPlacementUI.rebuildOnStart` disabled unless runtime-generated legacy buttons are intentionally needed.
 - Create the turret upgrade/evolution popup from `Project Z Defense > UI > Create Turret Upgrade Popup UI`; the runtime popup controller expects serialized scene UI references and a full-screen transparent `BackgroundButton`.
 - The transparent `BackgroundButton` should cover the screen, have an alpha-0 `Image` with `raycastTarget` enabled, and call `TurretTemporaryUpgradePopupUI.OnBackgroundButtonClicked`.
+- The generated popup includes `EngineerSeatTriggers` above the main upgrade content. Keep the desired number of `TurretEngineerSeatButton` children in that container and match `engineerSeatTriggerCount` on `TurretTemporaryUpgradePopupUI`.
 - `turretBaseLayerMask` includes only intended turret base hit areas.
 - Each `TurretBaseSlot` has `BuildPoint` and `PlacementHitArea`.
 - `PlacementHitArea` collider is on the expected layer.

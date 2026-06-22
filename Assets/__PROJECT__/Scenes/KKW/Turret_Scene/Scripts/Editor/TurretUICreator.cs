@@ -15,6 +15,7 @@ internal static class TurretUICreator
     private const string UPGRADE_ROOT_NAME = "TurretUpgradePopup";
     private const int DEFAULT_PLACEMENT_SLOT_COUNT = 4;
     private const int DEFAULT_EVOLUTION_BUTTON_COUNT = 4;
+    private const int DEFAULT_ENGINEER_SEAT_BUTTON_COUNT = 4;
 
     [MenuItem(PLACEMENT_MENU_PATH)]
     // 메뉴 실행 시 터렛 배치 UI Canvas와 수동 배치 버튼을 현재 씬에 생성하거나 기존 UI를 선택한다
@@ -72,6 +73,8 @@ internal static class TurretUICreator
         Button backgroundButton = CreateTransparentBackgroundButton(popupObject.transform);
         GameObject panelObject = CreateUpgradePopupPanel(backgroundButton.transform);
 
+        GameObject engineerSeatContainer = CreateEngineerSeatContainer(panelObject.transform);
+        TurretEngineerSeatButton[] engineerSeatButtons = CreateEngineerSeatButtons(engineerSeatContainer.transform, DEFAULT_ENGINEER_SEAT_BUTTON_COUNT);
         TMP_Text titleText = CreateText("Title", panelObject.transform, "Turret", 34, FontStyles.Bold, TextAlignmentOptions.Left);
         TMP_Text levelText = CreateText("Level", panelObject.transform, "Tier Lv.", 24, FontStyles.Normal, TextAlignmentOptions.Left);
         TMP_Text statusText = CreateText("Status", panelObject.transform, "No turret selected.", 22, FontStyles.Bold, TextAlignmentOptions.Left);
@@ -112,6 +115,9 @@ internal static class TurretUICreator
             nextStatText,
             levelUpButton,
             levelUpButtonText,
+            engineerSeatContainer.GetComponent<RectTransform>(),
+            DEFAULT_ENGINEER_SEAT_BUTTON_COUNT,
+            engineerSeatButtons,
             evolutionContainer.GetComponent<RectTransform>(),
             evolutionButtons,
             evolutionIcons,
@@ -248,7 +254,11 @@ internal static class TurretUICreator
     {
         SerializedObject serializedObject = new SerializedObject(popupUI);
         SerializedProperty popupRootProperty = serializedObject.FindProperty("popupPanel");
-        return popupRootProperty != null && popupRootProperty.objectReferenceValue != null;
+        SerializedProperty engineerSeatContainerProperty = serializedObject.FindProperty("engineerSeatContainer");
+        return popupRootProperty != null &&
+               popupRootProperty.objectReferenceValue != null &&
+               engineerSeatContainerProperty != null &&
+               engineerSeatContainerProperty.objectReferenceValue != null;
     }
 
     // 터렛 업그레이드 팝업 컨트롤러 루트 오브젝트를 생성한다
@@ -291,8 +301,8 @@ internal static class TurretUICreator
         panelRect.anchorMin = new Vector2(0.5f, 0.0f);
         panelRect.anchorMax = new Vector2(0.5f, 0.0f);
         panelRect.pivot = new Vector2(0.5f, 0.0f);
-        panelRect.anchoredPosition = new Vector2(0.0f, 360.0f);
-        panelRect.sizeDelta = new Vector2(920.0f, 540.0f);
+        panelRect.anchoredPosition = new Vector2(0.0f, 320.0f);
+        panelRect.sizeDelta = new Vector2(920.0f, 620.0f);
 
         Image background = panelObject.AddComponent<Image>();
         background.color = new Color(0.04f, 0.06f, 0.08f, 0.92f);
@@ -333,6 +343,38 @@ internal static class TurretUICreator
         buttonLayout.childForceExpandHeight = false;
         AddLayoutElement(buttonRow, 0.0f, 96.0f);
         return buttonRow;
+    }
+
+    // 엔지니어 탑승 해제 트리거 버튼 컨테이너를 생성한다
+    private static GameObject CreateEngineerSeatContainer(Transform parent)
+    {
+        GameObject seatRoot = CreateUIObject("EngineerSeatTriggers", parent);
+        HorizontalLayoutGroup seatLayout = seatRoot.AddComponent<HorizontalLayoutGroup>();
+        seatLayout.spacing = 10.0f;
+        seatLayout.childControlWidth = false;
+        seatLayout.childControlHeight = true;
+        seatLayout.childForceExpandWidth = false;
+        seatLayout.childForceExpandHeight = false;
+        AddLayoutElement(seatRoot, 0.0f, 52.0f);
+        seatRoot.SetActive(false);
+        return seatRoot;
+    }
+
+    // 기본 엔지니어 탑승 해제 트리거 버튼들을 생성한다
+    private static TurretEngineerSeatButton[] CreateEngineerSeatButtons(Transform parent, int count)
+    {
+        int safeCount = Mathf.Max(0, count);
+        TurretEngineerSeatButton[] seatButtons = new TurretEngineerSeatButton[safeCount];
+        for (int i = 0; i < safeCount; i++)
+        {
+            Button button = CreateButton($"EngineerSeatButton_{i + 1}", parent, "Engineer", new Color(0.62f, 0.44f, 0.16f, 0.95f));
+            AddLayoutElement(button.gameObject, 142.0f, 46.0f);
+            TurretEngineerSeatButton seatButton = button.gameObject.AddComponent<TurretEngineerSeatButton>();
+            button.gameObject.SetActive(false);
+            seatButtons[i] = seatButton;
+        }
+
+        return seatButtons;
     }
 
     // 진화 버튼 컨테이너를 생성한다
@@ -527,6 +569,9 @@ internal static class TurretUICreator
         TMP_Text nextStatText,
         Button levelUpButton,
         TMP_Text levelUpButtonText,
+        RectTransform engineerSeatContainer,
+        int engineerSeatTriggerCount,
+        TurretEngineerSeatButton[] engineerSeatButtons,
         RectTransform evolutionButtonContainer,
         Button[] evolutionButtons,
         Image[] evolutionIcons,
@@ -543,6 +588,9 @@ internal static class TurretUICreator
         serializedObject.FindProperty("nextStatText").objectReferenceValue = nextStatText;
         serializedObject.FindProperty("levelUpButton").objectReferenceValue = levelUpButton;
         serializedObject.FindProperty("levelUpButtonText").objectReferenceValue = levelUpButtonText;
+        serializedObject.FindProperty("engineerSeatContainer").objectReferenceValue = engineerSeatContainer;
+        serializedObject.FindProperty("engineerSeatTriggerCount").intValue = Mathf.Max(0, engineerSeatTriggerCount);
+        AssignObjectArray(serializedObject.FindProperty("engineerSeatButtons"), engineerSeatButtons);
         serializedObject.FindProperty("evolutionButtonContainer").objectReferenceValue = evolutionButtonContainer;
         AssignObjectArray(serializedObject.FindProperty("evolutionButtons"), evolutionButtons);
         AssignObjectArray(serializedObject.FindProperty("evolutionButtonIcons"), evolutionIcons);

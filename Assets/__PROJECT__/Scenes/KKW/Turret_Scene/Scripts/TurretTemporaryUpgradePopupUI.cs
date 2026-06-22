@@ -39,6 +39,9 @@ public class TurretTemporaryUpgradePopupUI : MonoBehaviour
     [SerializeField] private TMP_Text nextStatText;
     [SerializeField] private Button levelUpButton;
     [SerializeField] private TMP_Text levelUpButtonText;
+    [SerializeField] private RectTransform engineerSeatContainer;
+    [SerializeField, Min(0)] private int engineerSeatTriggerCount = 4;
+    [SerializeField] private TurretEngineerSeatButton[] engineerSeatButtons = Array.Empty<TurretEngineerSeatButton>();
     [SerializeField] private RectTransform evolutionButtonContainer;
     [SerializeField] private Button[] evolutionButtons = Array.Empty<Button>();
     [SerializeField] private Image[] evolutionButtonIcons = Array.Empty<Image>();
@@ -88,9 +91,16 @@ public class TurretTemporaryUpgradePopupUI : MonoBehaviour
         HidePopup();
     }
 
-    // 비활성화될 때 홀드 입력 상태를 해제한다
+    // 활성화될 때 엔지니어 탑승 상태 변경 이벤트를 구독한다
+    private void OnEnable()
+    {
+        TurretEngineerBuffReceiver.OnBuffStateChanged += OnEngineerBuffStateChanged;
+    }
+
+    // 비활성화될 때 홀드 입력 상태와 이벤트 구독을 해제한다
     private void OnDisable()
     {
+        TurretEngineerBuffReceiver.OnBuffStateChanged -= OnEngineerBuffStateChanged;
         EndLevelHold();
     }
 
@@ -159,7 +169,9 @@ public class TurretTemporaryUpgradePopupUI : MonoBehaviour
         nextStatText = nextStatText != null ? nextStatText : FindChildComponent<TMP_Text>(searchRoot, "StatsRow/NextStats/Text");
         levelUpButton = levelUpButton != null ? levelUpButton : FindChildComponent<Button>(searchRoot, "ButtonRow/LevelUpButton");
         levelUpButtonText = levelUpButtonText != null ? levelUpButtonText : levelUpButton == null ? null : levelUpButton.GetComponentInChildren<TMP_Text>(true);
+        engineerSeatContainer = engineerSeatContainer != null ? engineerSeatContainer : FindChildComponent<RectTransform>(searchRoot, "EngineerSeatTriggers");
         evolutionButtonContainer = evolutionButtonContainer != null ? evolutionButtonContainer : FindChildComponent<RectTransform>(searchRoot, "ButtonRow/EvolutionButtons");
+        BindEngineerSeatButtonReferences();
         BindEvolutionButtonReferences();
         BindButtonListeners();
     }
@@ -168,6 +180,30 @@ public class TurretTemporaryUpgradePopupUI : MonoBehaviour
     public void OnBackgroundButtonClicked()
     {
         HidePopup();
+    }
+
+    // 엔지니어 탑승 슬롯 버튼 입력으로 해당 엔지니어를 하차시킨다
+    public void OnEngineerSeatButtonClicked(int seatIndex)
+    {
+        if (selectedTurret == null || seatIndex < 0)
+        {
+            return;
+        }
+
+        TurretEngineerBuffReceiver buffReceiver = selectedTurret.GetComponent<TurretEngineerBuffReceiver>();
+        Survivor engineer = buffReceiver == null ? null : buffReceiver.GetEngineerAt(seatIndex);
+        if (engineer == null)
+        {
+            RefreshEngineerSeatButtons();
+            return;
+        }
+
+        if (!engineer.TryDismountEngineerFromTurret())
+        {
+            Debug.LogWarning("[TurretTemporaryUpgradePopupUI] 엔지니어 하차 요청을 처리하지 못했습니다.", engineer);
+        }
+
+        RefreshEngineerSeatButtons();
     }
 
     // 선택된 터렛과 슬롯을 저장하고 팝업을 표시한다
@@ -411,6 +447,7 @@ public class TurretTemporaryUpgradePopupUI : MonoBehaviour
         currentStatText.text = "Current\n" + FormatStats(currentStat);
         nextStatText.text = "Next\n" + FormatStats(nextStat);
         RefreshRangeIndicator(currentStat.range);
+        RefreshEngineerSeatButtons();
 
         int evolutionCount = selectedTurret.GetAvailableEvolutionCount();
         ResourceCost[] upgradeCosts = selectedTurret.GetUpgradeCosts(levelUpAmount);
@@ -440,6 +477,62 @@ public class TurretTemporaryUpgradePopupUI : MonoBehaviour
         }
 
         RefreshEvolutionButtons(evolutionCount);
+    }
+
+    // 선택된 터렛의 엔지니어 탑승 상태를 상단 트리거 버튼에 반영한다
+    private void RefreshEngineerSeatButtons()
+    {
+        if (engineerSeatContainer == null || engineerSeatButtons == null)
+        {
+            return;
+        }
+
+        TurretEngineerBuffReceiver buffReceiver = selectedTurret == null ? null : selectedTurret.GetComponent<TurretEngineerBuffReceiver>();
+        int visibleCount = 0;
+        int targetCount = Mathf.Min(Mathf.Max(0, engineerSeatTriggerCount), engineerSeatButtons.Length);
+
+        for (int i = 0; i < targetCount; i++)
+        {
+            TurretEngineerSeatButton seatButton = engineerSeatButtons[i];
+            if (seatButton == null)
+            {
+                continue;
+            }
+
+            Survivor engineer = buffReceiver == null ? null : buffReceiver.GetEngineerAt(i);
+            bool isVisible = engineer != null;
+            seatButton.gameObject.SetActive(isVisible);
+            if (!isVisible)
+            {
+                seatButton.Clear();
+                continue;
+            }
+
+            seatButton.Configure(this, i, "Engineer " + (i + 1));
+            visibleCount++;
+        }
+
+        for (int i = targetCount; i < engineerSeatButtons.Length; i++)
+        {
+            if (engineerSeatButtons[i] == null)
+            {
+                continue;
+            }
+
+            engineerSeatButtons[i].Clear();
+            engineerSeatButtons[i].gameObject.SetActive(false);
+        }
+    }
+
+    // 선택 터렛의 엔지니어 버프 상태가 바뀌면 탑승 슬롯 UI를 갱신한다
+    private void OnEngineerBuffStateChanged(TurretEngineerBuffReceiver buffReceiver)
+    {
+        if (selectedTurret == null || buffReceiver == null || buffReceiver.gameObject != selectedTurret.gameObject)
+        {
+            return;
+        }
+
+        RefreshEngineerSeatButtons();
     }
 
     // 현재 선택 터렛의 사용 가능한 진화 후보를 미리 배치된 버튼 목록에 반영한다
@@ -509,6 +602,67 @@ public class TurretTemporaryUpgradePopupUI : MonoBehaviour
             evolutionButtonLabels[buttonIndex] = evolutionButtonLabels[buttonIndex] != null ? evolutionButtonLabels[buttonIndex] : button.GetComponentInChildren<TMP_Text>(true);
             buttonIndex++;
         }
+    }
+
+    // 에디터 배치 엔지니어 탑승 버튼의 내부 참조를 배열에 맞춰 수집한다
+    private void BindEngineerSeatButtonReferences()
+    {
+        if (engineerSeatContainer == null)
+        {
+            return;
+        }
+
+        int childButtonCount = CountEngineerSeatButtons(engineerSeatContainer);
+        int targetCount = Mathf.Max(Mathf.Max(0, engineerSeatTriggerCount), Mathf.Max(childButtonCount, engineerSeatButtons == null ? 0 : engineerSeatButtons.Length));
+        EnsureEngineerSeatReferenceArraySizes(targetCount);
+
+        int buttonIndex = 0;
+        for (int i = 0; i < engineerSeatContainer.childCount && buttonIndex < targetCount; i++)
+        {
+            TurretEngineerSeatButton button = engineerSeatContainer.GetChild(i).GetComponent<TurretEngineerSeatButton>();
+            if (button == null)
+            {
+                continue;
+            }
+
+            engineerSeatButtons[buttonIndex] = engineerSeatButtons[buttonIndex] != null ? engineerSeatButtons[buttonIndex] : button;
+            buttonIndex++;
+        }
+    }
+
+    // 엔지니어 탑승 버튼 참조 배열의 길이를 필요한 크기로 맞춘다
+    private void EnsureEngineerSeatReferenceArraySizes(int targetCount)
+    {
+        int safeCount = Mathf.Max(0, targetCount);
+        if (engineerSeatButtons == null)
+        {
+            engineerSeatButtons = Array.Empty<TurretEngineerSeatButton>();
+        }
+
+        if (engineerSeatButtons.Length < safeCount)
+        {
+            Array.Resize(ref engineerSeatButtons, safeCount);
+        }
+    }
+
+    // 엔지니어 탑승 버튼 컨테이너의 직접 자식 버튼 수를 센다
+    private static int CountEngineerSeatButtons(RectTransform container)
+    {
+        if (container == null)
+        {
+            return 0;
+        }
+
+        int count = 0;
+        for (int i = 0; i < container.childCount; i++)
+        {
+            if (container.GetChild(i).GetComponent<TurretEngineerSeatButton>() != null)
+            {
+                count++;
+            }
+        }
+
+        return count;
     }
 
     // 진화 버튼 참조 배열의 길이를 필요한 크기로 맞춘다
@@ -865,6 +1019,7 @@ public class TurretTemporaryUpgradePopupUI : MonoBehaviour
         EndLevelHold();
         selectedTurret = null;
         selectedSlot = null;
+        RefreshEngineerSeatButtons();
         HideRangeIndicator();
 
         if (popupPanel != null)

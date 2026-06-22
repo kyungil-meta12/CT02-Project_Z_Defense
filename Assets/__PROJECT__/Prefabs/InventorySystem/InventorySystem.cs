@@ -235,7 +235,7 @@ public class InventorySystem : MonoBehaviour
     {
         if(amount <= 0)
         {
-            Debug.LogError($"[InventorySystem] 0개 또는 음수 추가를 시도함 | 추가 시도 타입: {itemType}");
+            Debug.Log($"[InventorySystem] 0개 또는 음수 추가를 시도함 | 추가 시도 타입: {itemType}");
             return;
         }
         if (!itemDict.ContainsKey(itemType))

@@ -15,9 +15,19 @@ MonoBehaviour:
   stages:
   - wave: 1
     spawnChance: 1
-  - wave: 10
-    spawnChance: 0.3
-  - wave: 100
+  - wave: 2
     spawnChance: 1
-  - wave: 101
+  - wave: 4
+    spawnChance: 1
+  - wave: 10
+    spawnChance: 1
+  - wave: 15
+    spawnChance: 1
+  - wave: 20
+    spawnChance: 1
+  - wave: 30
+    spawnChance: 1
+  - wave: 40
+    spawnChance: 1
+  - wave: 50
     spawnChance: 1

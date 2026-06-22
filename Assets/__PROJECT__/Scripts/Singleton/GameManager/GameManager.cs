@@ -39,6 +39,7 @@ public class GameManager : MonoBehaviour
     [SerializeField, Min(0.0f)] private float gameOverFadeOutDuration = 10.0f;
 
     public event Action<int> OnWaveIncrease; // 웨이브 증가 이벤트
+    public event Action<int> OnWaveDecrease; // 웨이브 감소 이벤트
     private readonly List<Survivor> survivors = new List<Survivor>(16);
     private readonly List<ZombieSpawner> zombieSpawners = new List<ZombieSpawner>(2);
     private Coroutine gameOverCoroutine;
@@ -929,6 +930,7 @@ public class GameManager : MonoBehaviour
         }
 
         InputDestKillCount(totalSpawnCount);
+        OnWaveDecrease?.Invoke(Wave);
     }
 
     // 준비된 좀비 스포너를 다시 실행한다

@@ -2,6 +2,9 @@ using System.Collections;
 using TMPro;
 using UnityEngine;
 
+/// <summary>
+/// 현재 웨이브 숫자와 웨이브 변경 팝업 표시를 관리한다.
+/// </summary>
 public class WaveIndicator : MonoBehaviour
 {
     public UIAnimationValue animValue;
@@ -11,6 +14,7 @@ public class WaveIndicator : MonoBehaviour
     private Vector2 currScale;
     private RectTransform rt;
 
+    // 웨이브 텍스트의 초기 스케일과 기본 표시값을 준비한다
     void Awake()
     {
         text.text = "1";
@@ -19,26 +23,28 @@ public class WaveIndicator : MonoBehaviour
         currScale = originScale;
     }
 
+    // 게임 매니저 이벤트를 구독하고 시작 웨이브를 표시한다
     void Start()
     {
-        // 게임 매니저 웨이브 증가 이벤트 구독
         GameManager.Inst.OnWaveIncrease += OnWaveChange;
+        GameManager.Inst.OnWaveDecrease += OnWaveChange;
 
-        // 시작 웨이브를 텍스트로 설정
         text.text = GameManager.Inst.Wave.ToString();
 
-        // 팝업 활성화
         EnablePopup();
     }
 
+    // 게임 매니저 이벤트 구독을 해제한다
     void OnDestroy()
     {
         if(GameManager.Inst)
         {
             GameManager.Inst.OnWaveIncrease -= OnWaveChange;
+            GameManager.Inst.OnWaveDecrease -= OnWaveChange;
         }
     }
 
+    // 웨이브 텍스트 변경 애니메이션 스케일을 원래 크기로 되돌린다
     void Update()
     {
         currScale = Vector2.Lerp(currScale, originScale, Time.deltaTime * animValue.ScaleReturnLerpSpeed);
@@ -49,6 +55,7 @@ public class WaveIndicator : MonoBehaviour
     /// 웨이브 증가 시 웨이브 인디케이터에 반영한다.
     /// </summary>
     /// <param name="val"></param>
+    // 웨이브 변경 값을 텍스트와 팝업에 반영한다
     public void OnWaveChange(int val)
     {
         text.text = val.ToString();
@@ -56,13 +63,13 @@ public class WaveIndicator : MonoBehaviour
         EnablePopup();
     }
 
-    // 팝업 활성화
+    // 웨이브 변경 팝업 표시 코루틴을 시작한다
     void EnablePopup()
     {
         StartCoroutine(PopupCoroutine());
     }
 
-    // 0.5초 후에 팝업이 활성화 된다.
+    // 0.5초 후에 현재 웨이브 팝업을 활성화한다
     IEnumerator PopupCoroutine()
     {
         yield return new WaitForSeconds(0.5f);

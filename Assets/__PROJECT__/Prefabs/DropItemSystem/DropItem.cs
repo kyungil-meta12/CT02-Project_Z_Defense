@@ -42,7 +42,7 @@ public class DropItem : PoolObject
     /// </summary>
     public void GetItem()
     {
-        print($"[DropItem] 아이템 회수 됨 | 아이템: {gameObject.name} | 획득량: {dropCount}");
+        //print($"[DropItem] 아이템 회수 됨 | 아이템: {gameObject.name} | 획득량: {dropCount}");
 
         // 아이템 매니저에 보상 개수만큼 추가
         InventorySystem.Inst.AddItem(rewardType, dropCount);

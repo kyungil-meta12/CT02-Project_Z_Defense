@@ -17,6 +17,7 @@ This document summarizes the current runtime flow for waves, zombies, obstacles,
 9. Zombies notify kill progress through `GameManager.IncreaseKillCount` when their death flow completes.
 10. `GameManager.Update` increases `Wave` when `KillCount == DestKillCount` and invokes `OnWaveIncrease`.
 11. `ZombieSpawner` receives the next wave and recalculates spawn settings from the active wave profile.
+12. Game-over restart lowers the active wave through `PreparePreviousWaveRestart` and invokes `OnWaveDecrease` for UI systems that must refresh on rollback.
 
 ## Normal Zombie Role Specs
 
@@ -231,7 +232,7 @@ Gate breach flow:
 5. After fade-in, registered spawners return their tracked active zombies to `MemoryPool`.
 6. `GameManager` rebuilds registered defense-line slots from stored obstacle definition/level and restores surviving obstacles to full HP.
 7. Engineer survivors attempt to re-register their buff to the last stored turret slot.
-8. `GameManager` prepares `max(1, currentWave - 1)`, resets kill count, and asks spawners to prepare that wave from the beginning.
+8. `GameManager` prepares the rollback wave, resets kill count, asks spawners to prepare that wave from the beginning, and invokes `OnWaveDecrease` for display updates.
 9. `GameOverPanelUI` fades out from opaque to transparent.
 10. Registered spawners resume spawning.
 

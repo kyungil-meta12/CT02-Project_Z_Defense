@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9fb77552a118a05468b369f46109ba8f, type: 3}
   m_Name: Screamer
   m_EditorClassIdentifier: Assembly-CSharp::BossZombieSpec
-  MoveSpeed: 2
+  MoveSpeed: 4
   AttackSpeed: 0.8
   MinMoveAttackSpeed: 0.9
   MaxMoveAttackSpeed: 1.1
@@ -23,3 +23,4 @@ MonoBehaviour:
   Hp: 1000
   MinHp: 0.9
   MaxHp: 1.1
+  RewardProfile: {fileID: 0}

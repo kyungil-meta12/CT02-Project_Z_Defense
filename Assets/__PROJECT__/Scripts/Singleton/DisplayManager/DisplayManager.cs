@@ -1,5 +1,4 @@
 using UnityEngine;
-using UnityEngine.iOS;
 
 public class DisplayManager : MonoBehaviour
 {

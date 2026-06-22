@@ -93,7 +93,8 @@ Important policy:
 - Fractured obstacles and fracture pieces are not treated as slot occupants.
 - A breached defense line is a state on `GameManager.DefenseLineEntry`; restoration must call `NotifyDefenseLineRestored`.
 - Defense lines are managed by slots, not a direct obstacle list.
-- Current required slot counts are 1st line `3`, 2nd line `3`, 3rd line `1` gate slot.
+- Current main-scene slot counts are 1st line `3`, 2nd line `3`, 3rd line `3`, and 4th line `1` gate slot.
+- At startup, any registered defense line with empty slots is initialized as breached so survivors use the same retreat/repair-blocking policy as a runtime breach.
 
 ## Obstacle Placement Flow
 
@@ -108,7 +109,7 @@ Important policy:
 9. If the obstacle prefab is invalid and placement fails after spending, the deducted costs are refunded.
 10. The placed obstacle receives its `ObstacleDefinitionSO` and inherited or initial level through `ObstacleUpgradeRuntimeController`.
 11. The placed obstacle is assigned to the slot and `GameManager.NotifyObstaclePlaced` is called.
-12. If the line was breached and all required slots are occupied again, `GameManager.NotifyDefenseLineRestored` restores that defense line.
+12. If the line was breached and all registered slots on that defense line are occupied again, `GameManager.NotifyDefenseLineRestored` restores that defense line.
 
 `ObstaclePlacementUI` remains available as an optional runtime rebuild helper, but manual scene buttons are the default setup.
 

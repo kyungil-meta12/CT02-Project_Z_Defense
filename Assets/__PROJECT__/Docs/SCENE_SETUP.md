@@ -44,8 +44,8 @@ Rules:
 - Retreat and restored points must be on reachable NavMesh or near valid NavMesh sampling positions.
 - Defense-line index order matters. Lower index means earlier/front line.
 - A survivor that retreated behind line `N` must not repair obstacles with index `<= N` until return completes.
-- Required slot counts are 1st line `3`, 2nd line `3`, 3rd line `1`.
-- The 3rd line slot should use `Gate` slot type.
+- Current main-scene slot counts are 1st line `3`, 2nd line `3`, 3rd line `3`, and 4th line `1`.
+- The 4th line slot should use `Gate` slot type.
 
 ## Obstacle Build Slot Setup
 
@@ -73,7 +73,8 @@ Slot layout:
 | --- | --- | --- |
 | 1st line, index `0` | 3 | `Obstacle` |
 | 2nd line, index `1` | 3 | `Obstacle` |
-| 3rd line, index `2` | 1 | `Gate` |
+| 3rd line, index `2` | 3 | `Obstacle` |
+| 4th line, index `3` | 1 | `Gate` |
 
 Rules:
 
@@ -133,6 +134,7 @@ The menu creates an editable `ObstacleUpgradePopupCanvas` and `ObstacleUpgradePo
 Setup notes:
 
 - `ObstacleUpgradePopupUI.selectionLayerMask` must include the layers used by installed obstacle colliders.
+- The generated popup uses a full-screen transparent `BackgroundButton`; it should have an alpha-0 `Image` with `raycastTarget` enabled and call `ObstacleUpgradePopupUI.OnBackgroundButtonClicked`.
 - Installed obstacles must have an `ObstacleUpgradeRuntimeController` with a valid `ObstacleDefinitionSO`.
 - The popup hides while `ObstaclePlacementController` is actively placing an obstacle.
 - The first-pass UI supports one-level upgrades, current HP display, next cost display, max-level state, repair-reserved state, and level-based prefab replacement notice.
@@ -216,6 +218,10 @@ For turret placement details, use `TURRET_SYSTEM.md` as the source of truth.
 Minimum scene requirements:
 
 - `TurretPlacementController` has a target camera or `Camera.main` exists.
+- Create editable turret placement buttons from `Project Z Defense > UI > Create Turret Placement UI`, or place `TurretPlacementSlotUI` buttons manually and assign `placementController` plus `TurretShopEntrySO`.
+- Keep `TurretPlacementUI.rebuildOnStart` disabled unless runtime-generated legacy buttons are intentionally needed.
+- Create the turret upgrade/evolution popup from `Project Z Defense > UI > Create Turret Upgrade Popup UI`; the runtime popup controller expects serialized scene UI references and a full-screen transparent `BackgroundButton`.
+- The transparent `BackgroundButton` should cover the screen, have an alpha-0 `Image` with `raycastTarget` enabled, and call `TurretTemporaryUpgradePopupUI.OnBackgroundButtonClicked`.
 - `turretBaseLayerMask` includes only intended turret base hit areas.
 - Each `TurretBaseSlot` has `BuildPoint` and `PlacementHitArea`.
 - `PlacementHitArea` collider is on the expected layer.

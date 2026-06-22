@@ -31,7 +31,8 @@ internal static class ObstacleUpgradePopupUICreator
         GameObject canvasObject = CreateCanvas();
         GameObject popupObject = CreatePopupRoot(canvasObject.transform);
         ObstacleUpgradePopupUI popupUI = popupObject.AddComponent<ObstacleUpgradePopupUI>();
-        GameObject panelObject = CreatePopupPanel(popupObject.transform);
+        Button backgroundButton = CreateTransparentBackgroundButton(popupObject.transform);
+        GameObject panelObject = CreatePopupPanel(backgroundButton.transform);
 
         TMP_Text titleText = CreateText("Title", panelObject.transform, "Obstacle", 30, FontStyles.Bold, TextAlignmentOptions.Left);
         TMP_Text levelText = CreateText("Level", panelObject.transform, "Lv.", 22, FontStyles.Normal, TextAlignmentOptions.Left);
@@ -42,7 +43,7 @@ internal static class ObstacleUpgradePopupUICreator
         TMP_Text upgradeButtonText = upgradeButton.GetComponentInChildren<TMP_Text>(true);
         AddLayoutElement(upgradeButton.gameObject, 0.0f, 76.0f);
 
-        AssignPopupReferences(popupUI, panelObject.GetComponent<RectTransform>(), titleText, levelText, hpText, costText, statusText, upgradeButton, upgradeButtonText);
+        AssignPopupReferences(popupUI, backgroundButton.GetComponent<RectTransform>(), backgroundButton, titleText, levelText, hpText, costText, statusText, upgradeButton, upgradeButtonText);
 
         Undo.RegisterCreatedObjectUndo(canvasObject, "Create Obstacle Upgrade Popup UI");
         Selection.activeGameObject = popupObject;
@@ -55,7 +56,9 @@ internal static class ObstacleUpgradePopupUICreator
     {
         SerializedObject serializedObject = new SerializedObject(popupUI);
         SerializedProperty popupRootProperty = serializedObject.FindProperty("popupPanel");
-        return popupRootProperty != null && popupRootProperty.objectReferenceValue != null;
+        SerializedProperty backgroundButtonProperty = serializedObject.FindProperty("backgroundButton");
+        return popupRootProperty != null && popupRootProperty.objectReferenceValue != null &&
+               backgroundButtonProperty != null && backgroundButtonProperty.objectReferenceValue != null;
     }
 
     // 팝업을 담을 Screen Space Overlay Canvas를 생성한다
@@ -79,23 +82,43 @@ internal static class ObstacleUpgradePopupUICreator
     {
         GameObject popupObject = CreateUIObject(POPUP_NAME, parent);
         RectTransform popupRect = popupObject.GetComponent<RectTransform>();
-        popupRect.anchorMin = new Vector2(0.5f, 0.0f);
-        popupRect.anchorMax = new Vector2(0.5f, 0.0f);
-        popupRect.pivot = new Vector2(0.5f, 0.0f);
-        popupRect.anchoredPosition = new Vector2(0.0f, 280.0f);
-        popupRect.sizeDelta = new Vector2(760.0f, 360.0f);
+        popupRect.anchorMin = Vector2.zero;
+        popupRect.anchorMax = Vector2.one;
+        popupRect.pivot = new Vector2(0.5f, 0.5f);
+        popupRect.anchoredPosition = Vector2.zero;
+        popupRect.sizeDelta = Vector2.zero;
         return popupObject;
     }
 
-    // 실제 표시와 숨김 대상이 되는 팝업 패널을 생성한다
+    // 화면 전체를 덮는 투명 닫기 버튼을 생성한다
+    private static Button CreateTransparentBackgroundButton(Transform parent)
+    {
+        GameObject buttonObject = CreateUIObject("BackgroundButton", parent);
+        RectTransform buttonRect = buttonObject.GetComponent<RectTransform>();
+        buttonRect.anchorMin = Vector2.zero;
+        buttonRect.anchorMax = Vector2.one;
+        buttonRect.offsetMin = Vector2.zero;
+        buttonRect.offsetMax = Vector2.zero;
+
+        Image image = buttonObject.AddComponent<Image>();
+        image.color = new Color(1.0f, 1.0f, 1.0f, 0.0f);
+        image.raycastTarget = true;
+
+        Button button = buttonObject.AddComponent<Button>();
+        button.targetGraphic = image;
+        return button;
+    }
+
+    // 투명 닫기 버튼 하위의 실제 장애물 업그레이드 팝업 패널을 생성한다
     private static GameObject CreatePopupPanel(Transform parent)
     {
         GameObject panelObject = CreateUIObject("Panel", parent);
         RectTransform panelRect = panelObject.GetComponent<RectTransform>();
-        panelRect.anchorMin = Vector2.zero;
-        panelRect.anchorMax = Vector2.one;
-        panelRect.offsetMin = Vector2.zero;
-        panelRect.offsetMax = Vector2.zero;
+        panelRect.anchorMin = new Vector2(0.5f, 0.0f);
+        panelRect.anchorMax = new Vector2(0.5f, 0.0f);
+        panelRect.pivot = new Vector2(0.5f, 0.0f);
+        panelRect.anchoredPosition = new Vector2(0.0f, 280.0f);
+        panelRect.sizeDelta = new Vector2(760.0f, 360.0f);
 
         Image background = panelObject.AddComponent<Image>();
         background.color = new Color(0.05f, 0.06f, 0.07f, 0.94f);
@@ -111,10 +134,11 @@ internal static class ObstacleUpgradePopupUICreator
     }
 
     // ObstacleUpgradePopupUI의 직렬화된 UI 참조를 연결한다
-    private static void AssignPopupReferences(ObstacleUpgradePopupUI popupUI, RectTransform popupRoot, TMP_Text titleText, TMP_Text levelText, TMP_Text hpText, TMP_Text costText, TMP_Text statusText, Button upgradeButton, TMP_Text upgradeButtonText)
+    private static void AssignPopupReferences(ObstacleUpgradePopupUI popupUI, RectTransform popupRoot, Button backgroundButton, TMP_Text titleText, TMP_Text levelText, TMP_Text hpText, TMP_Text costText, TMP_Text statusText, Button upgradeButton, TMP_Text upgradeButtonText)
     {
         SerializedObject serializedObject = new SerializedObject(popupUI);
         serializedObject.FindProperty("popupPanel").objectReferenceValue = popupRoot;
+        serializedObject.FindProperty("backgroundButton").objectReferenceValue = backgroundButton;
         serializedObject.FindProperty("titleText").objectReferenceValue = titleText;
         serializedObject.FindProperty("levelText").objectReferenceValue = levelText;
         serializedObject.FindProperty("hpText").objectReferenceValue = hpText;

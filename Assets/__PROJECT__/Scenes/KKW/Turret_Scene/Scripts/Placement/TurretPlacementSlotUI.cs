@@ -10,17 +10,18 @@ using UnityEngine.UI;
 [DisallowMultipleComponent]
 public class TurretPlacementSlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler, IPointerClickHandler
 {
-    [Header("References")]
+    [Header("참조")]
     [SerializeField] private Image iconImage;
     [SerializeField] private Text nameText;
     [SerializeField] private TMP_Text tmpNameText;
     [SerializeField] private Text costText;
     [SerializeField] private TMP_Text tmpCostText;
 
-    private TurretPlacementController placementController;
-    private TurretShopEntrySO shopEntry;
+    [Header("수동 배치")]
+    [SerializeField] private TurretPlacementController placementController;
+    [SerializeField] private TurretShopEntrySO shopEntry;
 
-    // 상점 엔트리와 배치 컨트롤러를 연결하고 표시를 갱신한다
+    // 자동 생성된 버튼에 상점 엔트리와 배치 컨트롤러를 주입한다
     public void Initialize(TurretShopEntrySO shopEntry_, TurretPlacementController placementController_)
     {
         UnsubscribePlacementController();
@@ -46,6 +47,7 @@ public class TurretPlacementSlotUI : MonoBehaviour, IBeginDragHandler, IDragHand
     private void Reset()
     {
         iconImage = GetComponentInChildren<Image>();
+        placementController = FindFirstObjectByType<TurretPlacementController>();
 
         TMP_Text[] tmpTexts = GetComponentsInChildren<TMP_Text>(true);
         if (tmpTexts.Length > 0)
@@ -59,9 +61,24 @@ public class TurretPlacementSlotUI : MonoBehaviour, IBeginDragHandler, IDragHand
         }
     }
 
+    // 버튼 활성화 전에 수동 참조와 표시 정보를 초기화한다
+    private void Awake()
+    {
+        ResolveController();
+        Refresh();
+    }
+
+    // 인스펙터 값이 바뀌면 버튼 표시를 갱신한다
+    private void OnValidate()
+    {
+        Refresh();
+    }
+
     // 드래그 시작 시 터렛 배치 프리뷰를 시작한다
     public void OnBeginDrag(PointerEventData eventData)
     {
+        ResolveController();
+
         if (placementController == null || shopEntry == null)
         {
             return;
@@ -95,6 +112,8 @@ public class TurretPlacementSlotUI : MonoBehaviour, IBeginDragHandler, IDragHand
     // 슬롯 클릭 시 배치 모드를 시작하거나 기존 배치 모드를 취소한다
     public void OnPointerClick(PointerEventData eventData)
     {
+        ResolveController();
+
         if (placementController == null || shopEntry == null)
         {
             return;
@@ -107,6 +126,17 @@ public class TurretPlacementSlotUI : MonoBehaviour, IBeginDragHandler, IDragHand
         }
 
         placementController.BeginPlacement(shopEntry, eventData.position);
+    }
+
+    // 수동 배치 버튼에 컨트롤러가 비어 있으면 씬에서 한 번 찾아 연결한다
+    private void ResolveController()
+    {
+        if (placementController != null)
+        {
+            return;
+        }
+
+        placementController = FindFirstObjectByType<TurretPlacementController>();
     }
 
     // 현재 상점 엔트리의 이름, 아이콘, 비용 텍스트를 UI에 반영한다

@@ -768,7 +768,7 @@ A complete path from Sentinel-01 tier level 1 to a second-generation `_3` tier l
 
 ## Placement Runtime Flow
 
-1. `TurretPlacementUI` builds bottom-bar slots from placement entries currently typed as `TurretShopEntrySO`.
+1. Scene-placed `TurretPlacementSlotUI` buttons reference a `TurretShopEntrySO` and `TurretPlacementController` directly.
 2. `TurretPlacementSlotUI` starts placement by drag or click.
 3. `TurretPlacementController` raycasts against the TurretBase layer and expects `PlacementHitArea`.
 4. Hit collider must have `TurretBaseSlot` in parent hierarchy.
@@ -781,6 +781,18 @@ A complete path from Sentinel-01 tier level 1 to a second-generation `_3` tier l
 11. `TurretBaseSlot` records the occupied turret controller or fallback GameObject.
 12. `TurretPlacementController` records successful placement count per placement entry.
 13. Placement entries can use `Placement Cost Tiers` to change the next placement cost by successful placement count.
+
+`TurretPlacementUI` still has a legacy rebuild helper, but `rebuildOnStart` should stay disabled for production scenes. Use `Project Z Defense/UI/Create Turret Placement UI` to create editable scene buttons, preferably after selecting the desired `TurretShopEntrySO` assets in the Project window.
+
+## Turret Upgrade UI Setup
+
+Create the turret upgrade/evolution popup from the editor menu:
+
+- `Project Z Defense/UI/Create Turret Upgrade Popup UI`
+
+The menu creates an editable `TurretUpgradePopupCanvas` and `TurretUpgradePopup` hierarchy in the current scene, then wires the serialized references on `TurretTemporaryUpgradePopupUI`. The popup uses a full-screen transparent `BackgroundButton` as the show/hide root, with the visible `Panel` as its child, matching the survivor interaction UI outside-click pattern. The runtime component does not create Canvas, popup panels, or evolution buttons. Add more `EvolutionButton_*` children in the editor if a turret can expose more evolution choices than the default buttons.
+
+Turret selection uses direct pointer input only when `EventSystem.current.IsPointerOverGameObject()` is false. Outside-click dismissal is handled by the transparent background button's `OnClick`, so clicks inside the visible panel stay in UI space and do not run world selection.
 
 ## Targeting And Firing Notes
 

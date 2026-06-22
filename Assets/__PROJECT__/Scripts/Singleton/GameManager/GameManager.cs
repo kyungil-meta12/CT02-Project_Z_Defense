@@ -8,10 +8,7 @@ using UnityEngine;
 /// </summary>
 public class GameManager : MonoBehaviour
 {
-    private const int DEFAULT_DEFENSE_LINE_COUNT = 3;
-    private const int FIRST_DEFENSE_LINE_SLOT_COUNT = 3;
-    private const int SECOND_DEFENSE_LINE_SLOT_COUNT = 3;
-    private const int THIRD_DEFENSE_LINE_SLOT_COUNT = 1;
+    private const int DEFAULT_DEFENSE_LINE_COUNT = 4;
     private const float DEFAULT_FIXED_DELTA_TIME = 0.02f;
     private const float MIN_TIME_SCALE = 0.01f;
     private const float MIN_FIXED_DELTA_TIME = 0.001f;
@@ -88,7 +85,8 @@ public class GameManager : MonoBehaviour
         EnsureDefaultDefenseLineEntries();
     }
 
-    void Start()
+    // 시작 시 프레임 설정과 방어선 초기 상태 계산을 준비한다
+    private void Start()
     {
         // 수직동기화 해제
         QualitySettings.vSyncCount = 0;
@@ -97,6 +95,8 @@ public class GameManager : MonoBehaviour
         Application.targetFrameRate = (int)Screen.currentResolution.refreshRateRatio.value;
 
         print($"디바이스 주사율: {Application.targetFrameRate}hz | 주사율 적용됨");
+
+        StartCoroutine(InitializeDefenseLineStatesAfterSlotRegistration());
     }
 
     // 싱글톤 인스턴스가 제거될 때 정적 참조를 정리한다
@@ -248,6 +248,7 @@ public class GameManager : MonoBehaviour
         EnsureDefaultDefenseLineEntries();
 
         int defenseLineIndex = slot.DefenseLineIndex;
+        EnsureDefenseLineEntryCount(defenseLineIndex + 1);
         if (defenseLineIndex < 0 || defenseLineIndex >= defenseLines.Count)
         {
             Debug.LogWarning("[GameManager] 방어선 슬롯 인덱스가 유효하지 않아 등록하지 않았습니다.", slot);
@@ -263,7 +264,7 @@ public class GameManager : MonoBehaviour
 
         if (defenseLine.obstacleSlots == null)
         {
-            defenseLine.obstacleSlots = new List<ObstacleBuildSlot>(GetExpectedDefenseLineSlotCount(defenseLineIndex));
+            defenseLine.obstacleSlots = new List<ObstacleBuildSlot>(3);
         }
 
         if (!defenseLine.obstacleSlots.Contains(slot))
@@ -480,7 +481,7 @@ public class GameManager : MonoBehaviour
         return defenseLineIndex >= 0;
     }
 
-    // 지정 방어선의 모든 필수 슬롯이 점유되었는지 확인한다
+    // 지정 방어선의 등록된 슬롯이 모두 점유되었는지 확인한다
     public bool IsDefenseLineFullyBuilt(int defenseLineIndex)
     {
         if (defenseLineIndex < 0 || defenseLineIndex >= defenseLines.Count)
@@ -494,7 +495,7 @@ public class GameManager : MonoBehaviour
             return false;
         }
 
-        int expectedSlotCount = GetExpectedDefenseLineSlotCount(defenseLineIndex);
+        int registeredSlotCount = 0;
         int occupiedSlotCount = 0;
 
         for (int i = defenseLine.obstacleSlots.Count - 1; i >= 0; i--)
@@ -506,6 +507,7 @@ public class GameManager : MonoBehaviour
                 continue;
             }
 
+            registeredSlotCount++;
             Obstacle currentObs = slot.CurrentObstacle;
             if (currentObs != null)
             {
@@ -518,14 +520,19 @@ public class GameManager : MonoBehaviour
             }
         }
 
-        //Debug.Log($"[GameManager] 방어선 {defenseLineIndex} 완성 체크 - 점유: {occupiedSlotCount}/{expectedSlotCount}");
-        return occupiedSlotCount >= expectedSlotCount;
+        //Debug.Log($"[GameManager] 방어선 {defenseLineIndex} 완성 체크 - 점유: {occupiedSlotCount}/{registeredSlotCount}");
+        return registeredSlotCount > 0 && occupiedSlotCount == registeredSlotCount;
     }
 
-    // 모든 방어선 필수 슬롯이 점유되었는지 확인한다
+    // 모든 방어선의 등록된 슬롯이 점유되었는지 확인한다
     public bool AreAllDefenseLineSlotsBuilt()
     {
-        for (int i = 0; i < DEFAULT_DEFENSE_LINE_COUNT; i++)
+        if (defenseLines == null)
+        {
+            return false;
+        }
+
+        for (int i = 0; i < defenseLines.Count; i++)
         {
             if (!IsDefenseLineFullyBuilt(i))
             {
@@ -545,23 +552,100 @@ public class GameManager : MonoBehaviour
         }
 
         DefenseLineEntry defenseLine = defenseLines[defenseLineIndex];
-        int expectedSlotCount = GetExpectedDefenseLineSlotCount(defenseLineIndex);
         if (defenseLine == null || defenseLine.obstacleSlots == null)
         {
-            return expectedSlotCount;
+            return 0;
         }
 
+        int registeredSlotCount = 0;
         int occupiedSlotCount = 0;
-        for (int i = 0; i < defenseLine.obstacleSlots.Count; i++)
+        for (int i = defenseLine.obstacleSlots.Count - 1; i >= 0; i--)
         {
             ObstacleBuildSlot slot = defenseLine.obstacleSlots[i];
-            if (slot != null && slot.CurrentObstacle != null)
+            if (slot == null)
+            {
+                defenseLine.obstacleSlots.RemoveAt(i);
+                continue;
+            }
+
+            registeredSlotCount++;
+            if (slot.CurrentObstacle != null)
             {
                 occupiedSlotCount++;
             }
         }
 
-        return Mathf.Max(0, expectedSlotCount - occupiedSlotCount);
+        return Mathf.Max(0, registeredSlotCount - occupiedSlotCount);
+    }
+
+    // 슬롯 등록이 끝난 뒤 시작 시점의 방어선 붕괴 상태를 계산한다
+    private IEnumerator InitializeDefenseLineStatesAfterSlotRegistration()
+    {
+        yield return null;
+
+        EnsureDefaultDefenseLineEntries();
+        for (int i = 0; i < defenseLines.Count; i++)
+        {
+            DefenseLineEntry defenseLine = defenseLines[i];
+            if (defenseLine == null || !HasRegisteredDefenseLineSlots(defenseLine))
+            {
+                continue;
+            }
+
+            defenseLine.isBreached = !IsDefenseLineFullyBuilt(i);
+            if (defenseLine.isBreached)
+            {
+                CommandSurvivorsToRetreat(i, defenseLine.retreatPoint, IsGateDefenseLine(defenseLine));
+            }
+        }
+    }
+
+    // 방어선에 등록된 슬롯이 하나 이상 있는지 확인한다
+    private bool HasRegisteredDefenseLineSlots(DefenseLineEntry defenseLine)
+    {
+        if (defenseLine == null || defenseLine.obstacleSlots == null)
+        {
+            return false;
+        }
+
+        for (int i = defenseLine.obstacleSlots.Count - 1; i >= 0; i--)
+        {
+            if (defenseLine.obstacleSlots[i] == null)
+            {
+                defenseLine.obstacleSlots.RemoveAt(i);
+                continue;
+            }
+
+            return true;
+        }
+
+        return false;
+    }
+
+    // 방어선에 게이트 슬롯이 포함되어 있는지 확인한다
+    private bool IsGateDefenseLine(DefenseLineEntry defenseLine)
+    {
+        if (defenseLine == null || defenseLine.obstacleSlots == null)
+        {
+            return false;
+        }
+
+        for (int i = defenseLine.obstacleSlots.Count - 1; i >= 0; i--)
+        {
+            ObstacleBuildSlot slot = defenseLine.obstacleSlots[i];
+            if (slot == null)
+            {
+                defenseLine.obstacleSlots.RemoveAt(i);
+                continue;
+            }
+
+            if (slot.SlotType == ObstacleBuildSlotType.Gate)
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     // 후퇴한 생존자가 이전 방어선을 수리 대상으로 잡지 않도록 확인한다
@@ -576,7 +660,7 @@ public class GameManager : MonoBehaviour
         return obstacleDefenseLineIndex >= 0 && obstacleDefenseLineIndex <= survivor.ActiveDefenseLineIndex;
     }
 
-    // 기본 방어선 항목이 부족하면 1차부터 3차까지 채운다
+    // 기본 방어선 항목이 부족하면 1차부터 4차까지 채운다
     private void EnsureDefaultDefenseLineEntries()
     {
         if (defenseLines == null)
@@ -584,16 +668,9 @@ public class GameManager : MonoBehaviour
             defenseLines = new List<DefenseLineEntry>(DEFAULT_DEFENSE_LINE_COUNT);
         }
 
-        while (defenseLines.Count < DEFAULT_DEFENSE_LINE_COUNT)
-        {
-            int lineNumber = defenseLines.Count + 1;
-            defenseLines.Add(new DefenseLineEntry
-            {
-                lineName = $"{lineNumber}차 방어선"
-            });
-        }
+        EnsureDefenseLineEntryCount(DEFAULT_DEFENSE_LINE_COUNT);
 
-        for (int i = 0; i < DEFAULT_DEFENSE_LINE_COUNT; i++)
+        for (int i = 0; i < defenseLines.Count; i++)
         {
             DefenseLineEntry defenseLine = defenseLines[i];
             if (defenseLine == null)
@@ -609,9 +686,29 @@ public class GameManager : MonoBehaviour
 
             if (defenseLine.obstacleSlots == null)
             {
-                defenseLine.obstacleSlots = new List<ObstacleBuildSlot>(GetExpectedDefenseLineSlotCount(i));
+                defenseLine.obstacleSlots = new List<ObstacleBuildSlot>(3);
             }
         }
+    }
+
+    // 필요한 개수만큼 방어선 항목을 생성한다
+    private void EnsureDefenseLineEntryCount(int requiredCount)
+    {
+        if (defenseLines == null)
+        {
+            defenseLines = new List<DefenseLineEntry>(Mathf.Max(DEFAULT_DEFENSE_LINE_COUNT, requiredCount));
+        }
+
+        int targetCount = Mathf.Max(DEFAULT_DEFENSE_LINE_COUNT, requiredCount);
+        while (defenseLines.Count < targetCount)
+        {
+            int lineNumber = defenseLines.Count + 1;
+            defenseLines.Add(new DefenseLineEntry
+            {
+                lineName = $"{lineNumber}차 방어선"
+            });
+        }
+
     }
 
     // 장애물이 속한 방어선 인덱스를 찾는다
@@ -659,22 +756,6 @@ public class GameManager : MonoBehaviour
         }
 
         return null;
-    }
-
-    // 방어선별 필수 슬롯 수를 반환한다
-    private int GetExpectedDefenseLineSlotCount(int defenseLineIndex)
-    {
-        switch (defenseLineIndex)
-        {
-            case 0:
-                return FIRST_DEFENSE_LINE_SLOT_COUNT;
-            case 1:
-                return SECOND_DEFENSE_LINE_SLOT_COUNT;
-            case 2:
-                return THIRD_DEFENSE_LINE_SLOT_COUNT;
-            default:
-                return 0;
-        }
     }
 
     // 방어선 슬롯 정렬을 위해 슬롯 인덱스를 비교한다

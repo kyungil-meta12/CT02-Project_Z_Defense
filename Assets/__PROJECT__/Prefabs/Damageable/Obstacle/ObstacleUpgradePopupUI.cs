@@ -22,6 +22,7 @@ public class ObstacleUpgradePopupUI : MonoBehaviour
 
     [Header("UI 참조 - 에디터에서 배치한 표시 패널과 표시 요소")]
     [SerializeField] private RectTransform popupPanel;
+    [SerializeField] private Button backgroundButton;
     [SerializeField] private TMP_Text titleText;
     [SerializeField] private TMP_Text levelText;
     [SerializeField] private TMP_Text hpText;
@@ -62,42 +63,10 @@ public class ObstacleUpgradePopupUI : MonoBehaviour
         HidePopup();
     }
 
-    void Start()
+    // 파괴 시 버튼 이벤트를 해제한다
+    private void OnDestroy()
     {
-        CameraTouchHandler.Inst.OnCameraTargetTouchEvent += OnTargetTouchEvent;
-        CameraTouchHandler.Inst.OnCameraOtherTouchEvent += OnOtherTouchEvent;
-    }
-
-    void OnDestroy()
-    {
-        if(CameraTouchHandler.Inst)
-        {
-            CameraTouchHandler.Inst.OnCameraTargetTouchEvent -= OnTargetTouchEvent;
-            CameraTouchHandler.Inst.OnCameraOtherTouchEvent -= OnOtherTouchEvent;
-        }
-        
-    }
-
-    // 다른 곳을 터치하면 팝업을 숨긴다.
-    public void OnOtherTouchEvent()
-    {
-        HidePopup();
-        return;
-    }
-
-    // Obstalce 터치 시
-    public void OnTargetTouchEvent(RaycastHit hit)
-    {
-        // 타겟 터치 이벤트가 발생했는데 Obstacle 컴포넌트를 찾을 수 없다면 장애물을 터치 하지 않은 것으로 간주하고 팝업을 숨긴다.
-        Obstacle hitObstacle = hit.collider.GetComponentInParent<Obstacle>();
-        if (hitObstacle == null)
-        {
-            HidePopup();
-            return;
-        }
-        var obstacle = hitObstacle;
-        var upgradeController = hitObstacle.GetComponent<ObstacleUpgradeRuntimeController>();
-        SelectObstacle(obstacle, upgradeController);
+        UnbindButtonListeners();
     }
 
     // 포인터 입력으로 장애물을 선택하거나 팝업을 닫는다
@@ -109,29 +78,26 @@ public class ObstacleUpgradePopupUI : MonoBehaviour
             return;
         }
 
-        if (/*placementController != null && */placementController.IsPlacing)
+        if (placementController != null && placementController.IsPlacing)
         {
             HidePopup();
             return;
         }
 
-        //if (!WasPrimaryPointerPressed() || IsPointerOverUI() || IsPointerInsidePopup())
-        //{
-        //    return;
-        //}
+        if (!WasPrimaryPointerPressed() || IsPointerOverUI())
+        {
+            return;
+        }
 
-        //if (!TryGetPrimaryPointerPosition(out Vector2 pointerPosition))
-        //{
-        //    return;
-        //}
+        if (!TryGetPrimaryPointerPosition(out Vector2 pointerPosition))
+        {
+            return;
+        }
 
-        //if (TrySelectObstacle(pointerPosition, out Obstacle obstacle, out ObstacleUpgradeRuntimeController upgradeController))
-        //{
-        //    SelectObstacle(obstacle, upgradeController);
-        //    return;
-        //}
-
-        //HidePopup();
+        if (TrySelectObstacle(pointerPosition, out Obstacle obstacle, out ObstacleUpgradeRuntimeController upgradeController))
+        {
+            SelectObstacle(obstacle, upgradeController);
+        }
     }
 
     [ContextMenu("참조 다시 연결")]
@@ -140,7 +106,12 @@ public class ObstacleUpgradePopupUI : MonoBehaviour
     {
         if (popupPanel == null)
         {
-            Transform panelTransform = transform.Find("Panel");
+            Transform panelTransform = transform.Find("BackgroundButton");
+            if (panelTransform == null)
+            {
+                panelTransform = transform.Find("Panel");
+            }
+
             popupPanel = panelTransform == null ? null : panelTransform as RectTransform;
         }
 
@@ -149,14 +120,27 @@ public class ObstacleUpgradePopupUI : MonoBehaviour
             return;
         }
 
-        titleText = titleText != null ? titleText : FindChildComponent<TMP_Text>(popupPanel, "Title");
-        levelText = levelText != null ? levelText : FindChildComponent<TMP_Text>(popupPanel, "Level");
-        hpText = hpText != null ? hpText : FindChildComponent<TMP_Text>(popupPanel, "Hp");
-        costText = costText != null ? costText : FindChildComponent<TMP_Text>(popupPanel, "Cost");
-        statusText = statusText != null ? statusText : FindChildComponent<TMP_Text>(popupPanel, "Status");
-        upgradeButton = upgradeButton != null ? upgradeButton : FindChildComponent<Button>(popupPanel, "UpgradeButton");
+        backgroundButton = backgroundButton != null ? backgroundButton : popupPanel.GetComponent<Button>();
+        Transform searchRoot = popupPanel.Find("Panel");
+        if (searchRoot == null)
+        {
+            searchRoot = popupPanel;
+        }
+
+        titleText = titleText != null ? titleText : FindChildComponent<TMP_Text>(searchRoot, "Title");
+        levelText = levelText != null ? levelText : FindChildComponent<TMP_Text>(searchRoot, "Level");
+        hpText = hpText != null ? hpText : FindChildComponent<TMP_Text>(searchRoot, "Hp");
+        costText = costText != null ? costText : FindChildComponent<TMP_Text>(searchRoot, "Cost");
+        statusText = statusText != null ? statusText : FindChildComponent<TMP_Text>(searchRoot, "Status");
+        upgradeButton = upgradeButton != null ? upgradeButton : FindChildComponent<Button>(searchRoot, "UpgradeButton");
         upgradeButtonText = upgradeButtonText != null ? upgradeButtonText : upgradeButton == null ? null : upgradeButton.GetComponentInChildren<TMP_Text>(true);
         EnsureButtonListener();
+    }
+
+    // 투명 배경 버튼 입력으로 팝업을 닫는다
+    public void OnBackgroundButtonClicked()
+    {
+        HidePopup();
     }
 
     // 선택된 장애물을 저장하고 팝업을 표시한다
@@ -188,51 +172,51 @@ public class ObstacleUpgradePopupUI : MonoBehaviour
         RefreshUI();
     }
 
-    //// 포인터 위치에서 선택 가능한 장애물을 찾는다
-    //private bool TrySelectObstacle(Vector2 pointerPosition, out Obstacle obstacle, out ObstacleUpgradeRuntimeController upgradeController)
-    //{
-    //    obstacle = null;
-    //    upgradeController = null;
+    // 포인터 위치에서 선택 가능한 장애물을 찾는다
+    private bool TrySelectObstacle(Vector2 pointerPosition, out Obstacle obstacle, out ObstacleUpgradeRuntimeController upgradeController)
+    {
+        obstacle = null;
+        upgradeController = null;
 
-    //    if (targetCamera == null)
-    //    {
-    //        targetCamera = Camera.main;
-    //    }
+        if (targetCamera == null)
+        {
+            targetCamera = Camera.main;
+        }
 
-    //    if (targetCamera == null)
-    //    {
-    //        return false;
-    //    }
+        if (targetCamera == null)
+        {
+            return false;
+        }
 
-    //    Ray ray = targetCamera.ScreenPointToRay(pointerPosition);
-    //    int hitCount = Physics.RaycastNonAlloc(ray, selectionHits, maxRayDistance, selectionLayerMask, QueryTriggerInteraction.Collide);
-    //    if (hitCount <= 0)
-    //    {
-    //        return false;
-    //    }
+        Ray ray = targetCamera.ScreenPointToRay(pointerPosition);
+        int hitCount = Physics.RaycastNonAlloc(ray, selectionHits, maxRayDistance, selectionLayerMask, QueryTriggerInteraction.Collide);
+        if (hitCount <= 0)
+        {
+            return false;
+        }
 
-    //    float nearestDistance = Mathf.Infinity;
-    //    for (int i = 0; i < hitCount; i++)
-    //    {
-    //        RaycastHit hit = selectionHits[i];
-    //        if (hit.collider == null || hit.distance >= nearestDistance)
-    //        {
-    //            continue;
-    //        }
+        float nearestDistance = Mathf.Infinity;
+        for (int i = 0; i < hitCount; i++)
+        {
+            RaycastHit hit = selectionHits[i];
+            if (hit.collider == null || hit.distance >= nearestDistance)
+            {
+                continue;
+            }
 
-    //        Obstacle hitObstacle = hit.collider.GetComponentInParent<Obstacle>();
-    //        if (hitObstacle == null)
-    //        {
-    //            continue;
-    //        }
+            Obstacle hitObstacle = hit.collider.GetComponentInParent<Obstacle>();
+            if (hitObstacle == null)
+            {
+                continue;
+            }
 
-    //        obstacle = hitObstacle;
-    //        upgradeController = hitObstacle.GetComponent<ObstacleUpgradeRuntimeController>();
-    //        nearestDistance = hit.distance;
-    //    }
+            obstacle = hitObstacle;
+            upgradeController = hitObstacle.GetComponent<ObstacleUpgradeRuntimeController>();
+            nearestDistance = hit.distance;
+        }
 
-    //    return obstacle != null;
-    //}
+        return obstacle != null;
+    }
 
     // 선택된 장애물 상태를 기준으로 팝업 텍스트와 버튼을 갱신한다
     private void RefreshUI()
@@ -349,6 +333,12 @@ public class ObstacleUpgradePopupUI : MonoBehaviour
     // 업그레이드 버튼 이벤트를 중복 없이 연결한다
     private void EnsureButtonListener()
     {
+        if (backgroundButton != null)
+        {
+            backgroundButton.onClick.RemoveListener(OnBackgroundButtonClicked);
+            backgroundButton.onClick.AddListener(OnBackgroundButtonClicked);
+        }
+
         if (upgradeButton == null)
         {
             return;
@@ -358,10 +348,25 @@ public class ObstacleUpgradePopupUI : MonoBehaviour
         upgradeButton.onClick.AddListener(UpgradeSelectedObstacle);
     }
 
+    // 버튼 이벤트 연결을 해제한다
+    private void UnbindButtonListeners()
+    {
+        if (backgroundButton != null)
+        {
+            backgroundButton.onClick.RemoveListener(OnBackgroundButtonClicked);
+        }
+
+        if (upgradeButton != null)
+        {
+            upgradeButton.onClick.RemoveListener(UpgradeSelectedObstacle);
+        }
+    }
+
     // 팝업 구성에 필요한 참조가 유효한지 확인한다
     private bool IsUIReady()
     {
         return popupPanel != null &&
+               backgroundButton != null &&
                titleText != null &&
                levelText != null &&
                hpText != null &&
@@ -483,19 +488,4 @@ public class ObstacleUpgradePopupUI : MonoBehaviour
         return EventSystem.current.IsPointerOverGameObject();
     }
 
-    // 현재 포인터가 팝업 내부에 있는지 확인한다
-    private bool IsPointerInsidePopup()
-    {
-        if (popupPanel == null || !popupPanel.gameObject.activeInHierarchy)
-        {
-            return false;
-        }
-
-        if (!TryGetPrimaryPointerPosition(out Vector2 pointerPosition))
-        {
-            return false;
-        }
-
-        return RectTransformUtility.RectangleContainsScreenPoint(popupPanel, pointerPosition, null);
-    }
 }

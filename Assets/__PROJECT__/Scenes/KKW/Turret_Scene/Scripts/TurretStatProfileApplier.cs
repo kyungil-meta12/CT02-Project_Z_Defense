@@ -12,6 +12,7 @@ public class TurretStatProfileApplier : MonoBehaviour
     [SerializeField] private Turret targetTurret;
     [SerializeField] private TargetFinder targetFinder;
     [SerializeField] private Gun[] targetGuns;
+    [SerializeField] private MonoBehaviour[] runtimeStatReceiverBehaviours;
     [SerializeField] private bool applyOnStart = true;
     [SerializeField] private bool applyOnInspectorChange = true;
 
@@ -94,10 +95,11 @@ public class TurretStatProfileApplier : MonoBehaviour
             targetFinder.radius = statProfile.range;
         }
 
+        float modifiedDamage = GetModifiedDamage(statProfile.damage);
         if (targetTurret != null)
         {
             targetTurret.fireTick = statProfile.fireInterval;
-            targetTurret.SetProjectileCombatStats(GetModifiedDamage(statProfile.damage), statProfile.pierceCount);
+            targetTurret.SetProjectileCombatStats(modifiedDamage, statProfile.pierceCount);
 
             if (targetTurret.projectilePrefab != null)
             {
@@ -109,6 +111,8 @@ public class TurretStatProfileApplier : MonoBehaviour
                 targetTurret.SetAutoFireEnabled(autoFireEnabled);
             }
         }
+
+        ApplyRuntimeStatReceivers(modifiedDamage);
 
         int projectileCount = Mathf.Max(1, statProfile.projectileCount);
         if (targetGuns == null)
@@ -144,10 +148,11 @@ public class TurretStatProfileApplier : MonoBehaviour
             targetFinder.radius = runtimeStat.range;
         }
 
+        float modifiedDamage = GetModifiedDamage(runtimeStat.damage);
         if (targetTurret != null)
         {
             targetTurret.fireTick = runtimeStat.fireInterval;
-            targetTurret.SetProjectileCombatStats(GetModifiedDamage(runtimeStat.damage), runtimeStat.pierceCount, logProjectileDamage);
+            targetTurret.SetProjectileCombatStats(modifiedDamage, runtimeStat.pierceCount, logProjectileDamage);
 
             if (targetTurret.projectilePrefab != null)
             {
@@ -159,6 +164,8 @@ public class TurretStatProfileApplier : MonoBehaviour
                 targetTurret.SetAutoFireEnabled(autoFireEnabled);
             }
         }
+
+        ApplyRuntimeStatReceivers(modifiedDamage);
 
         int projectileCount = Mathf.Max(1, runtimeStat.projectileCount);
         if (targetGuns == null)
@@ -214,6 +221,29 @@ public class TurretStatProfileApplier : MonoBehaviour
         Apply();
     }
 
+    // 외부 터렛 정의에서 전달한 상태이상 프로필과 레벨을 호환 컴포넌트에 적용한다
+    public void SetStatusProfile(ScriptableObject statusProfile, int level)
+    {
+        RefreshReferences();
+
+        if (runtimeStatReceiverBehaviours == null)
+        {
+            return;
+        }
+
+        int safeLevel = Mathf.Max(1, level);
+        for (int i = 0; i < runtimeStatReceiverBehaviours.Length; i++)
+        {
+            ITurretStatusProfileReceiver statusProfileReceiver = runtimeStatReceiverBehaviours[i] as ITurretStatusProfileReceiver;
+            if (statusProfileReceiver == null)
+            {
+                continue;
+            }
+
+            statusProfileReceiver.SetStatusProfile(statusProfile, safeLevel);
+        }
+    }
+
     // 프로필 변경 이벤트가 현재 프로필에 해당하면 스탯을 다시 적용한다
     private void OnStatProfileChanged(TurretStatProfileSO changedProfile)
     {
@@ -242,11 +272,77 @@ public class TurretStatProfileApplier : MonoBehaviour
         {
             targetGuns = GetComponentsInChildren<Gun>(true);
         }
+
+        if (runtimeStatReceiverBehaviours == null || runtimeStatReceiverBehaviours.Length == 0)
+        {
+            runtimeStatReceiverBehaviours = CollectRuntimeReceiverBehaviours();
+        }
     }
 
     // 기본 데미지에 런타임 배율을 적용한다
     private float GetModifiedDamage(float baseDamage)
     {
         return Mathf.Max(0.0f, baseDamage) * Mathf.Max(0.0f, damageMultiplier);
+    }
+
+    // 자식 컴포넌트 중 런타임 스탯 또는 상태 프로필을 받을 수 있는 컴포넌트만 수집한다
+    private MonoBehaviour[] CollectRuntimeReceiverBehaviours()
+    {
+        MonoBehaviour[] behaviours = GetComponentsInChildren<MonoBehaviour>(true);
+        int receiverCount = 0;
+        for (int i = 0; i < behaviours.Length; i++)
+        {
+            if (CanReceiveRuntimeData(behaviours[i]))
+            {
+                receiverCount++;
+            }
+        }
+
+        if (receiverCount == 0)
+        {
+            return System.Array.Empty<MonoBehaviour>();
+        }
+
+        MonoBehaviour[] receivers = new MonoBehaviour[receiverCount];
+        int receiverIndex = 0;
+        for (int i = 0; i < behaviours.Length; i++)
+        {
+            MonoBehaviour behaviour = behaviours[i];
+            if (!CanReceiveRuntimeData(behaviour))
+            {
+                continue;
+            }
+
+            receivers[receiverIndex] = behaviour;
+            receiverIndex++;
+        }
+
+        return receivers;
+    }
+
+    // 컴포넌트가 터렛 런타임 데이터를 받을 수 있는지 확인한다
+    private static bool CanReceiveRuntimeData(MonoBehaviour behaviour)
+    {
+        return behaviour is ITurretRuntimeStatReceiver || behaviour is ITurretStatusProfileReceiver;
+    }
+
+    // 런타임 스탯 수신 컴포넌트에 현재 초당 데미지를 전달한다
+    private void ApplyRuntimeStatReceivers(float damagePerSecond)
+    {
+        if (runtimeStatReceiverBehaviours == null)
+        {
+            return;
+        }
+
+        for (int i = 0; i < runtimeStatReceiverBehaviours.Length; i++)
+        {
+            ITurretRuntimeStatReceiver statReceiver = runtimeStatReceiverBehaviours[i] as ITurretRuntimeStatReceiver;
+            if (statReceiver == null)
+            {
+                continue;
+            }
+
+            statReceiver.SetDamagePerSecond(damagePerSecond);
+        }
     }
 }

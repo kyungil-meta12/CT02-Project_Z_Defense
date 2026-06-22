@@ -10,7 +10,7 @@ using ProjectZDefense.StatusEffects;
 /// <summary>
 /// 보스 좀비의 웨이브 스탯 초기화, 스킬, 피격, 사망, 처치 보상 지급을 담당한다.
 /// </summary>
-public class BossZombie : PoolObject, IDamageable, IFrostStatusEffectReceiver, IPoisonStatusEffectReceiver, IElectroStatusEffectReceiver, IElectroOverloadTriggerReceiver, IFrostStatusRuntimeOwner, IElectroStunRuntimeOwner
+public class BossZombie : PoolObject, IDamageable, IFrostStatusEffectReceiver, IPoisonStatusEffectReceiver, IElectroStatusEffectReceiver, IIgnitionStatusEffectReceiver, IElectroOverloadTriggerReceiver, IFrostStatusRuntimeOwner, IElectroStunRuntimeOwner
 {
     private static readonly int SpeedHash = Animator.StringToHash("speed");
     private const float MinimumFrostSpeedMultiplier = 0.5f;
@@ -53,6 +53,7 @@ public class BossZombie : PoolObject, IDamageable, IFrostStatusEffectReceiver, I
     private FrostStatusRuntime frostStatusRuntime;
     private PoisonStatusRuntime poisonStatusRuntime;
     private ElectroStatusRuntime electroStatusRuntime;
+    private IgnitionStatusRuntime ignitionStatusRuntime;
     private float electroStunRemainingDuration;
     private bool electroStunActive;
     
@@ -76,6 +77,7 @@ public class BossZombie : PoolObject, IDamageable, IFrostStatusEffectReceiver, I
         CacheFrostStatusRuntime();
         CachePoisonStatusRuntime();
         CacheElectroStatusRuntime();
+        CacheIgnitionStatusRuntime();
         GetComponentsInChildren(false, colliders);
 
         ConfigureBehaviorNavigation();
@@ -121,6 +123,7 @@ public class BossZombie : PoolObject, IDamageable, IFrostStatusEffectReceiver, I
         ResetFrostStatus();
         ResetPoisonStatus();
         ResetElectroStatus();
+        ResetIgnitionStatus();
 
         // 체력 UI 슬라이더 값 지정
         hpUI.gameObject.SetActive(true);
@@ -173,6 +176,7 @@ public class BossZombie : PoolObject, IDamageable, IFrostStatusEffectReceiver, I
         ResetFrostStatus();
         ResetPoisonStatus();
         ResetElectroStatus();
+        ResetIgnitionStatus();
     }
 
     // 매 프레임 사망 처리와 루트모션 이동 방향을 갱신한다
@@ -189,6 +193,10 @@ public class BossZombie : PoolObject, IDamageable, IFrostStatusEffectReceiver, I
         if (electroStatusRuntime != null)
         {
             electroStatusRuntime.Tick(Time.deltaTime);
+        }
+        if (ignitionStatusRuntime != null)
+        {
+            ignitionStatusRuntime.Tick(Time.deltaTime);
         }
         UpdateElectroStun(Time.deltaTime);
         UpdateDeath();
@@ -522,6 +530,17 @@ public class BossZombie : PoolObject, IDamageable, IFrostStatusEffectReceiver, I
         electroStatusRuntime.ApplyElectroStatus(payload, chainIndex, sourceDamage);
     }
 
+    // 화염 공격으로 전달된 연소 상태 데이터를 갱신한다
+    public void ApplyIgnitionStatus(IgnitionStatusPayload payload)
+    {
+        if (!IsAlive || ignitionStatusRuntime == null)
+        {
+            return;
+        }
+
+        ignitionStatusRuntime.ApplyIgnitionStatus(payload);
+    }
+
     // 비-Electro 피해가 적용되는 시점에 Electro Overload 발동 여부를 갱신한다
     public void NotifyNonElectroDamageReceived(float damage)
     {
@@ -663,6 +682,17 @@ public class BossZombie : PoolObject, IDamageable, IFrostStatusEffectReceiver, I
         electroStatusRuntime.ResetStatus();
     }
 
+    // 풀 재사용이나 사망 시 Ignition 연소 상태를 초기화한다
+    private void ResetIgnitionStatus()
+    {
+        if (ignitionStatusRuntime == null)
+        {
+            return;
+        }
+
+        ignitionStatusRuntime.ResetStatus();
+    }
+
     // 상태이상 비주얼 컨트롤러를 자식까지 포함해 캐시한다
     private void CacheStatusEffectVisualController()
     {
@@ -708,6 +738,18 @@ public class BossZombie : PoolObject, IDamageable, IFrostStatusEffectReceiver, I
         }
 
         electroStatusRuntime.Initialize(this, true);
+    }
+
+    // Ignition 상태 런타임 컴포넌트를 캐시하고 보스 좀비 정책으로 초기화한다
+    private void CacheIgnitionStatusRuntime()
+    {
+        ignitionStatusRuntime = GetComponent<IgnitionStatusRuntime>();
+        if (ignitionStatusRuntime == null)
+        {
+            ignitionStatusRuntime = gameObject.AddComponent<IgnitionStatusRuntime>();
+        }
+
+        ignitionStatusRuntime.Initialize(this, true);
     }
 
     float storeDamage = 0;
@@ -767,9 +809,11 @@ public class BossZombie : PoolObject, IDamageable, IFrostStatusEffectReceiver, I
 
         hpUI.gameObject.SetActive(false); // hp UI 비활성화
         TriggerFrostDeathEffectIfNeeded();
+        TriggerIgnitionDeathEffectIfNeeded();
         ResetFrostStatus();
         ResetPoisonStatus();
         ResetElectroStatus();
+        ResetIgnitionStatus();
 
         if (agent.enabled)
         {
@@ -800,6 +844,17 @@ public class BossZombie : PoolObject, IDamageable, IFrostStatusEffectReceiver, I
         }
 
         frostStatusRuntime.TriggerFreezeDeathEffectIfNeeded();
+    }
+
+    // 연소 상태로 사망한 경우 Ignition 사망 전용 이펙트를 실행한다
+    private void TriggerIgnitionDeathEffectIfNeeded()
+    {
+        if (ignitionStatusRuntime == null)
+        {
+            return;
+        }
+
+        ignitionStatusRuntime.TriggerBurnDeathEffectIfNeeded(transform.position);
     }
 
     // 보스 프리팹 Override 또는 스펙의 보상 프로필을 기준으로 처치 보상을 지급한다

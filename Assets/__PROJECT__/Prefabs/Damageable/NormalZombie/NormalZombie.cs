@@ -7,7 +7,7 @@ using ProjectZDefense.StatusEffects;
 /// <summary>
 /// 일반 좀비의 웨이브 스탯 초기화, 이동/공격, 피격, 사망, 처치 보상 지급을 담당한다.
 /// </summary>
-public class NormalZombie : PoolObject, IDamageable, IFrostStatusEffectReceiver, IPoisonStatusEffectReceiver, IElectroStatusEffectReceiver, IElectroOverloadTriggerReceiver, IFrostStatusRuntimeOwner, IElectroStunRuntimeOwner
+public class NormalZombie : PoolObject, IDamageable, IFrostStatusEffectReceiver, IPoisonStatusEffectReceiver, IElectroStatusEffectReceiver, IIgnitionStatusEffectReceiver, IElectroOverloadTriggerReceiver, IFrostStatusRuntimeOwner, IElectroStunRuntimeOwner
 {
     [Header("일반 좀비 기본 스펙")] public NormalZombieSpec spec;
     [Header("프리팹별 처치 보상 Override")] [SerializeField] private ZombieRewardProfileSO rewardProfileOverride;
@@ -48,6 +48,7 @@ public class NormalZombie : PoolObject, IDamageable, IFrostStatusEffectReceiver,
     private FrostStatusRuntime frostStatusRuntime;
     private PoisonStatusRuntime poisonStatusRuntime;
     private ElectroStatusRuntime electroStatusRuntime;
+    private IgnitionStatusRuntime ignitionStatusRuntime;
     private float electroStunRemainingDuration;
     private bool electroStunActive;
 
@@ -64,6 +65,7 @@ public class NormalZombie : PoolObject, IDamageable, IFrostStatusEffectReceiver,
         CacheFrostStatusRuntime();
         CachePoisonStatusRuntime();
         CacheElectroStatusRuntime();
+        CacheIgnitionStatusRuntime();
         CacheColliders();
         CacheRigidbodyDefaults();
         agent.updatePosition = false;
@@ -100,6 +102,7 @@ public class NormalZombie : PoolObject, IDamageable, IFrostStatusEffectReceiver,
         ResetFrostStatus();
         ResetPoisonStatus();
         ResetElectroStatus();
+        ResetIgnitionStatus();
 
         // 체력 UI 슬라이더 값 지정
         hpUI.gameObject.SetActive(true);
@@ -125,6 +128,7 @@ public class NormalZombie : PoolObject, IDamageable, IFrostStatusEffectReceiver,
         ResetFrostStatus();
         ResetPoisonStatus();
         ResetElectroStatus();
+        ResetIgnitionStatus();
     }
 
     // 스폰 프로필에서 전달한 HP, 공격력, 이동/공격 속도, 보상 배율을 적용한다
@@ -173,6 +177,10 @@ public class NormalZombie : PoolObject, IDamageable, IFrostStatusEffectReceiver,
         if (electroStatusRuntime != null)
         {
             electroStatusRuntime.Tick(Time.deltaTime);
+        }
+        if (ignitionStatusRuntime != null)
+        {
+            ignitionStatusRuntime.Tick(Time.deltaTime);
         }
         UpdateElectroStun(Time.deltaTime);
         UpdateDeath();
@@ -387,6 +395,17 @@ public class NormalZombie : PoolObject, IDamageable, IFrostStatusEffectReceiver,
         electroStatusRuntime.ApplyElectroStatus(payload, chainIndex, sourceDamage);
     }
 
+    // 화염 공격으로 전달된 연소 상태 데이터를 갱신한다
+    public void ApplyIgnitionStatus(IgnitionStatusPayload payload)
+    {
+        if (!IsAlive || ignitionStatusRuntime == null)
+        {
+            return;
+        }
+
+        ignitionStatusRuntime.ApplyIgnitionStatus(payload);
+    }
+
     // 비-Electro 피해가 적용되는 시점에 Electro Overload 발동 여부를 갱신한다
     public void NotifyNonElectroDamageReceived(float damage)
     {
@@ -542,6 +561,17 @@ public class NormalZombie : PoolObject, IDamageable, IFrostStatusEffectReceiver,
         electroStatusRuntime.ResetStatus();
     }
 
+    // 풀 재사용이나 사망 시 Ignition 연소 상태를 초기화한다
+    private void ResetIgnitionStatus()
+    {
+        if (ignitionStatusRuntime == null)
+        {
+            return;
+        }
+
+        ignitionStatusRuntime.ResetStatus();
+    }
+
     // 상태이상 비주얼 컨트롤러를 자식까지 포함해 캐시한다
     private void CacheStatusEffectVisualController()
     {
@@ -589,6 +619,18 @@ public class NormalZombie : PoolObject, IDamageable, IFrostStatusEffectReceiver,
         electroStatusRuntime.Initialize(this, false);
     }
 
+    // Ignition 상태 런타임 컴포넌트를 캐시하고 일반 좀비 정책으로 초기화한다
+    private void CacheIgnitionStatusRuntime()
+    {
+        ignitionStatusRuntime = GetComponent<IgnitionStatusRuntime>();
+        if (ignitionStatusRuntime == null)
+        {
+            ignitionStatusRuntime = gameObject.AddComponent<IgnitionStatusRuntime>();
+        }
+
+        ignitionStatusRuntime.Initialize(this, false);
+    }
+
     /// <summary>
     /// 사망 상태로 전환한다<para/>
     /// 죽은 좀비가 타겟/충돌 대상으로 남지 않도록 콜라이더를 비활성화한다
@@ -616,9 +658,11 @@ public class NormalZombie : PoolObject, IDamageable, IFrostStatusEffectReceiver,
         hpUI.gameObject.SetActive(false); // hp UI 비활성화
         TriggerFrostDeathEffectIfNeeded();
         TriggerPoisonDeathBurstIfNeeded();
+        TriggerIgnitionDeathEffectIfNeeded();
         ResetFrostStatus();
         ResetPoisonStatus();
         ResetElectroStatus();
+        ResetIgnitionStatus();
         attackState = false; // 공격 상태 초기화
         attackTarget = null; // 공격 대상 초기화
         agent.enabled = false; // 에이전트 비활성화
@@ -649,6 +693,17 @@ public class NormalZombie : PoolObject, IDamageable, IFrostStatusEffectReceiver,
         }
 
         poisonStatusRuntime.TriggerDeathBurstIfNeeded(transform.position);
+    }
+
+    // 연소 상태로 사망한 경우 Ignition 사망 전용 이펙트를 실행한다
+    private void TriggerIgnitionDeathEffectIfNeeded()
+    {
+        if (ignitionStatusRuntime == null)
+        {
+            return;
+        }
+
+        ignitionStatusRuntime.TriggerBurnDeathEffectIfNeeded(transform.position);
     }
 
     // 일반 좀비 프리팹 Override 보상 프로필을 기준으로 처치 보상을 지급한다

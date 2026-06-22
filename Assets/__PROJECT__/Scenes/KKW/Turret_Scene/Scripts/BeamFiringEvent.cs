@@ -7,6 +7,12 @@ using ProjectZDefense.StatusEffects;
 /// </summary>
 public class BeamFiringEvent : FiringEvent
 {
+    private enum BeamDirectionMode
+    {
+        TargetDirection = 0,
+        MuzzleForward = 1
+    }
+
     [SerializeField] private GameObject beamPrefab;
     [SerializeField] private BeamAttackProfileSO attackProfile;
     [SerializeField] private FrostStatusProfileSO frostStatusProfile;
@@ -14,6 +20,11 @@ public class BeamFiringEvent : FiringEvent
     [SerializeField, Min(0.01f)] private float minBeamDistance = 0.1f;
     [SerializeField, Min(0.01f)] private float targetValidationInterval = 0.1f;
     [SerializeField] private bool useTargetAimPoint = true;
+    [Header("빔 방향")]
+    [SerializeField] private BeamDirectionMode directionMode = BeamDirectionMode.TargetDirection;
+    [SerializeField] private Vector3 beamRotationOffsetEuler;
+    [Header("데미지 적용")]
+    [SerializeField] private bool applyBeamDamage = true;
 
     private BeamInstance[] beamInstances;
     private GameObject currentTarget;
@@ -28,6 +39,29 @@ public class BeamFiringEvent : FiringEvent
     private float currentProjectileDamage;
     private bool currentLogProjectileDamage;
     private int frostStatusLevel = 1;
+    private Quaternion beamRotationOffset = Quaternion.identity;
+    private bool hasBeamRotationOffset;
+
+    // 빔 프리팹의 로컬 축 보정값을 캐시한다
+    private void Awake()
+    {
+        CacheBeamRotationOffset();
+    }
+
+#if UNITY_EDITOR
+    // 인스펙터 값 변경 시 빔 로컬 축 보정값을 갱신한다
+    private void OnValidate()
+    {
+        CacheBeamRotationOffset();
+    }
+#endif
+
+    // 빔 회전 보정 쿼터니언을 계산해 런타임 반복 연산을 줄인다
+    private void CacheBeamRotationOffset()
+    {
+        hasBeamRotationOffset = beamRotationOffsetEuler.sqrMagnitude > 0.0001f;
+        beamRotationOffset = hasBeamRotationOffset ? Quaternion.Euler(beamRotationOffsetEuler) : Quaternion.identity;
+    }
 
     // 외부 VFX 프로필에서 사용할 빔 프리팹을 설정한다
     public void SetBeamPrefab(GameObject beamPrefab_)
@@ -86,6 +120,11 @@ public class BeamFiringEvent : FiringEvent
         }
 
         UpdateBeamInstances();
+
+        if (!applyBeamDamage)
+        {
+            return;
+        }
 
         if (attackProfile == null)
         {
@@ -252,17 +291,16 @@ public class BeamFiringEvent : FiringEvent
         }
     }
 
-    // 단일 빔 인스턴스를 총구에서 타겟 위치까지 이어지도록 갱신한다
+    // 단일 빔 인스턴스를 설정된 방향 정책에 맞춰 갱신한다
     private void UpdateBeamInstance(BeamInstance beamInstance, Vector3 targetPosition)
     {
         Vector3 startPosition = beamInstance.MuzzleTransform.position;
-        Vector3 direction = targetPosition - startPosition;
-        float distance = Mathf.Max(minBeamDistance, direction.magnitude);
-        Vector3 safeDirection = direction.sqrMagnitude > 0.0001f ? direction / distance : beamInstance.MuzzleTransform.forward;
+        Vector3 safeDirection = ResolveBeamDirection(beamInstance, startPosition, targetPosition);
 
         Transform beamTransform = beamInstance.BeamObject.transform;
         beamTransform.position = startPosition;
-        beamTransform.rotation = Quaternion.FromToRotation(Vector3.left, safeDirection);
+        Quaternion beamRotation = Quaternion.FromToRotation(Vector3.left, safeDirection);
+        beamTransform.rotation = hasBeamRotationOffset ? beamRotation * beamRotationOffset : beamRotation;
         ApplyBeamScale(beamTransform);
 
         if (beamInstance.TargetTransform != null)
@@ -281,6 +319,20 @@ public class BeamFiringEvent : FiringEvent
         }
     }
 
+    // 빔 방향 정책에 따라 타겟 방향 또는 총구 정방향을 반환한다
+    private Vector3 ResolveBeamDirection(BeamInstance beamInstance, Vector3 startPosition, Vector3 targetPosition)
+    {
+        if (directionMode == BeamDirectionMode.MuzzleForward)
+        {
+            Vector3 muzzleForward = beamInstance.MuzzleTransform.forward;
+            return muzzleForward.sqrMagnitude > 0.0001f ? muzzleForward.normalized : Vector3.forward;
+        }
+
+        Vector3 direction = targetPosition - startPosition;
+        float distance = Mathf.Max(minBeamDistance, direction.magnitude);
+        return direction.sqrMagnitude > 0.0001f ? direction / distance : beamInstance.MuzzleTransform.forward;
+    }
+
     // 빔 루트에는 진행도 스케일만 균일하게 적용한다
     private void ApplyBeamScale(Transform beamTransform)
     {
@@ -291,6 +343,11 @@ public class BeamFiringEvent : FiringEvent
     private void UpdateDamageTick(float deltaTime)
     {
         if (attackProfile == null)
+        {
+            return;
+        }
+
+        if (!applyBeamDamage)
         {
             return;
         }

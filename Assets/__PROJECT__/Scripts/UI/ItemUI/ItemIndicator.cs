@@ -11,29 +11,11 @@ public class ItemIndicator : MonoBehaviour
     private Vector2 coinTextScale;
     private RectTransform coinTextRt;
 
-    //public TextMeshProUGUI firePartText;
-    //private Vector2 originFirePartTextScale;
-    //private Vector2 firePartTextScale;
-    //private RectTransform firePartTextRt;
-    
-    //public TextMeshProUGUI specialPartText;
-    //private Vector2 originSpecialPartTextScale;
-    //private Vector2 specialPartTextScale;
-    //private RectTransform specialPartTextRt;
-
     void Awake()
     {
         coinTextRt = coinText.GetComponent<RectTransform>();
         originCoinTextScale = coinTextRt.localScale;
         coinTextScale = originCoinTextScale;
-
-    //    firePartTextRt = firePartText.GetComponent<RectTransform>();
-    //    originFirePartTextScale = firePartTextRt.localScale;
-    //    firePartTextScale = originFirePartTextScale;
-
-    //    specialPartTextRt = specialPartText.GetComponent<RectTransform>();
-    //    originSpecialPartTextScale = specialPartTextRt.localScale;
-    //    specialPartTextScale = originSpecialPartTextScale;
     }
 
     void Start()
@@ -42,8 +24,6 @@ public class ItemIndicator : MonoBehaviour
         InventorySystem.Inst.OnItemCountChange += OnValueChanged;
 
         coinText.text = InventorySystem.Inst.GetCountString(RewardCurrencyType.Coin);
-        //firePartText.text = InventorySystem.Inst.GetCountString(RewardCurrencyType.FirePart);
-        //specialPartText.text = InventorySystem.Inst.GetCountString(RewardCurrencyType.SpecialPart);
     }
 
     void OnDestroy()
@@ -58,46 +38,15 @@ public class ItemIndicator : MonoBehaviour
     void Update()
     {
         coinTextScale = Vector2.Lerp(coinTextScale, originCoinTextScale, Time.deltaTime * animValue.ScaleReturnLerpSpeed);
-        //firePartTextScale = Vector2.Lerp(firePartTextScale, originFirePartTextScale, Time.deltaTime * animValue.ScaleReturnLerpSpeed);
-        //specialPartTextScale = Vector2.Lerp(specialPartTextScale, originSpecialPartTextScale, Time.deltaTime * animValue.ScaleReturnLerpSpeed);
         coinTextRt.localScale = coinTextScale;
-        //firePartTextRt.localScale = firePartTextScale;
-        //specialPartTextRt.localScale = specialPartTextScale;
     }
-
-    // ItemManager의 이벤트를 구독하여 string 가비지 발생을 줄인다.
-    public void OnCoinValueChanged(string str)
-    {
-        coinText.text = str;
-        coinTextScale = originCoinTextScale * animValue.OnValueChangeScale;
-    }
-
-    //public void OnFirePartValueChanged(string str)
-    //{
-    //    firePartText.text = str;
-    //    firePartTextScale = originFirePartTextScale * animValue.OnValueChangeScale;
-        
-    //}
-
-    //public void OnSpecialPartValueChanged(string str)
-    //{
-    //    specialPartText.text = str;
-    //    specialPartTextScale = originSpecialPartTextScale * animValue.OnValueChangeScale;
-    //}
 
     public void OnValueChanged(ItemData data, Incremental prev)
     {
-       // if(data.Type == RewardCurrencyType.Coin)
-      //  {
-            OnCoinValueChanged(data.CountString);
-       // } 
-        //else if(data.Type == RewardCurrencyType.FirePart)
-        //{
-        //    OnFirePartValueChanged(data.String);
-        //}
-        //else if(data.Type == RewardCurrencyType.SpecialPart)
-        //{
-        //    OnSpecialPartValueChanged(data.String);
-        //}
+        if(data.Type == RewardCurrencyType.Coin)
+        {
+             coinText.text = data.CountString;
+            coinTextScale = originCoinTextScale * animValue.OnValueChangeScale;
+        }
     }
 }

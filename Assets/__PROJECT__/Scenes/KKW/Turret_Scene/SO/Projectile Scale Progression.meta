@@ -1,9 +1,5 @@
 fileFormatVersion: 2
-<<<<<<<< HEAD:Assets/__PROJECT__/Prefabs/Damageable/WorldHpUI.meta
-guid: c99d0d42da380b947a0897fce302a5fb
-========
 guid: db43f8a3d9d27874bbfeb904c00212c7
->>>>>>>> main:Assets/__PROJECT__/Scenes/KKW/Turret_Scene/SO/Projectile Scale Progression.meta
 folderAsset: yes
 DefaultImporter:
   externalObjects: {}

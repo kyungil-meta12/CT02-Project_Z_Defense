@@ -2,10 +2,10 @@
   <Project Path="MoreMountains.Tools.csproj" />
   <Project Path="DinoFracture.Demo.csproj" />
   <Project Path="ACTk.Runtime.csproj" />
+  <Project Path="Assembly-CSharp.csproj" />
   <Project Path="ACTk.DOTS.Examples.Runtime.csproj" />
   <Project Path="ACTk.Editor.csproj" />
   <Project Path="IncrementalLib.csproj" />
-  <Project Path="Assembly-CSharp.csproj" />
   <Project Path="MoreMountains.Tools.Editor.csproj" />
   <Project Path="ACTk.Examples.Runtime.csproj" />
   <Project Path="DinoFracture.Scripts.csproj" />

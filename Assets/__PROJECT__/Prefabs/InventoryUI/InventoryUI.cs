@@ -1,6 +1,5 @@
 using IncrementalLib;
 using System.Collections.Generic;
-using System.Drawing;
 using System.Linq;
 using TMPro;
 using UnityEngine;
@@ -10,7 +9,6 @@ public class InventoryUI : MonoBehaviour
 {
     public GameObject mainController;
     public Image background;
-    public Button openButton;
     public List<Button> buttons;
     public ItemMetaDataSo metaDataSo;
     public TextMeshProUGUI itemNameText;
@@ -78,7 +76,6 @@ public class InventoryUI : MonoBehaviour
     {
         mainController.SetActive(true);
         background.gameObject.SetActive(true);
-        openButton.gameObject.SetActive(false);
 
         // 이전에 활성화 되었던 이미지 및 버튼만 비활성화
         for (int i = 0; i < activatedImageCount; i ++)
@@ -120,7 +117,6 @@ public class InventoryUI : MonoBehaviour
     {
         mainController.SetActive(false);
         background.gameObject.SetActive(false);
-        openButton.gameObject.SetActive(true);
         openState = false;
     }
 

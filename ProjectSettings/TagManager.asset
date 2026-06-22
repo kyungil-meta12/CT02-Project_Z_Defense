@@ -8,6 +8,7 @@ TagManager:
   - Enemy
   - FX
   - PowerSavingCamera
+  - Bullet
   layers:
   - Default
   - TransparentFX
@@ -27,7 +28,7 @@ TagManager:
   - DropItem
   - Boundary
   - PowerSavingUI
-  - 
+  - WorldUI
   - 
   - 
   - 

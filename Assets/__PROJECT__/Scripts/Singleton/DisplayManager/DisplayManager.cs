@@ -1,10 +1,13 @@
 using UnityEngine;
+using UnityEngine.iOS;
 
 public class DisplayManager : MonoBehaviour
 {
     public static DisplayManager Inst;
 
     [Header("절전 모드 활성화 시 사용할 카메라")] public Camera powerSavingCamera;
+    [Header("절전 모드 활성화 시 비활성화 할 캔버스 목록")] public Canvas[] powerSavingDisableCanvasList;
+    [Header("전먼 모드 활성화 시 활성화 할 캔버스")] public Canvas powerSavingCanvas;
 
     [Header("위로 올 수록 우선순위 높음")]
     [Header("시작 시 절전 모드 상태")] public bool startPowerSavingState;
@@ -13,9 +16,9 @@ public class DisplayManager : MonoBehaviour
 
  
 
+    public bool PowerSavingState{ get; private set; } = false;
     public bool VsyncState{ get; private set; } = false;
-    public int Framerate{ get; private set; }
-    public bool PowerSavingState{ get; private set; }
+    public int Framerate{ get; private set; } = 0;
 
     private Camera mainCamera;
     private int DeviceFramerate;
@@ -39,21 +42,18 @@ public class DisplayManager : MonoBehaviour
         DeviceFramerate = (int)Screen.currentResolution.refreshRateRatio.value;
         print($"[DisplayManager] 디바이스 디스플레이 주사율: {DeviceFramerate}Hz");
 
+        Framerate = Mathf.Clamp(Framerate, 0, DeviceFramerate);
+        VsyncState = startVsyncState;
+        
+        SetFramerateLimit(Framerate);  
+        SetVsync(VsyncState);
+        
         // 시작 절전 모드 상태가 true라면 메인 카메라 렌더링을 중단하고 절전 모드 카메라 렌더링을 시작한다.
         if(startPowerSavingState)
         {
             SetPowerSavingMode(true);
         }
-        else
-        {
-            // 시작 Vsync가 true 라면 프레임 제한을 설정하지 않는다. (안드로이드에서는 Vsync가 우선권을 가지므로 Vsync가 활성화 되어있다면 프레임 제한이 동작하지 않는다.)
-            SetVsync(startVsyncState);
-        if(!startVsyncState)
-        {
-            SetFramerateLimit(startFramerateLimit);
-        }
-        }
-       
+        powerSavingCanvas.enabled = startPowerSavingState;
     }
 
     /// <summary>
@@ -67,12 +67,10 @@ public class DisplayManager : MonoBehaviour
         {
             return;
         }
-
         if(useFlag != VsyncState)
         {
             print(useFlag ? "[DisplayManager] 디바이스 Vsync 활성화 됨" : "[DisplayManager] 디바이스 Vsync 비활성화 됨");
         }
-
         if(useFlag)
         {
             SetFramerateLimit(0);
@@ -82,31 +80,28 @@ public class DisplayManager : MonoBehaviour
         {
             QualitySettings.vSyncCount = 0;
         }
-
         VsyncState = useFlag;
     }
 
     /// <summary>
     /// 프레임 제한을 설정한다. 설정할 경우 Vsync가 비활성화 된다.<para/>
     /// 0으로 설정하면 최대 프레임으로 설정된다.<para/>
-    /// 절전 모드 상태 또는 Vsync 활성화 상태에서는 동작하지 않는다.
+    /// 절전 모드 상태에서는 동작하지 않는다.
     /// </summary>
     /// <param name="framerate"></param>
     public void SetFramerateLimit(int framerate)
     {
-        if(PowerSavingState || VsyncState)
+        if(PowerSavingState)
         {
             return;
         }
-
-        if(framerate != Framerate)
+        int inputLimit = framerate == 0 ? DeviceFramerate : framerate;
+        if(inputLimit != Framerate)
         {
-            print($"[DisplayManager] 디바이스 프레임 제한 {framerate}Fps 적용됨");
+            print($"[DisplayManager] 디바이스 프레임 제한 {inputLimit}Fps 적용됨");
         }
-        
-        SetVsync(false);
-        Application.targetFrameRate = framerate;
-        Framerate = framerate;
+        Application.targetFrameRate = inputLimit;
+        Framerate = inputLimit;
     }
     
     /// <summary>
@@ -123,9 +118,11 @@ public class DisplayManager : MonoBehaviour
             latestVsyncState = VsyncState;
             SetVsync(false);
             SetFramerateLimit(24);
+            PowerSavingState = true;
         }
         else
         {
+            PowerSavingState = false;
             SetVsync(latestVsyncState);
             SetFramerateLimit(latestFramerate);
         }
@@ -136,6 +133,16 @@ public class DisplayManager : MonoBehaviour
 
         // 절전 모드 전용 카메라 활성화 또는 비활성화
         powerSavingCamera.gameObject.SetActive(useFlag);
-        PowerSavingState = useFlag;
+
+        // 캔버스 활성화 또는 비활성화
+        foreach(var canvas in powerSavingDisableCanvasList)
+        {
+            canvas.enabled = !useFlag;
+        }
+
+        if(powerSavingCanvas)
+        {
+            powerSavingCanvas.enabled = useFlag;
+        }
     }
 }

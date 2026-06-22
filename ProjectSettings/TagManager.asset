@@ -7,6 +7,7 @@ TagManager:
   - Folder
   - Enemy
   - FX
+  - PowerSavingCamera
   layers:
   - Default
   - TransparentFX
@@ -25,7 +26,7 @@ TagManager:
   - ZombiePhysics
   - DropItem
   - Boundary
-  - 
+  - PowerSavingUI
   - 
   - 
   - 

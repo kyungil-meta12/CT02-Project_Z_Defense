@@ -628,7 +628,7 @@ public class NormalZombie : PoolObject, IDamageable, IFrostStatusEffectReceiver,
             ignitionStatusRuntime = gameObject.AddComponent<IgnitionStatusRuntime>();
         }
 
-        ignitionStatusRuntime.Initialize(this, false);
+        ignitionStatusRuntime.Initialize(this, statusEffectVisualController, false);
     }
 
     /// <summary>

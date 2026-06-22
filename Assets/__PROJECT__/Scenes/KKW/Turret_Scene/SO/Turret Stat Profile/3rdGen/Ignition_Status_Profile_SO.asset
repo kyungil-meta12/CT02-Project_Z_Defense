@@ -12,11 +12,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a53458fa09205db4aa9c5702c5edcf6f, type: 3}
   m_Name: Ignition_Status_Profile_SO
   m_EditorClassIdentifier: Assembly-CSharp::IgnitionStatusProfileSO
-  damageMultiplier: 1
-  tickInterval: 0.25
-  duration: 2
+  damageMultiplier: 0
+  maxHpDamageRatioPerTick: 0.01
+  tickInterval: 0.5
+  duration: 10
   maxStackCount: 1
-  stackRefreshMode: 1
+  stackRefreshMode: 0
   bossDamageMultiplier: 1
   burnDeathEffectPrefab: {fileID: 0}
   burnDeathEffectDuration: 2

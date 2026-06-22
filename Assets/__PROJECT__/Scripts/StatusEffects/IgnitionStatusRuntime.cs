@@ -7,6 +7,7 @@ using UnityEngine;
 public sealed class IgnitionStatusRuntime : MonoBehaviour
 {
     private IDamageable damageable;
+    private StatusEffectVisualController statusEffectVisualController;
     private IgnitionStatusPayload ignitionStatusPayload;
     private float ignitionRemainingDuration;
     private float ignitionTickTimer;
@@ -17,9 +18,10 @@ public sealed class IgnitionStatusRuntime : MonoBehaviour
     public bool IsActive => ignitionStatusActive;
 
     // Ignition 런타임이 참조할 대상과 보스 보정 정책을 초기화한다
-    public void Initialize(IDamageable damageable_, bool useBossDamageMultiplier_)
+    public void Initialize(IDamageable damageable_, StatusEffectVisualController statusEffectVisualController_, bool useBossDamageMultiplier_)
     {
         damageable = damageable_;
+        statusEffectVisualController = statusEffectVisualController_;
         useBossDamageMultiplier = useBossDamageMultiplier_;
     }
 
@@ -50,6 +52,7 @@ public sealed class IgnitionStatusRuntime : MonoBehaviour
         }
 
         ignitionStatusActive = true;
+        SetIgnitionBurnVisualActive(true);
     }
 
     // Ignition 상태 타이머를 감소시키고 틱마다 연소 데미지를 적용한다
@@ -106,6 +109,7 @@ public sealed class IgnitionStatusRuntime : MonoBehaviour
         ignitionTickTimer = 0.0f;
         ignitionStackCount = 0;
         ignitionStatusActive = false;
+        SetIgnitionBurnVisualActive(false);
     }
 
     // 현재 프레임의 연소 틱이 지속시간 안에서 발생 가능한지 확인한다
@@ -117,18 +121,45 @@ public sealed class IgnitionStatusRuntime : MonoBehaviour
     // 현재 연소 중첩 수에 맞는 틱데미지를 적용한다
     private void ApplyIgnitionTickDamage()
     {
-        if (damageable == null || !damageable.IsAlive || ignitionStackCount <= 0 || ignitionStatusPayload.damagePerSecond <= 0.0f)
+        if (damageable == null || !damageable.IsAlive || ignitionStackCount <= 0)
         {
             return;
         }
 
-        float damage = ignitionStatusPayload.damagePerSecond * Mathf.Max(0.01f, ignitionStatusPayload.tickInterval) * ignitionStackCount * GetDamageMultiplier();
+        float damage = CalculateIgnitionTickDamage();
+        if (damage <= 0.0f)
+        {
+            return;
+        }
+
         damageable.TakeDamage(damage);
+    }
+
+    // 현재 설정에 맞는 Ignition 1틱 데미지를 계산한다
+    private float CalculateIgnitionTickDamage()
+    {
+        if (ignitionStatusPayload.maxHpDamageRatioPerTick > 0.0f)
+        {
+            return Mathf.Max(0.0f, damageable.TotalHp) * Mathf.Clamp01(ignitionStatusPayload.maxHpDamageRatioPerTick) * ignitionStackCount * GetDamageMultiplier();
+        }
+
+        return ignitionStatusPayload.damagePerSecond * Mathf.Max(0.01f, ignitionStatusPayload.tickInterval) * ignitionStackCount * GetDamageMultiplier();
     }
 
     // 대상 타입에 맞는 Ignition 데미지 배율을 반환한다
     private float GetDamageMultiplier()
     {
         return useBossDamageMultiplier ? Mathf.Max(0.0f, ignitionStatusPayload.bossDamageMultiplier) : 1.0f;
+    }
+
+    // Ignition 화상 상태 활성 여부에 맞춰 비주얼 컨트롤러를 갱신한다
+    private void SetIgnitionBurnVisualActive(bool isActive)
+    {
+        if (statusEffectVisualController == null)
+        {
+            return;
+        }
+
+        statusEffectVisualController.SetIgnitionBurnActive(isActive);
     }
 }

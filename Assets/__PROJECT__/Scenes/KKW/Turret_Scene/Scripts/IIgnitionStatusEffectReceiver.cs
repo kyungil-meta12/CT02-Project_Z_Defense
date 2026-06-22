@@ -9,6 +9,7 @@ namespace ProjectZDefense.StatusEffects
     {
         public bool hasIgnitionStatus;
         public float damagePerSecond;
+        public float maxHpDamageRatioPerTick;
         public float tickInterval;
         public float duration;
         public int maxStackCount;

@@ -749,7 +749,7 @@ public class BossZombie : PoolObject, IDamageable, IFrostStatusEffectReceiver, I
             ignitionStatusRuntime = gameObject.AddComponent<IgnitionStatusRuntime>();
         }
 
-        ignitionStatusRuntime.Initialize(this, true);
+        ignitionStatusRuntime.Initialize(this, statusEffectVisualController, true);
     }
 
     float storeDamage = 0;

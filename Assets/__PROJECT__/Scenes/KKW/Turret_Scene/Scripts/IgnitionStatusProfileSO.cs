@@ -29,11 +29,12 @@ public enum IgnitionInteractionFlags
 public class IgnitionStatusProfileSO : ScriptableObject
 {
     [Header("연소 기본값")]
-    [Min(0.0f)] public float damageMultiplier = 1.0f;
-    [Min(0.01f)] public float tickInterval = 0.25f;
-    [Min(0.0f)] public float duration = 2.0f;
+    [Min(0.0f)] public float damageMultiplier = 0.0f;
+    [Range(0.0f, 1.0f)] public float maxHpDamageRatioPerTick = 0.01f;
+    [Min(0.01f)] public float tickInterval = 1.0f;
+    [Min(0.0f)] public float duration = 10.0f;
     [Min(1)] public int maxStackCount = 1;
-    public IgnitionStackRefreshMode stackRefreshMode = IgnitionStackRefreshMode.AddStackAndRefreshDuration;
+    public IgnitionStackRefreshMode stackRefreshMode = IgnitionStackRefreshMode.RefreshDurationOnly;
 
     [Header("보스 보정")]
     [Min(0.0f)] public float bossDamageMultiplier = 1.0f;
@@ -49,7 +50,7 @@ public class IgnitionStatusProfileSO : ScriptableObject
     {
         get
         {
-            return damageMultiplier > 0.0f && tickInterval > 0.0f && duration > 0.0f && maxStackCount > 0;
+            return (damageMultiplier > 0.0f || maxHpDamageRatioPerTick > 0.0f) && tickInterval > 0.0f && duration > 0.0f && maxStackCount > 0;
         }
     }
 
@@ -63,10 +64,12 @@ public class IgnitionStatusProfileSO : ScriptableObject
     public IgnitionStatusPayload CreatePayload(int level, float sourceDamagePerSecond, TurretStatGrowthProfileSO growthProfile)
     {
         float safeDamagePerSecond = Mathf.Max(0.0f, sourceDamagePerSecond) * Mathf.Max(0.0f, damageMultiplier);
+        float safeMaxHpDamageRatioPerTick = Mathf.Clamp01(maxHpDamageRatioPerTick);
         IgnitionStatusPayload payload = new IgnitionStatusPayload
         {
-            hasIgnitionStatus = HasIgnitionStatus && safeDamagePerSecond > 0.0f,
+            hasIgnitionStatus = HasIgnitionStatus && (safeDamagePerSecond > 0.0f || safeMaxHpDamageRatioPerTick > 0.0f),
             damagePerSecond = safeDamagePerSecond,
+            maxHpDamageRatioPerTick = safeMaxHpDamageRatioPerTick,
             tickInterval = Mathf.Max(0.01f, tickInterval),
             duration = Mathf.Max(0.0f, duration),
             maxStackCount = Mathf.Max(1, maxStackCount),
@@ -84,6 +87,7 @@ public class IgnitionStatusProfileSO : ScriptableObject
     private void OnValidate()
     {
         damageMultiplier = Mathf.Max(0.0f, damageMultiplier);
+        maxHpDamageRatioPerTick = Mathf.Clamp01(maxHpDamageRatioPerTick);
         tickInterval = Mathf.Max(0.01f, tickInterval);
         duration = Mathf.Max(0.0f, duration);
         maxStackCount = Mathf.Max(1, maxStackCount);

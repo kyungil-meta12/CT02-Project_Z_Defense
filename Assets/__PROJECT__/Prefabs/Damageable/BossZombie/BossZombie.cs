@@ -10,7 +10,7 @@ using ProjectZDefense.StatusEffects;
 /// <summary>
 /// 보스 좀비의 웨이브 스탯 초기화, 스킬, 피격, 사망, 처치 보상 지급을 담당한다.
 /// </summary>
-public class BossZombie : PoolObject, IDamageable, IFrostStatusEffectReceiver, IPoisonStatusEffectReceiver, IElectroStatusEffectReceiver, IIgnitionStatusEffectReceiver, IElectroOverloadTriggerReceiver, IFrostStatusRuntimeOwner, IElectroStunRuntimeOwner
+public class BossZombie : PoolObject, IDamageable, IFrostStatusEffectReceiver, IPoisonStatusEffectReceiver, IElectroStatusEffectReceiver, IIgnitionStatusEffectReceiver, IIgnitionReactionReceiver, IElectroOverloadTriggerReceiver, IFrostStatusRuntimeOwner, IElectroStunRuntimeOwner
 {
     private static readonly int SpeedHash = Animator.StringToHash("speed");
     private const float MinimumFrostSpeedMultiplier = 0.5f;
@@ -506,6 +506,7 @@ public class BossZombie : PoolObject, IDamageable, IFrostStatusEffectReceiver, I
         }
 
         frostStatusRuntime.ApplyFrostStatus(payload);
+        NotifyIgnitionReaction(IgnitionReactionType.Frost);
     }
 
     // Poison 투사체로 전달된 중독 틱데미지 데이터를 갱신한다
@@ -517,6 +518,7 @@ public class BossZombie : PoolObject, IDamageable, IFrostStatusEffectReceiver, I
         }
 
         poisonStatusRuntime.ApplyPoisonStatus(payload);
+        NotifyIgnitionReaction(IgnitionReactionType.Poison);
     }
 
     // Electro 투사체와 체인 라이트닝으로 전달된 Shock 스택 데이터를 갱신한다
@@ -528,6 +530,10 @@ public class BossZombie : PoolObject, IDamageable, IFrostStatusEffectReceiver, I
         }
 
         electroStatusRuntime.ApplyElectroStatus(payload, chainIndex, sourceDamage);
+        if (electroStatusRuntime.IsIgnitionReactionEligible)
+        {
+            NotifyIgnitionReaction(IgnitionReactionType.Electro);
+        }
     }
 
     // 화염 공격으로 전달된 연소 상태 데이터를 갱신한다
@@ -541,6 +547,17 @@ public class BossZombie : PoolObject, IDamageable, IFrostStatusEffectReceiver, I
         ignitionStatusRuntime.ApplyIgnitionStatus(payload);
     }
 
+    // Ignition 연소 중 다른 3세대 속성 공격 반응을 런타임에 전달한다
+    public void NotifyIgnitionReaction(IgnitionReactionType reactionType)
+    {
+        if (!IsAlive || ignitionStatusRuntime == null)
+        {
+            return;
+        }
+
+        ignitionStatusRuntime.NotifyIgnitionReaction(reactionType);
+    }
+
     // 비-Electro 피해가 적용되는 시점에 Electro Overload 발동 여부를 갱신한다
     public void NotifyNonElectroDamageReceived(float damage)
     {
@@ -550,6 +567,10 @@ public class BossZombie : PoolObject, IDamageable, IFrostStatusEffectReceiver, I
         }
 
         electroStatusRuntime.NotifyNonElectroDamageReceived(damage);
+        if (electroStatusRuntime.IsIgnitionReactionEligible)
+        {
+            NotifyIgnitionReaction(IgnitionReactionType.Electro);
+        }
     }
 
     // Frost 상태가 계산한 속도 배율을 애니메이터 이동/공격 속도에 반영한다

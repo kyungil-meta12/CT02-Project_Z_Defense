@@ -179,6 +179,7 @@ Enemy Frost visual setup:
 - Add a `StatusEffectVisualSlot` with `visualType = FrostSlow` and `attachMode = RendererOverlay`.
 - Assign `MeshFX_Frozen 1` to that slot's `visualPrefab`.
 - Assign only body renderers that should receive the frost overlay into that slot's `targetRenderers`.
+- Set `fadeInDuration = 0.4` and `fadeOutDuration = 0.4` on FrostSlow slots when the frost overlay should appear and disappear softly instead of snapping.
 - For normal zombies, usually assign the active body `SkinnedMeshRenderer`.
 - For boss zombies, assign a boss-specific Frost visual prefab to a FrostSlow `StatusEffectVisualSlot` when `MeshFX_Frozen 1` is too visually noisy or incorrectly scaled.
 - For boss zombies, assign body and attachment renderers selectively so hair, eyes, or props can be excluded if needed.
@@ -658,20 +659,33 @@ FrostRay VFX notes:
 
 Ignition status handling:
 
-- `IgnitionStatusProfileSO` stores Ignition burn values (`damageMultiplier`, `maxHpDamageRatioPerTick`, `tickInterval`, `duration`, `maxStackCount`, `stackRefreshMode`, `bossDamageMultiplier`, `burnDeathEffectPrefab`, `burnDeathEffectDuration`, `interactionFlags`).
+- `IgnitionStatusProfileSO` stores Ignition burn values (`damageMultiplier`, `maxHpDamageRatioPerTick`, `tickInterval`, `duration`, `maxStackCount`, `stackRefreshMode`, reaction burn values, `bossDamageMultiplier`, `burnDeathEffectPrefab`, `burnDeathEffectDuration`, `interactionFlags`).
 - `Ignition_Turret_Definition.ignitionStatusProfile` points to the active Ignition status profile. The runtime `IgnitionDamageApplier` receives the profile through `ITurretStatusProfileReceiver`; the prefab-local `IgnitionDamageApplier.ignitionStatusProfile` field can stay empty.
 - `IgnitionConeDetector` owns the cone overlap check using non-alloc physics. `IgnitionDamageApplier` applies the resulting payload to targets implementing `ProjectZDefense.StatusEffects.IIgnitionStatusEffectReceiver`.
 - `NormalZombie` and `BossZombie` implement `ProjectZDefense.StatusEffects.IIgnitionStatusEffectReceiver` and delegate duration, tick timer, stack count, and burn-death VFX to `IgnitionStatusRuntime`.
 - `IgnitionStatusRuntime` reports burn active/inactive state to `StatusEffectVisualController`; zombies do not directly instantiate or configure mesh fire VFX.
 - Ignition tick damage prefers `maxHpDamageRatioPerTick` when it is greater than `0`. If it is `0`, the runtime falls back to `damagePerSecond * tickInterval`.
-- The current first-test `Ignition_Status_Profile_SO` values are `damageMultiplier = 0`, `maxHpDamageRatioPerTick = 0.01`, `tickInterval = 1`, `duration = 10`, `maxStackCount = 1`, and `stackRefreshMode = RefreshDurationOnly`.
-- With those values, a target that touches the flame receives a 10-second burn that deals 1% of max HP once per second, for about 10% max HP total before boss modifiers.
+- The current first-test `Ignition_Status_Profile_SO` values are `damageMultiplier = 0`, `maxHpDamageRatioPerTick = 0.01`, `tickInterval = 0.2`, `duration = 5`, `maxStackCount = 1`, and `stackRefreshMode = RefreshDurationOnly`.
+- With those values, a target that touches the flame receives a 5-second burn that deals 1% of max HP every 0.2 seconds before boss modifiers.
 - `RefreshDurationOnly` keeps the burn predictable by refreshing the 10-second timer without increasing stack count. Use `AddStackAndRefreshDuration` only if the design explicitly wants repeated flame contact to increase burn damage.
 - Ignition status resets on spawn, despawn, and death. Burn death VFX is triggered from the active Ignition payload when configured.
 - Add a `StatusEffectVisualSlot` with `visualType = IgnitionBurn` and `attachMode = RendererOverlay` to zombie prefabs that should show burn visuals.
 - Assign `MeshFX_Fire 1` to the IgnitionBurn slot's `visualPrefab`.
 - Assign the body `SkinnedMeshRenderer` entries that should emit fire particles into the IgnitionBurn slot's `targetRenderers`.
 - Tune `particleScaleMultiplier` per zombie or boss prefab when the fire particles are too large or too small.
+- Set `fadeInDuration = 1` and `fadeOutDuration = 1` on IgnitionBurn slots so `MeshFX_Fire 1` fades from 0% to 100% alpha when burn starts and from 100% to 0% alpha when burn ends.
+- `StatusEffectVisualAlphaFader` is added to runtime visual instances and only updates while an alpha fade is active.
+- Add an additional `IgnitionBurn` Anchor slot for the base cartoon flame, usually on a `FireBodyAnchor`, and assign `Fire_cartoon_fire 1`.
+- Ignition can enter a fixed reaction state when the burning target is hit by third-generation Frost, Poison, or Electro status attacks.
+- Ignition also checks pre-existing status when burn is first applied: active Poison, active Frost slow/freeze, or Electro with full Shock stacks/Overload stun can immediately convert the burn into the corresponding reaction.
+- The first valid reaction is fixed until the current Ignition burn ends. Later Frost, Poison, or Electro hits do not change the reaction type.
+- While reacted, Ignition burn uses the reaction-specific damage values from `IgnitionStatusProfileSO`: `reactionMaxHpDamageRatioPerTick`, `reactionTickInterval`, and `reactionDamageMultiplier` fallback. The incoming Frost, Poison, or Electro direct/status damage is not multiplied.
+- The current first-test reaction values are `reactionMaxHpDamageRatioPerTick = 0.02`, `reactionTickInterval = 0.2`, and `reactionDamageMultiplier = 0`, so reacted burn deals twice the current base max-HP burn per tick at the same tick cadence.
+- Reaction visuals use `StatusEffectVisualType.IgnitionReaction` slots and the slot's `ignitionReactionType` field:
+  - `Electro` should use `Fire_cartoon_electric 1`.
+  - `Frost` should use `Fire_cartoon_frost 1`.
+  - `Poison` should use `Fire_cartoon_poison 1`.
+- When an Ignition reaction visual is active, the regular `IgnitionBurn` visuals are disabled so only the reacted flame style is shown.
 
 ## Current Balance Direction
 

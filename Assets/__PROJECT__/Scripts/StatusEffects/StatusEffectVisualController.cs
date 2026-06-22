@@ -1,3 +1,4 @@
+using ProjectZDefense.StatusEffects;
 using UnityEngine;
 
 public enum StatusEffectVisualType
@@ -5,7 +6,8 @@ public enum StatusEffectVisualType
     FrostSlow,
     Poison,
     ElectroStun,
-    IgnitionBurn
+    IgnitionBurn,
+    IgnitionReaction
 }
 
 public enum StatusEffectVisualAttachMode
@@ -22,6 +24,7 @@ public sealed class StatusEffectVisualSlot
 {
     [Header("상태이상")]
     public StatusEffectVisualType visualType;
+    public IgnitionReactionType ignitionReactionType;
     public StatusEffectVisualAttachMode attachMode;
 
     [Header("프리팹")]
@@ -39,6 +42,8 @@ public sealed class StatusEffectVisualSlot
 
     [Header("재생 옵션")]
     public bool restartParticlesOnEnable = true;
+    [Min(0.0f)] public float fadeInDuration;
+    [Min(0.0f)] public float fadeOutDuration;
 
     [Header("처치 예고 표시")]
     public string lethalIndicatorChildName;
@@ -61,6 +66,7 @@ public class StatusEffectVisualController : MonoBehaviour
     private bool poisonVisualActive;
     private bool electroStunVisualActive;
     private bool ignitionBurnVisualActive;
+    private IgnitionReactionType activeIgnitionReactionType;
 
     // 컴포넌트가 비활성화될 때 상태이상 비주얼과 임시 머티리얼을 정리한다
     private void OnDisable()
@@ -69,6 +75,11 @@ public class StatusEffectVisualController : MonoBehaviour
         SetPoisonActive(false);
         SetElectroStunActive(false);
         SetIgnitionBurnActive(false);
+        SetIgnitionReactionActive(IgnitionReactionType.None);
+        RestoreVisualSlotOriginalMaterials(StatusEffectVisualType.FrostSlow);
+        RestoreVisualSlotOriginalMaterials(StatusEffectVisualType.Poison);
+        RestoreVisualSlotOriginalMaterials(StatusEffectVisualType.IgnitionBurn);
+        RestoreVisualSlotOriginalMaterials(StatusEffectVisualType.IgnitionReaction);
     }
 
     // 오브젝트가 파괴될 때 상태이상 비주얼과 임시 머티리얼을 정리한다
@@ -78,6 +89,11 @@ public class StatusEffectVisualController : MonoBehaviour
         SetPoisonActive(false);
         SetElectroStunActive(false);
         SetIgnitionBurnActive(false);
+        SetIgnitionReactionActive(IgnitionReactionType.None);
+        RestoreVisualSlotOriginalMaterials(StatusEffectVisualType.FrostSlow);
+        RestoreVisualSlotOriginalMaterials(StatusEffectVisualType.Poison);
+        RestoreVisualSlotOriginalMaterials(StatusEffectVisualType.IgnitionBurn);
+        RestoreVisualSlotOriginalMaterials(StatusEffectVisualType.IgnitionReaction);
     }
 
     // 프로스트 슬로우 상태에 맞춰 얼음 메시 이펙트를 활성화하거나 비활성화한다
@@ -94,10 +110,10 @@ public class StatusEffectVisualController : MonoBehaviour
             CacheVisualSlotOriginalMaterials(StatusEffectVisualType.FrostSlow);
         }
 
-        SetVisualSlotInstancesActive(StatusEffectVisualType.FrostSlow, isActive);
+        bool hasDelayedMaterialRestore = SetVisualSlotInstancesActive(StatusEffectVisualType.FrostSlow, isActive);
         frostSlowVisualActive = isActive;
 
-        if (!isActive)
+        if (!isActive && !hasDelayedMaterialRestore)
         {
             RestoreVisualSlotOriginalMaterials(StatusEffectVisualType.FrostSlow);
         }
@@ -117,13 +133,16 @@ public class StatusEffectVisualController : MonoBehaviour
             CacheVisualSlotOriginalMaterials(StatusEffectVisualType.Poison);
         }
 
-        SetVisualSlotInstancesActive(StatusEffectVisualType.Poison, isActive);
+        bool hasDelayedMaterialRestore = SetVisualSlotInstancesActive(StatusEffectVisualType.Poison, isActive);
         poisonVisualActive = isActive;
 
         if (!isActive)
         {
             SetPoisonLethalIndicatorActive(false);
-            RestoreVisualSlotOriginalMaterials(StatusEffectVisualType.Poison);
+            if (!hasDelayedMaterialRestore)
+            {
+                RestoreVisualSlotOriginalMaterials(StatusEffectVisualType.Poison);
+            }
         }
     }
 
@@ -158,13 +177,41 @@ public class StatusEffectVisualController : MonoBehaviour
             CacheVisualSlotOriginalMaterials(StatusEffectVisualType.IgnitionBurn);
         }
 
-        SetVisualSlotInstancesActive(StatusEffectVisualType.IgnitionBurn, isActive);
+        bool hasDelayedMaterialRestore = SetVisualSlotInstancesActive(StatusEffectVisualType.IgnitionBurn, isActive);
         ignitionBurnVisualActive = isActive;
 
-        if (!isActive)
+        if (!isActive && !hasDelayedMaterialRestore)
         {
             RestoreVisualSlotOriginalMaterials(StatusEffectVisualType.IgnitionBurn);
         }
+    }
+
+    // Ignition 속성 반응 타입에 맞춰 강화 화염 비주얼을 전환한다
+    public void SetIgnitionReactionActive(IgnitionReactionType reactionType)
+    {
+        if (activeIgnitionReactionType == reactionType)
+        {
+            return;
+        }
+
+        if (activeIgnitionReactionType != IgnitionReactionType.None)
+        {
+            bool hasDelayedMaterialRestore = SetIgnitionReactionSlotInstancesActive(activeIgnitionReactionType, false);
+            if (!hasDelayedMaterialRestore)
+            {
+                RestoreVisualSlotOriginalMaterials(StatusEffectVisualType.IgnitionReaction);
+            }
+        }
+
+        activeIgnitionReactionType = reactionType;
+        if (activeIgnitionReactionType == IgnitionReactionType.None)
+        {
+            return;
+        }
+
+        EnsureIgnitionReactionSlotInstances(activeIgnitionReactionType);
+        CacheIgnitionReactionSlotOriginalMaterials(activeIgnitionReactionType);
+        SetIgnitionReactionSlotInstancesActive(activeIgnitionReactionType, true);
     }
 
     // 포이즌 틱데미지로 사망이 확정된 대상의 표시 아이콘을 켜거나 끈다
@@ -221,6 +268,7 @@ public class StatusEffectVisualController : MonoBehaviour
         visualInstance.transform.localPosition = slot.localPositionOffset;
         visualInstance.transform.localRotation = Quaternion.Euler(slot.localEulerOffset);
         visualInstance.transform.localScale = slot.localScale;
+        EnsureAlphaFader(visualInstance);
         visualInstance.SetActive(false);
         slot.runtimeInstances[0] = visualInstance;
         CacheSlotLethalIndicators(slot);
@@ -267,6 +315,7 @@ public class StatusEffectVisualController : MonoBehaviour
         visualInstance.transform.localScale = Vector3.one;
         ConfigureOverlayFx(visualInstance, targetRenderer);
         ApplyParticleScaleMultiplier(visualInstance, particleScaleMultiplier);
+        EnsureAlphaFader(visualInstance);
         visualInstance.SetActive(false);
         return visualInstance;
     }
@@ -281,8 +330,20 @@ public class StatusEffectVisualController : MonoBehaviour
             return;
         }
 
+        EnsureUniqueOverlayMaterial(overlayFx);
         overlayFx.targetRenderer = targetRenderer;
         ConfigureParticleShapes(overlayFx, targetRenderer);
+    }
+
+    // OverlayFX 머티리얼을 인스턴스별로 복제해 페이드 알파가 원본 에셋에 영향을 주지 않게 한다
+    private static void EnsureUniqueOverlayMaterial(OverlayFX overlayFx)
+    {
+        if (overlayFx.overlayMaterial == null)
+        {
+            return;
+        }
+
+        overlayFx.overlayMaterial = new Material(overlayFx.overlayMaterial);
     }
 
     // OverlayFX 파티클 Shape를 대상 렌더러에 맞춰 즉시 연결한다
@@ -318,7 +379,30 @@ public class StatusEffectVisualController : MonoBehaviour
     }
 
     // 지정한 상태이상 타입에 해당하는 확장 슬롯 인스턴스를 활성화하거나 비활성화한다
-    private void SetVisualSlotInstancesActive(StatusEffectVisualType visualType, bool isActive)
+    private bool SetVisualSlotInstancesActive(StatusEffectVisualType visualType, bool isActive)
+    {
+        if (visualSlots == null)
+        {
+            return false;
+        }
+
+        bool hasDelayedMaterialRestore = false;
+        for (int i = 0; i < visualSlots.Length; i++)
+        {
+            StatusEffectVisualSlot slot = visualSlots[i];
+            if (slot == null || slot.visualType != visualType)
+            {
+                continue;
+            }
+
+            hasDelayedMaterialRestore |= SetInstancesActive(slot, isActive);
+        }
+
+        return hasDelayedMaterialRestore;
+    }
+
+    // 지정한 Ignition 반응 타입에 해당하는 비주얼 슬롯 인스턴스를 준비한다
+    private void EnsureIgnitionReactionSlotInstances(IgnitionReactionType reactionType)
     {
         if (visualSlots == null)
         {
@@ -328,13 +412,64 @@ public class StatusEffectVisualController : MonoBehaviour
         for (int i = 0; i < visualSlots.Length; i++)
         {
             StatusEffectVisualSlot slot = visualSlots[i];
-            if (slot == null || slot.visualType != visualType)
+            if (!IsIgnitionReactionSlot(slot, reactionType) || slot.visualPrefab == null)
             {
                 continue;
             }
 
-            SetInstancesActive(slot.runtimeInstances, isActive, slot.restartParticlesOnEnable);
+            EnsureVisualSlotInstance(slot);
         }
+    }
+
+    // 지정한 Ignition 반응 타입 슬롯의 원본 머티리얼을 캐시한다
+    private void CacheIgnitionReactionSlotOriginalMaterials(IgnitionReactionType reactionType)
+    {
+        if (visualSlots == null)
+        {
+            return;
+        }
+
+        for (int i = 0; i < visualSlots.Length; i++)
+        {
+            StatusEffectVisualSlot slot = visualSlots[i];
+            if (!IsIgnitionReactionSlot(slot, reactionType))
+            {
+                continue;
+            }
+
+            CacheOriginalSharedMaterials(slot);
+        }
+    }
+
+    // 지정한 Ignition 반응 타입 슬롯 인스턴스만 활성화하거나 비활성화한다
+    private bool SetIgnitionReactionSlotInstancesActive(IgnitionReactionType reactionType, bool isActive)
+    {
+        if (visualSlots == null)
+        {
+            return false;
+        }
+
+        bool hasDelayedMaterialRestore = false;
+        for (int i = 0; i < visualSlots.Length; i++)
+        {
+            StatusEffectVisualSlot slot = visualSlots[i];
+            if (!IsIgnitionReactionSlot(slot, reactionType))
+            {
+                continue;
+            }
+
+            hasDelayedMaterialRestore |= SetInstancesActive(slot, isActive);
+        }
+
+        return hasDelayedMaterialRestore;
+    }
+
+    // 슬롯이 지정한 Ignition 반응 타입에 해당하는지 확인한다
+    private static bool IsIgnitionReactionSlot(StatusEffectVisualSlot slot, IgnitionReactionType reactionType)
+    {
+        return slot != null &&
+            slot.visualType == StatusEffectVisualType.IgnitionReaction &&
+            slot.ignitionReactionType == reactionType;
     }
 
     // 지정한 상태이상 타입의 처치 예고 표시 오브젝트를 켜거나 끈다
@@ -444,13 +579,15 @@ public class StatusEffectVisualController : MonoBehaviour
     }
 
     // 인스턴스 배열을 활성화하고 필요하면 파티클을 재시작한다
-    private static void SetInstancesActive(GameObject[] instances, bool isActive, bool restartParticlesOnEnable)
+    private static bool SetInstancesActive(StatusEffectVisualSlot slot, bool isActive)
     {
+        GameObject[] instances = slot.runtimeInstances;
         if (instances == null)
         {
-            return;
+            return false;
         }
 
+        bool hasDelayedMaterialRestore = false;
         for (int i = 0; i < instances.Length; i++)
         {
             GameObject visualInstance = instances[i];
@@ -459,12 +596,67 @@ public class StatusEffectVisualController : MonoBehaviour
                 continue;
             }
 
-            visualInstance.SetActive(isActive);
-            if (isActive && restartParticlesOnEnable)
+            StatusEffectVisualAlphaFader alphaFader = EnsureAlphaFader(visualInstance);
+            if (isActive)
             {
-                RestartParticles(visualInstance);
+                visualInstance.SetActive(true);
+                alphaFader.PlayFadeIn(slot.fadeInDuration, slot.restartParticlesOnEnable);
+                continue;
             }
+
+            if (ShouldDelayRendererMaterialRestore(slot))
+            {
+                Renderer restoreRenderer = ResolveRestoreRenderer(slot, i);
+                Material[] restoreMaterials = ResolveRestoreMaterials(slot, i);
+                alphaFader.PlayFadeOut(slot.fadeOutDuration, restoreRenderer, restoreMaterials);
+                hasDelayedMaterialRestore = true;
+                continue;
+            }
+
+            alphaFader.PlayFadeOut(slot.fadeOutDuration);
         }
+
+        return hasDelayedMaterialRestore;
+    }
+
+    // RendererOverlay 슬롯의 머티리얼 복구를 페이드 완료까지 늦춰야 하는지 확인한다
+    private static bool ShouldDelayRendererMaterialRestore(StatusEffectVisualSlot slot)
+    {
+        return slot.attachMode == StatusEffectVisualAttachMode.RendererOverlay && slot.fadeOutDuration > 0.0f;
+    }
+
+    // 페이드 완료 후 원본 머티리얼로 되돌릴 대상 렌더러를 반환한다
+    private static Renderer ResolveRestoreRenderer(StatusEffectVisualSlot slot, int index)
+    {
+        if (slot.targetRenderers == null || index < 0 || index >= slot.targetRenderers.Length)
+        {
+            return null;
+        }
+
+        return slot.targetRenderers[index];
+    }
+
+    // 페이드 완료 후 복구할 원본 머티리얼 배열을 반환한다
+    private static Material[] ResolveRestoreMaterials(StatusEffectVisualSlot slot, int index)
+    {
+        if (slot.originalSharedMaterials == null || index < 0 || index >= slot.originalSharedMaterials.Length)
+        {
+            return null;
+        }
+
+        return slot.originalSharedMaterials[index];
+    }
+
+    // 상태이상 비주얼 인스턴스에 알파 페이드 컴포넌트를 보장한다
+    private static StatusEffectVisualAlphaFader EnsureAlphaFader(GameObject visualInstance)
+    {
+        StatusEffectVisualAlphaFader alphaFader = visualInstance.GetComponent<StatusEffectVisualAlphaFader>();
+        if (alphaFader == null)
+        {
+            alphaFader = visualInstance.AddComponent<StatusEffectVisualAlphaFader>();
+        }
+
+        return alphaFader;
     }
 
     // 대상 오브젝트 하위의 모든 파티클을 초기화하고 다시 재생한다

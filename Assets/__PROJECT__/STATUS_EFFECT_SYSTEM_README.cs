@@ -32,6 +32,11 @@
  *   대상 단위 Electro 런타임. Shock 스택 수, 스택 유지시간,
  *   Volt Sphere 1 기반 스택 비주얼 생성/회전/해제를 담당한다.
  *
+ * - Assets/__PROJECT__/Scripts/StatusEffects/IgnitionStatusRuntime.cs
+ *   대상 단위 Ignition 런타임. 기본 연소 지속시간, 틱 타이머, 중첩,
+ *   속성 반응 타입, 특수연소 틱데미지, 기본/반응 화염 비주얼 전환,
+ *   연소 사망 VFX 실행을 담당한다.
+ *
  * - Assets/__PROJECT__/Scripts/StatusEffects/StatusEffectVisualController.cs
  *   좀비 프리팹 측 상태이상 비주얼 슬롯 관리자.
  *   Frost overlay, Poison body/foot aura, Poison lethal indicator 같은 표시를
@@ -47,6 +52,10 @@
  * - Assets/__PROJECT__/Scenes/KKW/Turret_Scene/Scripts/IElectroStatusEffectReceiver.cs
  *   ProjectZDefense.StatusEffects.ElectroStatusPayload와 IElectroStatusEffectReceiver를 정의한다.
  *
+ * - Assets/__PROJECT__/Scenes/KKW/Turret_Scene/Scripts/IIgnitionStatusEffectReceiver.cs
+ *   ProjectZDefense.StatusEffects.IgnitionStatusPayload, IIgnitionStatusEffectReceiver,
+ *   IgnitionReactionType, IIgnitionReactionReceiver를 정의한다.
+ *
  * - Assets/__PROJECT__/Scenes/KKW/Turret_Scene/Scripts/FrostStatusProfileSO.cs
  *   Frost 기본 밸런스와 VFX 참조를 관리한다.
  *
@@ -56,6 +65,10 @@
  * - Assets/__PROJECT__/Scenes/KKW/Turret_Scene/Scripts/ElectroStatusProfileSO.cs
  *   Electro 체인 라이트닝, Shock 스택 기본값, Shock 스택 VFX,
  *   Overload/경직 기본값, 체인 링크 VFX 값을 관리한다.
+ *
+ * - Assets/__PROJECT__/Scenes/KKW/Turret_Scene/Scripts/IgnitionStatusProfileSO.cs
+ *   Ignition 기본 연소와 속성 반응 특수연소의 최대체력 비례 틱데미지,
+ *   틱 간격, 지속시간, 중첩 정책, 보스 배율, 사망 연출 값을 관리한다.
  *
  * - Assets/__PROJECT__/Scenes/KKW/Turret_Scene/Scripts/PoisonDeathBurstProfileSO.cs
  *   Poison 처형 사망 폭발 VFX, 범위, 약한 Poison, 연쇄 허용 여부를 관리한다.
@@ -104,6 +117,7 @@
  * - Assets/__PROJECT__/Prefabs/Damageable/BossZombie/BossZombie.cs
  *   NormalZombie와 같은 계약을 구현하지만, Frost는 현재 slow-only 정책이며 빙결 폭발은 비활성이다.
  *   Poison은 bossDamageMultiplier를 적용하고, 처형 사망 폭발은 비활성이다.
+ *   Ignition은 bossDamageMultiplier를 적용하고, 같은 속성 반응 규칙을 사용한다.
  *
  * ==========================================================================================
  * 2. CORE RESPONSIBILITY RULE
@@ -240,6 +254,35 @@
  * 12. Overload는 Shock 스택을 소모하고, 폭발 VFX, 단일 대상 최대체력 비례 데미지, 긴 기절과 기절 VFX를 적용한다.
  * 13. Overload 긴 기절 중에는 Electro 피격을 받아도 새 Shock 스택을 쌓지 않는다.
  *
+ * ==========================================================================================
+ * 4-2. IGNITION CURRENT FLOW
+ * ==========================================================================================
+ *
+ * Ignition_Turret은 Beam VFX와 별도의 원뿔 감지 데미지 적용기를 함께 사용한다.
+ *
+ * 1. Ignition_Turret_Definition.ignitionStatusProfile에 Ignition_Status_Profile_SO를 연결한다.
+ * 2. TurretDefinitionRuntimeController가 TurretStatProfileApplier.SetStatusProfile을 통해 IgnitionDamageApplier에 프로필을 전달한다.
+ * 3. IgnitionConeDetector는 TurretRigBinding의 총구 pivot들을 기준으로 OverlapSphereNonAlloc + 수평 원뿔 판정을 수행한다.
+ * 4. IgnitionDamageApplier는 감지된 대상이 IIgnitionStatusEffectReceiver이면 IgnitionStatusPayload를 전달한다.
+ * 5. NormalZombie / BossZombie는 IgnitionStatusRuntime.ApplyIgnitionStatus로 위임한다.
+ * 6. IgnitionStatusRuntime은 기본 연소 중에는 maxHpDamageRatioPerTick, tickInterval, duration을 사용한다.
+ * 7. 기본 연소 비주얼은 StatusEffectVisualType.IgnitionBurn 슬롯으로 켜며, MeshFX_Fire 1 RendererOverlay와 Fire_cartoon_fire 1 Anchor 슬롯을 같이 사용할 수 있다.
+ * 8. 연소 중 Frost, Poison, Electro 반응 조건을 처음 만족하면 IgnitionReactionType을 고정한다.
+ * 9. 반응 상태에서는 기본 IgnitionBurn 비주얼을 끄고 StatusEffectVisualType.IgnitionReaction 슬롯 중 해당 reactionType만 켠다.
+ * 10. 반응 특수연소는 reactionMaxHpDamageRatioPerTick, reactionTickInterval, reactionDamageMultiplier fallback을 사용한다.
+ * 11. 현재 기본값은 기본 연소 1%/0.2초/5초, 반응 연소 2%/0.2초다.
+ *
+ * Ignition 반응 조건:
+ * - Poison: 대상이 중독 상태인 동안 Ignition이 들어오거나, 연소 중 Poison 공격을 받으면 반응한다.
+ * - Frost: 대상이 Frost 슬로우 또는 빙결 상태인 동안 Ignition이 들어오거나, 연소 중 Frost 공격을 받으면 반응한다.
+ * - Electro: 대상이 Shock 3스택 상태이거나 Overload 긴 기절 상태인 동안 Ignition이 들어오거나, 연소 중 해당 조건을 만족하면 반응한다.
+ *
+ * Ignition 반응 정책:
+ * - 첫 번째 유효 반응만 현재 연소가 끝날 때까지 유지한다.
+ * - 이후 다른 속성 공격을 맞아도 반응 타입을 교체하지 않는다.
+ * - 반응 특수연소는 Ignition 틱데미지만 변경한다.
+ * - Frost, Poison, Electro 자체 직접 피해나 상태 피해는 Ignition 반응 때문에 증폭하지 않는다.
+ *
  * Poison 주요 에디터 필드:
  * - PoisonStatusProfileSO.maxHpDamageRatioPerTick
  *   각 Poison 틱의 최대체력 비례 데미지.
@@ -285,6 +328,9 @@
  * - 1~2스택 약한 전하 모드는 ElectroShockStackVisualModeController가 지정된 자식 오브젝트만 인스턴스 단위로 꺼서 구현한다.
  * - ElectroStun 슬롯에는 FX_Electricity_02 1 같은 Anchor 방식 짧은 파티클을 연결한다.
  * - Overload 폭발은 ElectroStatusProfileSO.overloadImpactEffectPrefab, 긴 기절 표시는 overloadStunEffectPrefab을 사용한다.
+ * - IgnitionBurn 슬롯은 MeshFX_Fire 1 RendererOverlay와 Fire_cartoon_fire 1 Anchor 방식 기본 화염을 함께 사용할 수 있다.
+ * - IgnitionReaction 슬롯은 ignitionReactionType으로 Electro/Frost/Poison을 구분하고, 각각 Fire_cartoon_electric 1, Fire_cartoon_frost 1, Fire_cartoon_poison 1을 연결한다.
+ * - Ignition 반응 비주얼이 켜지면 기본 IgnitionBurn 비주얼은 꺼서 반응 화염만 보이게 한다.
  * - Poison 처형 표시는 Lethal Indicator Child Name으로 캐시한 자식 오브젝트를 토글한다.
  * - PoisonIcon이 몸에 묻히면 Lethal Indicator Local Position Offset으로 앞으로 빼거나 위로 올린다.
  *
@@ -334,7 +380,8 @@
  *
  * 담당해야 하는 것:
  * - IDamageable.TotalHp / CurrHp / IsAlive / TakeDamage 구현.
- * - IFrostStatusEffectReceiver / IPoisonStatusEffectReceiver 수신 후 Runtime으로 위임.
+ * - IFrostStatusEffectReceiver / IPoisonStatusEffectReceiver / IElectroStatusEffectReceiver / IIgnitionStatusEffectReceiver 수신 후 Runtime으로 위임.
+ * - IIgnitionReactionReceiver로 속성 반응 이벤트를 받아 IgnitionStatusRuntime에 위임.
  * - IFrostStatusRuntimeOwner.ApplyFrostSpeedMultiplier로 이동/공격 속도에 배율 반영.
  * - Update에서 Runtime.Tick 호출.
  * - Die / Reset / Pool 재사용 시 Runtime reset 또는 death hook 호출.
@@ -342,6 +389,7 @@
  * 담당하지 말아야 하는 것:
  * - Poison 틱 타이머, 스택, 처형 예측 직접 보유.
  * - Frost 빙결 타이머, 빙결 쿨타임 직접 보유.
+ * - Ignition 연소 타이머, 반응 타입, 특수연소 틱데미지 직접 보유.
  * - 상태이상 VFX 프리팹 직접 생성.
  * - 상태이상별 타겟 제외 조건 직접 판단.
  *
@@ -350,6 +398,7 @@
  * - BossZombie Frost: canTriggerFreeze = false. 현재는 최대 50% 감속만 허용하는 slow-only.
  * - NormalZombie Poison: bossDamageMultiplier 미사용, death burst 허용.
  * - BossZombie Poison: bossDamageMultiplier 사용, death burst 비허용.
+ * - NormalZombie / BossZombie Ignition: 같은 반응 규칙을 쓰되 BossZombie는 bossDamageMultiplier를 적용한다.
  *
  * ==========================================================================================
  * 8. ADDING A NEW STATUS EFFECT

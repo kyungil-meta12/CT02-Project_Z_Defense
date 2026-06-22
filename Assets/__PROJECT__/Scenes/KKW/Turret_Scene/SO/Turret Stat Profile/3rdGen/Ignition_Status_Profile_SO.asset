@@ -14,10 +14,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::IgnitionStatusProfileSO
   damageMultiplier: 0
   maxHpDamageRatioPerTick: 0.01
-  tickInterval: 0.5
-  duration: 10
+  tickInterval: 0.2
+  duration: 5
   maxStackCount: 1
   stackRefreshMode: 0
+  reactionDamageMultiplier: 0
+  reactionMaxHpDamageRatioPerTick: 0.015
+  reactionTickInterval: 0.15
   bossDamageMultiplier: 1
   burnDeathEffectPrefab: {fileID: 0}
   burnDeathEffectDuration: 2

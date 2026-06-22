@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ObstacleSpec
   level: 1
   levelWeight: 50
-  Hp: 1000
+  Hp: 1000000
   HpWeight: 0.05
   MinHp: 0.9
   MaxHp: 1.1

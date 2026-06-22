@@ -28,10 +28,15 @@ public sealed class StatusEffectVisualSlotDrawer : PropertyDrawer
         SerializedProperty visualTypeProperty = property.FindPropertyRelative("visualType");
         SerializedProperty attachModeProperty = property.FindPropertyRelative("attachMode");
         DrawProperty(ref currentRect, visualTypeProperty);
+        StatusEffectVisualType visualType = (StatusEffectVisualType)visualTypeProperty.enumValueIndex;
+        if (visualType == StatusEffectVisualType.IgnitionReaction)
+        {
+            DrawProperty(ref currentRect, property.FindPropertyRelative("ignitionReactionType"));
+        }
+
         DrawProperty(ref currentRect, attachModeProperty);
         DrawProperty(ref currentRect, property.FindPropertyRelative("visualPrefab"));
 
-        StatusEffectVisualType visualType = (StatusEffectVisualType)visualTypeProperty.enumValueIndex;
         StatusEffectVisualAttachMode attachMode = (StatusEffectVisualAttachMode)attachModeProperty.enumValueIndex;
         if (attachMode == StatusEffectVisualAttachMode.Anchor)
         {
@@ -43,6 +48,7 @@ public sealed class StatusEffectVisualSlotDrawer : PropertyDrawer
         }
 
         DrawProperty(ref currentRect, property.FindPropertyRelative("restartParticlesOnEnable"));
+        DrawFadeFields(ref currentRect, property);
         if (visualType == StatusEffectVisualType.Poison)
         {
             DrawPoisonLethalIndicatorFields(ref currentRect, property);
@@ -67,6 +73,11 @@ public sealed class StatusEffectVisualSlotDrawer : PropertyDrawer
 
         float height = EditorGUIUtility.singleLineHeight + VerticalSpacing;
         height += GetPropertyLineHeight(property.FindPropertyRelative("visualType"));
+        if (visualType == StatusEffectVisualType.IgnitionReaction)
+        {
+            height += GetPropertyLineHeight(property.FindPropertyRelative("ignitionReactionType"));
+        }
+
         height += GetPropertyLineHeight(property.FindPropertyRelative("attachMode"));
         height += GetPropertyLineHeight(property.FindPropertyRelative("visualPrefab"));
 
@@ -84,6 +95,8 @@ public sealed class StatusEffectVisualSlotDrawer : PropertyDrawer
         }
 
         height += GetPropertyLineHeight(property.FindPropertyRelative("restartParticlesOnEnable"));
+        height += GetPropertyLineHeight(property.FindPropertyRelative("fadeInDuration"));
+        height += GetPropertyLineHeight(property.FindPropertyRelative("fadeOutDuration"));
         if (visualType == StatusEffectVisualType.Poison)
         {
             height += GetPropertyLineHeight(property.FindPropertyRelative("lethalIndicatorChildName"));
@@ -107,6 +120,13 @@ public sealed class StatusEffectVisualSlotDrawer : PropertyDrawer
     {
         DrawProperty(ref currentRect, property.FindPropertyRelative("targetRenderers"));
         DrawProperty(ref currentRect, property.FindPropertyRelative("particleScaleMultiplier"));
+    }
+
+    // 상태이상 비주얼의 페이드 인/아웃 시간을 그린다
+    private static void DrawFadeFields(ref Rect currentRect, SerializedProperty property)
+    {
+        DrawProperty(ref currentRect, property.FindPropertyRelative("fadeInDuration"));
+        DrawProperty(ref currentRect, property.FindPropertyRelative("fadeOutDuration"));
     }
 
     // Poison 전용 처치 예고 표시 필드를 그린다

@@ -1977,9 +1977,17 @@ PrefabInstance:
       value: BossZombie_Screamer
       objectReference: {fileID: 0}
     - target: {fileID: 4644956411873794667, guid: bb3feed03de6ffc478b034fa5b6ed38f, type: 3}
+      propertyPath: visualSlots.Array.data[3].visualPrefab
+      value: 
+      objectReference: {fileID: 4136125158120372866, guid: 3f6240656345bb542b33190464ee8be6, type: 3}
+    - target: {fileID: 4644956411873794667, guid: bb3feed03de6ffc478b034fa5b6ed38f, type: 3}
       propertyPath: 'visualSlots.Array.data[2].targetRenderers.Array.data[0]'
       value: 
       objectReference: {fileID: 5594879449106943511}
+    - target: {fileID: 4644956411873794667, guid: bb3feed03de6ffc478b034fa5b6ed38f, type: 3}
+      propertyPath: 'visualSlots.Array.data[3].targetRenderers.Array.data[0]'
+      value: 
+      objectReference: {fileID: 0}
     - target: {fileID: 5496418273564551380, guid: bb3feed03de6ffc478b034fa5b6ed38f, type: 3}
       propertyPath: spec
       value: 

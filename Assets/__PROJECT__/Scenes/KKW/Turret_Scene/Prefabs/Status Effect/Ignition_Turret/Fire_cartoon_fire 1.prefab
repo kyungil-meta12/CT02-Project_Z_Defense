@@ -9533,7 +9533,7 @@ GameObject:
   - component: {fileID: 4612694949709417306}
   - component: {fileID: 4588823991104360657}
   m_Layer: 0
-  m_Name: Fire_cartoon_gold 1
+  m_Name: Fire_cartoon_fire 1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

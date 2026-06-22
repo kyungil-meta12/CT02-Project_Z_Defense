@@ -26,6 +26,7 @@ public sealed class ElectroStatusRuntime : MonoBehaviour
 
     public bool IsActive => shockStackCount > 0;
     public bool IsOverloadStunActive => overloadStunRemainingDuration > 0.0f;
+    public bool IsIgnitionReactionEligible => IsOverloadStunActive || shockStackCount >= ResolveRequiredOverloadStackCount();
     public int ShockStackCount => shockStackCount;
 
     // 비-Electro 피해 시점에 3스택 과부하 발동 조건을 검사한다

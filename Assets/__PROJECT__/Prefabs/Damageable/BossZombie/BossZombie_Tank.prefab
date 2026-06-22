@@ -960,6 +960,7 @@ Transform:
   - {fileID: 4933661067100776814}
   - {fileID: 6442227533747197444}
   - {fileID: 4020086982278106531}
+  - {fileID: 909474068054610291}
   - {fileID: 2673517137266865846}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 90, z: 0}
@@ -1633,7 +1634,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: -0, y: 0, z: 0}
-  m_LocalScale: {x: 5, y: 5, z: 5}
+  m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 1
   m_Children: []
   m_Father: {fileID: 6838670774652095222}
@@ -2138,6 +2139,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::StatusEffectVisualController
   visualSlots:
   - visualType: 1
+    ignitionReactionType: 0
     attachMode: 0
     visualPrefab: {fileID: 8849920109140471609, guid: 1e5174c2918fbed469e22db73be42f2d, type: 3}
     anchor: {fileID: 4020086982278106531}
@@ -2148,9 +2150,12 @@ MonoBehaviour:
     - {fileID: 0}
     particleScaleMultiplier: 1
     restartParticlesOnEnable: 1
+    fadeInDuration: 0
+    fadeOutDuration: 0
     lethalIndicatorChildName: PoisonIcon
     lethalIndicatorLocalPositionOffset: {x: 0, y: 0.35, z: 0.8}
   - visualType: 1
+    ignitionReactionType: 0
     attachMode: 0
     visualPrefab: {fileID: 3302223808384218742, guid: eddf1eaadeb5eac4f86f72b5044f2dda, type: 3}
     anchor: {fileID: 6701009490043108002}
@@ -2161,9 +2166,12 @@ MonoBehaviour:
     - {fileID: 0}
     particleScaleMultiplier: 1
     restartParticlesOnEnable: 1
+    fadeInDuration: 0
+    fadeOutDuration: 0
     lethalIndicatorChildName: 
     lethalIndicatorLocalPositionOffset: {x: 0, y: 0, z: 0}
   - visualType: 3
+    ignitionReactionType: 0
     attachMode: 1
     visualPrefab: {fileID: 2873451926720880288, guid: 2e487da6bde7b7a46b903b6ada0bee94, type: 3}
     anchor: {fileID: 0}
@@ -2172,8 +2180,74 @@ MonoBehaviour:
     localScale: {x: 1, y: 1, z: 1}
     targetRenderers:
     - {fileID: 5958585105143018924}
-    particleScaleMultiplier: 0.6
+    particleScaleMultiplier: 1
     restartParticlesOnEnable: 1
+    fadeInDuration: 1
+    fadeOutDuration: 1
+    lethalIndicatorChildName: 
+    lethalIndicatorLocalPositionOffset: {x: 0, y: 0, z: 0}
+  - visualType: 3
+    ignitionReactionType: 0
+    attachMode: 0
+    visualPrefab: {fileID: 4136125158120372866, guid: 3f6240656345bb542b33190464ee8be6, type: 3}
+    anchor: {fileID: 909474068054610291}
+    localPositionOffset: {x: 0, y: 0, z: 0}
+    localEulerOffset: {x: 0, y: 0, z: 0}
+    localScale: {x: 1, y: 1, z: 1}
+    targetRenderers:
+    - {fileID: 5958585105143018924}
+    particleScaleMultiplier: 1
+    restartParticlesOnEnable: 1
+    fadeInDuration: 1
+    fadeOutDuration: 1
+    lethalIndicatorChildName: 
+    lethalIndicatorLocalPositionOffset: {x: 0, y: 0, z: 0}
+  - visualType: 4
+    ignitionReactionType: 1
+    attachMode: 0
+    visualPrefab: {fileID: 148569655122328682, guid: bfb9ce65e7d7ed94ea4b8275b32b9d1f, type: 3}
+    anchor: {fileID: 909474068054610291}
+    localPositionOffset: {x: 0, y: 0, z: 0}
+    localEulerOffset: {x: 0, y: 0, z: 0}
+    localScale: {x: 1, y: 1, z: 1}
+    targetRenderers:
+    - {fileID: 5958585105143018924}
+    particleScaleMultiplier: 1
+    restartParticlesOnEnable: 1
+    fadeInDuration: 1
+    fadeOutDuration: 1
+    lethalIndicatorChildName: 
+    lethalIndicatorLocalPositionOffset: {x: 0, y: 0, z: 0}
+  - visualType: 4
+    ignitionReactionType: 2
+    attachMode: 0
+    visualPrefab: {fileID: 27456751943436766, guid: 836a59e4999ab8f4ba021c072dc956c4, type: 3}
+    anchor: {fileID: 909474068054610291}
+    localPositionOffset: {x: 0, y: 0, z: 0}
+    localEulerOffset: {x: 0, y: 0, z: 0}
+    localScale: {x: 1, y: 1, z: 1}
+    targetRenderers:
+    - {fileID: 5958585105143018924}
+    particleScaleMultiplier: 1
+    restartParticlesOnEnable: 1
+    fadeInDuration: 1
+    fadeOutDuration: 1
+    lethalIndicatorChildName: 
+    lethalIndicatorLocalPositionOffset: {x: 0, y: 0, z: 0}
+  - visualType: 4
+    ignitionReactionType: 3
+    attachMode: 0
+    visualPrefab: {fileID: 3400613955704631246, guid: a1a470cd8af47874eb4e73b98f155c33, type: 3}
+    anchor: {fileID: 909474068054610291}
+    localPositionOffset: {x: 0, y: 0, z: 0}
+    localEulerOffset: {x: 0, y: 0, z: 0}
+    localScale: {x: 1, y: 1, z: 1}
+    targetRenderers:
+    - {fileID: 5958585105143018924}
+    particleScaleMultiplier: 1
+    restartParticlesOnEnable: 1
+    fadeInDuration: 1
+    fadeOutDuration: 1
     lethalIndicatorChildName: 
     lethalIndicatorLocalPositionOffset: {x: 0, y: 0, z: 0}
 --- !u!1 &7025921483973732847
@@ -2387,6 +2461,37 @@ MeshRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!1 &7297271704949159984
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 909474068054610291}
+  m_Layer: 7
+  m_Name: FireBodyAnchor
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &909474068054610291
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7297271704949159984}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 4.5, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 6838670774652095222}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &7632812066984381719
 GameObject:
   m_ObjectHideFlags: 0

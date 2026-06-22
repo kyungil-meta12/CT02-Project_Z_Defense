@@ -7,7 +7,7 @@ public class CameraTouchHandler : MonoBehaviour, IPointerDownHandler, IPointerUp
     public static CameraTouchHandler Inst;
 
     [Header("화면 터치 시 레이캐스팅 할 대상 레이어 목록")] 
-    public LayerMask[] raycastTargetLayers;
+    public LayerMask raycastTargetLayer;
 
     [Header("더블탭 간격")] public float tapInterval;
 
@@ -28,9 +28,6 @@ public class CameraTouchHandler : MonoBehaviour, IPointerDownHandler, IPointerUp
     // 현재 드래그 상태. true일 시 터치 이벤트가 발생하지 않는다.
     private bool isDragging = false;
 
-    // 모든 타겟 레이어를 합친 최종 레이어 비트 마스크
-    private int mixedBitMask = 0;
-
     // 하나만 선택하면 되므로 하나의 인덱스만 생성
     private RaycastHit[] hitResult = new RaycastHit[1];
 
@@ -47,16 +44,6 @@ public class CameraTouchHandler : MonoBehaviour, IPointerDownHandler, IPointerUp
         }
 
         Inst = this;
-
-        // 레이어 목록의 모든 레이어들을 하나로 합쳐 레이캐스팅 시 사용
-        if (raycastTargetLayers != null)
-        {
-            foreach (LayerMask mask in raycastTargetLayers)
-            {
-                mixedBitMask |= mask.value;
-            }
-        }
-
         cam = Camera.main;
     }
 
@@ -92,7 +79,7 @@ public class CameraTouchHandler : MonoBehaviour, IPointerDownHandler, IPointerUp
         }
 
         Ray ray = cam.ScreenPointToRay(eventData.position);
-        int hitCount = Physics.RaycastNonAlloc(ray, hitResult, Mathf.Infinity, mixedBitMask);
+        int hitCount = Physics.RaycastNonAlloc(ray, hitResult, Mathf.Infinity, raycastTargetLayer);
         if (hitCount > 0)
         {
             RaycastHit hit = hitResult[0];

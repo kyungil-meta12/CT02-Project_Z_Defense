@@ -1,5 +1,4 @@
 using UnityEngine;
-using UnityEngine.UI;
 
 public class DropItemIndicator : MonoBehaviour
 {   
@@ -22,11 +21,9 @@ public class DropItemIndicator : MonoBehaviour
 
     void Update()
     {
-        // 항상 카메라를 바라본다
-        BillboardUtil.SetBillboard(ref rt, ref cam);
-
         // 위 아래로 왕복한다.
+        BillboardUtil.SetBillboard(rt, cam);
         sinValue += Time.deltaTime * tripSpeed;
-        rt.localPosition = new Vector3(originPos.x, originPos.y + Mathf.Sin(sinValue) * tripScale, originPos.z);
+        rt.localPosition = originPos + new Vector3(Mathf.Sin(-sinValue) * tripScale, Mathf.Sin(sinValue) * tripScale, 0f);
     }
 }

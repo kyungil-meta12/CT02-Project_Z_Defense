@@ -245,9 +245,7 @@ public class TurretPlacementSlotUI : MonoBehaviour, IBeginDragHandler, IDragHand
             {
                 builder.Append(" / ");
             }
-
-            builder.Append(GetCurrencyLabel(cost.currencyType));
-            builder.Append(' ');
+            
             builder.Append(cost.amount);
         }
 

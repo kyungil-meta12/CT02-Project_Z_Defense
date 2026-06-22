@@ -187,9 +187,7 @@ public class ObstaclePlacementSlotUI : MonoBehaviour, IBeginDragHandler, IDragHa
             {
                 builder.Append(" / ");
             }
-
-            builder.Append(GetCurrencyLabel(cost.currencyType));
-            builder.Append(" ");
+            
             builder.Append(cost.amount);
         }
 

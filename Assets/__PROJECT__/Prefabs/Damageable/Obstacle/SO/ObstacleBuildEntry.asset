@@ -21,4 +21,4 @@ MonoBehaviour:
   placementLocalEulerAngles: {x: 0, y: 0, z: 0}
   buildCosts:
   - currencyType: 0
-    amount: 500
+    amount: 1000

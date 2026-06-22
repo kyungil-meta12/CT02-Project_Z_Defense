@@ -84,7 +84,7 @@
  * - Electro_Turret Overload consumption, single-target max-HP damage, impact VFX, and long stun from non-Electro Projectile/Beam damage are implemented.
  * - Current additional visual plan candidates:
  *   CuteStarTurret
- *   FlameThrower/LameThrower name still needs confirmation.
+ *   Ignition_Turret name is used for the third-generation fire turret.
  *
  * Runtime Level Model
  *
@@ -663,5 +663,6 @@ using UnityEngine;
 public class TURRET_DATA_STRUCTURE_PLAN : MonoBehaviour
 {
 }
+
 
 

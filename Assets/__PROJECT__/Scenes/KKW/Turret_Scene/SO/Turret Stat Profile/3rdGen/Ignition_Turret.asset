@@ -10,9 +10,9 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 64086bcb185c80947a81b76bc4479622, type: 3}
-  m_Name: Flame_Thrower
+  m_Name: Ignition_Turret
   m_EditorClassIdentifier: Assembly-CSharp::TurretStatProfileSO
-  damage: 29630
+  damage: 1
   range: 57
   fireInterval: 2.963
   projectileSpeed: 35

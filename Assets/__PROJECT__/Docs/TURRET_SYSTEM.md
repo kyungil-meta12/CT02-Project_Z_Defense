@@ -63,6 +63,7 @@ Do not use display names as stable IDs.
 | `FrostStatusProfileSO` | Frost-specific status rules: slow buildup, max slow, freeze timing, freeze explosion, max-HP damage, secondary explosion slow, related VFX references, and optional primary-target max-HP damage growth. |
 | `PoisonStatusProfileSO` | Poison-specific status rules: max-HP tick damage ratio, tick interval, duration, stack limit, stack refresh mode, boss damage multiplier, and optional death burst profile reference. |
 | `ElectroStatusProfileSO` | Electro-specific base status rules and chain VFX controls: chain lightning count/radius/falloff, base Shock stack duration and stack VFX, Overload trigger policy, base single-target Overload damage, short stun timing, chain-link particle VFX, and optional core line VFX. |
+| `IgnitionStatusProfileSO` | Ignition-specific burn status rules: flat DPS multiplier fallback, max-HP tick damage ratio, tick interval, duration, stack limit, stack refresh mode, boss damage multiplier, burn death VFX, and future attribute interaction flags. |
 | `PoisonDeathBurstProfileSO` | Poison lethal-death burst rules: burst VFX, radius, weak Poison values, target layer mask, and boss damage multiplier for secondary weak Poison. |
 | `PoisonTurretStatGrowthProfileSO` | Poison_Turret-only stat growth profile. Inherits common turret stat growth and adds Poison status/death-burst growth fields without exposing them on non-Poison turrets. |
 | `ElectroTurretStatGrowthProfileSO` | Electro_Turret-only stat growth profile. Inherits common turret stat growth and adds Shock duration, chain target count, and Overload max-HP damage growth fields without exposing them on non-Electro turrets. |
@@ -81,12 +82,14 @@ Do not use display names as stable IDs.
 6. `TurretDefinitionSO.frostStatusProfile` provides Frost-specific status values when the selected attack is a beam Frost turret.
 7. `TurretDefinitionSO.poisonStatusProfile` provides Poison-specific status values when the selected attack is a projectile Poison turret.
 8. `TurretDefinitionSO.electroStatusProfile` provides Electro-specific chain, Shock stack, Overload trigger policy, single-target Overload damage, and stun values when the selected attack is an Electro projectile turret.
-9. `TurretProjectileScaleProgressionSO` selects projectile scale.
-10. Projectile firing logic applies projectile prefab, speed, damage, pierce count, scale, collision ignore rules, and optional Poison/Electro payloads per spawn.
-11. Beam firing logic keeps the beam VFX alive between fire requests and applies damage by `BeamAttackProfileSO.damageTickInterval`.
-12. `ProjectileDamageDealer` applies projectile damage to `IDamageable` targets, forwards Poison payloads to `IPoisonStatusEffectReceiver`, and triggers Electro chain damage when an Electro payload is active.
-13. `ProjectileHitDetector` handles tracked target, trigger/collision, and movement raycast hit paths.
-14. Damage receivers spawn damage popups where appropriate.
+9. `TurretDefinitionSO.ignitionStatusProfile` provides Ignition burn values when the selected attack uses an Ignition area detector.
+10. `TurretProjectileScaleProgressionSO` selects projectile scale.
+11. Projectile firing logic applies projectile prefab, speed, damage, pierce count, scale, collision ignore rules, and optional Poison/Electro payloads per spawn.
+12. Beam firing logic keeps the beam VFX alive between fire requests and applies damage by `BeamAttackProfileSO.damageTickInterval`.
+13. `IgnitionDamageApplier` reads targets from `IgnitionConeDetector` and forwards Ignition payloads to `IIgnitionStatusEffectReceiver`.
+14. `ProjectileDamageDealer` applies projectile damage to `IDamageable` targets, forwards Poison payloads to `IPoisonStatusEffectReceiver`, and triggers Electro chain damage when an Electro payload is active.
+15. `ProjectileHitDetector` handles tracked target, trigger/collision, and movement raycast hit paths.
+16. Damage receivers spawn damage popups where appropriate.
 
 ## Beam Attack Runtime Flow
 
@@ -652,6 +655,23 @@ FrostRay VFX notes:
 - To reduce only the hit effect size, scale the `Hit_Spikes` object or its children, not the root `FrostRay_TurretBeam` object. Scaling the root changes the whole beam length and width.
 - Current duplicated `Hit_Spikes` transform scale is `0.2, 0.2, 0.2` for the Frost turret test prefab.
 - If VFX density or particle emission looks wrong after length scaling, tune the duplicated `FrostRay_TurretBeam` prefab under the project folder, not the Private Assets original.
+
+Ignition status handling:
+
+- `IgnitionStatusProfileSO` stores Ignition burn values (`damageMultiplier`, `maxHpDamageRatioPerTick`, `tickInterval`, `duration`, `maxStackCount`, `stackRefreshMode`, `bossDamageMultiplier`, `burnDeathEffectPrefab`, `burnDeathEffectDuration`, `interactionFlags`).
+- `Ignition_Turret_Definition.ignitionStatusProfile` points to the active Ignition status profile. The runtime `IgnitionDamageApplier` receives the profile through `ITurretStatusProfileReceiver`; the prefab-local `IgnitionDamageApplier.ignitionStatusProfile` field can stay empty.
+- `IgnitionConeDetector` owns the cone overlap check using non-alloc physics. `IgnitionDamageApplier` applies the resulting payload to targets implementing `ProjectZDefense.StatusEffects.IIgnitionStatusEffectReceiver`.
+- `NormalZombie` and `BossZombie` implement `ProjectZDefense.StatusEffects.IIgnitionStatusEffectReceiver` and delegate duration, tick timer, stack count, and burn-death VFX to `IgnitionStatusRuntime`.
+- `IgnitionStatusRuntime` reports burn active/inactive state to `StatusEffectVisualController`; zombies do not directly instantiate or configure mesh fire VFX.
+- Ignition tick damage prefers `maxHpDamageRatioPerTick` when it is greater than `0`. If it is `0`, the runtime falls back to `damagePerSecond * tickInterval`.
+- The current first-test `Ignition_Status_Profile_SO` values are `damageMultiplier = 0`, `maxHpDamageRatioPerTick = 0.01`, `tickInterval = 1`, `duration = 10`, `maxStackCount = 1`, and `stackRefreshMode = RefreshDurationOnly`.
+- With those values, a target that touches the flame receives a 10-second burn that deals 1% of max HP once per second, for about 10% max HP total before boss modifiers.
+- `RefreshDurationOnly` keeps the burn predictable by refreshing the 10-second timer without increasing stack count. Use `AddStackAndRefreshDuration` only if the design explicitly wants repeated flame contact to increase burn damage.
+- Ignition status resets on spawn, despawn, and death. Burn death VFX is triggered from the active Ignition payload when configured.
+- Add a `StatusEffectVisualSlot` with `visualType = IgnitionBurn` and `attachMode = RendererOverlay` to zombie prefabs that should show burn visuals.
+- Assign `MeshFX_Fire 1` to the IgnitionBurn slot's `visualPrefab`.
+- Assign the body `SkinnedMeshRenderer` entries that should emit fire particles into the IgnitionBurn slot's `targetRenderers`.
+- Tune `particleScaleMultiplier` per zombie or boss prefab when the fire particles are too large or too small.
 
 ## Current Balance Direction
 

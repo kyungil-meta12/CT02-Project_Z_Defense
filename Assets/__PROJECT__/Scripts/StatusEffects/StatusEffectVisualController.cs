@@ -4,7 +4,8 @@ public enum StatusEffectVisualType
 {
     FrostSlow,
     Poison,
-    ElectroStun
+    ElectroStun,
+    IgnitionBurn
 }
 
 public enum StatusEffectVisualAttachMode
@@ -59,6 +60,7 @@ public class StatusEffectVisualController : MonoBehaviour
     private bool frostSlowVisualActive;
     private bool poisonVisualActive;
     private bool electroStunVisualActive;
+    private bool ignitionBurnVisualActive;
 
     // 컴포넌트가 비활성화될 때 상태이상 비주얼과 임시 머티리얼을 정리한다
     private void OnDisable()
@@ -66,6 +68,7 @@ public class StatusEffectVisualController : MonoBehaviour
         SetFrostSlowActive(false);
         SetPoisonActive(false);
         SetElectroStunActive(false);
+        SetIgnitionBurnActive(false);
     }
 
     // 오브젝트가 파괴될 때 상태이상 비주얼과 임시 머티리얼을 정리한다
@@ -74,6 +77,7 @@ public class StatusEffectVisualController : MonoBehaviour
         SetFrostSlowActive(false);
         SetPoisonActive(false);
         SetElectroStunActive(false);
+        SetIgnitionBurnActive(false);
     }
 
     // 프로스트 슬로우 상태에 맞춰 얼음 메시 이펙트를 활성화하거나 비활성화한다
@@ -138,6 +142,29 @@ public class StatusEffectVisualController : MonoBehaviour
 
         SetVisualSlotInstancesActive(StatusEffectVisualType.ElectroStun, isActive);
         electroStunVisualActive = isActive;
+    }
+
+    // Ignition 화상 상태에 맞춰 화염 메시 이펙트를 활성화하거나 비활성화한다
+    public void SetIgnitionBurnActive(bool isActive)
+    {
+        if (ignitionBurnVisualActive == isActive)
+        {
+            return;
+        }
+
+        if (isActive)
+        {
+            EnsureVisualSlotInstances(StatusEffectVisualType.IgnitionBurn);
+            CacheVisualSlotOriginalMaterials(StatusEffectVisualType.IgnitionBurn);
+        }
+
+        SetVisualSlotInstancesActive(StatusEffectVisualType.IgnitionBurn, isActive);
+        ignitionBurnVisualActive = isActive;
+
+        if (!isActive)
+        {
+            RestoreVisualSlotOriginalMaterials(StatusEffectVisualType.IgnitionBurn);
+        }
     }
 
     // 포이즌 틱데미지로 사망이 확정된 대상의 표시 아이콘을 켜거나 끈다

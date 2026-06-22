@@ -2320,6 +2320,7 @@ Transform:
   - {fileID: 2533092677818141673}
   - {fileID: 7293107122369611496}
   - {fileID: 575556419238700156}
+  - {fileID: 8960059389734012757}
   - {fileID: 7453638096191297376}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -5269,6 +5270,37 @@ Transform:
   - {fileID: 3038182102286231919}
   m_Father: {fileID: 8328404547452099014}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &6780267468289614572
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 8960059389734012757}
+  m_Layer: 14
+  m_Name: FireBodyAnchor
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &8960059389734012757
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6780267468289614572}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0.84, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 7326208106863662701}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &6854259148053098623
 GameObject:
   m_ObjectHideFlags: 0
@@ -5574,6 +5606,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::StatusEffectVisualController
   visualSlots:
   - visualType: 0
+    ignitionReactionType: 0
     attachMode: 1
     visualPrefab: {fileID: 4293332855471414272, guid: 3a98e83bb68a5464cb486565d6e6e8a0, type: 3}
     anchor: {fileID: 0}
@@ -5584,9 +5617,12 @@ MonoBehaviour:
     - {fileID: 22856543648109273}
     particleScaleMultiplier: 1
     restartParticlesOnEnable: 1
+    fadeInDuration: 0.4
+    fadeOutDuration: 0.4
     lethalIndicatorChildName: 
     lethalIndicatorLocalPositionOffset: {x: 0, y: 0, z: 0}
   - visualType: 1
+    ignitionReactionType: 0
     attachMode: 0
     visualPrefab: {fileID: 3302223808384218742, guid: eddf1eaadeb5eac4f86f72b5044f2dda, type: 3}
     anchor: {fileID: 7293107122369611496}
@@ -5596,9 +5632,12 @@ MonoBehaviour:
     targetRenderers: []
     particleScaleMultiplier: 0
     restartParticlesOnEnable: 1
+    fadeInDuration: 0
+    fadeOutDuration: 0
     lethalIndicatorChildName: 
     lethalIndicatorLocalPositionOffset: {x: 0, y: 0, z: 0}
   - visualType: 1
+    ignitionReactionType: 0
     attachMode: 0
     visualPrefab: {fileID: 8849920109140471609, guid: 1e5174c2918fbed469e22db73be42f2d, type: 3}
     anchor: {fileID: 575556419238700156}
@@ -5608,9 +5647,12 @@ MonoBehaviour:
     targetRenderers: []
     particleScaleMultiplier: 0
     restartParticlesOnEnable: 1
+    fadeInDuration: 0
+    fadeOutDuration: 0
     lethalIndicatorChildName: PoisonIcon
     lethalIndicatorLocalPositionOffset: {x: 0, y: 0.15, z: 0.6}
   - visualType: 2
+    ignitionReactionType: 0
     attachMode: 0
     visualPrefab: {fileID: 1190131086089332, guid: a8b75f8d8a379cd4cb11f36fa69f95e4, type: 3}
     anchor: {fileID: 7453638096191297376}
@@ -5620,9 +5662,12 @@ MonoBehaviour:
     targetRenderers: []
     particleScaleMultiplier: 0
     restartParticlesOnEnable: 1
+    fadeInDuration: 0
+    fadeOutDuration: 0
     lethalIndicatorChildName: 
     lethalIndicatorLocalPositionOffset: {x: 0, y: 0, z: 0}
   - visualType: 3
+    ignitionReactionType: 0
     attachMode: 1
     visualPrefab: {fileID: 2873451926720880288, guid: 2e487da6bde7b7a46b903b6ada0bee94, type: 3}
     anchor: {fileID: 0}
@@ -5633,6 +5678,72 @@ MonoBehaviour:
     - {fileID: 22856543648109273}
     particleScaleMultiplier: 1
     restartParticlesOnEnable: 1
+    fadeInDuration: 1
+    fadeOutDuration: 1
+    lethalIndicatorChildName: 
+    lethalIndicatorLocalPositionOffset: {x: 0, y: 0, z: 0}
+  - visualType: 3
+    ignitionReactionType: 0
+    attachMode: 0
+    visualPrefab: {fileID: 4136125158120372866, guid: 3f6240656345bb542b33190464ee8be6, type: 3}
+    anchor: {fileID: 8960059389734012757}
+    localPositionOffset: {x: 0, y: 0, z: 0}
+    localEulerOffset: {x: 0, y: 0, z: 0}
+    localScale: {x: 1, y: 1, z: 1}
+    targetRenderers:
+    - {fileID: 22856543648109273}
+    particleScaleMultiplier: 1
+    restartParticlesOnEnable: 1
+    fadeInDuration: 1
+    fadeOutDuration: 1
+    lethalIndicatorChildName: 
+    lethalIndicatorLocalPositionOffset: {x: 0, y: 0, z: 0}
+  - visualType: 4
+    ignitionReactionType: 1
+    attachMode: 0
+    visualPrefab: {fileID: 148569655122328682, guid: bfb9ce65e7d7ed94ea4b8275b32b9d1f, type: 3}
+    anchor: {fileID: 8960059389734012757}
+    localPositionOffset: {x: 0, y: 0, z: 0}
+    localEulerOffset: {x: 0, y: 0, z: 0}
+    localScale: {x: 1, y: 1, z: 1}
+    targetRenderers:
+    - {fileID: 22856543648109273}
+    particleScaleMultiplier: 1
+    restartParticlesOnEnable: 1
+    fadeInDuration: 1
+    fadeOutDuration: 1
+    lethalIndicatorChildName: 
+    lethalIndicatorLocalPositionOffset: {x: 0, y: 0, z: 0}
+  - visualType: 4
+    ignitionReactionType: 2
+    attachMode: 0
+    visualPrefab: {fileID: 27456751943436766, guid: 836a59e4999ab8f4ba021c072dc956c4, type: 3}
+    anchor: {fileID: 8960059389734012757}
+    localPositionOffset: {x: 0, y: 0, z: 0}
+    localEulerOffset: {x: 0, y: 0, z: 0}
+    localScale: {x: 1, y: 1, z: 1}
+    targetRenderers:
+    - {fileID: 22856543648109273}
+    particleScaleMultiplier: 1
+    restartParticlesOnEnable: 1
+    fadeInDuration: 1
+    fadeOutDuration: 1
+    lethalIndicatorChildName: 
+    lethalIndicatorLocalPositionOffset: {x: 0, y: 0, z: 0}
+  - visualType: 4
+    ignitionReactionType: 3
+    attachMode: 0
+    visualPrefab: {fileID: 3400613955704631246, guid: a1a470cd8af47874eb4e73b98f155c33, type: 3}
+    anchor: {fileID: 8960059389734012757}
+    localPositionOffset: {x: 0, y: 0, z: 0}
+    localEulerOffset: {x: 0, y: 0, z: 0}
+    localScale: {x: 1, y: 1, z: 1}
+    targetRenderers:
+    - {fileID: 22856543648109273}
+    particleScaleMultiplier: 1
+    restartParticlesOnEnable: 1
+    fadeInDuration: 1
+    fadeOutDuration: 1
     lethalIndicatorChildName: 
     lethalIndicatorLocalPositionOffset: {x: 0, y: 0, z: 0}
 --- !u!1 &7657971409446761997

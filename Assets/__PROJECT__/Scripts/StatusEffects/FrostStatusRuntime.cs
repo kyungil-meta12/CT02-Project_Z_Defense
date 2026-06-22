@@ -24,6 +24,7 @@ public sealed class FrostStatusRuntime : MonoBehaviour
     public bool IsFrozen => canTriggerFreeze && frostFreezeTimer > 0.0f;
     public bool IsFreezeCooldownActive => canTriggerFreeze && frostFreezeCooldownTimer > 0.0f;
     public bool IsFreezeRetargetSuppressed => IsFrozen || IsFreezeCooldownActive;
+    public bool IsIgnitionReactionEligible => frostStatusActive || frostStatusDirty || frostHoldTimer > 0.0f || frostFreezeTimer > 0.0f;
 
     // Frost 런타임이 참조할 대상, 속도 반영자, 비주얼 정책을 초기화한다
     public void Initialize(IDamageable damageable_, IFrostStatusRuntimeOwner owner_, StatusEffectVisualController statusEffectVisualController_, bool canTriggerFreeze_)

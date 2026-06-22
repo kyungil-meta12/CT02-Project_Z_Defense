@@ -82,9 +82,11 @@
  * - Electro_Turret projectile Definition/stat/VFX assets exist, and Electro_Turret_Definition is wired to its active ElectroStatusProfileSO.
  * - Electro_Turret currently has chain damage, hybrid chain VFX, and receiver-side Shock stack runtime with Volt Sphere 1 stack visuals implemented.
  * - Electro_Turret Overload consumption, single-target max-HP damage, impact VFX, and long stun from non-Electro Projectile/Beam damage are implemented.
+ * - Ignition_Turret runtime burn structure is implemented through IgnitionConeDetector, IgnitionDamageApplier, IgnitionStatusProfileSO, and IgnitionStatusRuntime.
+ * - Ignition_Turret supports fixed first-reaction special burn from Frost, Poison, or Electro conditions, using reaction-specific profile values and IgnitionReaction visual slots.
  * - Current additional visual plan candidates:
  *   CuteStarTurret
- *   Ignition_Turret name is used for the third-generation fire turret.
+ *   Ignition_Turret name is used for the third-generation fire turret and is now the active fire/burn turret path.
  *
  * Runtime Level Model
  *

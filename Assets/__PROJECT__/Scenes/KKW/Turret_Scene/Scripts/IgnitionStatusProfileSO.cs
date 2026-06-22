@@ -36,6 +36,11 @@ public class IgnitionStatusProfileSO : ScriptableObject
     [Min(1)] public int maxStackCount = 1;
     public IgnitionStackRefreshMode stackRefreshMode = IgnitionStackRefreshMode.RefreshDurationOnly;
 
+    [Header("속성 반응 연소")]
+    [Min(0.0f)] public float reactionDamageMultiplier = 0.0f;
+    [Range(0.0f, 1.0f)] public float reactionMaxHpDamageRatioPerTick = 0.02f;
+    [Min(0.01f)] public float reactionTickInterval = 0.5f;
+
     [Header("보스 보정")]
     [Min(0.0f)] public float bossDamageMultiplier = 1.0f;
 
@@ -65,6 +70,8 @@ public class IgnitionStatusProfileSO : ScriptableObject
     {
         float safeDamagePerSecond = Mathf.Max(0.0f, sourceDamagePerSecond) * Mathf.Max(0.0f, damageMultiplier);
         float safeMaxHpDamageRatioPerTick = Mathf.Clamp01(maxHpDamageRatioPerTick);
+        float safeReactionDamagePerSecond = Mathf.Max(0.0f, sourceDamagePerSecond) * Mathf.Max(0.0f, reactionDamageMultiplier);
+        float safeReactionMaxHpDamageRatioPerTick = Mathf.Clamp01(reactionMaxHpDamageRatioPerTick);
         IgnitionStatusPayload payload = new IgnitionStatusPayload
         {
             hasIgnitionStatus = HasIgnitionStatus && (safeDamagePerSecond > 0.0f || safeMaxHpDamageRatioPerTick > 0.0f),
@@ -74,6 +81,9 @@ public class IgnitionStatusProfileSO : ScriptableObject
             duration = Mathf.Max(0.0f, duration),
             maxStackCount = Mathf.Max(1, maxStackCount),
             stackRefreshMode = stackRefreshMode,
+            reactionDamagePerSecond = safeReactionDamagePerSecond,
+            reactionMaxHpDamageRatioPerTick = safeReactionMaxHpDamageRatioPerTick,
+            reactionTickInterval = Mathf.Max(0.01f, reactionTickInterval),
             bossDamageMultiplier = Mathf.Max(0.0f, bossDamageMultiplier),
             burnDeathEffectPrefab = burnDeathEffectPrefab,
             burnDeathEffectDuration = Mathf.Max(0.0f, burnDeathEffectDuration),
@@ -91,6 +101,9 @@ public class IgnitionStatusProfileSO : ScriptableObject
         tickInterval = Mathf.Max(0.01f, tickInterval);
         duration = Mathf.Max(0.0f, duration);
         maxStackCount = Mathf.Max(1, maxStackCount);
+        reactionDamageMultiplier = Mathf.Max(0.0f, reactionDamageMultiplier);
+        reactionMaxHpDamageRatioPerTick = Mathf.Clamp01(reactionMaxHpDamageRatioPerTick);
+        reactionTickInterval = Mathf.Max(0.01f, reactionTickInterval);
         bossDamageMultiplier = Mathf.Max(0.0f, bossDamageMultiplier);
         burnDeathEffectDuration = Mathf.Max(0.0f, burnDeathEffectDuration);
     }

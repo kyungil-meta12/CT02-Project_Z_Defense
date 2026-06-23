@@ -841,6 +841,9 @@ Placement preview scale rules:
 - Invalid world previews also multiply by the current or first available `BuildPoint.lossyScale`, matching the world-space size the turret would have after being installed as a child of a scaled base.
 - Keep both multiplier values equal when drag, invalid placement, and snapped placement previews should preserve the same apparent turret prefab size after build-point scale is applied.
 - Installed turrets are instantiated as children of `TurretBaseSlot.BuildPoint`, so any parent/build-point transform scale affects the final world-space size.
+- `Project Z Defense/Placement/Turret Hologram` is the URP transparent shader prepared for valid turret placement previews. Create a material from it in the editor and assign it to `TurretPlacementController.validPreviewMaterial` when the valid preview should appear as a blue hologram.
+- `validPreviewColor` and `invalidPreviewColor` are fallback colors only. If the matching preview material field is assigned, `TurretPlacementPreview` uses that material as authored and does not override its color through `MaterialPropertyBlock`.
+- Runtime fallback preview materials are only created for missing material fields, so assigning `validPreviewMaterial` avoids creating the unused valid fallback material.
 
 `TurretPlacementUI` still has a legacy rebuild helper, but `rebuildOnStart` should stay disabled for production scenes. Use `Project Z Defense/UI/Create Turret Placement UI` to create editable scene buttons, preferably after selecting the desired `TurretShopEntrySO` assets in the Project window.
 

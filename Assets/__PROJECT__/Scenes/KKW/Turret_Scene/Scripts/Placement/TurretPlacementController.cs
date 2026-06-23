@@ -19,10 +19,14 @@ public class TurretPlacementController : MonoBehaviour
     [SerializeField] private bool hidePreviewWhenNoBase = true;
     [SerializeField] private bool showInvalidPreviewOnWorld = true;
     [SerializeField] private bool allowWorldClickPlacement = true;
-    [SerializeField] private Material validPreviewMaterial;
-    [SerializeField] private Material invalidPreviewMaterial;
-    [SerializeField] private Color validPreviewColor = new Color(0.2f, 1.0f, 0.35f, 0.45f);
-    [SerializeField] private Color invalidPreviewColor = new Color(1.0f, 0.12f, 0.08f, 0.45f);
+    [SerializeField, Tooltip("설치 가능 프리뷰에 직접 사용할 머티리얼입니다. 값이 있으면 Valid Preview Color는 적용되지 않습니다.")]
+    private Material validPreviewMaterial;
+    [SerializeField, Tooltip("설치 불가 프리뷰에 직접 사용할 머티리얼입니다. 값이 있으면 Invalid Preview Color는 적용되지 않습니다.")]
+    private Material invalidPreviewMaterial;
+    [SerializeField, Tooltip("Valid Preview Material이 비어 있을 때 생성되는 fallback 머티리얼 색상입니다.")]
+    private Color validPreviewColor = new Color(0.2f, 1.0f, 0.35f, 0.45f);
+    [SerializeField, Tooltip("Invalid Preview Material이 비어 있을 때 생성되는 fallback 머티리얼 색상입니다.")]
+    private Color invalidPreviewColor = new Color(1.0f, 0.12f, 0.08f, 0.45f);
     [SerializeField] private Vector3 previewLocalOffset = Vector3.zero;
     [SerializeField] private Vector3 invalidPreviewEulerAngles = new Vector3(0.0f, -90.0f, 0.0f);
     [SerializeField, Min(0.01f)] private float previewScaleMultiplier = 1.0f;
@@ -255,12 +259,12 @@ public class TurretPlacementController : MonoBehaviour
             return;
         }
 
-        if (runtimeValidPreviewMaterial == null)
+        if (validPreviewMaterial == null && runtimeValidPreviewMaterial == null)
         {
             runtimeValidPreviewMaterial = CreatePreviewMaterial("Runtime Valid Turret Preview", validPreviewColor);
         }
 
-        if (runtimeInvalidPreviewMaterial == null)
+        if (invalidPreviewMaterial == null && runtimeInvalidPreviewMaterial == null)
         {
             runtimeInvalidPreviewMaterial = CreatePreviewMaterial("Runtime Invalid Turret Preview", invalidPreviewColor);
         }

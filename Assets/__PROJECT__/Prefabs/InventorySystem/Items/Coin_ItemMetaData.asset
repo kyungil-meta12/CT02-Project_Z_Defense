@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5f9efc74f895b2d48bb9a9671cba3cd2, type: 3}
   m_Name: Coin_ItemMetaData
   m_EditorClassIdentifier: Assembly-CSharp::ItemMetaDataSo
-  Type: 1
+  Type: 0
   Name: "\uCF54\uC778"
   InfoText: "\uC880\uBE44 \uC0AC\uD0DC \uC774\uC804\uC5D0 \uC0AC\uC6A9\uB418\uB358
     \uD654\uD3D0."

@@ -16,15 +16,11 @@ public class ItemDataEditorTool : EditorWindow
     private const string INFO_TEXT_COLUMN = "InfoText";
     private const string IMAGE_PATH_COLUMN = "ItemImageAssetPath";
     private const string CRAFT_COLUMN = "ItemsToCreate";
-    private const string DEFAULT_CSV_PATH = "Assets/__PROJECT__/ItemData.csv";
-    private const string DEFAULT_SO_SAVE_PATH = "Assets/__PROJECT__/Resources/ItemData";
-    private const string DEFAULT_LIST_SO_PATH = "Assets/__PROJECT__/Resources/ItemData/ItemMetaDataList.asset";
+    private const string DEFAULT_CSV_PATH = "Assets/__PROJECT__/Prefabs/InventorySystem/ItemData.csv";
+    private const string DEFAULT_SO_SAVE_PATH = "Assets/__PROJECT__/Prefabs/InventorySystem/Items";
+    private const string DEFAULT_LIST_SO_PATH = "Assets/__PROJECT__/Prefabs/InventorySystem/ItemMetaDataList.asset";
 
-    private string csvFilePath = DEFAULT_CSV_PATH;
-    private string soSavePath = DEFAULT_SO_SAVE_PATH;
-    private string mainListSoPath = DEFAULT_LIST_SO_PATH;
     private ItemMetaDataListSo mainListSo;
-    private bool createMainListIfMissing = true;
     private bool treatMissingSpriteAsError;
     private Vector2 scrollPosition;
     private readonly List<string> lastMessages = new List<string>(32);
@@ -37,17 +33,26 @@ public class ItemDataEditorTool : EditorWindow
         GetWindow<ItemDataEditorTool>("아이템 데이터 관리");
     }
 
+    // 에디터 창이 열릴 때 고정 경로의 메인 리스트 SO를 로드한다
+    private void OnEnable()
+    {
+        LoadFixedMainListSo();
+    }
+
     // 에디터 창 UI를 그린다
     private void OnGUI()
     {
         EditorGUILayout.LabelField("아이템 CSV ↔ ScriptableObject 관리 도구", EditorStyles.boldLabel);
         EditorGUILayout.Space();
 
-        csvFilePath = EditorGUILayout.TextField("CSV 파일 경로", csvFilePath);
-        soSavePath = EditorGUILayout.TextField("SO 저장 폴더", soSavePath);
-        mainListSoPath = EditorGUILayout.TextField("메인 리스트 생성 경로", mainListSoPath);
-        mainListSo = (ItemMetaDataListSo)EditorGUILayout.ObjectField("메인 리스트 SO", mainListSo, typeof(ItemMetaDataListSo), false);
-        createMainListIfMissing = EditorGUILayout.Toggle("리스트 SO 자동 생성", createMainListIfMissing);
+        EditorGUILayout.LabelField("CSV 파일 경로", DEFAULT_CSV_PATH);
+        EditorGUILayout.LabelField("SO 저장 폴더", DEFAULT_SO_SAVE_PATH);
+        EditorGUILayout.LabelField("메인 리스트 경로", DEFAULT_LIST_SO_PATH);
+        using (new EditorGUI.DisabledScope(true))
+        {
+            EditorGUILayout.ObjectField("메인 리스트 SO", mainListSo, typeof(ItemMetaDataListSo), false);
+        }
+
         treatMissingSpriteAsError = EditorGUILayout.Toggle("이미지 누락을 오류 처리", treatMissingSpriteAsError);
 
         EditorGUILayout.HelpBox("CSV 컬럼: Type, Name, InfoText, ItemImageAssetPath, ItemsToCreate. 제작 재료는 Type:Count;Type:Count 형식입니다. 없는 enum은 Import를 중단하고 별도 버튼으로 RewardCurrencyType.cs를 재생성합니다.", MessageType.Info);
@@ -149,7 +154,7 @@ public class ItemDataEditorTool : EditorWindow
             return;
         }
 
-        EnsureAssetFolder(soSavePath);
+        EnsureAssetFolder(DEFAULT_SO_SAVE_PATH);
 
         int createdCount = 0;
         int updatedCount = 0;
@@ -157,7 +162,7 @@ public class ItemDataEditorTool : EditorWindow
         for (int i = 0; i < rows.Count; i++)
         {
             ItemCsvRow row = rows[i];
-            string assetPath = $"{soSavePath}/{row.Type}_ItemMetaData.asset";
+            string assetPath = $"{DEFAULT_SO_SAVE_PATH}/{row.Type}_ItemMetaData.asset";
             ItemMetaDataSo itemSo = AssetDatabase.LoadAssetAtPath<ItemMetaDataSo>(assetPath);
             if (itemSo == null)
             {
@@ -192,10 +197,8 @@ public class ItemDataEditorTool : EditorWindow
     private void ExportToCsv()
     {
         ClearRunState();
-        ItemMetaDataListSo targetListSo = mainListSo;
-        if (targetListSo == null)
+        if (!TryEnsureMainListSo(out ItemMetaDataListSo targetListSo))
         {
-            AddMessage("메인 리스트 SO가 할당되지 않았습니다.");
             FlushMessagesToConsole(false);
             return;
         }
@@ -231,15 +234,15 @@ public class ItemDataEditorTool : EditorWindow
             builder.AppendLine();
         }
 
-        string directoryPath = Path.GetDirectoryName(csvFilePath);
+        string directoryPath = Path.GetDirectoryName(DEFAULT_CSV_PATH);
         if (!string.IsNullOrEmpty(directoryPath))
         {
             Directory.CreateDirectory(directoryPath);
         }
 
-        File.WriteAllText(csvFilePath, builder.ToString(), new UTF8Encoding(true));
+        File.WriteAllText(DEFAULT_CSV_PATH, builder.ToString(), new UTF8Encoding(true));
         AssetDatabase.Refresh();
-        AddMessage("익스포트 완료: " + csvFilePath);
+        AddMessage("익스포트 완료: " + DEFAULT_CSV_PATH);
         FlushMessagesToConsole(true);
     }
 
@@ -284,9 +287,9 @@ public class ItemDataEditorTool : EditorWindow
     private bool TryReadAndValidateCsv(out List<ItemCsvRow> rows)
     {
         rows = new List<ItemCsvRow>();
-        if (!File.Exists(csvFilePath))
+        if (!File.Exists(DEFAULT_CSV_PATH))
         {
-            AddMessage("CSV 파일을 찾을 수 없습니다: " + csvFilePath);
+            AddMessage("CSV 파일을 찾을 수 없습니다: " + DEFAULT_CSV_PATH);
             return false;
         }
 
@@ -374,7 +377,7 @@ public class ItemDataEditorTool : EditorWindow
         byte[] bytes;
         try
         {
-            using (FileStream stream = new FileStream(csvFilePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+            using (FileStream stream = new FileStream(DEFAULT_CSV_PATH, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
             {
                 bytes = new byte[stream.Length];
                 int totalRead = 0;
@@ -398,7 +401,7 @@ public class ItemDataEditorTool : EditorWindow
         }
         catch (UnauthorizedAccessException exception)
         {
-            AddMessage("CSV 파일 접근 권한이 없습니다: " + csvFilePath);
+            AddMessage("CSV 파일 접근 권한이 없습니다: " + DEFAULT_CSV_PATH);
             AddMessage(exception.Message);
             return false;
         }
@@ -619,6 +622,12 @@ public class ItemDataEditorTool : EditorWindow
         return true;
     }
 
+    // 고정 경로의 메인 리스트 SO를 로드한다
+    private void LoadFixedMainListSo()
+    {
+        mainListSo = AssetDatabase.LoadAssetAtPath<ItemMetaDataListSo>(DEFAULT_LIST_SO_PATH);
+    }
+
     // 메인 리스트 SO를 가져오거나 필요한 경우 생성한다
     private bool TryEnsureMainListSo(out ItemMetaDataListSo targetListSo)
     {
@@ -628,13 +637,7 @@ public class ItemDataEditorTool : EditorWindow
             return true;
         }
 
-        if (!createMainListIfMissing)
-        {
-            AddMessage("메인 리스트 SO가 할당되지 않았습니다.");
-            return false;
-        }
-
-        string existingPath = mainListSoPath;
+        string existingPath = DEFAULT_LIST_SO_PATH;
         targetListSo = AssetDatabase.LoadAssetAtPath<ItemMetaDataListSo>(existingPath);
         if (targetListSo != null)
         {

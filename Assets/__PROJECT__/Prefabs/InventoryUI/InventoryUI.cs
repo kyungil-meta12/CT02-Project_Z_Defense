@@ -8,6 +8,7 @@ using UnityEngine.UI;
 public class InventoryUI : MonoBehaviour
 {
     public GameObject mainController;
+    public ScrollRect scrollRect;
     public Image background;
     public List<Button> buttons;
     public TextMeshProUGUI itemNameText;
@@ -61,6 +62,7 @@ public class InventoryUI : MonoBehaviour
         {
             return;
         }
+
         var index = (int)data.Type;
         if (!buttons[index].interactable)
         {
@@ -68,7 +70,25 @@ public class InventoryUI : MonoBehaviour
             SetImageVisibility(images[index], true);
             images[index].sprite = metaDataList.Find(meta => meta.Type == data.Type).ItemImage;
         }
+        
+        else if(data.Count == 0)
+        {
+            buttons[index].interactable = false;
+            SetImageVisibility(images[index], false);
+            images[index].sprite = null;
+        }
         texts[index].text = data.CountString;
+
+        // 상호작용이 활성화 된 버튼 개수가 곧 활성화 된 이미지의 개수이다.
+        int enabledCount = 0;
+        foreach(var bt in buttons)
+        {
+            if(bt.interactable)
+            {
+                enabledCount++;
+            }
+        }
+        activatedImageCount = enabledCount;
     }
 
     /// <summary>
@@ -108,6 +128,9 @@ public class InventoryUI : MonoBehaviour
 
         itemNameText.text = "";
         itemInfoText.text = "";
+
+        scrollRect.verticalNormalizedPosition = 1f;
+        scrollRect.velocity = Vector2.zero;
 
         openState = true;
     }

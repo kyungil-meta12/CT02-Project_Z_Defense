@@ -60,6 +60,10 @@ PrefabInstance:
       propertyPath: 'visualSlots.Array.data[2].targetRenderers.Array.data[0]'
       value: 
       objectReference: {fileID: 2659957213047967728}
+    - target: {fileID: 4644956411873794667, guid: bb3feed03de6ffc478b034fa5b6ed38f, type: 3}
+      propertyPath: 'visualSlots.Array.data[7].targetRenderers.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2659957213047967728}
     - target: {fileID: 5342234238531594550, guid: bb3feed03de6ffc478b034fa5b6ed38f, type: 3}
       propertyPath: m_IsActive
       value: 0

@@ -12,9 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 64086bcb185c80947a81b76bc4479622, type: 3}
   m_Name: Ignition_Turret
   m_EditorClassIdentifier: Assembly-CSharp::TurretStatProfileSO
-  damage: 1
-  range: 57
-  fireInterval: 2.963
+  damage: 0
+  range: 18
+  fireInterval: 0.1
   projectileSpeed: 35
   projectileCount: 1
   pierceCount: 0

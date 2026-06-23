@@ -2250,6 +2250,24 @@ MonoBehaviour:
     fadeOutDuration: 1
     lethalIndicatorChildName: 
     lethalIndicatorLocalPositionOffset: {x: 0, y: 0, z: 0}
+  - visualType: 0
+    ignitionReactionType: 3
+    attachMode: 1
+    visualPrefab: {fileID: 4293332855471414272, guid: 942e5aa9beb26f145b8a32dee76da887, type: 3}
+    anchor: {fileID: 909474068054610291}
+    localPositionOffset: {x: 0, y: 0, z: 0}
+    localEulerOffset: {x: 0, y: 0, z: 0}
+    localScale: {x: 1, y: 1, z: 1}
+    targetRenderers:
+    - {fileID: 5958585105143018924}
+    particleScaleMultiplier: 1
+    restartParticlesOnEnable: 1
+    fadeInDuration: 1
+    fadeOutDuration: 1
+    lethalIndicatorChildName: 
+    lethalIndicatorLocalPositionOffset: {x: 0, y: 0, z: 0}
+  prewarmOnEnable: 1
+  prewarmVisualTypes: 0000000001000000020000000300000004000000
 --- !u!1 &7025921483973732847
 GameObject:
   m_ObjectHideFlags: 0

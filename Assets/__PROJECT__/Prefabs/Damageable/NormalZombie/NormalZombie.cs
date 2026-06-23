@@ -7,7 +7,7 @@ using ProjectZDefense.StatusEffects;
 /// <summary>
 /// 일반 좀비의 웨이브 스탯 초기화, 이동/공격, 피격, 사망, 처치 보상 지급을 담당한다.
 /// </summary>
-public class NormalZombie : PoolObject, IDamageable, IFrostStatusEffectReceiver, IPoisonStatusEffectReceiver, IElectroStatusEffectReceiver, IIgnitionStatusEffectReceiver, IIgnitionReactionReceiver, IElectroOverloadTriggerReceiver, IFrostStatusRuntimeOwner, IElectroStunRuntimeOwner
+public class NormalZombie : PoolObject, IDamageable, IAimPointProvider, IFrostStatusEffectReceiver, IPoisonStatusEffectReceiver, IElectroStatusEffectReceiver, IIgnitionStatusEffectReceiver, IIgnitionReactionReceiver, IElectroOverloadTriggerReceiver, IFrostStatusRuntimeOwner, IElectroStunRuntimeOwner
 {
     [Header("일반 좀비 기본 스펙")] public NormalZombieSpec spec;
     [Header("프리팹별 처치 보상 Override")] [SerializeField] private ZombieRewardProfileSO rewardProfileOverride;
@@ -455,6 +455,17 @@ public class NormalZombie : PoolObject, IDamageable, IFrostStatusEffectReceiver,
         }
     }
 
+    // 터렛 조준에 사용할 캐시된 히트 콜라이더 기준점을 반환한다
+    public Vector3 GetAimPosition(float aimHeightRatio)
+    {
+        if (hitCollider != null)
+        {
+            return TurretAimPointUtility.GetAimPosition(hitCollider, aimHeightRatio);
+        }
+
+        return transform.position;
+    }
+
     // Frost 상태가 계산한 속도 배율을 애니메이터 이동/공격 속도에 반영한다
     public void ApplyFrostSpeedMultiplier(float speedMultiplier)
     {
@@ -679,7 +690,6 @@ public class NormalZombie : PoolObject, IDamageable, IFrostStatusEffectReceiver,
         hpUI.gameObject.SetActive(false); // hp UI 비활성화
         TriggerFrostDeathEffectIfNeeded();
         TriggerPoisonDeathBurstIfNeeded();
-        TriggerIgnitionDeathEffectIfNeeded();
         ResetFrostStatus();
         ResetPoisonStatus();
         ResetElectroStatus();
@@ -714,17 +724,6 @@ public class NormalZombie : PoolObject, IDamageable, IFrostStatusEffectReceiver,
         }
 
         poisonStatusRuntime.TriggerDeathBurstIfNeeded(transform.position);
-    }
-
-    // 연소 상태로 사망한 경우 Ignition 사망 전용 이펙트를 실행한다
-    private void TriggerIgnitionDeathEffectIfNeeded()
-    {
-        if (ignitionStatusRuntime == null)
-        {
-            return;
-        }
-
-        ignitionStatusRuntime.TriggerBurnDeathEffectIfNeeded(transform.position);
     }
 
     // 일반 좀비 프리팹 Override 보상 프로필을 기준으로 처치 보상을 지급한다
@@ -830,9 +829,20 @@ public class NormalZombie : PoolObject, IDamageable, IFrostStatusEffectReceiver,
     // 스폰 위치로 좀비를 이동시키고 NavMeshAgent를 재활성화한다
     public void SetPosition(Transform t)
     {
-        transform.position = t.position;
+        if (t == null)
+        {
+            return;
+        }
+
+        SetPosition(t.position);
+    }
+
+    // 스폰 위치 좌표로 좀비를 이동시키고 NavMeshAgent를 재활성화한다
+    public void SetPosition(Vector3 position)
+    {
+        transform.position = position;
         agent.enabled = true;
-        agent.Warp(t.position);
+        agent.Warp(position);
     }
 
     /// <summary>

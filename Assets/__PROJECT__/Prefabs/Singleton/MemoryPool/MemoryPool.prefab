@@ -114,11 +114,3 @@ MonoBehaviour:
     count: 30
   - prefab: {fileID: 1487245307642514, guid: cf55fb5db5de4d6408aab4982d33d47e, type: 3}
     count: 30
-  - prefab: {fileID: 4039070395078972414, guid: 83648844042d34e4f84e900dfff9934c, type: 3}
-    count: 1
-  - prefab: {fileID: 1010893306578313667, guid: 5e468816736de8d40a28e6c14fd23cf9, type: 3}
-    count: 1
-  - prefab: {fileID: 1834646129351440, guid: 5599f31b19e20c94ca2378f95f7646b2, type: 3}
-    count: 6
-  - prefab: {fileID: 1000012903210382, guid: 329d8664ccd19ea4eadb0c7e2517507e, type: 3}
-    count: 6

@@ -5746,6 +5746,8 @@ MonoBehaviour:
     fadeOutDuration: 1
     lethalIndicatorChildName: 
     lethalIndicatorLocalPositionOffset: {x: 0, y: 0, z: 0}
+  prewarmOnEnable: 1
+  prewarmVisualTypes: 0000000001000000020000000300000004000000
 --- !u!1 &7657971409446761997
 GameObject:
   m_ObjectHideFlags: 0

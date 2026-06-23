@@ -4711,6 +4711,8 @@ GameObject:
   - component: {fileID: 6648929964555825515}
   - component: {fileID: 6648929964555825512}
   - component: {fileID: 6648929964555825513}
+  - component: {fileID: 5793528509739841472}
+  - component: {fileID: 1863286158022289674}
   m_Layer: 0
   m_Name: Impact_Frost 1
   m_TagString: Untagged
@@ -9626,3 +9628,27 @@ ParticleSystemRenderer:
   m_MeshWeighting1: 1
   m_MeshWeighting2: 1
   m_MeshWeighting3: 1
+--- !u!114 &5793528509739841472
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6648929964555825526}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8e13f3a643f208a4cb7b29a9951ab2f5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PoolObject
+--- !u!114 &1863286158022289674
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6648929964555825526}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9107ee249b0e4cd0b982b4e7e0328412, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PooledEffectReturner

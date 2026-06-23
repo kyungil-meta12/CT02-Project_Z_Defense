@@ -86,6 +86,7 @@ Use when repeatedly spawning:
 Rules:
 
 - Poolable component prefabs should inherit `PoolObject` when using `GetInstance<T>(PoolObject prefab)`.
+- Runtime objects with gameplay colliders should prefer the position/rotation overload `GetInstance<T>(PoolObject prefab, Vector3 position, Quaternion rotation)` so reused instances are moved before activation.
 - Reset mutable runtime state before or during spawn. Do not rely on prefab defaults after reuse.
 - `OnBeforeSpawn` is for pre-activation reset work.
 - `OnSpawn` is for post-pop initialization.

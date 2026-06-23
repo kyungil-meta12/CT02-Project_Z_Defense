@@ -62,11 +62,21 @@ public class StatusEffectVisualController : MonoBehaviour
     [Header("상태이상 비주얼 슬롯")]
     [SerializeField] private StatusEffectVisualSlot[] visualSlots;
 
+    [Header("비주얼 프리워밍")]
+    [SerializeField] private bool prewarmOnEnable;
+    [SerializeField] private StatusEffectVisualType[] prewarmVisualTypes;
+
     private bool frostSlowVisualActive;
     private bool poisonVisualActive;
     private bool electroStunVisualActive;
     private bool ignitionBurnVisualActive;
     private IgnitionReactionType activeIgnitionReactionType;
+
+    // 활성화 시 설정된 상태이상 비주얼 인스턴스를 미리 준비한다
+    private void OnEnable()
+    {
+        PrewarmConfiguredVisuals();
+    }
 
     // 컴포넌트가 비활성화될 때 상태이상 비주얼과 임시 머티리얼을 정리한다
     private void OnDisable()
@@ -94,6 +104,20 @@ public class StatusEffectVisualController : MonoBehaviour
         RestoreVisualSlotOriginalMaterials(StatusEffectVisualType.Poison);
         RestoreVisualSlotOriginalMaterials(StatusEffectVisualType.IgnitionBurn);
         RestoreVisualSlotOriginalMaterials(StatusEffectVisualType.IgnitionReaction);
+    }
+
+    // 인스펙터에서 지정한 상태이상 비주얼 타입을 비활성 대기 상태로 생성한다
+    private void PrewarmConfiguredVisuals()
+    {
+        if (!prewarmOnEnable || prewarmVisualTypes == null)
+        {
+            return;
+        }
+
+        for (int i = 0; i < prewarmVisualTypes.Length; i++)
+        {
+            EnsureVisualSlotInstances(prewarmVisualTypes[i]);
+        }
     }
 
     // 프로스트 슬로우 상태에 맞춰 얼음 메시 이펙트를 활성화하거나 비활성화한다

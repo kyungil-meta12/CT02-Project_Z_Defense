@@ -25,13 +25,18 @@ public class BeamFiringEvent : FiringEvent
     [SerializeField] private Vector3 beamRotationOffsetEuler;
     [Header("데미지 적용")]
     [SerializeField] private bool applyBeamDamage = true;
+    [Header("빔 프리워밍")]
+    [SerializeField] private bool prewarmBeamOnEnable;
 
     private BeamInstance[] beamInstances;
     private GameObject currentTarget;
+    private Transform currentTargetTransform;
     private TargetFinder targetFinder;
     private IDamageable currentDamageable;
+    private Collider currentAimCollider;
     private RaycastHit[] damageHitBuffer;
     private IDamageable[] damageTargetBuffer;
+    private int damageTargetCount;
     private float targetValidationTimer;
     private float invalidTargetTimer;
     private float damageTickTimer;
@@ -46,6 +51,12 @@ public class BeamFiringEvent : FiringEvent
     private void Awake()
     {
         CacheBeamRotationOffset();
+    }
+
+    // 활성화 시 설정된 빔 VFX를 미리 생성해 첫 공격 순간의 생성 비용을 줄인다
+    private void OnEnable()
+    {
+        PrewarmBeamInstancesIfNeeded();
     }
 
 #if UNITY_EDITOR
@@ -73,6 +84,7 @@ public class BeamFiringEvent : FiringEvent
 
         beamPrefab = beamPrefab_;
         ClearBeamInstances();
+        PrewarmBeamInstancesIfNeeded();
     }
 
     // 외부 프로필에서 사용할 빔 공격 규칙을 설정한다
@@ -107,8 +119,15 @@ public class BeamFiringEvent : FiringEvent
         SetProjectileScale(projectileScale_);
         EnsureBeamInstances();
         bool targetChanged = currentTarget != target;
-        currentTarget = target;
-        currentDamageable = ResolveDamageable(target);
+        if (targetChanged)
+        {
+            SetCurrentTarget(target);
+        }
+        else
+        {
+            currentDamageable = ResolveDamageable(target);
+        }
+
         currentProjectileDamage = projectileDamage;
         currentLogProjectileDamage = logProjectileDamage;
         targetValidationTimer = 0.0f;
@@ -207,12 +226,33 @@ public class BeamFiringEvent : FiringEvent
 
             GameObject beamObject = Instantiate(beamPrefab, muzzleTransform.position, muzzleTransform.rotation, muzzleTransform);
             beamObject.SetActive(false);
+            ResolveBeamReferences(beamObject.transform, out Transform beamTarget, out Transform beamHitEffect);
             beamInstances[i] = new BeamInstance(
                 beamObject,
                 muzzleTransform,
-                ResolveBeamTarget(beamObject.transform),
-                ResolveBeamHitEffect(beamObject.transform));
+                beamTarget,
+                beamHitEffect);
         }
+    }
+
+    // 설정된 경우 빔 인스턴스를 공격 전에 미리 생성한다
+    private void PrewarmBeamInstancesIfNeeded()
+    {
+        if (!prewarmBeamOnEnable || !isActiveAndEnabled)
+        {
+            return;
+        }
+
+        EnsureBeamInstances();
+    }
+
+    // 현재 공격 대상과 반복 조회가 필요한 대상 참조를 캐시한다
+    private void SetCurrentTarget(GameObject target)
+    {
+        currentTarget = target;
+        currentTargetTransform = target == null ? null : target.transform;
+        currentDamageable = ResolveDamageable(target);
+        currentAimCollider = ResolveAimCollider(target);
     }
 
     // 현재 빔 타겟이 계속 공격 가능한 상태인지 검사한다
@@ -248,7 +288,7 @@ public class BeamFiringEvent : FiringEvent
         }
 
         Vector3 origin = finder.pivotObject != null ? finder.pivotObject.transform.position : transform.position;
-        Vector3 targetPosition = ResolveTargetPosition(currentTarget);
+        Vector3 targetPosition = ResolveCurrentTargetPosition();
 
         if (finder.useHorizontalDistance)
         {
@@ -278,7 +318,7 @@ public class BeamFiringEvent : FiringEvent
             return;
         }
 
-        Vector3 targetPosition = ResolveTargetPosition(currentTarget);
+        Vector3 targetPosition = ResolveCurrentTargetPosition();
         for (int i = 0; i < beamInstances.Length; i++)
         {
             BeamInstance beamInstance = beamInstances[i];
@@ -396,9 +436,10 @@ public class BeamFiringEvent : FiringEvent
 
         EnsureDamageBuffers();
         ResetDamageTargetBuffer();
+        damageTargetCount = 0;
 
         Vector3 startPosition = beamInstances[0].MuzzleTransform.position;
-        Vector3 targetPosition = ResolveTargetPosition(currentTarget);
+        Vector3 targetPosition = ResolveCurrentTargetPosition();
         Vector3 direction = targetPosition - startPosition;
         float distance = direction.magnitude;
         if (distance <= minBeamDistance)
@@ -418,7 +459,7 @@ public class BeamFiringEvent : FiringEvent
             attackProfile.triggerInteraction);
 
         int maxTargets = Mathf.Min(attackProfile.maxTargets, damageTargetBuffer.Length);
-        for (int i = 0; i < hitCount && GetDamageTargetCount() < maxTargets; i++)
+        for (int i = 0; i < hitCount && damageTargetCount < maxTargets; i++)
         {
             Collider hitCollider = damageHitBuffer[i].collider;
             if (hitCollider == null)
@@ -435,13 +476,13 @@ public class BeamFiringEvent : FiringEvent
             AddDamageTarget(damageable);
         }
 
-        if (GetDamageTargetCount() == 0)
+        if (damageTargetCount == 0)
         {
             AddDamageTarget(currentDamageable);
         }
 
         float damage = GetProfileDamage();
-        for (int i = 0; i < GetDamageTargetCount(); i++)
+        for (int i = 0; i < damageTargetCount; i++)
         {
             ApplyDamage(damageTargetBuffer[i], damage, currentLogProjectileDamage);
         }
@@ -535,6 +576,7 @@ public class BeamFiringEvent : FiringEvent
     // 관통 데미지 대상 버퍼를 초기화한다
     private void ResetDamageTargetBuffer()
     {
+        damageTargetCount = 0;
         if (damageTargetBuffer == null)
         {
             return;
@@ -570,28 +612,9 @@ public class BeamFiringEvent : FiringEvent
             }
 
             damageTargetBuffer[i] = damageable;
+            damageTargetCount++;
             return;
         }
-    }
-
-    // 현재 데미지 대상 버퍼에 들어 있는 유효 대상 수를 반환한다
-    private int GetDamageTargetCount()
-    {
-        if (damageTargetBuffer == null)
-        {
-            return 0;
-        }
-
-        int count = 0;
-        for (int i = 0; i < damageTargetBuffer.Length; i++)
-        {
-            if (damageTargetBuffer[i] != null)
-            {
-                count++;
-            }
-        }
-
-        return count;
     }
 
     // 타겟 오브젝트에서 데미지를 받을 수 있는 컴포넌트를 찾는다
@@ -611,15 +634,34 @@ public class BeamFiringEvent : FiringEvent
         return target.GetComponentInChildren<IDamageable>();
     }
 
-    // 타겟의 조준 기준 위치를 반환한다
-    private Vector3 ResolveTargetPosition(GameObject target)
+    // 현재 타겟의 캐시된 콜라이더를 기준으로 조준 위치를 반환한다
+    private Vector3 ResolveCurrentTargetPosition()
     {
         if (useTargetAimPoint)
         {
-            return TurretAimPointUtility.GetAimPosition(target);
+            if (currentAimCollider != null)
+            {
+                return TurretAimPointUtility.GetAimPosition(currentAimCollider);
+            }
+
+            if (currentTarget != null)
+            {
+                return TurretAimPointUtility.GetAimPosition(currentTarget);
+            }
         }
 
-        return target.transform.position;
+        return currentTargetTransform == null ? transform.position : currentTargetTransform.position;
+    }
+
+    // 타겟 오브젝트에서 반복 조준에 사용할 콜라이더를 한 번만 찾는다
+    private Collider ResolveAimCollider(GameObject target)
+    {
+        if (target == null)
+        {
+            return null;
+        }
+
+        return target.GetComponentInChildren<Collider>();
     }
 
     // 총구 프리팹에서 실제 발사 위치로 사용할 트랜스폼을 찾는다
@@ -634,16 +676,32 @@ public class BeamFiringEvent : FiringEvent
         return gunObject.transform;
     }
 
-    // 빔 프리팹 내부의 끝점 타겟 트랜스폼을 찾는다
-    private Transform ResolveBeamTarget(Transform beamRoot)
+    // 빔 프리팹 내부의 끝점과 피격 이펙트 트랜스폼을 한 번의 계층 탐색으로 찾는다
+    private void ResolveBeamReferences(Transform beamRoot, out Transform beamTarget, out Transform beamHitEffect)
     {
-        Transform beamEmitterTarget = ResolveBeamEmitterTransformField(beamRoot, "beamTarget");
-        if (beamEmitterTarget != null)
+        beamTarget = null;
+        beamHitEffect = null;
+        ResolveBeamEmitterTransformFields(beamRoot, out beamTarget, out beamHitEffect);
+        if (beamTarget != null && beamHitEffect != null)
         {
-            return beamEmitterTarget;
+            return;
         }
 
         Transform[] children = beamRoot.GetComponentsInChildren<Transform>(true);
+        if (beamTarget == null)
+        {
+            beamTarget = ResolveBeamTargetFromChildren(children, beamRoot);
+        }
+
+        if (beamHitEffect == null)
+        {
+            beamHitEffect = ResolveBeamHitEffectFromChildren(children, beamRoot);
+        }
+    }
+
+    // 캐시된 자식 배열에서 빔 끝점 트랜스폼을 찾는다
+    private Transform ResolveBeamTargetFromChildren(Transform[] children, Transform beamRoot)
+    {
         Transform namedTarget = FindChildByName(children, beamRoot, "holder_Main");
         if (namedTarget != null)
         {
@@ -671,16 +729,9 @@ public class BeamFiringEvent : FiringEvent
         return fallbackTarget;
     }
 
-    // 빔 프리팹 내부의 피격 이펙트 트랜스폼을 찾는다
-    private Transform ResolveBeamHitEffect(Transform beamRoot)
+    // 캐시된 자식 배열에서 빔 피격 이펙트 트랜스폼을 찾는다
+    private Transform ResolveBeamHitEffectFromChildren(Transform[] children, Transform beamRoot)
     {
-        Transform beamEmitterHitEffect = ResolveBeamEmitterTransformField(beamRoot, "beamTargetHitFX");
-        if (beamEmitterHitEffect != null)
-        {
-            return beamEmitterHitEffect;
-        }
-
-        Transform[] children = beamRoot.GetComponentsInChildren<Transform>(true);
         for (int i = 0; i < children.Length; i++)
         {
             Transform child = children[i];
@@ -718,9 +769,11 @@ public class BeamFiringEvent : FiringEvent
         return null;
     }
 
-    // BeamEmitter 컴포넌트의 직렬화된 Transform 필드를 반사로 가져온다
-    private Transform ResolveBeamEmitterTransformField(Transform beamRoot, string fieldName)
+    // BeamEmitter 컴포넌트의 직렬화된 끝점과 피격 이펙트 필드를 한 번에 가져온다
+    private void ResolveBeamEmitterTransformFields(Transform beamRoot, out Transform beamTarget, out Transform beamHitEffect)
     {
+        beamTarget = null;
+        beamHitEffect = null;
         MonoBehaviour[] behaviours = beamRoot.GetComponents<MonoBehaviour>();
         for (int i = 0; i < behaviours.Length; i++)
         {
@@ -736,25 +789,33 @@ public class BeamFiringEvent : FiringEvent
                 continue;
             }
 
-            System.Reflection.FieldInfo fieldInfo = behaviourType.GetField(
-                fieldName,
-                System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic);
-            if (fieldInfo == null)
-            {
-                continue;
-            }
+            beamTarget = ResolveBeamEmitterTransformField(behaviour, behaviourType, "beamTarget");
+            beamHitEffect = ResolveBeamEmitterTransformField(behaviour, behaviourType, "beamTargetHitFX");
+            return;
+        }
+    }
 
-            return fieldInfo.GetValue(behaviour) as Transform;
+    // BeamEmitter 컴포넌트에서 지정한 Transform 필드 값을 가져온다
+    private Transform ResolveBeamEmitterTransformField(MonoBehaviour behaviour, System.Type behaviourType, string fieldName)
+    {
+        System.Reflection.FieldInfo fieldInfo = behaviourType.GetField(
+            fieldName,
+            System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic);
+        if (fieldInfo == null)
+        {
+            return null;
         }
 
-        return null;
+        return fieldInfo.GetValue(behaviour) as Transform;
     }
 
     // 생성된 빔 인스턴스를 모두 숨긴다
     private void HideBeamInstances()
     {
         currentTarget = null;
+        currentTargetTransform = null;
         currentDamageable = null;
+        currentAimCollider = null;
         targetValidationTimer = 0.0f;
         invalidTargetTimer = 0.0f;
         damageTickTimer = 0.0f;

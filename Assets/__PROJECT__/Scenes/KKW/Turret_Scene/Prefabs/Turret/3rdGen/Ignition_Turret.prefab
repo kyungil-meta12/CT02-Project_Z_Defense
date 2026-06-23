@@ -459,7 +459,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::IgnitionConeDetector
   rigBinding: {fileID: 4010000000000000016}
-  range: 15.5
+  range: 18
   coneAngle: 40
   scanInterval: 0.1
   candidateBufferSize: 32

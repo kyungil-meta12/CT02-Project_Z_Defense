@@ -26,6 +26,7 @@ public sealed class IgnitionDamageApplier : MonoBehaviour, ITurretRuntimeStatRec
     private IDamageable[] pendingTargets;
     private float damageTickTimer;
     private IgnitionStatusPayload ignitionStatusPayload;
+    private TurretStatGrowthProfileSO statGrowthProfile;
     private bool hasLoggedMissingDamagePath;
 
     // 시작 시 감지 이벤트를 구독하고 첫 데미지 틱을 준비한다
@@ -130,17 +131,18 @@ public sealed class IgnitionDamageApplier : MonoBehaviour, ITurretRuntimeStatRec
     }
 
     // 외부 터렛 정의에서 사용할 Ignition 상태 프로필과 현재 레벨을 설정한다
-    public void SetIgnitionStatusProfile(IgnitionStatusProfileSO ignitionStatusProfile_, int level)
+    public void SetIgnitionStatusProfile(IgnitionStatusProfileSO ignitionStatusProfile_, int level, TurretStatGrowthProfileSO growthProfile)
     {
         ignitionStatusProfile = ignitionStatusProfile_;
         ignitionStatusLevel = Mathf.Max(1, level);
+        statGrowthProfile = growthProfile;
         RefreshIgnitionStatusPayload();
     }
 
     // 외부 터렛 정의에서 전달한 상태 프로필이 Ignition이면 현재 레벨과 함께 적용한다
-    public void SetStatusProfile(ScriptableObject statusProfile, int level)
+    public void SetStatusProfile(ScriptableObject statusProfile, int level, TurretStatGrowthProfileSO growthProfile)
     {
-        SetIgnitionStatusProfile(statusProfile as IgnitionStatusProfileSO, level);
+        SetIgnitionStatusProfile(statusProfile as IgnitionStatusProfileSO, level, growthProfile);
     }
 
     // 감지된 대상이 Ignition 상태를 받을 수 있으면 연소 payload를 전달한다
@@ -175,7 +177,7 @@ public sealed class IgnitionDamageApplier : MonoBehaviour, ITurretRuntimeStatRec
             return;
         }
 
-        ignitionStatusPayload = ignitionStatusProfile.CreatePayload(ignitionStatusLevel, damagePerSecond);
+        ignitionStatusPayload = ignitionStatusProfile.CreatePayload(ignitionStatusLevel, damagePerSecond, statGrowthProfile);
         hasLoggedMissingDamagePath = false;
     }
 

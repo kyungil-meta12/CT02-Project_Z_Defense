@@ -73,6 +73,48 @@ public class MemoryPool : MonoBehaviour
     }
 
     /// <summary>
+    /// <para>인스턴스의 Ty_ 타입 컴포넌트를 지정 위치와 회전으로 활성화한 뒤 리턴한다.</para>
+    /// <para>인스턴스가 없을 경우 새로 생성하며, 프리펩은 PoolObject를 상속하여야 한다.</para>
+    /// <para>활성화 전에 위치를 먼저 지정하므로 풀 재사용 오브젝트가 이전 위치에 노출되는 시간을 줄인다.</para>
+    /// <para>예: var enemy = MemoryPool.Inst.GetInstance&lt;Enemy&gt;(enemyPrefab, spawnPosition, spawnRotation);</para>
+    /// </summary>
+    /// <param name="prefab"></param>
+    /// <param name="position"></param>
+    /// <param name="rotation"></param>
+    /// <returns></returns>
+    // 지정 위치와 회전을 먼저 적용한 뒤 PoolObject 인스턴스를 활성화한다
+    public Ty_ GetInstance<Ty_>(PoolObject prefab, Vector3 position, Quaternion rotation) where Ty_ : Component
+    {
+        if (prefab == null)
+        {
+            Debug.LogError("[MemoryPool] GetInstance called with null prefab.");
+            return null;
+        }
+
+        var memStack = GetOrCreateStack(prefab);
+
+        PoolObject instance;
+        if (memStack.Count == 0)
+        {
+            instance = CreateNewInstance(prefab, memStack);
+        }
+        else
+        {
+            instance = memStack.Pop();
+        }
+
+        ActivateInstance(instance, position, rotation);
+
+        var comp = instance.GetComponent<Ty_>();
+        if (comp == null)
+        {
+            Debug.LogError($"[MemoryPool] Instance does not contain component {typeof(Ty_).Name}. Prefab: {prefab.name}");
+        }
+
+        return comp;
+    }
+
+    /// <summary>
     /// <para>인스턴스를 생성하지만 컴포넌트를 리턴하지 않는다. 인스턴스가 없을 경우 새로 생성한다.</para>
     /// <para>프리펩이 PoolObject를 상속하여야 한다.</para>
     /// <para>인스턴스 리턴 시 PoolObject의 OnSpawn() 가상 메서드가 호출된다.</para>

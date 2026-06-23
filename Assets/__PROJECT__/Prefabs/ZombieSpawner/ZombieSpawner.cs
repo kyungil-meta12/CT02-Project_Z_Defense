@@ -240,26 +240,23 @@ public class ZombieSpawner : MonoBehaviour
             return;
         }
 
-        NormalZombie zombie = MemoryPool.Inst.GetInstance<NormalZombie>(prefab);
+        Transform spawnPoint = GetRandomSpawnPoint();
+        Transform destination = GetRandomDestination();
+        if (spawnPoint == null || destination == null)
+        {
+            Debug.LogWarning("[ZombieSpawner] 스폰 위치 또는 목적지가 없어 일반 좀비 위치를 설정할 수 없습니다.", this);
+            return;
+        }
+
+        Vector3 spawnPosition = ResolveSpawnPosition(spawnPoint.position);
+        NormalZombie zombie = MemoryPool.Inst.GetInstance<NormalZombie>(prefab, spawnPosition, spawnPoint.rotation);
         if (zombie == null)
         {
             return;
         }
 
         zombie.ApplySpawnRuntimeModifiers(currentRuntimeModifiers);
-        Transform spawnPoint = GetRandomSpawnPoint();
-        Transform destination = GetRandomDestination();
-        if (spawnPoint == null || destination == null)
-        {
-            Debug.LogWarning("[ZombieSpawner] 스폰 위치 또는 목적지가 없어 일반 좀비 위치를 설정할 수 없습니다.", this);
-            zombie.ReturnToPool();
-            return;
-        }
-
-        // NavMesh 표면 위치로 이동시킨다.
-        NavMesh.SamplePosition(spawnPoint.position, out var hit, 10f, NavMesh.AllAreas);
-        spawnPoint.position = hit.position;
-        zombie.SetPosition(spawnPoint);
+        zombie.SetPosition(spawnPosition);
         zombie.SetDestination(destination);
         RegisterSpawnedZombie(zombie);
     }
@@ -273,25 +270,36 @@ public class ZombieSpawner : MonoBehaviour
             return;
         }
 
-        BossZombie bossZombie = MemoryPool.Inst.GetInstance<BossZombie>(prefab);
+        Transform spawnPoint = GetRandomSpawnPoint();
+        Transform destination = GetRandomDestination();
+        if (spawnPoint == null || destination == null)
+        {
+            Debug.LogWarning("[ZombieSpawner] 스폰 위치 또는 목적지가 없어 보스 좀비 위치를 설정할 수 없습니다.", this);
+            return;
+        }
+
+        Vector3 spawnPosition = ResolveSpawnPosition(spawnPoint.position);
+        BossZombie bossZombie = MemoryPool.Inst.GetInstance<BossZombie>(prefab, spawnPosition, spawnPoint.rotation);
         if (bossZombie == null)
         {
             return;
         }
 
         bossZombie.ApplySpawnRuntimeModifiers(currentRuntimeModifiers);
-        Transform spawnPoint = GetRandomSpawnPoint();
-        Transform destination = GetRandomDestination();
-        if (spawnPoint == null || destination == null)
-        {
-            Debug.LogWarning("[ZombieSpawner] 스폰 위치 또는 목적지가 없어 보스 좀비 위치를 설정할 수 없습니다.", this);
-            bossZombie.ReturnToPool();
-            return;
-        }
-
-        bossZombie.SetPosition(spawnPoint);
+        bossZombie.SetPosition(spawnPosition);
         bossZombie.SetDestination(destination);
         RegisterSpawnedZombie(bossZombie);
+    }
+
+    // 스폰 기준 위치에서 가장 가까운 NavMesh 위치를 반환한다
+    private static Vector3 ResolveSpawnPosition(Vector3 requestedPosition)
+    {
+        if (NavMesh.SamplePosition(requestedPosition, out NavMeshHit hit, 10f, NavMesh.AllAreas))
+        {
+            return hit.position;
+        }
+
+        return requestedPosition;
     }
 
     // 웨이브 대기 코루틴이 실행 중이면 중단한다

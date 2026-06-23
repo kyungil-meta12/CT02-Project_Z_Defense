@@ -34,8 +34,7 @@
  *
  * - Assets/__PROJECT__/Scripts/StatusEffects/IgnitionStatusRuntime.cs
  *   대상 단위 Ignition 런타임. 기본 연소 지속시간, 틱 타이머, 중첩,
- *   속성 반응 타입, 특수연소 틱데미지, 기본/반응 화염 비주얼 전환,
- *   연소 사망 VFX 실행을 담당한다.
+ *   속성 반응 타입, 특수연소 틱데미지, 기본/반응 화염 비주얼 전환을 담당한다.
  *
  * - Assets/__PROJECT__/Scripts/StatusEffects/StatusEffectVisualController.cs
  *   좀비 프리팹 측 상태이상 비주얼 슬롯 관리자.
@@ -68,7 +67,7 @@
  *
  * - Assets/__PROJECT__/Scenes/KKW/Turret_Scene/Scripts/IgnitionStatusProfileSO.cs
  *   Ignition 기본 연소와 속성 반응 특수연소의 최대체력 비례 틱데미지,
- *   틱 간격, 지속시간, 중첩 정책, 보스 배율, 사망 연출 값을 관리한다.
+ *   틱 간격, 지속시간, 중첩 정책, 보스 배율을 관리한다.
  *
  * - Assets/__PROJECT__/Scenes/KKW/Turret_Scene/Scripts/PoisonDeathBurstProfileSO.cs
  *   Poison 처형 사망 폭발 VFX, 범위, 약한 Poison, 연쇄 허용 여부를 관리한다.
@@ -261,16 +260,18 @@
  * Ignition_Turret은 Beam VFX와 별도의 원뿔 감지 데미지 적용기를 함께 사용한다.
  *
  * 1. Ignition_Turret_Definition.ignitionStatusProfile에 Ignition_Status_Profile_SO를 연결한다.
- * 2. TurretDefinitionRuntimeController가 TurretStatProfileApplier.SetStatusProfile을 통해 IgnitionDamageApplier에 프로필을 전달한다.
+ * 2. TurretDefinitionRuntimeController가 TurretStatProfileApplier.SetStatusProfile을 통해 IgnitionDamageApplier에 프로필, 현재 레벨, 성장 프로필을 전달한다.
  * 3. IgnitionConeDetector는 TurretRigBinding의 총구 pivot들을 기준으로 OverlapSphereNonAlloc + 수평 원뿔 판정을 수행한다.
  * 4. IgnitionDamageApplier는 감지된 대상이 IIgnitionStatusEffectReceiver이면 IgnitionStatusPayload를 전달한다.
  * 5. NormalZombie / BossZombie는 IgnitionStatusRuntime.ApplyIgnitionStatus로 위임한다.
- * 6. IgnitionStatusRuntime은 기본 연소 중에는 maxHpDamageRatioPerTick, tickInterval, duration을 사용한다.
- * 7. 기본 연소 비주얼은 StatusEffectVisualType.IgnitionBurn 슬롯으로 켜며, MeshFX_Fire 1 RendererOverlay와 Fire_cartoon_fire 1 Anchor 슬롯을 같이 사용할 수 있다.
- * 8. 연소 중 Frost, Poison, Electro 반응 조건을 처음 만족하면 IgnitionReactionType을 고정한다.
- * 9. 반응 상태에서는 기본 IgnitionBurn 비주얼을 끄고 StatusEffectVisualType.IgnitionReaction 슬롯 중 해당 reactionType만 켠다.
- * 10. 반응 특수연소는 reactionMaxHpDamageRatioPerTick, reactionTickInterval, reactionDamageMultiplier fallback을 사용한다.
- * 11. 현재 기본값은 기본 연소 1%/0.2초/5초, 반응 연소 2%/0.2초다.
+ * 6. IgnitionStatusProfileSO는 기본값을 제공하고, IgnitionTurretStatGrowthProfileSO가 레벨별 최대체력 비례 틱데미지/지속시간/반응 틱값 성장을 계산한다.
+ * 7. IgnitionConeDetector.range는 18 고정값을 사용한다. 공통 range 성장은 화염 원뿔 사거리를 변경하지 않는다.
+ * 8. IgnitionStatusRuntime은 기본 연소 중에는 성장 적용 후 maxHpDamageRatioPerTick, tickInterval, duration을 사용한다.
+ * 9. 기본 연소 비주얼은 StatusEffectVisualType.IgnitionBurn 슬롯으로 켜며, MeshFX_Fire 1 RendererOverlay와 Fire_cartoon_fire 1 Anchor 슬롯을 같이 사용할 수 있다.
+ * 10. 연소 중 Frost, Poison, Electro 반응 조건을 처음 만족하면 IgnitionReactionType을 고정한다.
+ * 11. 반응 상태에서는 기본 IgnitionBurn 비주얼을 끄고 StatusEffectVisualType.IgnitionReaction 슬롯 중 해당 reactionType만 켠다.
+ * 12. 반응 특수연소는 성장 적용 후 reactionMaxHpDamageRatioPerTick, reactionTickInterval, reactionDamageMultiplier fallback을 사용한다.
+ * 13. 현재 기본값은 기본 연소 1%/0.2초/5초, 반응 연소 1.5%/0.15초다.
  *
  * Ignition 반응 조건:
  * - Poison: 대상이 중독 상태인 동안 Ignition이 들어오거나, 연소 중 Poison 공격을 받으면 반응한다.

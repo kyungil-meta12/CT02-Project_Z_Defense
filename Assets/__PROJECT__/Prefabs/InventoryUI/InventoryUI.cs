@@ -10,13 +10,13 @@ public class InventoryUI : MonoBehaviour
     public GameObject mainController;
     public Image background;
     public List<Button> buttons;
-    public ItemMetaDataSo metaDataSo;
     public TextMeshProUGUI itemNameText;
     public TextMeshProUGUI itemInfoText;
 
     private List<Image> images = new();
     private List<TextMeshProUGUI> texts = new();
-    private List<ItemMetaData> metaDataList = new();
+    private ItemMetaDataListSo metaDataListSo;
+    private List<ItemMetaDataSo> metaDataList = new();
     private int activatedImageCount;
     private bool openState = false;
 
@@ -38,8 +38,10 @@ public class InventoryUI : MonoBehaviour
             bt.interactable = false;
         }
 
+        // 인벤토리로부터 메타데이터 목록을 가져온다.
+        metaDataListSo = InventorySystem.Inst.itemMetaDataListSo;
         // 아이템 메타데이터 리스트를 불러온다.
-        metaDataList = metaDataSo.MetaDataList.ToList();
+        metaDataList = metaDataListSo.MetaDataList.ToList();
 
         OnCloseInventory();
     }
@@ -64,7 +66,7 @@ public class InventoryUI : MonoBehaviour
         {
             buttons[index].interactable = true;
             SetImageVisibility(images[index], true);
-            images[index].sprite = metaDataList.Find(meta => meta.Type == data.Type).ItemImage;
+            images[index].sprite = metaDataList.Find(meta => meta.Data.Type == data.Type).Data.ItemImage;
         }
         texts[index].text = data.CountString;
     }
@@ -94,7 +96,7 @@ public class InventoryUI : MonoBehaviour
             if(InventorySystem.Inst.HasItem(type))
             {
                 buttons[currentIndex].interactable = true;
-                images[currentIndex].sprite = metaDataList.Find(meta => meta.Type == type).ItemImage;
+                images[currentIndex].sprite = metaDataList.Find(meta => meta.Data.Type == type).Data.ItemImage;
                 SetImageVisibility(images[currentIndex], true);
                 texts[currentIndex].text = InventorySystem.Inst.GetCountString(type);
                 currentIndex++;
@@ -128,9 +130,9 @@ public class InventoryUI : MonoBehaviour
     {
         var index = buttons.IndexOf(button);
         var type = (RewardCurrencyType)index;
-        var metaData = metaDataList.Find(meta => meta.Type == type);
-        itemNameText.text = metaData.Name;
-        itemInfoText.text = metaData.InfoText;
+        var metaData = metaDataList.Find(meta => meta.Data.Type == type);
+        itemNameText.text = metaData.Data.Name;
+        itemInfoText.text = metaData.Data.InfoText;
     }
 
     /// <summary>

@@ -30,9 +30,9 @@ public class InventorySystem : MonoBehaviour
     [SerializeField] private ResourceCost[] initialWalletCurrencies = { new ResourceCost(RewardCurrencyType.Coin, 50) };
 
     // 아이템이 딕셔너리에 추가될 때 사용할 메타데이터 리스트
-    public ItemMetaDataSo itemMetaDataSo;
+    public ItemMetaDataListSo itemMetaDataListSo;
 
-    private ItemMetaData[] metaDataList;
+    private ItemMetaDataSo[] metaDataList;
     private Dictionary<RewardCurrencyType, ItemData> itemDict = new();
     private Dictionary<RewardCurrencyType, int> itemCostDict = new();
 
@@ -60,7 +60,7 @@ public class InventorySystem : MonoBehaviour
         Types = Enum.GetValues(typeof(RewardCurrencyType));
 
         // 아이템 메타 데이터 리스트를 스크립터블 오브젝트에서 불러오기
-        metaDataList = itemMetaDataSo.MetaDataList;
+        metaDataList = itemMetaDataListSo.MetaDataList;
 
         Inst = this;
     }
@@ -241,7 +241,7 @@ public class InventorySystem : MonoBehaviour
         if (!itemDict.ContainsKey(itemType))
         {
             // itemAttributes에서 타입을 찾아 해당되는 타입과 이름을 새 아이템 데이터에 적용한다.
-            int index = Array.FindIndex(metaDataList, meta => meta.Type == itemType);
+            int index = Array.FindIndex(metaDataList, meta => meta.Data.Type == itemType);
             if(index == -1)
             {
                 Debug.LogError($"[InventorySystem] 아이템 정보를 찾을 수 없음 | 찾기 시도 타입: {itemType}");
@@ -251,9 +251,9 @@ public class InventorySystem : MonoBehaviour
             var metaData = metaDataList[index];
             ItemData newItem = new()
             {
-                Type = metaData.Type,
-                Name = metaData.Name,
-                InfoText = metaData.InfoText,
+                Type = metaData.Data.Type,
+                Name = metaData.Data.Name,
+                InfoText = metaData.Data.InfoText,
                 Count = amount
             };
             newItem.CountString = newItem.Count.ToString();

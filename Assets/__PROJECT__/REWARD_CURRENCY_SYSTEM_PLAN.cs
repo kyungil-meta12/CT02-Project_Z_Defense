@@ -1,6 +1,7 @@
 /// <summary>
 /// 재화 획득, 보유, 소비, 환불, 보상/비용 SO 구조를 추적하는 설계 문서.
 /// README 성격의 문서 전용 .cs 파일.
+/// 최신 보상/재화 기준 문서는 Assets/__PROJECT__/Docs/REWARD_SYSTEM.md를 우선 사용한다.
 /// </summary>
 public static class REWARD_CURRENCY_SYSTEM_PLAN
 {

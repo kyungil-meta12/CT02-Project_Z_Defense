@@ -15,12 +15,12 @@ MonoBehaviour:
   rewards:
   - currencyType: 1
     amount: 75
-    dropChance: 0
+    dropChance: 1
     minAmountMultiplier: 0.8
     maxAmountMultiplier: 1.2
   - currencyType: 3
     amount: 75
-    dropChance: 1
+    dropChance: 0
     minAmountMultiplier: 0.8
     maxAmountMultiplier: 1.2
   modifiers: []

@@ -48,10 +48,17 @@ public sealed class ElectroStatusRuntime : MonoBehaviour
     // Electro 런타임이 참조할 대상과 중심 위치 계산용 콜라이더를 초기화한다
     public void Initialize(IDamageable damageable_, bool isBoss_)
     {
+        Initialize(damageable_, isBoss_, null);
+    }
+
+    // Electro 런타임이 참조할 대상과 쇼크 스택 사전 생성 프로필을 초기화한다
+    public void Initialize(IDamageable damageable_, bool isBoss_, ElectroStatusProfileSO prewarmProfile)
+    {
         damageable = damageable_;
         isBoss = isBoss_;
         cachedTargetCollider = GetComponentInChildren<Collider>(true);
         stunOwner = GetComponent<IElectroStunRuntimeOwner>();
+        PrewarmShockStackVisuals(prewarmProfile);
     }
 
     // Electro 투사체 또는 체인으로 전달된 Shock 스택 데이터를 갱신한다
@@ -337,10 +344,24 @@ public sealed class ElectroStatusRuntime : MonoBehaviour
     private void RefreshShockStackVisuals()
     {
         EnsureVisualRoot();
-        EnsureShockStackVisualInstances();
+        EnsureShockStackVisualInstances(activePayload);
         SetShockStackVisualCount(shockStackCount);
         ApplyShockStackVisualMode();
         UpdateShockStackVisualPositions(0.0f);
+    }
+
+    // 지정된 Electro 프로필의 쇼크 스택 비주얼을 비활성 상태로 미리 생성한다
+    private void PrewarmShockStackVisuals(ElectroStatusProfileSO prewarmProfile)
+    {
+        if (prewarmProfile == null || prewarmProfile.shockStackVisualPrefab == null)
+        {
+            return;
+        }
+
+        EnsureVisualRoot();
+        ElectroStatusPayload prewarmPayload = prewarmProfile.CreatePayload();
+        EnsureShockStackVisualInstances(prewarmPayload);
+        SetShockStackVisualCount(0);
     }
 
     // 현재 스택 수에 맞춰 약한 전하 또는 완전 충전 비주얼 모드를 적용한다
@@ -384,10 +405,10 @@ public sealed class ElectroStatusRuntime : MonoBehaviour
         visualRoot.SetParent(transform, false);
     }
 
-    // Volt Sphere 프리팹을 최대 스택 수만큼 지연 생성한다
-    private void EnsureShockStackVisualInstances()
+    // Volt Sphere 프리팹을 최대 스택 수만큼 준비한다
+    private void EnsureShockStackVisualInstances(ElectroStatusPayload payload)
     {
-        if (activePayload.shockStackVisualPrefab == null)
+        if (payload.shockStackVisualPrefab == null)
         {
             return;
         }
@@ -399,11 +420,11 @@ public sealed class ElectroStatusRuntime : MonoBehaviour
                 continue;
             }
 
-            GameObject visualInstance = Instantiate(activePayload.shockStackVisualPrefab, visualRoot);
-            visualInstance.name = activePayload.shockStackVisualPrefab.name + "_ShockStack_" + (i + 1);
-            visualInstance.transform.localScale = ResolveShockStackVisualScale();
+            GameObject visualInstance = Instantiate(payload.shockStackVisualPrefab, visualRoot);
+            visualInstance.name = payload.shockStackVisualPrefab.name + "_ShockStack_" + (i + 1);
+            visualInstance.transform.localScale = ResolveShockStackVisualScale(payload);
             shockStackVisualFaders[i] = EnsureShockStackVisualFader(visualInstance);
-            shockStackVisualModeControllers[i] = EnsureShockStackVisualModeController(visualInstance, activePayload.subtleShockStackDisabledChildNames);
+            shockStackVisualModeControllers[i] = EnsureShockStackVisualModeController(visualInstance, payload.subtleShockStackDisabledChildNames);
             visualInstance.SetActive(false);
             shockStackVisualInstances[i] = visualInstance;
         }
@@ -474,12 +495,18 @@ public sealed class ElectroStatusRuntime : MonoBehaviour
     // 대상 종류에 맞는 쇼크 스택 비주얼 스케일을 반환한다
     private Vector3 ResolveShockStackVisualScale()
     {
-        if (isBoss && activePayload.useBossShockStackVisualScale)
+        return ResolveShockStackVisualScale(activePayload);
+    }
+
+    // 지정된 페이로드와 대상 종류에 맞는 쇼크 스택 비주얼 스케일을 반환한다
+    private Vector3 ResolveShockStackVisualScale(ElectroStatusPayload payload)
+    {
+        if (isBoss && payload.useBossShockStackVisualScale)
         {
-            return activePayload.bossShockStackVisualScale;
+            return payload.bossShockStackVisualScale;
         }
 
-        return activePayload.shockStackVisualScale;
+        return payload.shockStackVisualScale;
     }
 
     // 카메라 기준 뒤쪽 반원에 있는 쇼크 스택 비주얼을 숨길지 계산한다

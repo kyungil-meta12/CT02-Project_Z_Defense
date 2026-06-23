@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Ignition_Turret
   m_EditorClassIdentifier: Assembly-CSharp::TurretStatProfileSO
   damage: 0
-  range: 18
+  range: 12
   fireInterval: 0.1
   projectileSpeed: 35
   projectileCount: 1

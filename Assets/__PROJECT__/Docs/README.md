@@ -39,3 +39,5 @@ Read `PROJECT_OVERVIEW.md` when ownership, design intent, or shared API boundari
 ## Maintenance Rule
 
 After code changes, check whether the affected feature document needs updates. If no Docs update is needed, report that Docs were checked.
+
+The root-level `.cs` planning documents under `Assets/__PROJECT__` are retained as historical notes. Prefer the Markdown documents in this `Docs` folder as the current source of truth for setup, pooling, runtime ownership, and migration status.

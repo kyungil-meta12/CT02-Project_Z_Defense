@@ -225,11 +225,10 @@ public sealed class IgnitionStatusRuntime : MonoBehaviour
         return Mathf.Max(0.0f, ignitionStatusPayload.damagePerSecond);
     }
 
-    // 현재 반응 상태에 맞춰 기본 화염과 강화 화염 비주얼을 전환한다
+    // 현재 반응 상태에 맞춰 기본 화염은 유지하고 강화 화염 비주얼을 추가로 전환한다
     private void RefreshIgnitionVisuals()
     {
-        bool hasReaction = activeReactionType != IgnitionReactionType.None;
-        SetIgnitionBurnVisualActive(!hasReaction);
+        SetIgnitionBurnVisualActive(true);
         SetIgnitionReactionVisualActive(activeReactionType);
     }
 

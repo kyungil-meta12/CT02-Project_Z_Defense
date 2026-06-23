@@ -1108,6 +1108,7 @@ MonoBehaviour:
   col: {fileID: 6951844493432217934}
   rewardParticleScale: 4
   statusEffectVisualController: {fileID: 0}
+  electroVisualPrewarmProfile: {fileID: 11400000, guid: f79572648aaf0d940933779f5082ab23, type: 2}
   screamerSkillRadius: 10
   screamerSkillSpeedMultiplier: 1.5
   navigationRotationSpeed: 2.5

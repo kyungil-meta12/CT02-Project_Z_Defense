@@ -147,6 +147,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 93269d0e4224673439e6904fbc8250db, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PassEventToScrollRect
+  scrollRectHierachy: InventoryUI/MainController/Inventory
 --- !u!1 &8286947991481485383
 GameObject:
   m_ObjectHideFlags: 0

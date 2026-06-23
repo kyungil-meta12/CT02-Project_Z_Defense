@@ -16,11 +16,9 @@ public class ItemCellData
 
 public class InventoryUI : MonoBehaviour
 {
-    private const RewardCurrencyType NULL_TYPE = 0;
-
     [Header("인벤토리 UI의 메인 조작부")] public GameObject mainController;
     [Header("인벤토리 UI의 스크롤 조작부")] public ScrollRect scrollRect;
-    [Header("인벤토리 컨턴츠 객체")] public GameObject inventoryContent;
+    [Header("인벤토리 컨텐츠 객체")] public GameObject inventoryContent;
     [Header("크래프팅 컨텐츠 객체")] public GameObject craftContent;
     [Header("인벤토리 아이템 버튼 프리펩")] public GameObject inventoryCellPrefab;
     [Header("배경 객체")] public Image background;
@@ -128,6 +126,7 @@ public class InventoryUI : MonoBehaviour
 
         scrollRect.verticalNormalizedPosition = 1f;
         scrollRect.velocity = Vector2.zero;
+        scrollRect.content = inventoryContent.GetComponent<RectTransform>();
 
         openState = true;
     }
@@ -166,6 +165,7 @@ public class InventoryUI : MonoBehaviour
             craftContent.SetActive(false);
             scrollRect.verticalNormalizedPosition = 1f;
             scrollRect.velocity = Vector2.zero;
+            scrollRect.content = inventoryContent.GetComponent<RectTransform>();
             pannelTitletext.text = "Inventory";
             itemNameText.text = "";
             itemInfoText.text = "";
@@ -183,6 +183,7 @@ public class InventoryUI : MonoBehaviour
             craftContent.SetActive(true);
             scrollRect.verticalNormalizedPosition = 1f;
             scrollRect.velocity = Vector2.zero;
+            scrollRect.content = craftContent.GetComponent<RectTransform>();
             pannelTitletext.text = "Craft";
             itemNameText.text = "";
             itemInfoText.text = "";

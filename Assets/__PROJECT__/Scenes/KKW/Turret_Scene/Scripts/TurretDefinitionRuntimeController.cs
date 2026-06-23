@@ -285,8 +285,18 @@ public class TurretDefinitionRuntimeController : MonoBehaviour
             return Evolve(availableIndex) ? this : null;
         }
 
+        Transform currentTransform = transform;
+        Transform parentTransform = currentTransform.parent;
+        Vector3 localPosition = currentTransform.localPosition;
+        Quaternion localRotation = currentTransform.localRotation;
+        Vector3 localScale = ResolveEvolutionLocalScale(evolutionEntry.targetDefinition, parentTransform);
+
         PlayEvolutionEffect(evolutionEntry);
-        GameObject evolvedObject = Instantiate(evolutionEntry.targetDefinition.basePrefab, transform.position, transform.rotation, transform.parent);
+        GameObject evolvedObject = Instantiate(evolutionEntry.targetDefinition.basePrefab, parentTransform);
+        Transform evolvedTransform = evolvedObject.transform;
+        evolvedTransform.localPosition = localPosition;
+        evolvedTransform.localRotation = localRotation;
+        evolvedTransform.localScale = localScale;
 
         TurretDefinitionRuntimeController evolvedRuntimeController = evolvedObject.GetComponent<TurretDefinitionRuntimeController>();
         if (evolvedRuntimeController == null)
@@ -297,6 +307,40 @@ public class TurretDefinitionRuntimeController : MonoBehaviour
         evolvedRuntimeController.SetDefinition(evolutionEntry.targetDefinition, totalLevel, 1);
         Destroy(gameObject);
         return evolvedRuntimeController;
+    }
+
+    // 진화 대상 프리팹이 슬롯 부모 스케일을 중복 상속하지 않도록 로컬 스케일을 계산한다
+    private static Vector3 ResolveEvolutionLocalScale(TurretDefinitionSO targetDefinition, Transform parentTransform)
+    {
+        GameObject targetPrefab = targetDefinition == null ? null : targetDefinition.basePrefab;
+        Vector3 prefabLocalScale = targetPrefab == null ? Vector3.one : targetPrefab.transform.localScale;
+        if (targetDefinition == null || targetDefinition.evolutionProgressionProfile != null || parentTransform == null)
+        {
+            return prefabLocalScale;
+        }
+
+        return DivideScale(prefabLocalScale, parentTransform.lossyScale);
+    }
+
+    // 축별 부모 스케일을 나누되 0 또는 음수 스케일 입력을 안전하게 보정한다
+    private static Vector3 DivideScale(Vector3 scale, Vector3 divisor)
+    {
+        return new Vector3(
+            DivideScaleAxis(scale.x, divisor.x),
+            DivideScaleAxis(scale.y, divisor.y),
+            DivideScaleAxis(scale.z, divisor.z));
+    }
+
+    // 단일 축 스케일을 안전한 양수 기준으로 나눈다
+    private static float DivideScaleAxis(float value, float divisor)
+    {
+        float safeDivisor = Mathf.Abs(divisor);
+        if (safeDivisor < 0.01f)
+        {
+            return value;
+        }
+
+        return value / safeDivisor;
     }
 
     // 진화 비용을 소모한 뒤 지정한 진화 후보의 프리팹 인스턴스를 생성한다

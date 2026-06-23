@@ -775,6 +775,12 @@ Projectile speed is a feel differentiator from second generation onward. `Laser_
 9. Runtime UI reattaches to the evolved turret controller.
 10. The temporary runtime popup also refreshes the selected turret range indicator after selection, upgrade, or evolution.
 
+Prefab replacement scale rules:
+
+- Evolved prefabs are instantiated under the previous turret parent, then local position and rotation are restored from the previous turret.
+- Definitions that still have another `evolutionProgressionProfile` keep the target prefab root local scale and inherit the build-point/base scale like normal placement.
+- Final evolution definitions without an `evolutionProgressionProfile`, currently the third-generation turrets, divide the target prefab root local scale by the parent `lossyScale`. This prevents scaled turret bases from multiplying the final turret's authored prefab size again.
+
 ## Upgrade Cost Flow
 
 1. `TurretDefinitionRuntimeController.GetUpgradeCosts` queries `TurretDefinitionSO.upgradeCostProfile`.
@@ -827,6 +833,14 @@ A complete path from Sentinel-01 tier level 1 to a second-generation `_3` tier l
 11. `TurretBaseSlot` records the occupied turret controller or fallback GameObject.
 12. `TurretPlacementController` records successful placement count per placement entry.
 13. Placement entries can use `Placement Cost Tiers` to change the next placement cost by successful placement count.
+
+Placement preview scale rules:
+
+- Valid slot previews use `TurretPlacementController.previewScaleMultiplier`.
+- Invalid world previews use `TurretPlacementController.invalidWorldPreviewScaleMultiplier`.
+- Invalid world previews also multiply by the current or first available `BuildPoint.lossyScale`, matching the world-space size the turret would have after being installed as a child of a scaled base.
+- Keep both multiplier values equal when drag, invalid placement, and snapped placement previews should preserve the same apparent turret prefab size after build-point scale is applied.
+- Installed turrets are instantiated as children of `TurretBaseSlot.BuildPoint`, so any parent/build-point transform scale affects the final world-space size.
 
 `TurretPlacementUI` still has a legacy rebuild helper, but `rebuildOnStart` should stay disabled for production scenes. Use `Project Z Defense/UI/Create Turret Placement UI` to create editable scene buttons, preferably after selecting the desired `TurretShopEntrySO` assets in the Project window.
 

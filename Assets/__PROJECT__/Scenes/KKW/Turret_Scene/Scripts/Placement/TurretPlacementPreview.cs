@@ -122,7 +122,6 @@ public class TurretPlacementPreview
         if (previewMaterial != null)
         {
             ApplyMaterial(previewMaterial);
-            ApplyTint(tintColor);
             return;
         }
 
@@ -171,7 +170,14 @@ public class TurretPlacementPreview
             }
 
             previewRenderer.sharedMaterials = materials;
+            ClearTint(previewRenderer);
         }
+    }
+
+    // 지정 머티리얼의 고유 색상이 보이도록 이전 틴트 PropertyBlock을 제거한다
+    private static void ClearTint(Renderer previewRenderer)
+    {
+        previewRenderer.SetPropertyBlock(null);
     }
 
     // 프리뷰 렌더러 머티리얼을 생성 당시 값으로 복구한다

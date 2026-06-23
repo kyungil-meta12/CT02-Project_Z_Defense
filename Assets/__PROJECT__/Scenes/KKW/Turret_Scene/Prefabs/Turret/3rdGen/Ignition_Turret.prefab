@@ -399,6 +399,7 @@ MonoBehaviour:
   directionMode: 1
   beamRotationOffsetEuler: {x: 0, y: -90, z: 0}
   applyBeamDamage: 0
+  prewarmBeamOnEnable: 0
 --- !u!114 &4010000000000000015
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -1,4 +1,4 @@
-﻿%YAML 1.1
+%YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
 --- !u!1 &1259089884566981203
 GameObject:
@@ -172,7 +172,7 @@ MonoBehaviour:
   closeRangePredictionDistance: 2
   closeRangeFireDistance: 2
   closeRangeTurretAngleAttack: 60
-  requireAimAngleBeforeFire: 0
+  requireAimAngleBeforeFire: 1
   fireTick: 0.1
   targetSearchInterval: 0.1
   aimPointLerpSpeed: 18
@@ -206,6 +206,7 @@ MonoBehaviour:
     m_Bits: 128
   pivotObject: {fileID: 8599324946311227538}
   aimHeightRatio: 0.35
+  targetCandidateFilterBehaviours: []
   showDebug: 0
   useHorizontalDistance: 1
   requireLineOfSight: 1
@@ -253,6 +254,7 @@ MonoBehaviour:
   targetFinder: {fileID: 2692182306134110919}
   targetGuns:
   - {fileID: 4884746858090884300}
+  runtimeStatReceiverBehaviours: []
   applyOnStart: 1
   applyOnInspectorChange: 1
   damageMultiplier: 1

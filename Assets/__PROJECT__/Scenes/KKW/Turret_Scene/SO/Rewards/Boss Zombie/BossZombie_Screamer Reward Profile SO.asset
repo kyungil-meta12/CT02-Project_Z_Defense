@@ -1,4 +1,4 @@
-﻿%YAML 1.1
+%YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
 --- !u!114 &11400000
 MonoBehaviour:
@@ -15,6 +15,7 @@ MonoBehaviour:
   rewards:
   - currencyType: 0
     amount: 1000
-    dropChance: 1
+    dropChance: 0
     minAmountMultiplier: 0.8
     maxAmountMultiplier: 1.2
+  modifiers: []

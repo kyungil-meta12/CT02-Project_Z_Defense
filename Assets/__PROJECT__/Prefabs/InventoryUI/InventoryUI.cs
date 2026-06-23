@@ -1,5 +1,6 @@
 using IncrementalLib;
 using NUnit.Framework.Internal;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using TMPro;
@@ -8,18 +9,21 @@ using UnityEngine.UI;
 
 public class InventoryUI : MonoBehaviour
 {
-    public GameObject mainController;
-    public ScrollRect scrollRect;
-    public GameObject inventoryContent;
-    public GameObject craftContent;
-    public Image background;
-    public List<Button> buttons;
-    public TextMeshProUGUI itemNameText;
-    public TextMeshProUGUI itemInfoText;
-    public TextMeshProUGUI pannelTitletext;
+    [Header("인벤토리 UI의 메인 조작부")] public GameObject mainController;
+    [Header("인벤토리 UI의 스크롤 조작부")] public ScrollRect scrollRect;
+    [Header("인벤토리 컨턴츠 객체")] public GameObject inventoryContent;
+    [Header("크래프팅 컨텐츠 객체")] public GameObject craftContent;
+    [Header("인벤토리 아이템 버튼 프리펩")] public GameObject inventoryCellPrefab;
+    [Header("배경 객체")] public Image background;
+    [Header("아이템 이름 텍스트 객체")] public TextMeshProUGUI itemNameText;
+    [Header("아이템 정보 텍스트 객체")] public TextMeshProUGUI itemInfoText;
+    [Header("패널 텍스트 객체")] public TextMeshProUGUI pannelTitletext;
+
 
     private ItemMetaDataListSo metaDataListSo;
     private List<ItemMetaDataSo> metaDataList = new();
+    
+    private List<Button> buttons = new();
     private List<Image> images = new();
     private List<TextMeshProUGUI> texts = new();
     private int activatedImageCount;
@@ -30,23 +34,34 @@ public class InventoryUI : MonoBehaviour
     {
         InventorySystem.Inst.OnItemCountChange += OnItemValueChanged;
 
-        // 각 버튼이 가지는 아이템 이미지 컴포넌트를 가져와 일단은 빈 이미지로 채운다.
-        foreach (var bt in buttons)
+        // 인벤토리로부터 메타데이터 목록을 가져온다.
+        metaDataListSo = InventorySystem.Inst.itemMetaDataListSo;
+        // 아이템 메타데이터 리스트를 불러온다.
+        metaDataList = metaDataListSo.MetaDataList;
+
+        // 아이템 타입 종류 만큼 인벤토리 셀을 생성한다.
+        int typeCount = InventorySystem.Inst.Types.Length;
+        for(int i = 0; i < typeCount; i ++)
         {
-            var imgComp = bt.transform.Find("ItemImage").GetComponent<Image>();
-            var txtComp = bt.transform.Find("CountText").GetComponent<TextMeshProUGUI>();
+            var obj = Instantiate(inventoryCellPrefab, inventoryContent.transform, false);
+            var button = obj.GetComponent<Button>();
+
+            var imgComp = button.transform.Find("ItemImage").GetComponent<Image>();
+            var txtComp = button.transform.Find("CountText").GetComponent<TextMeshProUGUI>();
+
             txtComp.text = "";
             SetImageVisibility(imgComp, false);
             images.Add(imgComp);
             texts.Add(txtComp);
             // 일단은 상호작용을 비활성화 한다.
-            bt.interactable = false;
-        }
+            button.interactable = false;
 
-        // 인벤토리로부터 메타데이터 목록을 가져온다.
-        metaDataListSo = InventorySystem.Inst.itemMetaDataListSo;
-        // 아이템 메타데이터 리스트를 불러온다.
-        metaDataList = metaDataListSo.MetaDataList;
+            // 클릭 이벤트 추가
+            button.onClick.AddListener(() => OnItemCellClick(button));
+
+            // 버튼 목록에 추가
+            buttons.Add(button);
+        }
 
         OnCloseInventory();
     }
@@ -156,7 +171,7 @@ public class InventoryUI : MonoBehaviour
     /// 아이템 클릭 이벤트 // 클릭 시 버튼에 해당하는 타입에 해당하는 메타데이터에 있는 이름과 정보를 불러온다.
     /// </summary>
     /// <param name="button"></param>
-    public void OnButtonClick(Button button)
+    public void OnItemCellClick(Button button)
     {
         var index = buttons.IndexOf(button);
         var type = (RewardCurrencyType)index;

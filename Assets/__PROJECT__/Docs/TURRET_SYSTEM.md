@@ -63,7 +63,7 @@ Do not use display names as stable IDs.
 | `FrostStatusProfileSO` | Frost-specific status rules: slow buildup, max slow, freeze timing, freeze explosion, max-HP damage, secondary explosion slow, related VFX references, and optional primary-target max-HP damage growth. |
 | `PoisonStatusProfileSO` | Poison-specific status rules: max-HP tick damage ratio, tick interval, duration, stack limit, stack refresh mode, boss damage multiplier, and optional death burst profile reference. |
 | `ElectroStatusProfileSO` | Electro-specific base status rules and chain VFX controls: chain lightning count/radius/falloff, base Shock stack duration and stack VFX, Overload trigger policy, base single-target Overload damage, short stun timing, chain-link particle VFX, and optional core line VFX. |
-| `IgnitionStatusProfileSO` | Ignition-specific burn status rules: flat DPS multiplier fallback, max-HP tick damage ratio, tick interval, duration, stack limit, stack refresh mode, boss damage multiplier, burn death VFX, and future attribute interaction flags. |
+| `IgnitionStatusProfileSO` | Ignition-specific burn status rules: flat DPS multiplier fallback, max-HP tick damage ratio, tick interval, duration, stack limit, stack refresh mode, boss damage multiplier, and attribute interaction flags. |
 | `PoisonDeathBurstProfileSO` | Poison lethal-death burst rules: burst VFX, radius, weak Poison values, target layer mask, and boss damage multiplier for secondary weak Poison. |
 | `PoisonTurretStatGrowthProfileSO` | Poison_Turret-only stat growth profile. Inherits common turret stat growth and adds Poison status/death-burst growth fields without exposing them on non-Poison turrets. |
 | `ElectroTurretStatGrowthProfileSO` | Electro_Turret-only stat growth profile. Inherits common turret stat growth and adds Shock duration, chain target count, and Overload max-HP damage growth fields without exposing them on non-Electro turrets. |
@@ -185,6 +185,8 @@ Enemy Frost visual setup:
 - For boss zombies, assign body and attachment renderers selectively so hair, eyes, or props can be excluded if needed.
 - If boss Frost particles look too large, lower `Frost Particle Scale Multiplier` on the boss `StatusEffectVisualController` instead of scaling the source MeshFX prefab.
 - Do not modify the original `OverlayFX` script from Private Assets; project-side lifecycle and material cleanup are handled by `StatusEffectVisualController`.
+- `MeshFX_Frozen` RendererOverlay visuals should be prewarmed inside `StatusEffectVisualController`, not through global `MemoryPool`, because each instance must bind to that zombie's renderer.
+- Enable `prewarmOnEnable` and add `FrostSlow` to `prewarmVisualTypes` on normal and boss zombie prefabs when first-hit Frost visual instantiation causes runtime spikes.
 - RendererOverlay slots cache original renderer material arrays when Frost/Poison visuals are activated and restore those arrays on deactivation or slot cleanup. This is required to avoid magenta fallback materials after `MeshFX_Frozen 1` finishes.
 - `freezeCooldownPerTarget` must prevent the same target from triggering freeze explosions every damage tick.
 - `freezeDuration > 0` temporarily applies a `0` speed multiplier and overrides slow until the freeze timer expires.
@@ -649,7 +651,9 @@ FrostRay VFX notes:
 - `FrostRay_TurretBeam` uses `PilotoStudio.BeamEmitter`.
 - The actual line target is `BeamEmitter.beamTarget`; there are several objects named `holder`, so name-based lookup is not reliable.
 - The hit effect is `BeamEmitter.beamTargetHitFX`, currently `Hit_Spikes`.
-- `BeamFiringEvent` resolves those `BeamEmitter` references at runtime and moves them to the current target position every frame.
+- `BeamFiringEvent` can prewarm beam instances with `prewarmBeamOnEnable` so the first Frost attack does not pay the beam prefab instantiate and reference discovery cost.
+- `BeamFiringEvent` resolves `BeamEmitter.beamTarget` and `BeamEmitter.beamTargetHitFX` together during beam instance creation, then moves the cached transforms to the current target position every frame.
+- `BeamFiringEvent` caches the current target collider when the target changes, avoiding repeated `GetComponentInChildren<Collider>` calls while a continuous Frost beam tracks the same target.
 - The FrostRay beam visual now uses the `BeamEmitter.beamTarget` transform, currently named `holder_Main`, as the runtime endpoint.
 - `BeamFiringEvent` moves `holder_Main` and `BeamEmitter.beamTargetHitFX` to the current target position every frame, so the Frost turret no longer needs root X scaling for beam length.
 - The old root X scale and child inverse-scale correction path has been removed from `BeamFiringEvent`; beam length should be driven by the endpoint holder instead.
@@ -659,16 +663,19 @@ FrostRay VFX notes:
 
 Ignition status handling:
 
-- `IgnitionStatusProfileSO` stores Ignition burn values (`damageMultiplier`, `maxHpDamageRatioPerTick`, `tickInterval`, `duration`, `maxStackCount`, `stackRefreshMode`, reaction burn values, `bossDamageMultiplier`, `burnDeathEffectPrefab`, `burnDeathEffectDuration`, `interactionFlags`).
-- `Ignition_Turret_Definition.ignitionStatusProfile` points to the active Ignition status profile. The runtime `IgnitionDamageApplier` receives the profile through `ITurretStatusProfileReceiver`; the prefab-local `IgnitionDamageApplier.ignitionStatusProfile` field can stay empty.
+- `IgnitionStatusProfileSO` stores Ignition base burn values (`damageMultiplier`, `maxHpDamageRatioPerTick`, `tickInterval`, `duration`, `maxStackCount`, `stackRefreshMode`, reaction burn values, `bossDamageMultiplier`, `interactionFlags`).
+- `Ignition_Turret_Stat Growth Profile SO` uses `IgnitionTurretStatGrowthProfileSO` and owns Ignition-specific scaling for max-HP burn ratio, burn duration, reaction max-HP burn ratio, and reaction tick interval. Common `damagePercentPerLevel`, `rangePerLevel`, and `fireIntervalReductionPerLevel` are set to `0` because Ignition DPS is not `damage / fireInterval` based.
+- `Ignition_Turret_Definition.ignitionStatusProfile` points to the active Ignition status profile. The runtime `IgnitionDamageApplier` receives the profile, level, and growth profile through `ITurretStatusProfileReceiver`; the prefab-local `IgnitionDamageApplier.ignitionStatusProfile` field can stay empty.
 - `IgnitionConeDetector` owns the cone overlap check using non-alloc physics. `IgnitionDamageApplier` applies the resulting payload to targets implementing `ProjectZDefense.StatusEffects.IIgnitionStatusEffectReceiver`.
-- `NormalZombie` and `BossZombie` implement `ProjectZDefense.StatusEffects.IIgnitionStatusEffectReceiver` and delegate duration, tick timer, stack count, and burn-death VFX to `IgnitionStatusRuntime`.
+- `IgnitionConeDetector.range` is fixed at `18` for Ignition_Turret. `TurretStatProfileSO.range` is also set to `18` only for targeting/selection consistency; range growth does not drive the flame cone.
+- `NormalZombie` and `BossZombie` implement `ProjectZDefense.StatusEffects.IIgnitionStatusEffectReceiver` and delegate duration, tick timer, and stack count to `IgnitionStatusRuntime`.
 - `IgnitionStatusRuntime` reports burn active/inactive state to `StatusEffectVisualController`; zombies do not directly instantiate or configure mesh fire VFX.
 - Ignition tick damage prefers `maxHpDamageRatioPerTick` when it is greater than `0`. If it is `0`, the runtime falls back to `damagePerSecond * tickInterval`.
-- The current first-test `Ignition_Status_Profile_SO` values are `damageMultiplier = 0`, `maxHpDamageRatioPerTick = 0.01`, `tickInterval = 0.2`, `duration = 5`, `maxStackCount = 1`, and `stackRefreshMode = RefreshDurationOnly`.
-- With those values, a target that touches the flame receives a 5-second burn that deals 1% of max HP every 0.2 seconds before boss modifiers.
-- `RefreshDurationOnly` keeps the burn predictable by refreshing the 10-second timer without increasing stack count. Use `AddStackAndRefreshDuration` only if the design explicitly wants repeated flame contact to increase burn damage.
-- Ignition status resets on spawn, despawn, and death. Burn death VFX is triggered from the active Ignition payload when configured.
+- `Ignition_Turret.asset.damage` is set to `0` because the active balance path is max-HP percentage burn. Change `Ignition_Status_Profile_SO` and `Ignition_Turret_Stat Growth Profile SO` when tuning real Ignition DPS.
+- The current first-test `Ignition_Status_Profile_SO` base values are `damageMultiplier = 0`, `maxHpDamageRatioPerTick = 0.01`, `tickInterval = 0.2`, `duration = 5`, `maxStackCount = 1`, and `stackRefreshMode = RefreshDurationOnly`.
+- With those base values, a target that touches the flame receives a 5-second burn that deals 1% of max HP every 0.2 seconds before boss modifiers and Ignition-specific growth.
+- `RefreshDurationOnly` keeps the burn predictable by refreshing the 5-second timer without increasing stack count. Use `AddStackAndRefreshDuration` only if the design explicitly wants repeated flame contact to increase burn damage.
+- Ignition status resets on spawn, despawn, and death. Ignition burn-death VFX is currently not used.
 - Add a `StatusEffectVisualSlot` with `visualType = IgnitionBurn` and `attachMode = RendererOverlay` to zombie prefabs that should show burn visuals.
 - Assign `MeshFX_Fire 1` to the IgnitionBurn slot's `visualPrefab`.
 - Assign the body `SkinnedMeshRenderer` entries that should emit fire particles into the IgnitionBurn slot's `targetRenderers`.
@@ -841,8 +848,10 @@ Engineer buff policy:
 
 - `TargetFinder` selects the nearest valid target in range.
 - `TargetFinder` resolves hit colliders to a stable tagged or `IDamageable` target root before returning a target, avoiding aim jitter from multi-collider enemies.
+- `TargetFinder.IsCurrentTargetValid` is used by `Turret` before rotation and firing so a retained pooled target must still be active, alive, in range, and optionally visible before another shot is emitted.
 - `TargetFinder` can ignore `ObstacleBuildSlot` helper colliders, placed `Obstacle` colliders, and an additional ignore layer mask during line-of-sight checks so defense-line barricades do not hide zombies from turret targeting.
 - `TargetFinder.aimHeightRatio` controls where inside the target collider height the turret aims and runs line-of-sight checks. Keep the default `0.35` for existing turrets. Current `Poison_Turret` intentionally uses `0` because play-mode testing showed the projectile firing angle is more stable with that value.
+- `IAimPointProvider` lets zombie roots return cached aim points, avoiding repeated child-collider searches from turret aim/prediction paths.
 - `TargetFinder.targetCandidateFilterBehaviours` can connect project-owned `ITargetCandidateFilter` components. `PoisonLethalTargetCandidateFilter` is intended for `Poison_Turret` only and skips targets whose remaining Poison ticks already guarantee death. `FrostFreezeSuppressedTargetCandidateFilter` is intended for `Frost_Turret` only and skips freeze-capable targets that are already frozen or still inside their per-target freeze cooldown.
 - `Turret` smooths target aim point and target velocity prediction, ignores vertical prediction by default, and uses `TurretLeadPredictionUtility` to aim at an estimated projectile/target intercept point.
 - Prediction lead time can scale from slow-projectile long lead to fast-projectile short lead, improving low-speed projectile hit rate without making laser-speed shots over-lead visibly.

@@ -114,11 +114,13 @@ MonoBehaviour:
     count: 30
   - prefab: {fileID: 1487245307642514, guid: cf55fb5db5de4d6408aab4982d33d47e, type: 3}
     count: 30
-  - prefab: {fileID: 4039070395078972414, guid: 83648844042d34e4f84e900dfff9934c, type: 3}
-    count: 1
-  - prefab: {fileID: 1010893306578313667, guid: 5e468816736de8d40a28e6c14fd23cf9, type: 3}
-    count: 1
-  - prefab: {fileID: 1834646129351440, guid: 5599f31b19e20c94ca2378f95f7646b2, type: 3}
-    count: 6
-  - prefab: {fileID: 1000012903210382, guid: 329d8664ccd19ea4eadb0c7e2517507e, type: 3}
-    count: 6
+  - prefab: {fileID: 1497850087004499017, guid: 0a1a0ac7410509441951e89be9c0cda2, type: 3}
+    count: 10
+  - prefab: {fileID: 6648929964555825526, guid: aea6ed05ed89be74e9aee6d22cab59d8, type: 3}
+    count: 10
+  - prefab: {fileID: 2316660028970656133, guid: c217c2fda05b34046b5fa5fb627dd1c0, type: 3}
+    count: 10
+  - prefab: {fileID: 1976014488594992, guid: caa8261b6a7cfc74696e93c3424de7e2, type: 3}
+    count: 32
+  - prefab: {fileID: 1976014488594992, guid: ae76114d54faab04face7cceeeb3af97, type: 3}
+    count: 32

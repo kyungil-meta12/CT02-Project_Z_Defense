@@ -597,7 +597,7 @@ MonoBehaviour:
   closeRangePredictionDistance: 2
   closeRangeFireDistance: 2
   closeRangeTurretAngleAttack: 60
-  requireAimAngleBeforeFire: 0
+  requireAimAngleBeforeFire: 1
   fireTick: 0.5
   targetSearchInterval: 0.1
   aimPointLerpSpeed: 18
@@ -630,6 +630,8 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 128
   pivotObject: {fileID: 7020210988266707945}
+  aimHeightRatio: 0.35
+  targetCandidateFilterBehaviours: []
   showDebug: 0
   useHorizontalDistance: 1
   requireLineOfSight: 1
@@ -731,8 +733,10 @@ MonoBehaviour:
   targetGuns:
   - {fileID: 6678949975885195248}
   - {fileID: 2813697339705287016}
+  runtimeStatReceiverBehaviours: []
   applyOnStart: 1
   applyOnInspectorChange: 1
+  damageMultiplier: 1
 --- !u!1001 &7191475224598254017
 PrefabInstance:
   m_ObjectHideFlags: 0

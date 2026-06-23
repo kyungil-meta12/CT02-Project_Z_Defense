@@ -861,7 +861,7 @@ MonoBehaviour:
   closeRangePredictionDistance: 2
   closeRangeFireDistance: 2
   closeRangeTurretAngleAttack: 60
-  requireAimAngleBeforeFire: 0
+  requireAimAngleBeforeFire: 1
   fireTick: 2
   targetSearchInterval: 0.1
   aimPointLerpSpeed: 18
@@ -997,6 +997,7 @@ MonoBehaviour:
   targetGuns:
   - {fileID: 8303708865026957668}
   - {fileID: 1216955966848438413}
+  runtimeStatReceiverBehaviours: []
   applyOnStart: 1
   applyOnInspectorChange: 1
   damageMultiplier: 1

@@ -78,6 +78,30 @@ public class TurretStatGrowthProfileSO : ScriptableObject
         return Mathf.Clamp01(baseValue);
     }
 
+    // 현재 레벨에 맞는 Ignition 최대체력 비례 틱데미지를 계산한다
+    public virtual float CalculateIgnitionMaxHpDamageRatioPerTick(float baseValue, int level)
+    {
+        return Mathf.Clamp01(baseValue);
+    }
+
+    // 현재 레벨에 맞는 Ignition 지속시간을 계산한다
+    public virtual float CalculateIgnitionDuration(float baseValue, int level)
+    {
+        return Mathf.Max(0.0f, baseValue);
+    }
+
+    // 현재 레벨에 맞는 Ignition 반응 최대체력 비례 틱데미지를 계산한다
+    public virtual float CalculateIgnitionReactionMaxHpDamageRatioPerTick(float baseValue, int level)
+    {
+        return Mathf.Clamp01(baseValue);
+    }
+
+    // 현재 레벨에 맞는 Ignition 반응 틱 간격을 계산한다
+    public virtual float CalculateIgnitionReactionTickInterval(float baseValue, int level)
+    {
+        return Mathf.Max(0.01f, baseValue);
+    }
+
     // 레벨 1을 기준으로 완료된 성장 단계 수를 반환한다
     protected static int GetCompletedGrowthLevel(int level)
     {

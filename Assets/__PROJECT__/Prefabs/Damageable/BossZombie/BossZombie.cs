@@ -10,7 +10,7 @@ using ProjectZDefense.StatusEffects;
 /// <summary>
 /// 보스 좀비의 웨이브 스탯 초기화, 스킬, 피격, 사망, 처치 보상 지급을 담당한다.
 /// </summary>
-public class BossZombie : PoolObject, IDamageable, IFrostStatusEffectReceiver, IPoisonStatusEffectReceiver, IElectroStatusEffectReceiver, IIgnitionStatusEffectReceiver, IIgnitionReactionReceiver, IElectroOverloadTriggerReceiver, IFrostStatusRuntimeOwner, IElectroStunRuntimeOwner
+public class BossZombie : PoolObject, IDamageable, IAimPointProvider, IFrostStatusEffectReceiver, IPoisonStatusEffectReceiver, IElectroStatusEffectReceiver, IIgnitionStatusEffectReceiver, IIgnitionReactionReceiver, IElectroOverloadTriggerReceiver, IFrostStatusRuntimeOwner, IElectroStunRuntimeOwner
 {
     private static readonly int SpeedHash = Animator.StringToHash("speed");
     private const float MinimumFrostSpeedMultiplier = 0.5f;
@@ -573,6 +573,17 @@ public class BossZombie : PoolObject, IDamageable, IFrostStatusEffectReceiver, I
         }
     }
 
+    // 터렛 조준에 사용할 보스 루트 콜라이더 기준점을 반환한다
+    public Vector3 GetAimPosition(float aimHeightRatio)
+    {
+        if (col != null)
+        {
+            return TurretAimPointUtility.GetAimPosition(col, aimHeightRatio);
+        }
+
+        return transform.position;
+    }
+
     // Frost 상태가 계산한 속도 배율을 애니메이터 이동/공격 속도에 반영한다
     public void ApplyFrostSpeedMultiplier(float speedMultiplier)
     {
@@ -830,7 +841,6 @@ public class BossZombie : PoolObject, IDamageable, IFrostStatusEffectReceiver, I
 
         hpUI.gameObject.SetActive(false); // hp UI 비활성화
         TriggerFrostDeathEffectIfNeeded();
-        TriggerIgnitionDeathEffectIfNeeded();
         ResetFrostStatus();
         ResetPoisonStatus();
         ResetElectroStatus();
@@ -865,17 +875,6 @@ public class BossZombie : PoolObject, IDamageable, IFrostStatusEffectReceiver, I
         }
 
         frostStatusRuntime.TriggerFreezeDeathEffectIfNeeded();
-    }
-
-    // 연소 상태로 사망한 경우 Ignition 사망 전용 이펙트를 실행한다
-    private void TriggerIgnitionDeathEffectIfNeeded()
-    {
-        if (ignitionStatusRuntime == null)
-        {
-            return;
-        }
-
-        ignitionStatusRuntime.TriggerBurnDeathEffectIfNeeded(transform.position);
     }
 
     // 보스 프리팹 Override 또는 스펙의 보상 프로필을 기준으로 처치 보상을 지급한다
@@ -927,12 +926,23 @@ public class BossZombie : PoolObject, IDamageable, IFrostStatusEffectReceiver, I
     // 스폰 위치로 보스를 이동시키고 NavMeshAgent를 재활성화한다
     public void SetPosition(Transform t)
     {
+        if (t == null)
+        {
+            return;
+        }
+
+        SetPosition(t.position);
+    }
+
+    // 스폰 위치 좌표로 보스를 이동시키고 NavMeshAgent를 재활성화한다
+    public void SetPosition(Vector3 position)
+    {
         SetCollidersEnabled(true);
-        transform.position = t.position;
+        transform.position = position;
         agent.enabled = true;
         agent.isStopped = false;
         ConfigureBehaviorNavigation();
-        agent.Warp(t.position);
+        agent.Warp(position);
     }
     
     // 스포너 호출 호환성만 유지하고 실제 이동 제어는 비헤이비어 트리에 맡긴다

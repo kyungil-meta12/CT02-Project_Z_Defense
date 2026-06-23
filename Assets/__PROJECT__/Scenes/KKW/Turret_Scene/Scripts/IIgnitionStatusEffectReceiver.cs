@@ -14,7 +14,7 @@ namespace ProjectZDefense.StatusEffects
     }
 
     /// <summary>
-    /// Ignition 상태 효과 적용에 필요한 연소 틱데미지, 지속시간, 중첩, 사망 연출 데이터를 전달하는 값 타입이다.
+    /// Ignition 상태 효과 적용에 필요한 연소 틱데미지, 지속시간, 중첩 데이터를 전달하는 값 타입이다.
     /// </summary>
     public struct IgnitionStatusPayload
     {
@@ -29,8 +29,6 @@ namespace ProjectZDefense.StatusEffects
         public float reactionMaxHpDamageRatioPerTick;
         public float reactionTickInterval;
         public float bossDamageMultiplier;
-        public GameObject burnDeathEffectPrefab;
-        public float burnDeathEffectDuration;
         public IgnitionInteractionFlags interactionFlags;
     }
 

@@ -21,6 +21,12 @@ public static class TurretAimPointUtility
             return Vector3.zero;
         }
 
+        IAimPointProvider aimPointProvider = target.GetComponent(typeof(IAimPointProvider)) as IAimPointProvider;
+        if (aimPointProvider != null)
+        {
+            return aimPointProvider.GetAimPosition(aimHeightRatio);
+        }
+
         Collider targetCollider = target.GetComponentInChildren<Collider>();
         if (targetCollider == null)
         {

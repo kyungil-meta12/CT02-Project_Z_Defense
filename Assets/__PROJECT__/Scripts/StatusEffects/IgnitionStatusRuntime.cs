@@ -2,7 +2,7 @@ using ProjectZDefense.StatusEffects;
 using UnityEngine;
 
 /// <summary>
-/// 대상 하나에 적용된 Ignition 연소 상태의 지속시간, 중첩, 틱데미지, 사망 연출을 관리한다.
+/// 대상 하나에 적용된 Ignition 연소 상태의 지속시간, 중첩, 틱데미지를 관리한다.
 /// </summary>
 public sealed class IgnitionStatusRuntime : MonoBehaviour
 {
@@ -110,21 +110,6 @@ public sealed class IgnitionStatusRuntime : MonoBehaviour
         {
             ResetStatus();
         }
-    }
-
-    // 연소 상태로 사망한 경우 사망 이펙트를 실행한다
-    public void TriggerBurnDeathEffectIfNeeded(Vector3 effectPosition)
-    {
-        if (!ignitionStatusActive || ignitionStatusPayload.burnDeathEffectPrefab == null)
-        {
-            return;
-        }
-
-        PooledObjectUtility.SpawnEffect(
-            ignitionStatusPayload.burnDeathEffectPrefab,
-            effectPosition,
-            Quaternion.identity,
-            ignitionStatusPayload.burnDeathEffectDuration);
     }
 
     // 풀 재사용이나 사망 시 Ignition 상태를 초기화한다

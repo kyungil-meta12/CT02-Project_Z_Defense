@@ -222,7 +222,7 @@ public class TurretStatProfileApplier : MonoBehaviour
     }
 
     // 외부 터렛 정의에서 전달한 상태이상 프로필과 레벨을 호환 컴포넌트에 적용한다
-    public void SetStatusProfile(ScriptableObject statusProfile, int level)
+    public void SetStatusProfile(ScriptableObject statusProfile, int level, TurretStatGrowthProfileSO growthProfile)
     {
         RefreshReferences();
 
@@ -240,7 +240,7 @@ public class TurretStatProfileApplier : MonoBehaviour
                 continue;
             }
 
-            statusProfileReceiver.SetStatusProfile(statusProfile, safeLevel);
+            statusProfileReceiver.SetStatusProfile(statusProfile, safeLevel, growthProfile);
         }
     }
 

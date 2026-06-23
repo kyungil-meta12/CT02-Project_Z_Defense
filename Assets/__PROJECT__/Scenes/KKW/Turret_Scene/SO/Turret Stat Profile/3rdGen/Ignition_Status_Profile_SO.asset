@@ -20,8 +20,6 @@ MonoBehaviour:
   stackRefreshMode: 0
   reactionDamageMultiplier: 0
   reactionMaxHpDamageRatioPerTick: 0.015
-  reactionTickInterval: 0.15
+  reactionTickInterval: 0.1
   bossDamageMultiplier: 1
-  burnDeathEffectPrefab: {fileID: 0}
-  burnDeathEffectDuration: 2
   interactionFlags: -1

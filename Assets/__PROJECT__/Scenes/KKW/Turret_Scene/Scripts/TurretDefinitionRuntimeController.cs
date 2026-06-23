@@ -141,7 +141,7 @@ public class TurretDefinitionRuntimeController : MonoBehaviour
         if (applyStatsToTurret && statProfileApplier != null)
         {
             statProfileApplier.Apply(runtimeStat, logProjectileDamage);
-            statProfileApplier.SetStatusProfile(turretDefinition.ignitionStatusProfile, level);
+            statProfileApplier.SetStatusProfile(turretDefinition.ignitionStatusProfile, level, turretDefinition.statGrowthProfile);
         }
 
         if (applyVFXToTurret)

@@ -399,6 +399,7 @@ MonoBehaviour:
   directionMode: 1
   beamRotationOffsetEuler: {x: 0, y: -90, z: 0}
   applyBeamDamage: 0
+  prewarmBeamOnEnable: 0
 --- !u!114 &4010000000000000015
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -459,7 +460,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::IgnitionConeDetector
   rigBinding: {fileID: 4010000000000000016}
-  range: 15.5
+  range: 18
   coneAngle: 40
   scanInterval: 0.1
   candidateBufferSize: 32

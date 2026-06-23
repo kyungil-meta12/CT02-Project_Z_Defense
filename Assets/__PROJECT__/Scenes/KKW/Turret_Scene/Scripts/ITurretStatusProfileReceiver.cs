@@ -5,6 +5,6 @@ using UnityEngine;
 /// </summary>
 public interface ITurretStatusProfileReceiver
 {
-    // 터렛 Definition에서 선택한 상태이상 프로필과 현재 레벨을 전달한다
-    void SetStatusProfile(ScriptableObject statusProfile, int level);
+    // 터렛 Definition에서 선택한 상태이상 프로필, 현재 레벨, 성장 프로필을 전달한다
+    void SetStatusProfile(ScriptableObject statusProfile, int level, TurretStatGrowthProfileSO growthProfile);
 }

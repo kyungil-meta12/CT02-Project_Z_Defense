@@ -1,4 +1,5 @@
 using IncrementalLib;
+using NUnit.Framework.Internal;
 using System.Collections.Generic;
 using System.Linq;
 using TMPro;
@@ -9,10 +10,13 @@ public class InventoryUI : MonoBehaviour
 {
     public GameObject mainController;
     public ScrollRect scrollRect;
+    public GameObject inventoryContent;
+    public GameObject craftContent;
     public Image background;
     public List<Button> buttons;
     public TextMeshProUGUI itemNameText;
     public TextMeshProUGUI itemInfoText;
+    public TextMeshProUGUI pannelTitletext;
 
     private ItemMetaDataListSo metaDataListSo;
     private List<ItemMetaDataSo> metaDataList = new();
@@ -129,8 +133,11 @@ public class InventoryUI : MonoBehaviour
         itemNameText.text = "";
         itemInfoText.text = "";
 
+        inventoryContent.SetActive(true);
+        craftContent.SetActive(false);
         scrollRect.verticalNormalizedPosition = 1f;
         scrollRect.velocity = Vector2.zero;
+        pannelTitletext.text = "Inventory";
 
         openState = true;
     }
@@ -156,6 +163,40 @@ public class InventoryUI : MonoBehaviour
         var metaData = metaDataList.Find(meta => meta.Type == type);
         itemNameText.text = metaData.Name;
         itemInfoText.text = metaData.InfoText;
+    }
+
+    /// <summary>
+    /// 인벤토리 창을 활성화 한다.
+    /// </summary>
+    public void OnInventoryTabClick()
+    {
+        if(!inventoryContent.activeInHierarchy)
+        {
+            inventoryContent.SetActive(true);
+            craftContent.SetActive(false);
+            scrollRect.verticalNormalizedPosition = 1f;
+            scrollRect.velocity = Vector2.zero;
+            pannelTitletext.text = "Inventory";
+            itemNameText.text = "";
+            itemInfoText.text = "";
+        }
+    }
+
+    /// <summary>
+    /// 작업 창을 활성화 한다.
+    /// </summary>
+    public void OnCraftTabClick()
+    {
+        if(!craftContent.activeInHierarchy)
+        {
+            inventoryContent.SetActive(false);
+            craftContent.SetActive(true);
+            scrollRect.verticalNormalizedPosition = 1f;
+            scrollRect.velocity = Vector2.zero;
+            pannelTitletext.text = "Craft";
+            itemNameText.text = "";
+            itemInfoText.text = "";
+        }
     }
 
     /// <summary>

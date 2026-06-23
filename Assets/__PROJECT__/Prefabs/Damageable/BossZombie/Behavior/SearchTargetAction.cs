@@ -5,7 +5,7 @@ using Action = Unity.Behavior.Action;
 using Unity.Properties;
 
 /// <summary>
-/// 레이캐스트 스피어로 씬에서 가장 가까운 Obstacle 혹은 Tower 레이어를 찾고 Target으로 설정
+/// 레이캐스트 스피어로 씬에서 가장 가까운 Obstacle 레이어를 찾고 Target으로 설정
 /// </summary>
 [Serializable, GeneratePropertyBag]
 [NodeDescription(name: "SearchTarget", story: "[Self] Search [Target]", category: "Action", id: "f9c138d2ff522ac33fce6b3d862deef4")]
@@ -81,7 +81,6 @@ public partial class SearchTargetAction : Action
         int mask = DefaultTargetLayerMask;
 
         AddLayerToMask("Obstacle", ref mask);
-        AddLayerToMask("Tower", ref mask);
 
         return mask;
     }

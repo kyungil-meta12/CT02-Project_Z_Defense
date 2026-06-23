@@ -23,11 +23,3 @@ public class ItemMetaDataSo : ScriptableObject
     [Header("제작에 필요한 아이템 목록")] public List<ItemMaterialData> ItemsToCreate;
 }
 
-/// <summary>
-/// 아이템 메타 데이터를 서술하는 스크립터블 오브젝트
-/// </summary>
-[CreateAssetMenu(fileName = "ItemMetaDataList", menuName = "Scriptable Objects/ItemMetaDataList")]
-public class ItemMetaDataListSo : ScriptableObject
-{
-    public List<ItemMetaDataSo> MetaDataList;
-}

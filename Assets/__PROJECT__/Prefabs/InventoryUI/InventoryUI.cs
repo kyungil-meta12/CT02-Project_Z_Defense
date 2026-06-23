@@ -10,13 +10,13 @@ public class InventoryUI : MonoBehaviour
     public GameObject mainController;
     public Image background;
     public List<Button> buttons;
-    public ItemMetaDataSo metaDataSo;
     public TextMeshProUGUI itemNameText;
     public TextMeshProUGUI itemInfoText;
 
+    private ItemMetaDataListSo metaDataListSo;
+    private List<ItemMetaDataSo> metaDataList = new();
     private List<Image> images = new();
     private List<TextMeshProUGUI> texts = new();
-    private List<ItemMetaData> metaDataList = new();
     private int activatedImageCount;
     private bool openState = false;
 
@@ -38,8 +38,10 @@ public class InventoryUI : MonoBehaviour
             bt.interactable = false;
         }
 
+        // 인벤토리로부터 메타데이터 목록을 가져온다.
+        metaDataListSo = InventorySystem.Inst.itemMetaDataListSo;
         // 아이템 메타데이터 리스트를 불러온다.
-        metaDataList = metaDataSo.MetaDataList.ToList();
+        metaDataList = metaDataListSo.MetaDataList;
 
         OnCloseInventory();
     }

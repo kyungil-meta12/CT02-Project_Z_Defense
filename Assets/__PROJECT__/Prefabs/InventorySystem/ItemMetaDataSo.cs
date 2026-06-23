@@ -12,11 +12,8 @@ public struct ItemMaterialData
     [Header("아이템 타입")] public RewardCurrencyType Type;
 }
 
-/// <summary>
-/// 아이템 추가 시 지정될 이름(인스펙터에서 설정)
-/// </summary>
-[Serializable]
-public class ItemMetaData
+[CreateAssetMenu(fileName = "ItemMetaData", menuName = "Scriptable Objects/ItemMetaData")]
+public class ItemMetaDataSo : ScriptableObject
 {
     [Header("아이템 타입")] public RewardCurrencyType Type;
     [Header("표시할 아이템 이름 텍스트")] public string Name;
@@ -24,13 +21,6 @@ public class ItemMetaData
     [Header("표시할 아이템 이미지")] public Sprite ItemImage;
     // 비워두면 조합법 자제가 없는 기초 재료이다.
     [Header("제작에 필요한 아이템 목록")] public List<ItemMaterialData> ItemsToCreate;
-}
-
-
-[CreateAssetMenu(fileName = "ItemMetaData", menuName = "Scriptable Objects/ItemMetaData")]
-public class ItemMetaDataSo : ScriptableObject
-{
-    public ItemMetaData Data;
 }
 
 /// <summary>

@@ -12,10 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5f9efc74f895b2d48bb9a9671cba3cd2, type: 3}
   m_Name: SpecialPart
   m_EditorClassIdentifier: Assembly-CSharp::ItemMetaDataSo
-  Data:
-    Type: 2
-    Name: "\uC815\uBC00 \uAE30\uACC4 \uBD80\uD488"
-    InfoText: "\uB300\uAE30\uC5C5 \uC5F0\uAD6C\uC18C\uC5D0\uC11C\uB098 \uBCFC \uBC94\uD55C
-      \uACE0\uAC00\uC758 \uAE30\uACC4 \uBD80\uD488\uC774\uB2E4."
-    ItemImage: {fileID: 21300000, guid: a1e1b5b5ef4aee94c9f2e0ae8ec11119, type: 3}
-    ItemsToCreate: []
+  Type: 2
+  Name: "\uC815\uBC00 \uAE30\uACC4 \uBD80\uD488"
+  InfoText: "\uBE44\uC2F8\uACE0 \uC815\uBC00\uD574\uC11C \uC804\uBB38\uAC00\uAC00
+    \uC870\uC2EC\uD788 \uB2E4\uB8E8\uC5B4\uC57C \uD558\uB294 \uBD80\uD488\uC774\uB2E4."
+  ItemImage: {fileID: 21300000, guid: a1e1b5b5ef4aee94c9f2e0ae8ec11119, type: 3}
+  ItemsToCreate: []

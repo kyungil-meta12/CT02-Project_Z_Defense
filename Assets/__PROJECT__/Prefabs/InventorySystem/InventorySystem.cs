@@ -60,12 +60,14 @@ public class InventorySystem : MonoBehaviour
 
         // 아이템 메타 데이터 리스트를 스크립터블 오브젝트에서 불러오기
         metaDataList = itemMetaDataListSo.MetaDataList;
-
         Inst = this;
     }
 
     void Start()
     {
+        // 메타데이터 리스트 무결성 검사
+        CheckItemMetaDataValidation();
+        // 초기 자본 추가
         ApplyInitialWalletIfNeeded();
     }
 
@@ -93,7 +95,44 @@ public class InventorySystem : MonoBehaviour
         }
     }
 
-     private void ApplyInitialWalletIfNeeded()
+    // 아이템 메타 데이터 무결성 체크
+    // 중복된 이미지나 타입이 발견되면 에러 메시지 발생후 에디터 종료
+    private void CheckItemMetaDataValidation()
+    {
+        bool isDuplicateTypeExist = metaDataList.GroupBy(m => m.Type).Any(g => g.Count() > 1);
+        bool isDuplicateImageExist = metaDataList.GroupBy(m => m.ItemImage).Any(g => g.Count() > 1);
+        if (isDuplicateTypeExist || isDuplicateImageExist)
+        {
+            Debug.LogError("[InventorySystem] 아이템 메타 데이터 무결성이 훼손되었습니다.");
+            var duplicateTypeGroup = metaDataList.GroupBy(m => m.Type).Where(g => g.Count() > 1);
+            var duplicateImageGroup = metaDataList.GroupBy(m => m.ItemImage).Where(g => g.Count() > 1);
+
+            foreach (var group in duplicateTypeGroup)
+            {
+                Debug.LogError($"[InventorySystem] 중복된 아이템 타입 발견: {group.Key} | 개수: {group.Count()}");
+                foreach(var item in group)
+                {
+                    Debug.LogError($"[InventorySystem] 아이템: [{item.Type}]Type | {item.Name}");
+                }
+            }
+
+            foreach (var group in duplicateImageGroup)
+            {
+                Debug.LogError($"[InventorySystem] 중복된 아이템 이미지 발견: {group.Key} | 개수: {group.Count()}");
+                foreach(var item in group)
+                {
+                    Debug.LogError($"[InventorySystem] 아이템: {item.Name}");
+                }
+            }
+
+        #if UNITY_EDITOR
+            UnityEditor.EditorApplication.isPlaying = false; 
+        #endif
+        }
+    }
+
+
+    private void ApplyInitialWalletIfNeeded()
     {
         if (!applyInitialWalletOnAwake || initialWalletCurrencies == null)
         {
@@ -239,7 +278,7 @@ public class InventorySystem : MonoBehaviour
         }
         if (!itemDict.ContainsKey(itemType))
         {
-            var metaData = metaDataList.Find(meta => meta.Data.Type == itemType).Data;
+            var metaData = metaDataList.Find(meta => meta.Type == itemType);
             if(metaData == null)
             {
                 Debug.LogError($"[InventorySystem] 아이템 정보를 찾을 수 없음 | 찾기 시도 타입: {itemType}");

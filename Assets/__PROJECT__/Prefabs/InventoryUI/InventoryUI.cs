@@ -41,7 +41,7 @@ public class InventoryUI : MonoBehaviour
         // 인벤토리로부터 메타데이터 목록을 가져온다.
         metaDataListSo = InventorySystem.Inst.itemMetaDataListSo;
         // 아이템 메타데이터 리스트를 불러온다.
-        metaDataList = metaDataListSo.MetaDataList.ToList();
+        metaDataList = metaDataListSo.MetaDataList;
 
         OnCloseInventory();
     }
@@ -66,7 +66,7 @@ public class InventoryUI : MonoBehaviour
         {
             buttons[index].interactable = true;
             SetImageVisibility(images[index], true);
-            images[index].sprite = metaDataList.Find(meta => meta.Data.Type == data.Type).Data.ItemImage;
+            images[index].sprite = metaDataList.Find(meta => meta.Type == data.Type).ItemImage;
         }
         texts[index].text = data.CountString;
     }
@@ -96,7 +96,7 @@ public class InventoryUI : MonoBehaviour
             if(InventorySystem.Inst.HasItem(type))
             {
                 buttons[currentIndex].interactable = true;
-                images[currentIndex].sprite = metaDataList.Find(meta => meta.Data.Type == type).Data.ItemImage;
+                images[currentIndex].sprite = metaDataList.Find(meta => meta.Type == type).ItemImage;
                 SetImageVisibility(images[currentIndex], true);
                 texts[currentIndex].text = InventorySystem.Inst.GetCountString(type);
                 currentIndex++;
@@ -130,9 +130,9 @@ public class InventoryUI : MonoBehaviour
     {
         var index = buttons.IndexOf(button);
         var type = (RewardCurrencyType)index;
-        var metaData = metaDataList.Find(meta => meta.Data.Type == type);
-        itemNameText.text = metaData.Data.Name;
-        itemInfoText.text = metaData.Data.InfoText;
+        var metaData = metaDataList.Find(meta => meta.Type == type);
+        itemNameText.text = metaData.Name;
+        itemInfoText.text = metaData.InfoText;
     }
 
     /// <summary>

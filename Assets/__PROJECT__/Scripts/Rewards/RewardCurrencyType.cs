@@ -3,7 +3,7 @@
 /// </summary>
 public enum RewardCurrencyType
 {
-    Coin,
+    Coin = 1,
     FirePart,
     SpecialPart,
 }

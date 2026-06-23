@@ -1,4 +1,5 @@
 using IncrementalLib;
+using NUnit.Framework.Internal;
 using System.Collections.Generic;
 using System.Linq;
 using TMPro;
@@ -8,10 +9,14 @@ using UnityEngine.UI;
 public class InventoryUI : MonoBehaviour
 {
     public GameObject mainController;
+    public ScrollRect scrollRect;
+    public GameObject inventoryContent;
+    public GameObject craftContent;
     public Image background;
     public List<Button> buttons;
     public TextMeshProUGUI itemNameText;
     public TextMeshProUGUI itemInfoText;
+    public TextMeshProUGUI pannelTitletext;
 
     private ItemMetaDataListSo metaDataListSo;
     private List<ItemMetaDataSo> metaDataList = new();
@@ -61,6 +66,7 @@ public class InventoryUI : MonoBehaviour
         {
             return;
         }
+
         var index = (int)data.Type;
         if (!buttons[index].interactable)
         {
@@ -68,7 +74,25 @@ public class InventoryUI : MonoBehaviour
             SetImageVisibility(images[index], true);
             images[index].sprite = metaDataList.Find(meta => meta.Type == data.Type).ItemImage;
         }
+        
+        else if(data.Count == 0)
+        {
+            buttons[index].interactable = false;
+            SetImageVisibility(images[index], false);
+            images[index].sprite = null;
+        }
         texts[index].text = data.CountString;
+
+        // 상호작용이 활성화 된 버튼 개수가 곧 활성화 된 이미지의 개수이다.
+        int enabledCount = 0;
+        foreach(var bt in buttons)
+        {
+            if(bt.interactable)
+            {
+                enabledCount++;
+            }
+        }
+        activatedImageCount = enabledCount;
     }
 
     /// <summary>
@@ -109,6 +133,12 @@ public class InventoryUI : MonoBehaviour
         itemNameText.text = "";
         itemInfoText.text = "";
 
+        inventoryContent.SetActive(true);
+        craftContent.SetActive(false);
+        scrollRect.verticalNormalizedPosition = 1f;
+        scrollRect.velocity = Vector2.zero;
+        pannelTitletext.text = "Inventory";
+
         openState = true;
     }
 
@@ -133,6 +163,40 @@ public class InventoryUI : MonoBehaviour
         var metaData = metaDataList.Find(meta => meta.Type == type);
         itemNameText.text = metaData.Name;
         itemInfoText.text = metaData.InfoText;
+    }
+
+    /// <summary>
+    /// 인벤토리 창을 활성화 한다.
+    /// </summary>
+    public void OnInventoryTabClick()
+    {
+        if(!inventoryContent.activeInHierarchy)
+        {
+            inventoryContent.SetActive(true);
+            craftContent.SetActive(false);
+            scrollRect.verticalNormalizedPosition = 1f;
+            scrollRect.velocity = Vector2.zero;
+            pannelTitletext.text = "Inventory";
+            itemNameText.text = "";
+            itemInfoText.text = "";
+        }
+    }
+
+    /// <summary>
+    /// 작업 창을 활성화 한다.
+    /// </summary>
+    public void OnCraftTabClick()
+    {
+        if(!craftContent.activeInHierarchy)
+        {
+            inventoryContent.SetActive(false);
+            craftContent.SetActive(true);
+            scrollRect.verticalNormalizedPosition = 1f;
+            scrollRect.velocity = Vector2.zero;
+            pannelTitletext.text = "Craft";
+            itemNameText.text = "";
+            itemInfoText.text = "";
+        }
     }
 
     /// <summary>

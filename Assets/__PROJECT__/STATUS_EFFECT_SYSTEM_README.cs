@@ -1,5 +1,9 @@
 /* ==========================================================================================
  * [STATUS EFFECT SYSTEM README] 상태이상 시스템 구조 문서
+ *
+ * Legacy note
+ * - 이 루트 레벨 .cs 문서는 과거 상태이상 설계 기록으로 보관한다.
+ * - 최신 터렛 상태이상, VFX 풀링, 프리워밍 정책은 Assets/__PROJECT__/Docs/TURRET_SYSTEM.md를 우선 기준으로 삼는다.
  * ==========================================================================================
  *
  * 이 문서는 Frost, Poison 및 이후 Burn, Stun 같은 상태이상을 추가할 때 다시 읽기 위한
@@ -269,7 +273,7 @@
  * 8. IgnitionStatusRuntime은 기본 연소 중에는 성장 적용 후 maxHpDamageRatioPerTick, tickInterval, duration을 사용한다.
  * 9. 기본 연소 비주얼은 StatusEffectVisualType.IgnitionBurn 슬롯으로 켜며, MeshFX_Fire 1 RendererOverlay와 Fire_cartoon_fire 1 Anchor 슬롯을 같이 사용할 수 있다.
  * 10. 연소 중 Frost, Poison, Electro 반응 조건을 처음 만족하면 IgnitionReactionType을 고정한다.
- * 11. 반응 상태에서는 기본 IgnitionBurn 비주얼을 끄고 StatusEffectVisualType.IgnitionReaction 슬롯 중 해당 reactionType만 켠다.
+ * 11. 반응 상태에서도 기본 IgnitionBurn 비주얼을 유지하고 StatusEffectVisualType.IgnitionReaction 슬롯 중 해당 reactionType을 추가로 켠다.
  * 12. 반응 특수연소는 성장 적용 후 reactionMaxHpDamageRatioPerTick, reactionTickInterval, reactionDamageMultiplier fallback을 사용한다.
  * 13. 현재 기본값은 기본 연소 1%/0.2초/5초, 반응 연소 1.5%/0.15초다.
  *
@@ -331,7 +335,7 @@
  * - Overload 폭발은 ElectroStatusProfileSO.overloadImpactEffectPrefab, 긴 기절 표시는 overloadStunEffectPrefab을 사용한다.
  * - IgnitionBurn 슬롯은 MeshFX_Fire 1 RendererOverlay와 Fire_cartoon_fire 1 Anchor 방식 기본 화염을 함께 사용할 수 있다.
  * - IgnitionReaction 슬롯은 ignitionReactionType으로 Electro/Frost/Poison을 구분하고, 각각 Fire_cartoon_electric 1, Fire_cartoon_frost 1, Fire_cartoon_poison 1을 연결한다.
- * - Ignition 반응 비주얼이 켜지면 기본 IgnitionBurn 비주얼은 꺼서 반응 화염만 보이게 한다.
+ * - Ignition 반응 비주얼이 켜져도 기본 IgnitionBurn 비주얼은 유지해 MeshFX_Fire 1 위에 반응 화염을 겹쳐 보이게 한다.
  * - Poison 처형 표시는 Lethal Indicator Child Name으로 캐시한 자식 오브젝트를 토글한다.
  * - PoisonIcon이 몸에 묻히면 Lethal Indicator Local Position Offset으로 앞으로 빼거나 위로 올린다.
  *

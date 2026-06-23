@@ -20,6 +20,7 @@ public class NormalZombie : PoolObject, IDamageable, IAimPointProvider, IFrostSt
     public Collider hitCollider;
     public ItemDropper itemDropper;
     [Header("상태이상 비주얼")] [SerializeField] private StatusEffectVisualController statusEffectVisualController;
+    [Header("Electro 사전 생성")] [SerializeField] private ElectroStatusProfileSO electroVisualPrewarmProfile;
 
     [HideInInspector] public Animator anim;
     [HideInInspector] public bool attackState;
@@ -648,7 +649,7 @@ public class NormalZombie : PoolObject, IDamageable, IAimPointProvider, IFrostSt
             electroStatusRuntime = gameObject.AddComponent<ElectroStatusRuntime>();
         }
 
-        electroStatusRuntime.Initialize(this, false);
+        electroStatusRuntime.Initialize(this, false, electroVisualPrewarmProfile);
     }
 
     // Ignition 상태 런타임 컴포넌트를 캐시하고 일반 좀비 정책으로 초기화한다

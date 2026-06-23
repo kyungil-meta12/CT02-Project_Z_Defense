@@ -341,6 +341,11 @@ Electro VFX optimization notes:
 
 - Chain target search uses `Physics.OverlapSphereNonAlloc` and static reusable buffers. Do not replace it with allocating overlap calls.
 - Each chain jump can spawn one particle link and one two-point core line. With `maxChainTargets = 10`, a single hit can create up to `9` link visuals.
+- `PS_Electro_ChainLink`, `PS_Lightining_Impac`, and `Stun 1` are repeated Electro gameplay effects and should be registered in `MemoryPoolPrewarmer`.
+- Electro chain-link prefabs should keep `PoolObject`, `PooledEffectReturner`, `ElectroChainLinkAnchorTracker`, and `ElectroChainCoreLineEffect` on the root object so first chain playback does not rely on runtime component attachment.
+- Electro Overload impact and long-stun effects should keep `PoolObject` and `PooledEffectReturner` on the root object.
+- `Volt Sphere 1` Shock stack visuals are target-owned orbit visuals created and reused by `ElectroStatusRuntime`; do not register them in the global `MemoryPool`.
+- Normal and boss zombie prefabs can assign `ElectroStatusProfileSO` to their Electro visual prewarm field so `ElectroStatusRuntime` creates up to three inactive Shock stack visuals during enemy initialization instead of on first Electro hit.
 - `ElectroChainLinkAnchorTracker` runs only while the spawned link effect is alive. Keep `chainLinkEffectDuration` reasonable if many Electro turrets can fire at once.
 - `LineRenderer` work is intentionally limited to two world-space points. Avoid adding per-frame generated multi-point noise unless profiling confirms headroom.
 - If many Electro turrets become common, reduce cost in this order: lower `chainLinkEffectDuration`, lower `maxChainTargets`, lower `chainCoreLineDuration`, disable `Lightning_Big`, then consider skipping VFX on some later chain jumps.
@@ -417,7 +422,7 @@ Current Poison projectile assets:
 | `Prefabs/Turret/3rdGen/Poison_Turret.prefab` | Runtime turret prefab. |
 | `SO/TurretDefinition/3rdGen/Poison_Turret_Definition.asset` | Poison turret definition. |
 | `SO/TurretVfxProgresstion/3rdGen/Poison_Turret_VFX Progression SO.asset` | Selects the Poison projectile VFX profile. |
-| `SO/VFXProfiles/Projectile/VFX_Nova Orange/VFX_Nova Orange 1.asset` | Current projectile VFX profile reused by Poison. |
+| `SO/VFXProfiles/Projectile/VFX_Slime/VFX_Slime 1.asset` | Current Poison projectile VFX profile. |
 | `SO/Turret Stat Profile/3rdGen/Poison_Status_Profile_SO.asset` | Current Poison status profile connected to the turret definition. |
 | `SO/AttackProfiles/Poison Death Burst Profile SO.asset` | Current Poison death burst and weak area Poison profile. |
 | `Prefabs/Status Effect/Poison_Turret/MiasmaCannister 1.prefab` | Current foot/ground Poison visual. |
@@ -651,7 +656,7 @@ FrostRay VFX notes:
 - `FrostRay_TurretBeam` uses `PilotoStudio.BeamEmitter`.
 - The actual line target is `BeamEmitter.beamTarget`; there are several objects named `holder`, so name-based lookup is not reliable.
 - The hit effect is `BeamEmitter.beamTargetHitFX`, currently `Hit_Spikes`.
-- `BeamFiringEvent` can prewarm beam instances with `prewarmBeamOnEnable` so the first Frost attack does not pay the beam prefab instantiate and reference discovery cost.
+- `BeamFiringEvent` can prewarm beam instances with `prewarmBeamOnEnable` so the first beam attack, including Frost and Ignition, does not pay the beam prefab instantiate and reference discovery cost.
 - `BeamFiringEvent` resolves `BeamEmitter.beamTarget` and `BeamEmitter.beamTargetHitFX` together during beam instance creation, then moves the cached transforms to the current target position every frame.
 - `BeamFiringEvent` caches the current target collider when the target changes, avoiding repeated `GetComponentInChildren<Collider>` calls while a continuous Frost beam tracks the same target.
 - The FrostRay beam visual now uses the `BeamEmitter.beamTarget` transform, currently named `holder_Main`, as the runtime endpoint.
@@ -692,7 +697,7 @@ Ignition status handling:
   - `Electro` should use `Fire_cartoon_electric 1`.
   - `Frost` should use `Fire_cartoon_frost 1`.
   - `Poison` should use `Fire_cartoon_poison 1`.
-- When an Ignition reaction visual is active, the regular `IgnitionBurn` visuals are disabled so only the reacted flame style is shown.
+- When an Ignition reaction visual is active, the regular `IgnitionBurn` visuals stay active so `MeshFX_Fire 1` remains on the target while the reacted flame style is layered on top.
 
 ## Current Balance Direction
 
@@ -770,6 +775,12 @@ Projectile speed is a feel differentiator from second generation onward. `Laser_
 9. Runtime UI reattaches to the evolved turret controller.
 10. The temporary runtime popup also refreshes the selected turret range indicator after selection, upgrade, or evolution.
 
+Prefab replacement scale rules:
+
+- Evolved prefabs are instantiated under the previous turret parent, then local position and rotation are restored from the previous turret.
+- Definitions that still have another `evolutionProgressionProfile` keep the target prefab root local scale and inherit the build-point/base scale like normal placement.
+- Final evolution definitions without an `evolutionProgressionProfile`, currently the third-generation turrets, divide the target prefab root local scale by the parent `lossyScale`. This prevents scaled turret bases from multiplying the final turret's authored prefab size again.
+
 ## Upgrade Cost Flow
 
 1. `TurretDefinitionRuntimeController.GetUpgradeCosts` queries `TurretDefinitionSO.upgradeCostProfile`.
@@ -822,6 +833,14 @@ A complete path from Sentinel-01 tier level 1 to a second-generation `_3` tier l
 11. `TurretBaseSlot` records the occupied turret controller or fallback GameObject.
 12. `TurretPlacementController` records successful placement count per placement entry.
 13. Placement entries can use `Placement Cost Tiers` to change the next placement cost by successful placement count.
+
+Placement preview scale rules:
+
+- Valid slot previews use `TurretPlacementController.previewScaleMultiplier`.
+- Invalid world previews use `TurretPlacementController.invalidWorldPreviewScaleMultiplier`.
+- Invalid world previews also multiply by the current or first available `BuildPoint.lossyScale`, matching the world-space size the turret would have after being installed as a child of a scaled base.
+- Keep both multiplier values equal when drag, invalid placement, and snapped placement previews should preserve the same apparent turret prefab size after build-point scale is applied.
+- Installed turrets are instantiated as children of `TurretBaseSlot.BuildPoint`, so any parent/build-point transform scale affects the final world-space size.
 
 `TurretPlacementUI` still has a legacy rebuild helper, but `rebuildOnStart` should stay disabled for production scenes. Use `Project Z Defense/UI/Create Turret Placement UI` to create editable scene buttons, preferably after selecting the desired `TurretShopEntrySO` assets in the Project window.
 
@@ -879,6 +898,27 @@ Engineer buff policy:
 - Frost freeze explosion effects should spawn through `PooledObjectUtility.SpawnEffect` and should use a real pool when repeated frequently.
 - `ProjectileHitDetector` must clear target/collider state on reuse.
 - `DamagePopup.Init` must receive settings every spawn because pooled text objects retain previous state.
+
+## Third-Generation VFX Pooling Matrix
+
+| Turret | VFX | Runtime owner | Pooling / prewarm policy |
+| --- | --- | --- | --- |
+| Frost_Turret | `FrostRay_TurretBeam` | `BeamFiringEvent` under the turret muzzle | Not registered in global `MemoryPool`. `prewarmBeamOnEnable` creates beam instances under each configured gun/muzzle before the first attack. |
+| Frost_Turret | `Ice_Cubes_Explosion` | `FrostStatusRuntime` / `FrostStatusEffectUtility` | Global `MemoryPool` effect. Prefab root should keep `PoolObject`, `PooledEffectReturner`, and `FrostFreezeExplosionDamageTimer`; `MemoryPoolPrewarmer` should prewarm expected simultaneous frozen targets. |
+| Frost_Turret | `Impact_Frost 1` | `FrostStatusRuntime` / `FrostStatusEffectUtility` | Global `MemoryPool` effect. Prefab root should keep `PoolObject` and `PooledEffectReturner`; prewarm enough for short freeze-death bursts. |
+| Frost_Turret | `MeshFX_Frozen 1` | Enemy `StatusEffectVisualController` | Target-owned renderer overlay. Do not register in global `MemoryPool`; prewarm through `StatusEffectVisualController.prewarmVisualTypes` because each instance must bind to that enemy's renderers. |
+| Poison_Turret | `Projectile 12 slime 1` from `VFX_Slime 1` | Projectile firing path | Global `MemoryPool` projectile. Projectile prefab should keep `PoolObject` and `PooledProjectileReturner`; prewarm by expected projectile concurrency. |
+| Poison_Turret | `3_Poison_MushRoom 1` | `PoisonDeathBurstEffectUtility` | Global `MemoryPool` effect. Prefab root should keep `PoolObject` and `PooledEffectReturner`; use `PoisonDeathBurstProfileSO.effectDuration` / fade values for return timing. |
+| Poison_Turret | `MiasmaCannister 1`, `19_Poison_Aura_Hazard_Mixed 1` | Enemy `StatusEffectVisualController` | Target-owned visual slots. Do not register in global `MemoryPool`; prewarm through enemy visual slots and keep the optional lethal indicator child cached by slot name. |
+| Electro_Turret | Electro projectile prefab from `VFX_Electro 1` | Projectile firing path | Global `MemoryPool` projectile. Projectile prefab should keep `PoolObject` and `PooledProjectileReturner`; prewarm by expected projectile concurrency. |
+| Electro_Turret | `PS_Electro_ChainLink` | `ElectroChainLinkEffectUtility` | Global `MemoryPool` effect. Prefab root should keep `PoolObject`, `PooledEffectReturner`, `ElectroChainLinkAnchorTracker`, and `ElectroChainCoreLineEffect`. |
+| Electro_Turret | `PS_Lightining_Impac`, `Stun 1` | `ElectroStatusRuntime` Overload branch | Global `MemoryPool` effects. Prefab roots should keep `PoolObject` and `PooledEffectReturner`; prewarm for expected simultaneous Overload bursts. |
+| Electro_Turret | `Volt Sphere 1` | `ElectroStatusRuntime` on the target | Target-owned Shock stack orbit visual. Do not register in global `MemoryPool`; assign an Electro visual prewarm profile on enemy prefabs so up to three inactive instances are created on enemy initialization. |
+| Electro_Turret | `FX_Electricity_02 1` | Enemy `StatusEffectVisualController` | Target-owned stun visual slot. Do not register in global `MemoryPool`; prewarm through `StatusEffectVisualController.prewarmVisualTypes`. |
+| Ignition_Turret | Ignition beam prefab from `VFX_Ignition_Turret` | `BeamFiringEvent` under the three flame nozzles | Not registered in global `MemoryPool`. `prewarmBeamOnEnable` creates one beam instance per configured gun/muzzle, currently three total, before the first flame attack. |
+| Ignition_Turret | `MeshFX_Fire 1`, `Fire_cartoon_fire 1` | Enemy `StatusEffectVisualController` | Target-owned burn visuals. Do not register in global `MemoryPool`; prewarm through `StatusEffectVisualController.prewarmVisualTypes`. `MeshFX_Fire 1` stays active during reaction burn. |
+| Ignition_Turret | `Fire_cartoon_electric 1`, `Fire_cartoon_frost 1`, `Fire_cartoon_poison 1` | Enemy `StatusEffectVisualController` | Target-owned reaction visuals. Do not register in global `MemoryPool`; prewarm through `StatusEffectVisualController.prewarmVisualTypes` and activate only the fixed reaction type. |
+| Ignition_Turret | `Effect_02/03/04_deathvfx 1` | None | Deprecated unused assets. They were moved under the Ignition status-effect `Unused` folder and are not part of the active pooling policy. |
 
 ## Setup Checklist
 

@@ -25,6 +25,7 @@ public class BossZombie : PoolObject, IDamageable, IAimPointProvider, IFrostStat
     public Collider col;
     [Header("보상 파티클 스케일")] public float rewardParticleScale;
     [Header("상태이상 비주얼")] [SerializeField] private StatusEffectVisualController statusEffectVisualController;
+    [Header("Electro 사전 생성")] [SerializeField] private ElectroStatusProfileSO electroVisualPrewarmProfile;
 
     private Rigidbody rb;
     
@@ -769,7 +770,7 @@ public class BossZombie : PoolObject, IDamageable, IAimPointProvider, IFrostStat
             electroStatusRuntime = gameObject.AddComponent<ElectroStatusRuntime>();
         }
 
-        electroStatusRuntime.Initialize(this, true);
+        electroStatusRuntime.Initialize(this, true, electroVisualPrewarmProfile);
     }
 
     // Ignition 상태 런타임 컴포넌트를 캐시하고 보스 좀비 정책으로 초기화한다

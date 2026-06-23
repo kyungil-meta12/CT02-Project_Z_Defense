@@ -38,6 +38,7 @@ public class TurretPlacementController : MonoBehaviour
     private TurretBaseSlot hoveredSlot;
     private Material runtimeValidPreviewMaterial;
     private Material runtimeInvalidPreviewMaterial;
+    private Vector3 invalidPreviewReferenceScale = Vector3.one;
 
     public event Action<TurretShopEntrySO> OnPlacementCountChanged;
 
@@ -106,6 +107,7 @@ public class TurretPlacementController : MonoBehaviour
         }
 
         activeShopEntry = shopEntry;
+        invalidPreviewReferenceScale = ResolveDefaultBuildPointScale();
         EnsurePreview();
         preview.Show(shopEntry.PreviewPrefab);
         UpdatePlacement(screenPosition);
@@ -125,6 +127,7 @@ public class TurretPlacementController : MonoBehaviour
 
         if (hasSlot)
         {
+            invalidPreviewReferenceScale = GetSafeReferenceScale(hoveredSlot.BuildPoint.lossyScale);
             preview.SetVisible(true);
             preview.SnapTo(hoveredSlot.BuildPoint, previewLocalOffset, previewScaleMultiplier);
             preview.SetVisualState(canPlace, GetValidPreviewMaterial(), GetInvalidPreviewMaterial(), validPreviewColor, invalidPreviewColor);
@@ -134,7 +137,7 @@ public class TurretPlacementController : MonoBehaviour
         if (showInvalidPreviewOnWorld && TryFindInvalidPreviewPose(screenPosition, out Vector3 invalidPosition, out Quaternion invalidRotation))
         {
             preview.SetVisible(true);
-            preview.SetPose(invalidPosition, invalidRotation, invalidWorldPreviewScaleMultiplier);
+            preview.SetPose(invalidPosition, invalidRotation, invalidWorldPreviewScaleMultiplier, invalidPreviewReferenceScale);
             preview.SetVisualState(false, GetValidPreviewMaterial(), GetInvalidPreviewMaterial(), validPreviewColor, invalidPreviewColor);
             return;
         }
@@ -148,7 +151,7 @@ public class TurretPlacementController : MonoBehaviour
         preview.SetVisible(hit.collider != null);
         if (hit.collider != null)
         {
-            preview.SetPose(hit.point, Quaternion.identity, previewScaleMultiplier);
+            preview.SetPose(hit.point, Quaternion.identity, previewScaleMultiplier, invalidPreviewReferenceScale);
             preview.SetVisualState(false, GetValidPreviewMaterial(), GetInvalidPreviewMaterial(), validPreviewColor, invalidPreviewColor);
         }
     }
@@ -179,6 +182,7 @@ public class TurretPlacementController : MonoBehaviour
     {
         activeShopEntry = null;
         hoveredSlot = null;
+        invalidPreviewReferenceScale = Vector3.one;
         if (preview != null)
         {
             preview.Hide();
@@ -390,6 +394,33 @@ public class TurretPlacementController : MonoBehaviour
 
         position = hit.point + previewLocalOffset;
         return true;
+    }
+
+    // 현재 씬의 첫 배치 슬롯 기준 스케일을 찾아 월드 프리뷰 기준값으로 사용한다
+    private static Vector3 ResolveDefaultBuildPointScale()
+    {
+        TurretBaseSlot[] slots = FindObjectsByType<TurretBaseSlot>(FindObjectsSortMode.None);
+        for (int i = 0; i < slots.Length; i++)
+        {
+            TurretBaseSlot slot = slots[i];
+            if (slot == null || slot.BuildPoint == null)
+            {
+                continue;
+            }
+
+            return GetSafeReferenceScale(slot.BuildPoint.lossyScale);
+        }
+
+        return Vector3.one;
+    }
+
+    // 참조 Transform 스케일을 프리뷰에 사용할 수 있는 양수 값으로 보정한다
+    private static Vector3 GetSafeReferenceScale(Vector3 scale)
+    {
+        return new Vector3(
+            Mathf.Max(0.01f, Mathf.Abs(scale.x)),
+            Mathf.Max(0.01f, Mathf.Abs(scale.y)),
+            Mathf.Max(0.01f, Mathf.Abs(scale.z)));
     }
 
     // 현재 주 입력 포인터 위치를 반환한다

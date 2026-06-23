@@ -1,6 +1,10 @@
 ﻿/*
  * Turret Data Structure Plan
  *
+ * Legacy note
+ * - This root-level .cs document is retained as historical planning context.
+ * - For current turret runtime, VFX pooling, optimization, and setup rules, use Assets/__PROJECT__/Docs/TURRET_SYSTEM.md as the source of truth.
+ *
  * Purpose
  * - Turret progression data is separated from runtime logic so balancing, VFX, evolution, and test UI work can be edited safely in ScriptableObjects.
  * - The current runtime test flow starts from Sentinel-01.

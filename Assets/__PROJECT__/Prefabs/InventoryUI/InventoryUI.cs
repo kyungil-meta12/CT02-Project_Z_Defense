@@ -1,10 +1,6 @@
 using IncrementalLib;
-using NUnit.Framework.Internal;
-using System;
 using System.Collections.Generic;
-using System.Linq;
 using TMPro;
-using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -70,6 +66,9 @@ public class InventoryUI : MonoBehaviour
             buttons.Add(button);
         }
 
+        scrollRect.verticalNormalizedPosition = 1f;
+        scrollRect.velocity = Vector2.zero;
+
         OnCloseInventory();
     }
 
@@ -124,9 +123,9 @@ public class InventoryUI : MonoBehaviour
         inventoryContent.SetActive(true);
         craftContent.SetActive(false);
 
+        scrollRect.content = inventoryContent.GetComponent<RectTransform>();
         scrollRect.verticalNormalizedPosition = 1f;
         scrollRect.velocity = Vector2.zero;
-        scrollRect.content = inventoryContent.GetComponent<RectTransform>();
 
         openState = true;
     }
@@ -163,9 +162,9 @@ public class InventoryUI : MonoBehaviour
         {
             inventoryContent.SetActive(true);
             craftContent.SetActive(false);
+            scrollRect.content = inventoryContent.GetComponent<RectTransform>();
             scrollRect.verticalNormalizedPosition = 1f;
             scrollRect.velocity = Vector2.zero;
-            scrollRect.content = inventoryContent.GetComponent<RectTransform>();
             pannelTitletext.text = "Inventory";
             itemNameText.text = "";
             itemInfoText.text = "";
@@ -181,9 +180,9 @@ public class InventoryUI : MonoBehaviour
         {
             inventoryContent.SetActive(false);
             craftContent.SetActive(true);
+            scrollRect.content = craftContent.GetComponent<RectTransform>();
             scrollRect.verticalNormalizedPosition = 1f;
             scrollRect.velocity = Vector2.zero;
-            scrollRect.content = craftContent.GetComponent<RectTransform>();
             pannelTitletext.text = "Craft";
             itemNameText.text = "";
             itemInfoText.text = "";

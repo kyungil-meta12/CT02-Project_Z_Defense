@@ -1,4 +1,4 @@
-﻿%YAML 1.1
+%YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
 --- !u!114 &11400000
 MonoBehaviour:
@@ -13,7 +13,6 @@ MonoBehaviour:
   m_Name: Ignition_Turret Upgrade Cost Profile SO
   m_EditorClassIdentifier: Assembly-CSharp::TurretUpgradeCostProfileSO
   baseCostsPerLevel:
-  - currencyType: 0
+  - currencyType: 1
     amount: 10571
   additionalCostPercentPerTierLevel: 5
-

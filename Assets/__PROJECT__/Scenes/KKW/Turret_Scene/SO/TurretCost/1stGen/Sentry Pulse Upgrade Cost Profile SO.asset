@@ -13,6 +13,6 @@ MonoBehaviour:
   m_Name: Sentry Pulse Upgrade Cost Profile SO
   m_EditorClassIdentifier: Assembly-CSharp::TurretUpgradeCostProfileSO
   baseCostsPerLevel:
-  - currencyType: 0
+  - currencyType: 1
     amount: 350
   additionalCostPercentPerTierLevel: 2

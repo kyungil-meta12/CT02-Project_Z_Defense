@@ -24,3 +24,5 @@ MonoBehaviour:
   evolutionProgressionProfile: {fileID: 0}
   frostStatusProfile: {fileID: 0}
   poisonStatusProfile: {fileID: 11400000, guid: ec548b7de022e8c4a99c533c0b276870, type: 2}
+  electroStatusProfile: {fileID: 0}
+  ignitionStatusProfile: {fileID: 0}

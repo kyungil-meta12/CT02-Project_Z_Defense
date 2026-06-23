@@ -13,6 +13,6 @@ MonoBehaviour:
   m_Name: Frost_Turret Upgrade Cost Profile SO
   m_EditorClassIdentifier: Assembly-CSharp::TurretUpgradeCostProfileSO
   baseCostsPerLevel:
-  - currencyType: 0
+  - currencyType: 1
     amount: 10571
   additionalCostPercentPerTierLevel: 5

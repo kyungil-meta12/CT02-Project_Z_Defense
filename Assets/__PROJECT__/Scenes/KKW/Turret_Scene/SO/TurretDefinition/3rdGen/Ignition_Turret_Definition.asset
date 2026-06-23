@@ -1,4 +1,4 @@
-﻿%YAML 1.1
+%YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
 --- !u!114 &11400000
 MonoBehaviour:
@@ -26,4 +26,3 @@ MonoBehaviour:
   poisonStatusProfile: {fileID: 0}
   electroStatusProfile: {fileID: 0}
   ignitionStatusProfile: {fileID: 11400000, guid: 6775ff9da67dc2c48b95f8689c8d829c, type: 2}
-

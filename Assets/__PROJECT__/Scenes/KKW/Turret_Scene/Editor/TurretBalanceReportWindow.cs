@@ -9,7 +9,7 @@ using UnityEngine;
 // 터렛 전투력, 비용, 보상 수급을 에디터에서 표로 확인하고 CSV로 내보내는 리포트 창.
 internal sealed class TurretBalanceReportWindow : EditorWindow
 {
-    private const string MENU_PATH = "Project Z Defense/Reports/Turret Balance Report";
+    private const string MENU_PATH = "Tools/터렛 밸런스 리포트";
     private const int REPORT_LEVEL_MIN = 1;
     private const int REPORT_LEVEL_MAX = 100;
     private const string STAGES_PROPERTY = "stages";
@@ -38,10 +38,23 @@ internal sealed class TurretBalanceReportWindow : EditorWindow
     [MenuItem(MENU_PATH)]
     private static void OpenWindow()
     {
-        TurretBalanceReportWindow window = GetWindow<TurretBalanceReportWindow>("Turret Balance");
+        TurretBalanceReportWindow window = GetWindow<TurretBalanceReportWindow>("터렛 밸런스");
         window.minSize = new Vector2(980.0f, 520.0f);
         window.RefreshReport();
         window.Show();
+    }
+
+    // 열려 있는 터렛 밸런스 리포트 창을 모두 새로고침한다
+    internal static void RefreshOpenWindows()
+    {
+        TurretBalanceReportWindow[] windows = Resources.FindObjectsOfTypeAll<TurretBalanceReportWindow>();
+        for (int i = 0; i < windows.Length; i++)
+        {
+            if (windows[i] != null)
+            {
+                windows[i].RefreshReport();
+            }
+        }
     }
 
     // 창이 활성화될 때 리포트 데이터를 갱신한다
@@ -56,7 +69,7 @@ internal sealed class TurretBalanceReportWindow : EditorWindow
         DrawToolbar();
         EditorGUILayout.Space(6.0f);
 
-        selectedTab = GUILayout.Toolbar(selectedTab, new[] { "Turret DPS", "Upgrade Cost", "Evolution Cost", "Wave Reward", "Affordability" });
+        selectedTab = GUILayout.Toolbar(selectedTab, new[] { "터렛 DPS", "업그레이드 비용", "진화 비용", "웨이브 보상", "구매 가능성" });
         EditorGUILayout.Space(6.0f);
 
         scrollPosition = EditorGUILayout.BeginScrollView(scrollPosition);
@@ -86,18 +99,18 @@ internal sealed class TurretBalanceReportWindow : EditorWindow
     private void DrawToolbar()
     {
         EditorGUILayout.BeginHorizontal(EditorStyles.toolbar);
-        if (GUILayout.Button("Refresh", EditorStyles.toolbarButton, GUILayout.Width(80.0f)))
+        if (GUILayout.Button("새로고침", EditorStyles.toolbarButton, GUILayout.Width(80.0f)))
         {
             RefreshReport();
         }
 
-        if (GUILayout.Button("Export CSV", EditorStyles.toolbarButton, GUILayout.Width(100.0f)))
+        if (GUILayout.Button("CSV 내보내기", EditorStyles.toolbarButton, GUILayout.Width(100.0f)))
         {
             ExportCsvFiles();
         }
 
         GUILayout.FlexibleSpace();
-        EditorGUILayout.LabelField(lastRefreshLabel ?? "Not refreshed", EditorStyles.miniLabel, GUILayout.Width(260.0f));
+        EditorGUILayout.LabelField(lastRefreshLabel ?? "새로고침 전", EditorStyles.miniLabel, GUILayout.Width(260.0f));
         EditorGUILayout.EndHorizontal();
     }
 

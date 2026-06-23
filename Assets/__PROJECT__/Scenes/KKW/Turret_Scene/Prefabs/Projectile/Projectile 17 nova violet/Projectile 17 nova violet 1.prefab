@@ -13,6 +13,8 @@ GameObject:
   - component: {fileID: 54218369727422460}
   - component: {fileID: 135535602245615578}
   - component: {fileID: -9019572161659283539}
+  - component: {fileID: -8631701753298521153}
+  - component: {fileID: -6031294723044977269}
   m_Layer: 12
   m_Name: Projectile 17 nova violet 1
   m_TagString: Untagged
@@ -129,6 +131,30 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 1152
   logDamage: 0
+--- !u!114 &-8631701753298521153
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1381080491605798}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e2d6072b403c4f81a8a5292a314a3ca0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PooledProjectileReturner
+--- !u!114 &-6031294723044977269
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1381080491605798}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8e13f3a643f208a4cb7b29a9951ab2f5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PoolObject
 --- !u!1 &1523578673615170
 GameObject:
   m_ObjectHideFlags: 0

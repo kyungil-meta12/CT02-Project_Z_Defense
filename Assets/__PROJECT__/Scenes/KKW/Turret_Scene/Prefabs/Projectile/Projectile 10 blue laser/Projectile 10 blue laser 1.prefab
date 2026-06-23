@@ -4921,6 +4921,8 @@ GameObject:
   - component: {fileID: 135165777929722146}
   - component: {fileID: 4309203169967911385}
   - component: {fileID: -8057600747963384387}
+  - component: {fileID: -4926790339998147836}
+  - component: {fileID: -3247673740703328309}
   m_Layer: 12
   m_Name: Projectile 10 blue laser 1
   m_TagString: Untagged
@@ -5131,6 +5133,30 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 1152
   logDamage: 0
+--- !u!114 &-4926790339998147836
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1891902229039176}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8e13f3a643f208a4cb7b29a9951ab2f5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PoolObject
+--- !u!114 &-3247673740703328309
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1891902229039176}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e2d6072b403c4f81a8a5292a314a3ca0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PooledProjectileReturner
 --- !u!1 &689289893030718157
 GameObject:
   m_ObjectHideFlags: 0

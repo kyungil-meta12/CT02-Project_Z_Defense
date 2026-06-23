@@ -4864,6 +4864,8 @@ GameObject:
   - component: {fileID: 135372134608504994}
   - component: {fileID: -8982369085904526011}
   - component: {fileID: -3411557418165243194}
+  - component: {fileID: -3984777964145266138}
+  - component: {fileID: 1414378551727965391}
   m_Layer: 12
   m_Name: Projectile 22 cute star 1
   m_TagString: Untagged
@@ -5075,6 +5077,30 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 1152
   logDamage: 0
+--- !u!114 &-3984777964145266138
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1094010528761658}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8e13f3a643f208a4cb7b29a9951ab2f5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PoolObject
+--- !u!114 &1414378551727965391
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1094010528761658}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e2d6072b403c4f81a8a5292a314a3ca0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PooledProjectileReturner
 --- !u!1 &1228953972368122
 GameObject:
   m_ObjectHideFlags: 0

@@ -4862,6 +4862,8 @@ GameObject:
   - component: {fileID: 54905710770579714}
   - component: {fileID: 135206474481286692}
   - component: {fileID: -8620452295948451610}
+  - component: {fileID: -6926802380238172867}
+  - component: {fileID: -2994430510268992987}
   m_Layer: 12
   m_Name: Projectile 16 fire 1
   m_TagString: Untagged
@@ -4979,6 +4981,30 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 1152
   logDamage: 0
+--- !u!114 &-6926802380238172867
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1347034509603832}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8e13f3a643f208a4cb7b29a9951ab2f5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PoolObject
+--- !u!114 &-2994430510268992987
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1347034509603832}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e2d6072b403c4f81a8a5292a314a3ca0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PooledProjectileReturner
 --- !u!1 &1785945250208076
 GameObject:
   m_ObjectHideFlags: 0

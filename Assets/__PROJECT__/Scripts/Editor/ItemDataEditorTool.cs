@@ -55,26 +55,28 @@ public class ItemDataEditorTool : EditorWindow
         EditorGUILayout.BeginHorizontal();
         if (GUILayout.Button("검증만 실행", GUILayout.Height(34)))
         {
-            ValidateOnly();
+            ExecuteSafely(ValidateOnly);
         }
 
         if (GUILayout.Button("CSV에서 임포트", GUILayout.Height(34)))
         {
-            ImportFromCsv();
+            ExecuteSafely(ImportFromCsv);
         }
         EditorGUILayout.EndHorizontal();
 
         EditorGUILayout.BeginHorizontal();
         if (GUILayout.Button("CSV로 익스포트", GUILayout.Height(34)))
         {
-            ExportToCsv();
+            ExecuteSafely(ExportToCsv);
         }
+        EditorGUILayout.EndHorizontal();
 
+        EditorGUILayout.BeginHorizontal();
         using (new EditorGUI.DisabledScope(missingEnumNames.Count == 0))
         {
             if (GUILayout.Button("누락 enum 재생성", GUILayout.Height(34)))
             {
-                RegenerateRewardCurrencyEnumFromMissingNames();
+                ExecuteSafely(RegenerateRewardCurrencyEnumFromMissingNames);
             }
         }
         EditorGUILayout.EndHorizontal();
@@ -288,7 +290,12 @@ public class ItemDataEditorTool : EditorWindow
             return false;
         }
 
-        List<List<string>> table = ParseCsv(File.ReadAllText(csvFilePath, Encoding.UTF8));
+        if (!TryReadCsvText(out string csvText))
+        {
+            return false;
+        }
+
+        List<List<string>> table = ParseCsv(csvText);
         if (table.Count <= 1)
         {
             AddMessage("CSV에 데이터 행이 없습니다.");
@@ -358,6 +365,148 @@ public class ItemDataEditorTool : EditorWindow
         }
 
         return true;
+    }
+
+    // CSV 파일을 UTF-8, UTF-16, CP949 순서로 읽는다
+    private bool TryReadCsvText(out string csvText)
+    {
+        csvText = string.Empty;
+        byte[] bytes;
+        try
+        {
+            using (FileStream stream = new FileStream(csvFilePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+            {
+                bytes = new byte[stream.Length];
+                int totalRead = 0;
+                while (totalRead < bytes.Length)
+                {
+                    int read = stream.Read(bytes, totalRead, bytes.Length - totalRead);
+                    if (read <= 0)
+                    {
+                        break;
+                    }
+
+                    totalRead += read;
+                }
+            }
+        }
+        catch (IOException exception)
+        {
+            AddMessage("CSV 파일을 읽을 수 없습니다. Excel에서 저장 중이거나 파일을 독점 잠금 중일 수 있습니다. Excel 저장을 끝내거나 파일을 닫은 뒤 다시 실행하세요.");
+            AddMessage(exception.Message);
+            return false;
+        }
+        catch (UnauthorizedAccessException exception)
+        {
+            AddMessage("CSV 파일 접근 권한이 없습니다: " + csvFilePath);
+            AddMessage(exception.Message);
+            return false;
+        }
+
+        if (HasUtf8Bom(bytes))
+        {
+            csvText = new UTF8Encoding(true, false).GetString(bytes, 3, bytes.Length - 3);
+            WarnIfReplacementCharacterExists(csvText);
+            return true;
+        }
+
+        if (HasUtf16LittleEndianBom(bytes))
+        {
+            csvText = Encoding.Unicode.GetString(bytes, 2, bytes.Length - 2);
+            WarnIfReplacementCharacterExists(csvText);
+            AddMessage("CSV가 UTF-16 LE 인코딩이어서 변환 가능한 텍스트로 읽었습니다.");
+            return true;
+        }
+
+        if (HasUtf16BigEndianBom(bytes))
+        {
+            csvText = Encoding.BigEndianUnicode.GetString(bytes, 2, bytes.Length - 2);
+            WarnIfReplacementCharacterExists(csvText);
+            AddMessage("CSV가 UTF-16 BE 인코딩이어서 변환 가능한 텍스트로 읽었습니다.");
+            return true;
+        }
+
+        if (TryDecodeStrictUtf8(bytes, out csvText))
+        {
+            WarnIfReplacementCharacterExists(csvText);
+            return true;
+        }
+
+        if (TryDecodeCp949(bytes, out csvText))
+        {
+            WarnIfReplacementCharacterExists(csvText);
+            AddMessage("CSV가 UTF-8이 아니어서 CP949(한국어 Windows CSV)로 읽었습니다.");
+            return true;
+        }
+
+        csvText = Encoding.Default.GetString(bytes);
+        WarnIfReplacementCharacterExists(csvText);
+        AddMessage("CSV가 UTF-8/UTF-16/CP949로 명확히 읽히지 않아 OS 기본 인코딩으로 읽었습니다.");
+        return true;
+    }
+
+    // UTF-8 BOM이 있는지 확인한다
+    private static bool HasUtf8Bom(byte[] bytes)
+    {
+        return bytes.Length >= 3 && bytes[0] == 0xEF && bytes[1] == 0xBB && bytes[2] == 0xBF;
+    }
+
+    // UTF-16 LE BOM이 있는지 확인한다
+    private static bool HasUtf16LittleEndianBom(byte[] bytes)
+    {
+        return bytes.Length >= 2 && bytes[0] == 0xFF && bytes[1] == 0xFE;
+    }
+
+    // UTF-16 BE BOM이 있는지 확인한다
+    private static bool HasUtf16BigEndianBom(byte[] bytes)
+    {
+        return bytes.Length >= 2 && bytes[0] == 0xFE && bytes[1] == 0xFF;
+    }
+
+    // 엄격한 UTF-8 디코딩을 시도한다
+    private static bool TryDecodeStrictUtf8(byte[] bytes, out string text)
+    {
+        try
+        {
+            text = new UTF8Encoding(false, true).GetString(bytes);
+            return true;
+        }
+        catch (DecoderFallbackException)
+        {
+            text = string.Empty;
+            return false;
+        }
+    }
+
+    // CP949 디코딩을 시도한다
+    private static bool TryDecodeCp949(byte[] bytes, out string text)
+    {
+        text = string.Empty;
+        try
+        {
+            Encoding encoding = Encoding.GetEncoding(949, EncoderFallback.ExceptionFallback, DecoderFallback.ExceptionFallback);
+            text = encoding.GetString(bytes);
+            return true;
+        }
+        catch (Exception)
+        {
+            return false;
+        }
+    }
+
+    // 깨진 문자 대체 기호가 포함되어 있는지 확인한다
+    private static bool ContainsReplacementCharacter(string text)
+    {
+        return !string.IsNullOrEmpty(text) && text.IndexOf('\uFFFD') >= 0;
+    }
+
+    // 깨진 문자 대체 기호가 있으면 복구 불가 가능성을 메시지에 기록한다
+    private void WarnIfReplacementCharacterExists(string text)
+    {
+        if (ContainsReplacementCharacter(text))
+        {
+            AddMessage("경고: CSV 텍스트에 깨진 대체 문자(�)가 포함되어 있습니다. 이미 깨진 상태로 저장된 파일일 수 있습니다.");
+        }
     }
 
     // CSV 한 행을 아이템 행 데이터로 변환한다
@@ -531,6 +680,7 @@ public class ItemDataEditorTool : EditorWindow
         List<string> row = new List<string>();
         StringBuilder field = new StringBuilder();
         bool inQuotes = false;
+        char delimiter = DetectDelimiter(text);
 
         for (int i = 0; i < text.Length; i++)
         {
@@ -547,7 +697,7 @@ public class ItemDataEditorTool : EditorWindow
                     inQuotes = !inQuotes;
                 }
             }
-            else if (c == ',' && !inQuotes)
+            else if (c == delimiter && !inQuotes)
             {
                 row.Add(field.ToString());
                 field.Length = 0;
@@ -577,6 +727,32 @@ public class ItemDataEditorTool : EditorWindow
         }
 
         return rows;
+    }
+
+    // CSV 텍스트의 구분자를 쉼표 또는 탭 중에서 감지한다
+    private static char DetectDelimiter(string text)
+    {
+        int commaCount = 0;
+        int tabCount = 0;
+        for (int i = 0; i < text.Length; i++)
+        {
+            char c = text[i];
+            if (c == '\r' || c == '\n')
+            {
+                break;
+            }
+
+            if (c == ',')
+            {
+                commaCount++;
+            }
+            else if (c == '\t')
+            {
+                tabCount++;
+            }
+        }
+
+        return tabCount > commaCount ? '\t' : ',';
     }
 
     // CSV 필드 값을 안전하게 반환한다
@@ -749,6 +925,22 @@ public class ItemDataEditorTool : EditorWindow
         else
         {
             Debug.LogWarning("[ItemDataEditorTool]\n" + joinedMessage);
+        }
+    }
+
+    // OnGUI 레이아웃이 깨지지 않도록 버튼 동작 예외를 처리한다
+    private void ExecuteSafely(Action action)
+    {
+        try
+        {
+            action?.Invoke();
+        }
+        catch (Exception exception)
+        {
+            ClearRunState();
+            AddMessage("처리 중 예외가 발생했습니다. 콘솔 로그를 확인하세요.");
+            AddMessage(exception.Message);
+            Debug.LogException(exception);
         }
     }
 

@@ -13,12 +13,12 @@ MonoBehaviour:
   m_Name: NZ_Farmer Reward Profile SO
   m_EditorClassIdentifier: Assembly-CSharp::ZombieRewardProfileSO
   rewards:
-  - currencyType: 0
+  - currencyType: 1
     amount: 75
     dropChance: 1
     minAmountMultiplier: 0.8
     maxAmountMultiplier: 1.2
-  - currencyType: 1
+  - currencyType: 3
     amount: 75
     dropChance: 1
     minAmountMultiplier: 0.8

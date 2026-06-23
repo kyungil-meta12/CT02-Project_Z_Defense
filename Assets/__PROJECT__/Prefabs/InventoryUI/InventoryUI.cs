@@ -1,10 +1,6 @@
 using IncrementalLib;
-using NUnit.Framework.Internal;
-using System;
 using System.Collections.Generic;
-using System.Linq;
 using TMPro;
-using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -16,11 +12,9 @@ public class ItemCellData
 
 public class InventoryUI : MonoBehaviour
 {
-    private const RewardCurrencyType NULL_TYPE = 0;
-
     [Header("인벤토리 UI의 메인 조작부")] public GameObject mainController;
     [Header("인벤토리 UI의 스크롤 조작부")] public ScrollRect scrollRect;
-    [Header("인벤토리 컨턴츠 객체")] public GameObject inventoryContent;
+    [Header("인벤토리 컨텐츠 객체")] public GameObject inventoryContent;
     [Header("크래프팅 컨텐츠 객체")] public GameObject craftContent;
     [Header("인벤토리 아이템 버튼 프리펩")] public GameObject inventoryCellPrefab;
     [Header("배경 객체")] public Image background;
@@ -71,6 +65,9 @@ public class InventoryUI : MonoBehaviour
             // 버튼 목록에 추가
             buttons.Add(button);
         }
+
+        scrollRect.verticalNormalizedPosition = 1f;
+        scrollRect.velocity = Vector2.zero;
 
         OnCloseInventory();
     }
@@ -126,6 +123,7 @@ public class InventoryUI : MonoBehaviour
         inventoryContent.SetActive(true);
         craftContent.SetActive(false);
 
+        scrollRect.content = inventoryContent.GetComponent<RectTransform>();
         scrollRect.verticalNormalizedPosition = 1f;
         scrollRect.velocity = Vector2.zero;
 
@@ -164,6 +162,7 @@ public class InventoryUI : MonoBehaviour
         {
             inventoryContent.SetActive(true);
             craftContent.SetActive(false);
+            scrollRect.content = inventoryContent.GetComponent<RectTransform>();
             scrollRect.verticalNormalizedPosition = 1f;
             scrollRect.velocity = Vector2.zero;
             pannelTitletext.text = "Inventory";
@@ -181,6 +180,7 @@ public class InventoryUI : MonoBehaviour
         {
             inventoryContent.SetActive(false);
             craftContent.SetActive(true);
+            scrollRect.content = craftContent.GetComponent<RectTransform>();
             scrollRect.verticalNormalizedPosition = 1f;
             scrollRect.velocity = Vector2.zero;
             pannelTitletext.text = "Craft";

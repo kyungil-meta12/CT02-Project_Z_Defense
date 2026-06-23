@@ -9,7 +9,7 @@ public class PassEventToScrollRect : MonoBehaviour, IPointerDownHandler, IBeginD
 
     void Start()
     {
-        var backPannel = transform.root.Find("InventoryUI/MainController/BackPannel");
+        var backPannel = transform.root.Find("InventoryUI/MainController/InventoryScrollRect");
         scrollRect = backPannel.GetComponent<ScrollRect>();
     }
 

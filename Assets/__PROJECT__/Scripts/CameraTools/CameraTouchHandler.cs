@@ -87,15 +87,15 @@ public class CameraTouchHandler : MonoBehaviour, IPointerDownHandler, IPointerUp
     {
         if (isDragging)
         {
-            LogTouchDiagnostic("드래그 입력으로 판단되어 월드 터치를 처리하지 않습니다.");
+            //LogTouchDiagnostic("드래그 입력으로 판단되어 월드 터치를 처리하지 않습니다.");
             return;
         }
 
-        if (IsBlockedByOtherUI(eventData))
-        {
-            LogTouchDiagnostic("다른 UI가 포인터를 받고 있어 월드 터치를 처리하지 않습니다.");
-            return;
-        }
+        // if (IsBlockedByOtherUI(eventData))
+        // {
+        //     LogTouchDiagnostic("다른 UI가 포인터를 받고 있어 월드 터치를 처리하지 않습니다.");
+        //     return;
+        // }
 
         Ray ray = cam.ScreenPointToRay(eventData.position);
         int hitCount = Physics.RaycastNonAlloc(ray, hitResult, Mathf.Infinity, raycastTargetLayer);

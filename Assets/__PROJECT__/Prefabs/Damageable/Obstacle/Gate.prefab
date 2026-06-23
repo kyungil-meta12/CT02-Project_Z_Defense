@@ -317,6 +317,14 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 5419130177126994467}
     m_Modifications:
+    - target: {fileID: 1392061041479227189, guid: 38f8e62c8151e14438f8e5b0fb9484a7, type: 3}
+      propertyPath: sliderFrontColor.g
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1392061041479227189, guid: 38f8e62c8151e14438f8e5b0fb9484a7, type: 3}
+      propertyPath: sliderFrontColor.r
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 1847657382218322912, guid: 38f8e62c8151e14438f8e5b0fb9484a7, type: 3}
       propertyPath: m_AnchorMax.y
       value: 1

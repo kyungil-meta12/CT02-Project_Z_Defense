@@ -110,7 +110,7 @@ GameObject:
   - component: {fileID: 732456190123450002}
   - component: {fileID: 2165379425936411092}
   - component: {fileID: 298152683923258001}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Survivor
   m_TagString: Untagged
   m_Icon: {fileID: 0}

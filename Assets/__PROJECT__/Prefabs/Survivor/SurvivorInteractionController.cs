@@ -1,7 +1,6 @@
 using System.Collections;
 using TMPro;
 using UnityEngine;
-using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 /// <summary>
@@ -9,13 +8,6 @@ using UnityEngine.UI;
 /// </summary>
 public class SurvivorInteractionController : MonoBehaviour
 {
-    private const int RAYCAST_HIT_BUFFER_SIZE = 8;
-
-    [Header("선택")]
-    [SerializeField] private Camera targetCamera;
-    [SerializeField] private LayerMask survivorLayerMask = ~0;
-    [SerializeField, Min(1f)] private float maxRayDistance = 500f;
-
     [Header("팝업 UI")]
     [SerializeField] private GameObject popupPanel;
     [SerializeField] private TMP_Text titleText;
@@ -27,41 +19,41 @@ public class SurvivorInteractionController : MonoBehaviour
     [Header("엔지니어 버프 대상 UI")]
     [SerializeField] private EngineerBuffTargetPanelUI engineerBuffTargetPanel;
 
-    private readonly RaycastHit[] raycastHits = new RaycastHit[RAYCAST_HIT_BUFFER_SIZE];
     private Survivor selectedSurvivor;
     private Survivor pendingEngineer;
+    private bool hasSubscribedCameraTouch;
 
     // 필요한 참조를 확인하고 버튼 이벤트를 연결한다
     private void Awake()
     {
-        if (targetCamera == null)
-        {
-            targetCamera = Camera.main;
-        }
-
         BindButtons();
         HidePopup();
         HideEngineerBuffTargetPanel();
     }
 
+    // 활성화될 때 카메라 터치 이벤트를 구독한다
+    private void OnEnable()
+    {
+        SubscribeCameraTouchEvent();
+    }
+
+    // 비활성화될 때 카메라 터치 이벤트를 해제한다
+    private void OnDisable()
+    {
+        UnsubscribeCameraTouchEvent();
+    }
+
     // 파괴 시 버튼 이벤트를 해제한다
     private void OnDestroy()
     {
+        UnsubscribeCameraTouchEvent();
         UnbindButtons();
     }
 
-    // 매 프레임 클릭 선택 입력을 처리한다
+    // 카메라 터치 이벤트 구독 상태를 보강한다
     private void Update()
     {
-        if (!WasPrimaryPointerPressed() || IsPointerOverUI())
-        {
-            return;
-        }
-
-        if (TryGetPrimaryPointerPosition(out Vector2 pointerPosition))
-        {
-            HandleWorldPointerDown(pointerPosition);
-        }
+        SubscribeCameraTouchEvent();
     }
 
     // 치료 버튼 입력을 처리한다
@@ -138,10 +130,10 @@ public class SurvivorInteractionController : MonoBehaviour
         HideEngineerBuffTargetPanel();
     }
 
-    // 클릭한 월드 대상에 따라 생존자를 선택하거나 엔지니어 터렛 배치를 처리한다
-    private void HandleWorldPointerDown(Vector2 pointerPosition)
+    // 카메라 터치 이벤트로 전달된 월드 히트에서 생존자를 선택한다
+    private void OnCameraTargetTouched(RaycastHit hit)
     {
-        if (!TrySelectSurvivor(pointerPosition, out Survivor survivor))
+        if (!TrySelectSurvivorFromHit(hit, out Survivor survivor))
         {
             return;
         }
@@ -161,37 +153,17 @@ public class SurvivorInteractionController : MonoBehaviour
         ShowPopup(survivor);
     }
 
-    // 현재 포인터 위치의 생존자를 레이캐스트로 찾는다
-    private bool TrySelectSurvivor(Vector2 pointerPosition, out Survivor survivor)
+    // 월드 히트 결과에서 선택 가능한 생존자를 찾는다
+    private static bool TrySelectSurvivorFromHit(RaycastHit hit, out Survivor survivor)
     {
         survivor = null;
-        if (targetCamera == null)
+
+        if (hit.collider == null)
         {
             return false;
         }
 
-        Ray ray = targetCamera.ScreenPointToRay(pointerPosition);
-        int hitCount = Physics.RaycastNonAlloc(ray, raycastHits, maxRayDistance, survivorLayerMask, QueryTriggerInteraction.Collide);
-        float closestDistance = float.MaxValue;
-
-        for (int i = 0; i < hitCount; i++)
-        {
-            RaycastHit hit = raycastHits[i];
-            if (hit.collider == null || hit.distance >= closestDistance)
-            {
-                continue;
-            }
-
-            Survivor hitSurvivor = hit.collider.GetComponentInParent<Survivor>();
-            if (hitSurvivor == null)
-            {
-                continue;
-            }
-
-            closestDistance = hit.distance;
-            survivor = hitSurvivor;
-        }
-
+        survivor = hit.collider.GetComponentInParent<Survivor>();
         return survivor != null;
     }
 
@@ -378,44 +350,28 @@ public class SurvivorInteractionController : MonoBehaviour
         }
     }
 
-    // 현재 주 포인터 위치를 반환한다
-    private static bool TryGetPrimaryPointerPosition(out Vector2 pointerPosition)
+    // 카메라 터치 이벤트를 중복 없이 구독한다
+    private void SubscribeCameraTouchEvent()
     {
-        if (Input.touchCount > 0)
+        if (hasSubscribedCameraTouch || CameraTouchHandler.Inst == null)
         {
-            pointerPosition = Input.GetTouch(0).position;
-            return true;
+            return;
         }
 
-        pointerPosition = Input.mousePosition;
-        return true;
+        CameraTouchHandler.Inst.OnCameraTargetTouchEvent += OnCameraTargetTouched;
+        hasSubscribedCameraTouch = true;
     }
 
-    // 주 포인터가 이번 프레임 눌렸는지 확인한다
-    private static bool WasPrimaryPointerPressed()
+    // 카메라 터치 이벤트 구독을 해제한다
+    private void UnsubscribeCameraTouchEvent()
     {
-        if (Input.touchCount > 0)
+        if (!hasSubscribedCameraTouch || CameraTouchHandler.Inst == null)
         {
-            return Input.GetTouch(0).phase == TouchPhase.Began;
+            hasSubscribedCameraTouch = false;
+            return;
         }
 
-        return Input.GetMouseButtonDown(0);
-    }
-
-    // 현재 포인터가 UI 위에 있는지 확인한다
-    private static bool IsPointerOverUI()
-    {
-        if (EventSystem.current == null)
-        {
-            return false;
-        }
-
-        if (Input.touchCount > 0)
-        {
-            Touch touch = Input.GetTouch(0);
-            return EventSystem.current.IsPointerOverGameObject(touch.fingerId);
-        }
-
-        return EventSystem.current.IsPointerOverGameObject();
+        CameraTouchHandler.Inst.OnCameraTargetTouchEvent -= OnCameraTargetTouched;
+        hasSubscribedCameraTouch = false;
     }
 }

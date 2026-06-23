@@ -1,7 +1,6 @@
 using System.Text;
 using TMPro;
 using UnityEngine;
-using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 /// <summary>
@@ -10,13 +9,6 @@ using UnityEngine.UI;
 [DisallowMultipleComponent]
 public class ObstacleUpgradePopupUI : MonoBehaviour
 {
-    private const int SELECTION_RAYCAST_BUFFER_SIZE = 32;
-
-    [Header("선택 설정 - 장애물 클릭 판정에 사용할 카메라와 레이어")]
-    [SerializeField] private Camera targetCamera;
-    [SerializeField] private LayerMask selectionLayerMask = ~0;
-    [SerializeField, Min(1.0f)] private float maxRayDistance = 500.0f;
-
     [Header("업그레이드 설정 - 버튼 1회 입력으로 올릴 레벨 수")]
     [SerializeField, Min(1)] private int levelUpAmount = 1;
 
@@ -35,12 +27,11 @@ public class ObstacleUpgradePopupUI : MonoBehaviour
     private Obstacle selectedObstacle;
     private ObstacleUpgradeRuntimeController selectedUpgradeController;
     private bool hasLoggedMissingUI;
-    private readonly RaycastHit[] selectionHits = new RaycastHit[SELECTION_RAYCAST_BUFFER_SIZE];
+    private bool hasSubscribedCameraTouch;
 
     // 컴포넌트 추가 시 기본 참조를 자동으로 찾는다
     private void Reset()
     {
-        targetCamera = Camera.main;
         placementController = FindFirstObjectByType<ObstaclePlacementController>();
         BindChildReferences();
     }
@@ -48,11 +39,6 @@ public class ObstacleUpgradePopupUI : MonoBehaviour
     // 게임 시작 시 선택 참조와 배치된 UI 참조를 준비한다
     private void Awake()
     {
-        if (targetCamera == null)
-        {
-            targetCamera = Camera.main;
-        }
-
         if (placementController == null)
         {
             placementController = FindFirstObjectByType<ObstaclePlacementController>();
@@ -63,15 +49,30 @@ public class ObstacleUpgradePopupUI : MonoBehaviour
         HidePopup();
     }
 
+    // 활성화될 때 카메라 터치 이벤트를 구독한다
+    private void OnEnable()
+    {
+        SubscribeCameraTouchEvent();
+    }
+
+    // 비활성화될 때 카메라 터치 이벤트를 해제한다
+    private void OnDisable()
+    {
+        UnsubscribeCameraTouchEvent();
+    }
+
     // 파괴 시 버튼 이벤트를 해제한다
     private void OnDestroy()
     {
+        UnsubscribeCameraTouchEvent();
         UnbindButtonListeners();
     }
 
-    // 포인터 입력으로 장애물을 선택하거나 팝업을 닫는다
+    // 배치 상태와 UI 참조 유효성을 갱신한다
     private void Update()
     {
+        SubscribeCameraTouchEvent();
+
         if (!IsUIReady())
         {
             LogMissingUIOnce();
@@ -82,21 +83,6 @@ public class ObstacleUpgradePopupUI : MonoBehaviour
         {
             HidePopup();
             return;
-        }
-
-        if (!WasPrimaryPointerPressed() || IsPointerOverUI())
-        {
-            return;
-        }
-
-        if (!TryGetPrimaryPointerPosition(out Vector2 pointerPosition))
-        {
-            return;
-        }
-
-        if (TrySelectObstacle(pointerPosition, out Obstacle obstacle, out ObstacleUpgradeRuntimeController upgradeController))
-        {
-            SelectObstacle(obstacle, upgradeController);
         }
     }
 
@@ -172,50 +158,46 @@ public class ObstacleUpgradePopupUI : MonoBehaviour
         RefreshUI();
     }
 
-    // 포인터 위치에서 선택 가능한 장애물을 찾는다
-    private bool TrySelectObstacle(Vector2 pointerPosition, out Obstacle obstacle, out ObstacleUpgradeRuntimeController upgradeController)
+    // 카메라 터치 이벤트로 전달된 월드 히트에서 장애물을 선택한다
+    private void OnCameraTargetTouched(RaycastHit hit)
+    {
+        if (!IsUIReady())
+        {
+            LogMissingUIOnce();
+            return;
+        }
+
+        if (placementController != null && placementController.IsPlacing)
+        {
+            HidePopup();
+            return;
+        }
+
+        if (TrySelectObstacleFromHit(hit, out Obstacle obstacle, out ObstacleUpgradeRuntimeController upgradeController))
+        {
+            SelectObstacle(obstacle, upgradeController);
+        }
+    }
+
+    // 월드 히트 결과에서 선택 가능한 장애물을 찾는다
+    private static bool TrySelectObstacleFromHit(RaycastHit hit, out Obstacle obstacle, out ObstacleUpgradeRuntimeController upgradeController)
     {
         obstacle = null;
         upgradeController = null;
 
-        if (targetCamera == null)
-        {
-            targetCamera = Camera.main;
-        }
-
-        if (targetCamera == null)
+        if (hit.collider == null)
         {
             return false;
         }
 
-        Ray ray = targetCamera.ScreenPointToRay(pointerPosition);
-        int hitCount = Physics.RaycastNonAlloc(ray, selectionHits, maxRayDistance, selectionLayerMask, QueryTriggerInteraction.Collide);
-        if (hitCount <= 0)
+        obstacle = hit.collider.GetComponentInParent<Obstacle>();
+        if (obstacle == null)
         {
             return false;
         }
 
-        float nearestDistance = Mathf.Infinity;
-        for (int i = 0; i < hitCount; i++)
-        {
-            RaycastHit hit = selectionHits[i];
-            if (hit.collider == null || hit.distance >= nearestDistance)
-            {
-                continue;
-            }
-
-            Obstacle hitObstacle = hit.collider.GetComponentInParent<Obstacle>();
-            if (hitObstacle == null)
-            {
-                continue;
-            }
-
-            obstacle = hitObstacle;
-            upgradeController = hitObstacle.GetComponent<ObstacleUpgradeRuntimeController>();
-            nearestDistance = hit.distance;
-        }
-
-        return obstacle != null;
+        upgradeController = obstacle.GetComponent<ObstacleUpgradeRuntimeController>();
+        return true;
     }
 
     // 선택된 장애물 상태를 기준으로 팝업 텍스트와 버튼을 갱신한다
@@ -362,6 +344,31 @@ public class ObstacleUpgradePopupUI : MonoBehaviour
         }
     }
 
+    // 카메라 터치 이벤트를 중복 없이 구독한다
+    private void SubscribeCameraTouchEvent()
+    {
+        if (hasSubscribedCameraTouch || CameraTouchHandler.Inst == null)
+        {
+            return;
+        }
+
+        CameraTouchHandler.Inst.OnCameraTargetTouchEvent += OnCameraTargetTouched;
+        hasSubscribedCameraTouch = true;
+    }
+
+    // 카메라 터치 이벤트 구독을 해제한다
+    private void UnsubscribeCameraTouchEvent()
+    {
+        if (!hasSubscribedCameraTouch || CameraTouchHandler.Inst == null)
+        {
+            hasSubscribedCameraTouch = false;
+            return;
+        }
+
+        CameraTouchHandler.Inst.OnCameraTargetTouchEvent -= OnCameraTargetTouched;
+        hasSubscribedCameraTouch = false;
+    }
+
     // 팝업 구성에 필요한 참조가 유효한지 확인한다
     private bool IsUIReady()
     {
@@ -444,48 +451,6 @@ public class ObstacleUpgradePopupUI : MonoBehaviour
             default:
                 return currencyType.ToString();
         }
-    }
-
-    // 현재 기본 포인터 위치를 가져온다
-    private static bool TryGetPrimaryPointerPosition(out Vector2 pointerPosition)
-    {
-        if (Input.touchCount > 0)
-        {
-            pointerPosition = Input.GetTouch(0).position;
-            return true;
-        }
-
-        pointerPosition = Input.mousePosition;
-        return true;
-    }
-
-    // 터치 시작 또는 마우스 클릭 시작 여부를 확인한다
-    private static bool WasPrimaryPointerPressed()
-    {
-        if (Input.touchCount > 0)
-        {
-            Touch touch = Input.GetTouch(0);
-            return touch.phase == TouchPhase.Began;
-        }
-
-        return Input.GetMouseButtonDown(0);
-    }
-
-    // 현재 포인터가 Unity UI 위에 있는지 확인한다
-    private static bool IsPointerOverUI()
-    {
-        if (EventSystem.current == null)
-        {
-            return false;
-        }
-
-        if (Input.touchCount > 0)
-        {
-            Touch touch = Input.GetTouch(0);
-            return EventSystem.current.IsPointerOverGameObject(touch.fingerId);
-        }
-
-        return EventSystem.current.IsPointerOverGameObject();
     }
 
 }

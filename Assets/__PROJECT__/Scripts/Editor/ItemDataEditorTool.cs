@@ -58,9 +58,9 @@ public class ItemDataEditorTool : EditorWindow
         EditorGUILayout.HelpBox("CSV 컬럼: Type, Name, InfoText, ItemImageAssetPath, ItemsToCreate. 제작 재료는 Type:Count;Type:Count 형식입니다. 없는 enum은 Import를 중단하고 별도 버튼으로 RewardCurrencyType.cs를 재생성합니다.", MessageType.Info);
 
         EditorGUILayout.BeginHorizontal();
-        if (GUILayout.Button("검증만 실행", GUILayout.Height(34)))
+        if (GUILayout.Button("CSV로 익스포트", GUILayout.Height(34)))
         {
-            ExecuteSafely(ValidateOnly);
+            ExecuteSafely(ExportToCsv);
         }
 
         if (GUILayout.Button("CSV에서 임포트", GUILayout.Height(34)))
@@ -70,13 +70,16 @@ public class ItemDataEditorTool : EditorWindow
         EditorGUILayout.EndHorizontal();
 
         EditorGUILayout.BeginHorizontal();
-        if (GUILayout.Button("CSV로 익스포트", GUILayout.Height(34)))
+        if (GUILayout.Button("검증만 실행", GUILayout.Height(34)))
         {
-            ExecuteSafely(ExportToCsv);
+            ExecuteSafely(ValidateOnly);
         }
-        EditorGUILayout.EndHorizontal();
 
-        EditorGUILayout.BeginHorizontal();
+        if (GUILayout.Button("CSV 열기", GUILayout.Height(34)))
+        {
+            ExecuteSafely(OpenItemCsv);
+        }
+
         using (new EditorGUI.DisabledScope(missingEnumNames.Count == 0))
         {
             if (GUILayout.Button("누락 enum 재생성", GUILayout.Height(34)))
@@ -244,6 +247,14 @@ public class ItemDataEditorTool : EditorWindow
         AssetDatabase.Refresh();
         AddMessage("익스포트 완료: " + DEFAULT_CSV_PATH);
         FlushMessagesToConsole(true);
+    }
+
+    // 아이템 CSV 파일을 기본 앱으로 연다
+    private void OpenItemCsv()
+    {
+        ClearRunState();
+        bool isSuccess = TryOpenCsvFile(DEFAULT_CSV_PATH);
+        FlushMessagesToConsole(isSuccess);
     }
 
     // 누락된 enum 이름을 포함해 RewardCurrencyType 파일을 재생성한다
@@ -674,6 +685,20 @@ public class ItemDataEditorTool : EditorWindow
 
             currentPath = nextPath;
         }
+    }
+
+    // 지정한 CSV 파일을 기본 앱으로 연다
+    private bool TryOpenCsvFile(string path)
+    {
+        if (!File.Exists(path))
+        {
+            AddMessage("CSV 파일을 찾을 수 없습니다: " + path);
+            return false;
+        }
+
+        EditorUtility.OpenWithDefaultApp(path);
+        AddMessage("CSV 파일 열기 요청: " + path);
+        return true;
     }
 
     // CSV 텍스트를 행과 필드 목록으로 파싱한다

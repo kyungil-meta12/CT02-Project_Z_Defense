@@ -31,8 +31,7 @@ public class InventorySystem : MonoBehaviour
 
     // 아이템이 딕셔너리에 추가될 때 사용할 메타데이터 리스트
     public ItemMetaDataListSo itemMetaDataListSo;
-
-    private ItemMetaDataSo[] metaDataList;
+    private List<ItemMetaDataSo> metaDataList = new();
     private Dictionary<RewardCurrencyType, ItemData> itemDict = new();
     private Dictionary<RewardCurrencyType, int> itemCostDict = new();
 
@@ -240,20 +239,18 @@ public class InventorySystem : MonoBehaviour
         }
         if (!itemDict.ContainsKey(itemType))
         {
-            // itemAttributes에서 타입을 찾아 해당되는 타입과 이름을 새 아이템 데이터에 적용한다.
-            int index = Array.FindIndex(metaDataList, meta => meta.Data.Type == itemType);
-            if(index == -1)
+            var metaData = metaDataList.Find(meta => meta.Data.Type == itemType).Data;
+            if(metaData == null)
             {
                 Debug.LogError($"[InventorySystem] 아이템 정보를 찾을 수 없음 | 찾기 시도 타입: {itemType}");
                 return;
             }
 
-            var metaData = metaDataList[index];
             ItemData newItem = new()
             {
-                Type = metaData.Data.Type,
-                Name = metaData.Data.Name,
-                InfoText = metaData.Data.InfoText,
+                Type = metaData.Type,
+                Name = metaData.Name,
+                InfoText = metaData.InfoText,
                 Count = amount
             };
             newItem.CountString = newItem.Count.ToString();

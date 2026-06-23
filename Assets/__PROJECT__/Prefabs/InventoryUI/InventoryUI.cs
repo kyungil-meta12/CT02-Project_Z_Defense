@@ -13,10 +13,10 @@ public class InventoryUI : MonoBehaviour
     public TextMeshProUGUI itemNameText;
     public TextMeshProUGUI itemInfoText;
 
-    private List<Image> images = new();
-    private List<TextMeshProUGUI> texts = new();
     private ItemMetaDataListSo metaDataListSo;
     private List<ItemMetaDataSo> metaDataList = new();
+    private List<Image> images = new();
+    private List<TextMeshProUGUI> texts = new();
     private int activatedImageCount;
     private bool openState = false;
 

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
@@ -38,5 +39,5 @@ public class ItemMetaDataSo : ScriptableObject
 [CreateAssetMenu(fileName = "ItemMetaDataList", menuName = "Scriptable Objects/ItemMetaDataList")]
 public class ItemMetaDataListSo : ScriptableObject
 {
-    public ItemMetaDataSo[] MetaDataList;
+    public List<ItemMetaDataSo> MetaDataList;
 }

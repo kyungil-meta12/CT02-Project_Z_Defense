@@ -23,7 +23,7 @@ public class ItemMetaData
     [Header("표시할 아이템 설명 텍스트")][TextArea(3, 10)] public string InfoText;
     [Header("표시할 아이템 이미지")] public Sprite ItemImage;
     // 비워두면 조합법 자제가 없는 기초 재료이다.
-    [Header("제작에 필요한 아이템 목록")] public ItemMaterialData[] ItemsToCreate;
+    [Header("제작에 필요한 아이템 목록")] public List<ItemMaterialData> ItemsToCreate;
 }
 
 

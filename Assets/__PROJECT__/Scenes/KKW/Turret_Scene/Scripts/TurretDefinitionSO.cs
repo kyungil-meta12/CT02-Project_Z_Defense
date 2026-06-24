@@ -24,6 +24,9 @@ public class TurretDefinitionSO : ScriptableObject
     public TurretProjectileScaleProgressionSO projectileScaleProgressionProfile;
     public TurretEvolutionProgressionSO evolutionProgressionProfile;
 
+    [Header("데미지 표시")]
+    public TurretDamagePolishProfileSO damagePolishProfile;
+
     [Header("상태이상")]
     public FrostStatusProfileSO frostStatusProfile;
     public PoisonStatusProfileSO poisonStatusProfile;

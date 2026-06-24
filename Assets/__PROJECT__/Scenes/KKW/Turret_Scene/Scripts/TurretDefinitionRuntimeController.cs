@@ -147,6 +147,8 @@ public class TurretDefinitionRuntimeController : MonoBehaviour
             statProfileApplier.SetStatusProfile(turretDefinition.ignitionStatusProfile, level, turretDefinition.statGrowthProfile);
         }
 
+        ApplyDamagePolishProfile();
+
         if (applyVFXToTurret)
         {
             ApplyVFX(runtimeStat);
@@ -504,6 +506,21 @@ public class TurretDefinitionRuntimeController : MonoBehaviour
             beamFiringEvent.SetAttackProfile(isBeamProfile ? vfxProfile.beamAttackProfile : null);
             beamFiringEvent.SetFrostStatusProfile(isBeamProfile ? turretDefinition.frostStatusProfile : null, level);
             beamFiringEvent.SetProjectileScale(GetProjectileScale());
+        }
+    }
+
+    // 현재 터렛 정의에 연결된 데미지 폴리싱 프로필을 공격 컴포넌트에 전달한다
+    private void ApplyDamagePolishProfile()
+    {
+        if (targetTurret != null)
+        {
+            targetTurret.SetDamagePolishProfile(turretDefinition.damagePolishProfile);
+        }
+
+        BeamFiringEvent beamFiringEvent = targetFiringEvent as BeamFiringEvent;
+        if (beamFiringEvent != null)
+        {
+            beamFiringEvent.SetDamagePolishProfile(turretDefinition.damagePolishProfile);
         }
     }
 

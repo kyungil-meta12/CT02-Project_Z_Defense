@@ -22,6 +22,7 @@ MonoBehaviour:
   vfxProgressionProfile: {fileID: 11400000, guid: 972ded34dfa789148837b800dd87e482, type: 2}
   projectileScaleProgressionProfile: {fileID: 11400000, guid: bd996abfa1d26c94da14810012ffb997, type: 2}
   evolutionProgressionProfile: {fileID: 11400000, guid: 003340605e225664997048d320cc4c88, type: 2}
+  damagePolishProfile: {fileID: 11400000, guid: 15db15fab6506d54ab8f5d2a35bffa14, type: 2}
   frostStatusProfile: {fileID: 0}
   poisonStatusProfile: {fileID: 0}
   electroStatusProfile: {fileID: 0}

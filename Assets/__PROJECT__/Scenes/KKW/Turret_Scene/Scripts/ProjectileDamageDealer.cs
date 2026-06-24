@@ -20,6 +20,7 @@ public class ProjectileDamageDealer : MonoBehaviour
     private ProjectileHitDetector hitDetector;
     private PoisonStatusPayload poisonStatusPayload;
     private ElectroStatusPayload electroStatusPayload;
+    private TurretDamagePolishProfileSO damagePolishProfile;
 
     public bool HasReachedPierceLimit
     {
@@ -64,11 +65,18 @@ public class ProjectileDamageDealer : MonoBehaviour
     // 데미지 처리 상태, 추적 타겟, 상태이상 정보를 초기화한다
     public void Init(float damage_, int pierceCount_, bool logDamage_, GameObject target, PoisonStatusPayload poisonStatusPayload_, ElectroStatusPayload electroStatusPayload_)
     {
+        Init(damage_, pierceCount_, logDamage_, target, poisonStatusPayload_, electroStatusPayload_, null);
+    }
+
+    // 데미지 처리 상태, 추적 타겟, 상태이상, 데미지 폴리싱 정보를 초기화한다
+    public void Init(float damage_, int pierceCount_, bool logDamage_, GameObject target, PoisonStatusPayload poisonStatusPayload_, ElectroStatusPayload electroStatusPayload_, TurretDamagePolishProfileSO damagePolishProfile_)
+    {
         damage = Mathf.Max(0.0f, damage_);
         pierceCount = Mathf.Max(0, pierceCount_);
         logDamage = logDamage_;
         poisonStatusPayload = poisonStatusPayload_;
         electroStatusPayload = electroStatusPayload_;
+        damagePolishProfile = damagePolishProfile_;
         hitDamageables.Clear();
         trackedTargetDamageable = ResolveDamageable(target);
         enabled = true;
@@ -90,19 +98,39 @@ public class ProjectileDamageDealer : MonoBehaviour
             return false;
         }
 
-        NotifyNonElectroDamageReceived(damageable, damage);
-        damageable.TakeDamage(damage);
+        TurretDamagePolishResult damageResult = RollDamage();
+        NotifyNonElectroDamageReceived(damageable, damageResult.Damage);
+        DamagePopupContext.Begin(damageResult.Type);
+        try
+        {
+            damageable.TakeDamage(damageResult.Damage);
+        }
+        finally
+        {
+            DamagePopupContext.End();
+        }
         hitDamageables.Add(damageable);
         ApplyPoisonStatus(damageable);
-        ApplyElectroStatus(hitCollider, damageable, 0);
-        ElectroChainLightningUtility.ApplyChain(electroStatusPayload, damageable, hitCollider, ResolveChainStartPosition(hitCollider, damageable), damage);
+        ApplyElectroStatus(hitCollider, damageable, 0, damageResult.Damage);
+        ElectroChainLightningUtility.ApplyChain(electroStatusPayload, damageable, hitCollider, ResolveChainStartPosition(hitCollider, damageable), damageResult.Damage);
 
         if (logDamage)
         {
-            //Debug.Log($"[ProjectileDamageDealer] 데미지:{damage:0.###}, 대상 체력:{damageable.CurrHp:0.###}/{damageable.TotalHp:0.###}", this);
+            //Debug.Log($"[ProjectileDamageDealer] 데미지:{damageResult.Damage:0.###}, 대상 체력:{damageable.CurrHp:0.###}/{damageable.TotalHp:0.###}", this);
         }
 
         return true;
+    }
+
+    // 현재 데미지 폴리싱 프로필에 따라 실제 적용할 데미지 결과를 계산한다
+    private TurretDamagePolishResult RollDamage()
+    {
+        if (damagePolishProfile == null)
+        {
+            return new TurretDamagePolishResult(damage, TurretDamagePolishType.Normal);
+        }
+
+        return damagePolishProfile.RollDamage(damage);
     }
 
     // 데미지가 적용된 대상에게 Poison 상태 효과를 전달한다
@@ -140,7 +168,7 @@ public class ProjectileDamageDealer : MonoBehaviour
     }
 
     // 데미지가 적용된 대상에게 Electro 상태 효과를 전달한다
-    private void ApplyElectroStatus(Collider hitCollider, IDamageable damageable, int chainIndex)
+    private void ApplyElectroStatus(Collider hitCollider, IDamageable damageable, int chainIndex, float appliedDamage)
     {
         if (!electroStatusPayload.hasElectroStatus || damageable == null || !damageable.IsAlive)
         {
@@ -153,7 +181,7 @@ public class ProjectileDamageDealer : MonoBehaviour
             return;
         }
 
-        electroReceiver.ApplyElectroStatus(electroStatusPayload, chainIndex, damage);
+        electroReceiver.ApplyElectroStatus(electroStatusPayload, chainIndex, appliedDamage);
     }
 
     // 체인 탐색 시작 위치를 피격 콜라이더 또는 대상 컴포넌트 기준으로 계산한다

@@ -19,7 +19,7 @@ Read `PROJECT_OVERVIEW.md` when ownership, design intent, or shared API boundari
 | Survivor, obstacle, defense line, zombie spawn | `GAMEPLAY_RUNTIME_FLOW.md`, `SCENE_SETUP.md` |
 | Turret, projectile, placement, turret UI, turret skill | `TURRET_SYSTEM.md`, `COMMON_SYSTEMS.md` |
 | Reward, currency, zombie drops, upgrade/evolution costs | `REWARD_SYSTEM.md`, `COMMON_SYSTEMS.md`, relevant feature document |
-| Damage popup, pooling, shared damage API | `COMMON_SYSTEMS.md`, relevant feature document |
+| Damage popup, pooling, shared damage API | `COMMON_SYSTEMS.md`, `DAMAGE_POPUP_DNP_MIGRATION.md`, relevant feature document |
 | Main scene, prefab wiring, NavMesh, layer, Resources | `SCENE_SETUP.md` |
 | Private Assets or external asset integration | `PROJECT_STRUCTURE.md`, `PROJECT_OVERVIEW.md` |
 
@@ -35,6 +35,7 @@ Read `PROJECT_OVERVIEW.md` when ownership, design intent, or shared API boundari
 | `REWARD_SYSTEM.md` | Reward/currency model, zombie kill rewards, costs, and economy migration plan. |
 | `SCENE_SETUP.md` | Main scene and prefab setup checklist. |
 | `COMMON_SYSTEMS.md` | `IDamageable`, `MemoryPool`, `PoolObject`, damage popup, Resources, logging, performance. |
+| `DAMAGE_POPUP_DNP_MIGRATION.md` | DamageNumbersPro damage popup backend status, tuned values, and follow-up plan. |
 
 ## Maintenance Rule
 

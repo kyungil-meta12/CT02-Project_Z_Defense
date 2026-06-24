@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using DamageNumbersPro;
 using UnityEngine;
 
 /// <summary>
@@ -7,6 +8,7 @@ using UnityEngine;
 public class DamagePopupSpawner : MonoBehaviour
 {
     private const string DAMAGE_POPUP_RESOURCE_PATH = "UI/DamagePopup";
+    private const string DNP_DAMAGE_POPUP_RESOURCE_PATH = "UI/DNP_DamagePopup_RedGlow";
     private const string DAMAGE_POPUP_SETTINGS_RESOURCE_PATH = "UI/DamagePopupSettings";
     private const string RUNTIME_SYSTEMS_CONTAINER_NAME = "RuntimeSystems";
     private const float POPUP_RATE_WINDOW_SECONDS = 1.0f;
@@ -19,6 +21,7 @@ public class DamagePopupSpawner : MonoBehaviour
 
     private readonly List<int> accumulationFlushKeys = new List<int>(128);
     private DamagePopup damagePopupPrefab;
+    private DamageNumberMesh fallbackDnpPrefab;
     private Camera targetCamera;
     private float popupRateWindowStartTime;
     private int popupCountInCurrentWindow;
@@ -39,8 +42,14 @@ public class DamagePopupSpawner : MonoBehaviour
         popupCountInCurrentWindow = 0;
         targetCamera = Camera.main;
         EnsureSettings();
-        EnsurePrefab();
-        Prewarm();
+        if (settings.PopupBackend != DamagePopupBackend.DamageNumbersProMesh || GetDnpPrefab(DamagePopupType.Normal) == null)
+        {
+            EnsurePrefab();
+            Prewarm();
+            return;
+        }
+
+        PrewarmDnpPopups();
     }
 
     // 누적된 데미지 팝업 표시 시점을 갱신한다
@@ -259,6 +268,11 @@ public class DamagePopupSpawner : MonoBehaviour
     // 설정된 초기 개수만큼 데미지 팝업을 풀에 미리 생성한다
     private void Prewarm()
     {
+        if (settings.PopupBackend == DamagePopupBackend.DamageNumbersProMesh)
+        {
+            return;
+        }
+
         if (damagePopupPrefab == null)
         {
             return;
@@ -267,10 +281,110 @@ public class DamagePopupSpawner : MonoBehaviour
         GetOrCreateMemoryPool().Prewarm(damagePopupPrefab, settings.InitialPoolSize);
     }
 
+    // DamageNumbersPro 프리팹의 자체 풀을 미리 생성한다
+    private void PrewarmDnpPopups()
+    {
+        DamageNumberMesh normalPrefab = GetDnpPrefab(DamagePopupType.Normal);
+        DamageNumberMesh criticalPrefab = GetDnpPrefab(DamagePopupType.Critical);
+        DamageNumberMesh heavyPrefab = GetDnpPrefab(DamagePopupType.Heavy);
+
+        PrewarmDnpPrefab(normalPrefab);
+        if (criticalPrefab != normalPrefab)
+        {
+            PrewarmDnpPrefab(criticalPrefab);
+        }
+
+        if (heavyPrefab != normalPrefab && heavyPrefab != criticalPrefab)
+        {
+            PrewarmDnpPrefab(heavyPrefab);
+        }
+    }
+
+    // 지정한 DamageNumbersPro 프리팹의 풀을 미리 채운다
+    private static void PrewarmDnpPrefab(DamageNumberMesh dnpPrefab)
+    {
+        if (dnpPrefab == null)
+        {
+            return;
+        }
+
+        dnpPrefab.PrewarmPool();
+    }
+
     // 데미지 숫자 팝업을 타입별 표시 설정과 함께 풀에서 가져와 표시한다
     private void Spawn(int damageValue, Vector3 position, DamagePopupType damageType)
     {
         RefreshTargetCamera();
+        if (settings.PopupBackend == DamagePopupBackend.DamageNumbersProMesh && TrySpawnDnpPopup(damageValue, position, damageType))
+        {
+            return;
+        }
+
+        SpawnProjectPopup(damageValue, position, damageType);
+    }
+
+    // DamageNumbersPro Mesh 백엔드로 데미지 팝업을 생성한다
+    private bool TrySpawnDnpPopup(int damageValue, Vector3 position, DamagePopupType damageType)
+    {
+        DamageNumberMesh dnpPrefab = GetDnpPrefab(damageType);
+        if (dnpPrefab == null)
+        {
+            return false;
+        }
+
+        DamageNumber popup = dnpPrefab.Spawn(position, damageValue);
+        if (popup == null)
+        {
+            return false;
+        }
+
+        ConfigureDnpPopup(popup, damageType);
+        return true;
+    }
+
+    // 설정 프리팹이 비어 있으면 Resources 기본 DNP 프리팹을 반환한다
+    private DamageNumberMesh GetDnpPrefab(DamagePopupType damageType)
+    {
+        DamageNumberMesh dnpPrefab = settings.GetDnpPrefab(damageType);
+        if (dnpPrefab != null)
+        {
+            return dnpPrefab;
+        }
+
+        if (fallbackDnpPrefab == null)
+        {
+            fallbackDnpPrefab = Resources.Load<DamageNumberMesh>(DNP_DAMAGE_POPUP_RESOURCE_PATH);
+        }
+
+        return fallbackDnpPrefab;
+    }
+
+    // DamageNumbersPro 팝업에 프로젝트 타입별 스타일을 적용한다
+    private void ConfigureDnpPopup(DamageNumber popup, DamagePopupType damageType)
+    {
+        if (targetCamera != null)
+        {
+            popup.cameraOverride = targetCamera.transform;
+            popup.fovCamera = targetCamera;
+            popup.orthographicCamera = targetCamera;
+            if (targetCamera.orthographic)
+            {
+                popup.renderThroughWalls = false;
+                popup.consistentScreenSize = false;
+            }
+        }
+
+        popup.SetColor(settings.GetDamageColor(damageType));
+        popup.enableLeftText = settings.DnpUseTypePrefix && damageType != DamagePopupType.Normal;
+        popup.leftText = settings.GetDnpPrefix(damageType);
+        float scaleMultiplier = settings.DnpScale * settings.GetScaleMultiplier(damageType);
+        popup.SetScale(scaleMultiplier);
+        popup.UpdateText();
+    }
+
+    // 프로젝트 기본 World Canvas 백엔드로 데미지 팝업을 생성한다
+    private void SpawnProjectPopup(int damageValue, Vector3 position, DamagePopupType damageType)
+    {
         EnsurePrefab();
 
         if (damagePopupPrefab == null)
@@ -450,3 +564,4 @@ public class DamagePopupSpawner : MonoBehaviour
         }
     }
 }
+

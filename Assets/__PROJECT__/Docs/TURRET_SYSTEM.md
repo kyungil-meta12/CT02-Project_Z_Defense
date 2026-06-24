@@ -905,7 +905,7 @@ Engineer buff policy:
 - Evolution effects should spawn through `PooledObjectUtility.SpawnEffect`.
 - Frost freeze explosion effects should spawn through `PooledObjectUtility.SpawnEffect` and should use a real pool when repeated frequently.
 - `ProjectileHitDetector` must clear target/collider state on reuse.
-- `DamagePopup.Init` must receive settings every spawn because pooled world-canvas text objects retain previous state.
+- Damage popup generation must go through `DamagePopupSpawner` so accumulation, throttling, stacked offsets, and the selected DNP/project backend stay centralized.
 
 ## Third-Generation VFX Pooling Matrix
 

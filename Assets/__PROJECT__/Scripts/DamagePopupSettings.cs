@@ -1,3 +1,4 @@
+using DamageNumbersPro;
 using TMPro;
 using UnityEngine;
 
@@ -23,12 +24,31 @@ public class DamagePopupSettings : ScriptableObject
     public const float DEFAULT_STACK_VERTICAL_STEP = 0.18f;
     public const float DEFAULT_ACCUMULATION_WINDOW = 0.12f;
     public const int DEFAULT_MAX_POPUPS_PER_SECOND = 45;
+    public const float DEFAULT_DNP_SCALE = 0.35f;
 
     [Header("풀")]
     [Tooltip("MemoryPool에서 사용할 데미지 팝업 프리팹")]
     [SerializeField] private DamagePopup damagePopupPrefab;
     [Tooltip("초기 생성해 둘 데미지 팝업 개수")]
     [SerializeField, Min(1)] private int initialPoolSize = DEFAULT_INITIAL_POOL_SIZE;
+
+    [Header("표시 백엔드")]
+    [Tooltip("데미지 팝업을 렌더링할 시스템. DNP Mesh는 World Canvas보다 다수 팝업에 유리하다.")]
+    [SerializeField] private DamagePopupBackend popupBackend = DamagePopupBackend.DamageNumbersProMesh;
+    [Tooltip("일반 데미지에 사용할 DamageNumbersPro Mesh 프리팹")]
+    [SerializeField] private DamageNumberMesh dnpNormalPrefab;
+    [Tooltip("치명타 데미지에 사용할 DamageNumbersPro Mesh 프리팹. 비워두면 일반 프리팹을 사용한다.")]
+    [SerializeField] private DamageNumberMesh dnpCriticalPrefab;
+    [Tooltip("강타 데미지에 사용할 DamageNumbersPro Mesh 프리팹. 비워두면 치명타 또는 일반 프리팹을 사용한다.")]
+    [SerializeField] private DamageNumberMesh dnpHeavyPrefab;
+    [Tooltip("DamageNumbersPro 팝업 생성 시 적용할 기본 크기 배율")]
+    [SerializeField, Min(0.01f)] private float dnpScale = DEFAULT_DNP_SCALE;
+    [Tooltip("DamageNumbersPro 팝업에 타입별 텍스트 접두사를 표시한다.")]
+    [SerializeField] private bool dnpUseTypePrefix = true;
+    [Tooltip("DamageNumbersPro 치명타 접두사")]
+    [SerializeField] private string dnpCriticalPrefix = "CRIT ";
+    [Tooltip("DamageNumbersPro 강타 접두사")]
+    [SerializeField] private string dnpHeavyPrefix = "HEAVY ";
 
     [Header("텍스트")]
     [Tooltip("데미지 숫자 폰트 크기")]
@@ -122,6 +142,11 @@ public class DamagePopupSettings : ScriptableObject
 
     public DamagePopup DamagePopupPrefab => damagePopupPrefab;
     public int InitialPoolSize => initialPoolSize;
+    public DamagePopupBackend PopupBackend => popupBackend;
+    public float DnpScale => dnpScale;
+    public bool DnpUseTypePrefix => dnpUseTypePrefix;
+    public string DnpCriticalPrefix => dnpCriticalPrefix;
+    public string DnpHeavyPrefix => dnpHeavyPrefix;
     public int FontSize => fontSize;
     public float WorldCanvasScale => worldCanvasScale;
     public float TextRectWidth => textRectWidth;
@@ -148,6 +173,49 @@ public class DamagePopupSettings : ScriptableObject
     public string RenderSortingLayerName => renderSortingLayerName;
     public int RenderSortingOrder => renderSortingOrder;
     public float CameraForwardOffset => cameraForwardOffset;
+
+    // 데미지 타입에 맞는 DamageNumbersPro 프리팹을 반환한다
+    public DamageNumberMesh GetDnpPrefab(DamagePopupType damageType)
+    {
+        switch (damageType)
+        {
+            case DamagePopupType.Heavy:
+                if (dnpHeavyPrefab != null)
+                {
+                    return dnpHeavyPrefab;
+                }
+
+                if (dnpCriticalPrefab != null)
+                {
+                    return dnpCriticalPrefab;
+                }
+
+                return dnpNormalPrefab;
+            case DamagePopupType.Critical:
+                return dnpCriticalPrefab != null ? dnpCriticalPrefab : dnpNormalPrefab;
+            default:
+                return dnpNormalPrefab;
+        }
+    }
+
+    // 데미지 타입에 맞는 DamageNumbersPro 접두사를 반환한다
+    public string GetDnpPrefix(DamagePopupType damageType)
+    {
+        if (!dnpUseTypePrefix)
+        {
+            return string.Empty;
+        }
+
+        switch (damageType)
+        {
+            case DamagePopupType.Heavy:
+                return dnpHeavyPrefix ?? string.Empty;
+            case DamagePopupType.Critical:
+                return dnpCriticalPrefix ?? string.Empty;
+            default:
+                return string.Empty;
+        }
+    }
 
     // 데미지 타입에 맞는 팝업 색상을 반환한다
     public Color GetDamageColor(DamagePopupType damageType)
@@ -268,6 +336,16 @@ public class DamagePopupSettings : ScriptableObject
         stackVerticalStep = Mathf.Max(0f, stackVerticalStep);
         accumulationWindow = Mathf.Max(0.01f, accumulationWindow);
         maxPopupsPerSecond = Mathf.Max(0, maxPopupsPerSecond);
+        dnpScale = Mathf.Max(0.01f, dnpScale);
+        if (dnpCriticalPrefix == null)
+        {
+            dnpCriticalPrefix = string.Empty;
+        }
+
+        if (dnpHeavyPrefix == null)
+        {
+            dnpHeavyPrefix = string.Empty;
+        }
         cameraForwardOffset = Mathf.Max(0f, cameraForwardOffset);
         startScale = Mathf.Max(0f, startScale);
         endScale = Mathf.Max(0f, endScale);

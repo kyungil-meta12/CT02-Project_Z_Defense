@@ -112,30 +112,36 @@ Check these before finishing pooled-object work:
 Paths:
 
 - `Assets/__PROJECT__/Scripts/DamagePopup.cs`
+- `Assets/__PROJECT__/Scripts/DamagePopupBackend.cs`
 - `Assets/__PROJECT__/Scripts/DamagePopupSpawner.cs`
 - `Assets/__PROJECT__/Scripts/DamagePopupSettings.cs`
+- `Assets/__PROJECT__/Docs/DAMAGE_POPUP_DNP_MIGRATION.md`
 - `Assets/__PROJECT__/Resources/UI/DamagePopup.prefab`
+- `Assets/__PROJECT__/Resources/UI/DNP_DamagePopup_RedGlow.prefab`
 - `Assets/__PROJECT__/Resources/UI/DamagePopupSettings.asset`
 
 Flow:
 
 1. Damage receiver applies damage and updates HP/alive state.
 2. Damage receiver calls `DamagePopupSpawner.SpawnDamage(targetTransform, damageInfo)` when visual feedback is needed.
-3. Spawner loads settings and prefab from `Resources/UI` if needed.
-4. Spawner gets a pooled `DamagePopup` instance.
-5. `DamagePopup.Init` applies text/settings/camera and `DamagePopupType` styling each spawn.
-6. Popup animates and returns to pool.
+3. Spawner loads settings from `Resources/UI` if needed.
+4. Spawner keeps same-target accumulation, per-second throttling, and stacked spawn offset policy in project code.
+5. If `DamagePopupSettings.popupBackend` is `DamageNumbersProMesh`, the spawner uses the configured `DamageNumberMesh` prefab and DamageNumbersPro pooling/updater.
+6. If the DNP prefab is missing or the backend is `ProjectWorldCanvas`, the spawner falls back to the project `DamagePopup` MemoryPool path.
 
 Rules:
 
 - Do not allocate popup prefabs per hit manually.
+- Keep Private Assets originals unchanged. Use duplicated project prefabs such as `DNP_DamagePopup_RedGlow.prefab` for tuned DamageNumbersPro settings.
 - Always reinitialize pooled popup text, color, scale, lifetime, and camera-dependent values.
 - Turret critical or heavy hit styling is passed through `DamageInfo.PopupType`, not through a static temporary context.
 - High-frequency paths can pass `DamageInfo.PopupPolicy = Accumulate` so same-target damage is merged within `DamagePopupSettings.accumulationWindow`.
 - `DamagePopupSettings.maxPopupsPerSecond` limits throttled and accumulated popup creation to prevent runaway popup counts during rapid-fire, beam, DoT, and chain damage.
 - Popup position offset, random spread, text formats, colors, scale multipliers, and lifetime are configured in `Resources/UI/DamagePopupSettings.asset`.
 - Normal zombie and boss zombie popup positions can be tuned separately through the same `DamagePopupSettings.asset`.
-- Popup world-canvas sorting and camera-forward offset are configured in the same asset to prevent damage text from being hidden by zombie meshes or HP bars.
+- World Canvas sorting and camera-forward offset apply to the fallback project backend. DNP Mesh visibility is controlled by the DNP prefab settings such as `renderThroughWalls`, `faceCameraView`, and `consistentScreenSize`.
+- For the current Orthographic main camera, keep DNP `renderThroughWalls` and `consistentScreenSize` disabled. These Perspective-oriented options can make popups too small to see.
+- DamageNumbersPro migration status, tuned values, and next work plan are tracked in `DAMAGE_POPUP_DNP_MIGRATION.md`.
 - Avoid logs per damage tick.
 
 ## Warning Popup

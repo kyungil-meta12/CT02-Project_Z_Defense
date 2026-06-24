@@ -18,10 +18,10 @@ public class InventoryUI : MonoBehaviour
     [Header("크래프팅 컨텐츠 객체")] public GameObject craftContent;
     [Header("인벤토리 아이템 버튼 프리펩")] public GameObject inventoryCellPrefab;
     [Header("크래프트 아이템 버튼 프리펩")] public GameObject craftCellPrefab;
-    [Header("배경 객체")] public Image background;
     [Header("아이템 이름 텍스트 객체")] public TextMeshProUGUI itemNameText;
     [Header("아이템 정보 텍스트 객체")] public TextMeshProUGUI itemInfoText;
     [Header("패널 텍스트 객체")] public TextMeshProUGUI pannelTitletext;
+    [Header("배경 객체")] public Image background;
 
     // 메타데이터 목록
     private List<ItemMetaDataSo> metaDataList = new();

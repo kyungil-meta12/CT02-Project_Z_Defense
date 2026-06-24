@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5f9efc74f895b2d48bb9a9671cba3cd2, type: 3}
   m_Name: SpecialPart_ItemMetaData
   m_EditorClassIdentifier: Assembly-CSharp::ItemMetaDataSo
-  Type: 3
+  Type: 2
   Name: "\uC815\uBC00 \uAE30\uACC4 \uBD80\uD488"
   InfoText: "\uBE44\uC2F8\uACE0 \uC815\uBC00\uD574\uC11C \uC804\uBB38\uAC00\uAC00
     \uC870\uC2EC\uD788 \uB2E4\uB8E8\uC5B4\uC57C \uD558\uB294 \uBD80\uD488\uC774\uB2E4."

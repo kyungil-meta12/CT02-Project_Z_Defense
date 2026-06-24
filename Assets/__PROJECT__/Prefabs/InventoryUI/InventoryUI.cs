@@ -23,6 +23,7 @@ public class InventoryUI : MonoBehaviour
     [Header("아이템 이름 텍스트 객체")] public TextMeshProUGUI itemNameText;
     [Header("아이템 정보 텍스트 객체")] public TextMeshProUGUI itemInfoText;
     [Header("패널 텍스트 객체")] public TextMeshProUGUI pannelTitletext;
+    [Header("제작 버튼")] public Button makeButton;
     [Header("배경 객체")] public Image background;
 
     // 메타데이터 목록
@@ -227,6 +228,11 @@ public class InventoryUI : MonoBehaviour
         }
     }
 
+    public void OnMakeButtonClick()
+    {
+        print("[InventoryUI] 제작 버튼 눌림");
+    }
+
     /// <summary>
     /// 이미지가 보이는 여부를 설정한다.
     /// </summary>
@@ -287,6 +293,7 @@ public class InventoryUI : MonoBehaviour
         SetInfoText(null, null);
         pannelTitletext.text = "Inventory";
         ResetScroll(inventoryContent);
+        makeButton.gameObject.SetActive(false);
     }
 
     /// <summary>
@@ -298,6 +305,7 @@ public class InventoryUI : MonoBehaviour
         SetInfoText(null, null);
         pannelTitletext.text = "Craft";
         ResetScroll(craftContent);
+        makeButton.gameObject.SetActive(true);
     }
 
     // 인벤토리 셀을 새로고침 한다.

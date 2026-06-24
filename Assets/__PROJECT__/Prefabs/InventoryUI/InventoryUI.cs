@@ -1,4 +1,5 @@
 using IncrementalLib;
+using System;
 using System.Collections.Generic;
 using TMPro;
 using Unity.Android.Gradle.Manifest;
@@ -46,6 +47,10 @@ public class InventoryUI : MonoBehaviour
     private List<Image> craftImageList = new();
     private List<TextMeshProUGUI> craftTextList = new();
     private Dictionary<RewardCurrencyType, TextMeshProUGUI> craftCountTextList = new();
+
+    // 마지막으로 선택된 타입
+    private bool craftItemSelected = false;
+    private RewardCurrencyType latestSelectedCraftType = 0;
 
 
 
@@ -207,6 +212,8 @@ public class InventoryUI : MonoBehaviour
     {
         SetInfoText(craftButtonDict, button);
         SetInfoImage(craftButtonDict, button);
+        latestSelectedCraftType = craftButtonDict[button];
+        craftItemSelected = true;
     }
 
     /// <summary>
@@ -233,7 +240,26 @@ public class InventoryUI : MonoBehaviour
 
     public void OnMakeButtonClick()
     {
-        print("[InventoryUI] 제작 버튼 눌림");
+        if(!craftItemSelected)
+        {
+            Debug.LogWarning("[InventoryUI] 아이템이 선택되지 않음");
+            return;
+        }
+        var needItems = metaDataList.Find(meta => meta.Type == latestSelectedCraftType).ItemsToCreate;
+        foreach(var item in needItems)
+        {
+            if(InventorySystem.Inst.CanUseItem(item.Type, item.Count))
+            {
+                InventorySystem.Inst.UseItem(item.Type, item.Count);
+            }
+            else
+            {
+                Debug.LogWarning($"[InvectoryUI] 아이템이 부족하여 재작할 수 없음 | 부족한 아이템: {item.Type} | 필요 개수: {item.Count} | 현재 개수: {InventorySystem.Inst.GetCount(item.Type)}");
+                return;
+            }
+        }
+
+        Debug.Log($"[InventoryUI] 아이템 제작 완료 |  아이템: {latestSelectedCraftType}");
     }
 
     /// <summary>
@@ -311,6 +337,7 @@ public class InventoryUI : MonoBehaviour
         SetInfoImage(null, null);
         pannelTitletext.text = "Inventory";
         ResetScroll(inventoryContent);
+        craftItemSelected = false;
         makeButton.gameObject.SetActive(false);
     }
 
@@ -324,6 +351,7 @@ public class InventoryUI : MonoBehaviour
         SetInfoImage(null, null);
         pannelTitletext.text = "Craft";
         ResetScroll(craftContent);
+        craftItemSelected = false;
         makeButton.gameObject.SetActive(true);
     }
 

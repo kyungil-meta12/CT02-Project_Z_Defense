@@ -194,6 +194,7 @@ Runtime behavior:
 12. When the engineer reaches the turret, the survivor is hidden as a mounted engineer and the turret upgrade popup can show an engineer seat trigger for that turret.
 13. Clicking an active engineer seat trigger dismounts that engineer, removes the turret buff, shows the survivor again, and sends the engineer back to the rear gathering point when one is assigned.
 14. Long movement time logs a throttled warning but does not cancel the current movement target.
+15. Each turret definition limits mounted engineers through `TurretDefinitionSO.maxEngineerSeatCount`; `0` means that turret cannot accept engineers.
 
 Repair target policy:
 

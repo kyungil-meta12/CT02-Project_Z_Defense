@@ -54,7 +54,7 @@ Do not use display names as stable IDs.
 
 | Type | Role |
 | --- | --- |
-| `TurretDefinitionSO` | Top-level turret identity, prefab, base stat profile, growth, upgrade cost profile, VFX progression, projectile scale progression, status profile, evolution progression, max level. |
+| `TurretDefinitionSO` | Top-level turret identity, prefab, base stat profile, growth, upgrade cost profile, VFX progression, projectile scale progression, status profile, evolution progression, max level, engineer seat limit. |
 | `TurretStatProfileSO` | Base combat values for tier level 1: damage, range, fire interval, projectile speed, projectile count, pierce count. |
 | `TurretStatGrowthProfileSO` | Tier-level-based growth calculation using completed growth steps. |
 | `TurretUpgradeCostProfileSO` | Calculates upgrade costs from current tier level to target tier level. |
@@ -865,6 +865,9 @@ Engineer buff policy:
 - The damage buff is applied only after the engineer reaches the turret standby/build point.
 - Mounted engineers are hidden through the survivor visibility/interaction controls instead of destroying the survivor instance.
 - `TurretEngineerBuffReceiver.OnBuffStateChanged` is used by the turret popup to refresh active engineer seat triggers without making zombie spawn, drop, or survivor rescue systems respond to the mount/dismount state.
+- `TurretDefinitionSO.maxEngineerSeatCount` owns the maximum mounted engineer count for each turret definition. `0` means engineers cannot mount that turret.
+- Initial engineer seat limits are 1st generation `1`, 2nd generation `2`, and 3rd generation `3`; future balance changes should adjust the SO or CSV value, not the runtime code.
+- `TurretDataCsvEditorTool` exports and imports this value through the `MaxEngineerSeatCount` column.
 
 ## Targeting And Firing Notes
 

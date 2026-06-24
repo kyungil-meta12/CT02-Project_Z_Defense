@@ -175,6 +175,7 @@ Rescue and role UI setup:
 - `EngineerBuffTargetPanelUI` should keep eight target buttons and eight `TurretBaseSlot` references; buttons stay visible and become interactable only when the mapped slot has a placed turret.
 - Assign survivor and turret slot layer masks so click selection and engineer drag use `Physics.RaycastNonAlloc` only against relevant layers.
 - Turrets can receive stackable engineer damage buffs through `TurretEngineerBuffReceiver`; the interaction controller adds it to the selected turret at runtime if it is missing.
+- `TurretDefinitionSO.maxEngineerSeatCount` controls how many engineers can mount each turret. Current default setup uses 1st generation `1`, 2nd generation `2`, and 3rd generation `3`; `0` disables engineer mounting for that definition.
 
 ## Game Over Panel Setup
 
@@ -197,6 +198,27 @@ Scene wiring:
 - Set `GameManager.gameOverFadeInDuration` and `gameOverFadeOutDuration`; default runtime expectation is 10 seconds each.
 - Ensure `ZombieSpawner` exists in the scene so it can register with `GameManager` and participate in pause, despawn, previous-wave prepare, and resume.
 - Ensure obstacle slots have stored `ObstacleDefinitionSO` progress if they need to be rebuilt after gate destruction.
+
+## Warning Popup Setup
+
+Warning popups are scene-authored UI and pooled at runtime.
+
+Required setup:
+
+- Create a warning popup prefab manually.
+- Add `WarningPopup` to the prefab root.
+- Assign the prefab child `Image` to `WarningPopup.iconImage`.
+- Assign the prefab child `TMP_Text` to `WarningPopup.messageText`.
+- Add `WarningPopupManager` to a scene runtime UI object.
+- Assign `WarningPopupManager.popupPrefab` and `popupRoot`.
+- Leave `popupIconSprites` empty until message-type icons are ready, then add sprites in the Inspector.
+
+Rules:
+
+- The popup prefab root is pooled through `MemoryPool`; do not instantiate it manually for repeated warnings.
+- `WarningPopup` forces child image raycast and child text raycast off so it does not block `CameraTouchHandler`.
+- If multiple warnings occur, the manager stacks them under `popupRoot` and returns the oldest popup when `maxVisibleCount` is reached.
+- Gameplay and UI code should use `WarningPopupManager.ShowWarning(...)` instead of directly controlling popup instances.
 
 ## Zombie Spawner Setup
 
@@ -226,6 +248,7 @@ Minimum scene requirements:
 - Create the turret upgrade/evolution popup from `Project Z Defense > UI > Create Turret Upgrade Popup UI`; the runtime popup controller expects serialized scene UI references and a full-screen transparent `BackgroundButton`.
 - The transparent `BackgroundButton` should cover the screen, have an alpha-0 `Image` with `raycastTarget` enabled, and call `TurretTemporaryUpgradePopupUI.OnBackgroundButtonClicked`.
 - The generated popup includes `EngineerSeatTriggers` above the main upgrade content. Keep the desired number of `TurretEngineerSeatButton` children in that container and match `engineerSeatTriggerCount` on `TurretTemporaryUpgradePopupUI`.
+- `engineerSeatTriggerCount` is only the prepared popup button pool size; actual mount limits come from each selected turret's `TurretDefinitionSO.maxEngineerSeatCount`.
 - `turretBaseLayerMask` includes only intended turret base hit areas.
 - Each `TurretBaseSlot` has `BuildPoint` and `PlacementHitArea`.
 - `PlacementHitArea` collider is on the expected layer.

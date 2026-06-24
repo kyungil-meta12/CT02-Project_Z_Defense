@@ -31,6 +31,72 @@ Transform:
   m_Children: []
   m_Father: {fileID: 2744766567789996691}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1001 &56056714683092242
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 5448368020507639914}
+    m_Modifications:
+    - target: {fileID: 1065415465654316185, guid: 9d32345b9deefea468578454fed45729, type: 3}
+      propertyPath: turretRuntime
+      value: 
+      objectReference: {fileID: 6276699055580667231}
+    - target: {fileID: 5939366483768426405, guid: 9d32345b9deefea468578454fed45729, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5939366483768426405, guid: 9d32345b9deefea468578454fed45729, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 3.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 5939366483768426405, guid: 9d32345b9deefea468578454fed45729, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5939366483768426405, guid: 9d32345b9deefea468578454fed45729, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 0.91789365
+      objectReference: {fileID: 0}
+    - target: {fileID: 5939366483768426405, guid: 9d32345b9deefea468578454fed45729, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0.39005297
+      objectReference: {fileID: 0}
+    - target: {fileID: 5939366483768426405, guid: 9d32345b9deefea468578454fed45729, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0.05846785
+      objectReference: {fileID: 0}
+    - target: {fileID: 5939366483768426405, guid: 9d32345b9deefea468578454fed45729, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0.043720014
+      objectReference: {fileID: 0}
+    - target: {fileID: 5939366483768426405, guid: 9d32345b9deefea468578454fed45729, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5939366483768426405, guid: 9d32345b9deefea468578454fed45729, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5939366483768426405, guid: 9d32345b9deefea468578454fed45729, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6162691470817193601, guid: 9d32345b9deefea468578454fed45729, type: 3}
+      propertyPath: m_Name
+      value: RankDisplayRoot
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 9d32345b9deefea468578454fed45729, type: 3}
+--- !u!4 &5957128786659422903 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 5939366483768426405, guid: 9d32345b9deefea468578454fed45729, type: 3}
+  m_PrefabInstance: {fileID: 56056714683092242}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &2303272451805851567
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -383,6 +449,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: -8679921383154817045, guid: d92d70aa98a5713408d060d70ca3fbf1, type: 3}
       insertIndex: -1
       addedObject: {fileID: 2508949885450696418}
+    - targetCorrespondingSourceObject: {fileID: -8679921383154817045, guid: d92d70aa98a5713408d060d70ca3fbf1, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 5957128786659422903}
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: d92d70aa98a5713408d060d70ca3fbf1, type: 3}
       insertIndex: -1
@@ -425,7 +494,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   rotatorMesh: {fileID: 2997783320889912408}
   headMesh: {fileID: 7888305147777173999}
-  projectilePrefab: {fileID: 1294834399362254, guid: 3a737c5e33310dc4f914fd3b9069f65e, type: 3}
+  projectilePrefab: {fileID: 1976014488594992, guid: b7598d5b9928a334fbdac42b683b2b02, type: 3}
   canRotateXRotator: 1
   canRotateHeadSeparately: 1
   rotateSpeed: 500
@@ -434,7 +503,7 @@ MonoBehaviour:
   closeRangeFireDistance: 2
   closeRangeTurretAngleAttack: 60
   requireAimAngleBeforeFire: 0
-  fireTick: 1
+  fireTick: 0.7
   targetSearchInterval: 0.1
   aimPointLerpSpeed: 18
   targetVelocityLerpSpeed: 10
@@ -460,7 +529,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a31afd3a38f12d846bcc57f9abf2944d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  radius: 50
+  radius: 35
   targetTag: Enemy
   targetLayer:
     serializedVersion: 2

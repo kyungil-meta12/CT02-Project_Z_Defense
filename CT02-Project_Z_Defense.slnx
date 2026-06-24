@@ -16,7 +16,9 @@
   <Project Path="Assembly-CSharp-Editor.csproj" />
   <Project Path="Kamgam.UGUIWorldImage.csproj" />
   <Project Path="Lofelt.NiceVibrations.Demo.csproj" />
+  <Project Path="TinyGiantStudio.Ranks.csproj" />
   <Project Path="Lofelt.NiceVibrations.Editor.csproj" />
+  <Project Path="TinyGiantStudio.Ranks.Editor.csproj" />
   <Project Path="ACTk.Examples.Genuine.Editor.csproj" />
   <Project Path="SRPMaterialConverter.csproj" />
   <Project Path="Assembly-CSharp-Editor-firstpass.csproj" />

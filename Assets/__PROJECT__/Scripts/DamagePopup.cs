@@ -97,7 +97,7 @@ public class DamagePopup : PoolObject
         textMesh.enableAutoSizing = false;
         textMesh.fontSizeMin = settings.FontSize;
         textMesh.fontSizeMax = settings.FontSize;
-        textMesh.enableWordWrapping = false;
+        textMesh.textWrappingMode = TextWrappingModes.NoWrap;
         textMesh.overflowMode = TextOverflowModes.Overflow;
         textMesh.font = settings.FontAsset != null ? settings.FontAsset : defaultFontAsset;
         ApplyWorldCanvasScale(settings);

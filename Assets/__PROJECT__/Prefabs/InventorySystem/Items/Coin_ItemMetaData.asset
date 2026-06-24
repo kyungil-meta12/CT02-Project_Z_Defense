@@ -17,4 +17,8 @@ MonoBehaviour:
   InfoText: "\uC880\uBE44 \uC0AC\uD0DC \uC774\uC804\uC5D0 \uC0AC\uC6A9\uB418\uB358
     \uD654\uD3D0."
   ItemImage: {fileID: 21300000, guid: f7a01888466e6254e8552b137e14190b, type: 3}
-  ItemsToCreate: []
+  Craftable: 1
+  ItemsToCreate:
+  - Count: 100
+    Type: 1
+  CreateCount: 100

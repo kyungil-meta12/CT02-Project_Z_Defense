@@ -147,7 +147,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 93269d0e4224673439e6904fbc8250db, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PassEventToScrollRect
-  scrollRectHierachy: InventoryUI/MainController/Inventory
 --- !u!1 &8286947991481485383
 GameObject:
   m_ObjectHideFlags: 0
@@ -215,8 +214,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: 500
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 16f37419dbfce2c4da5ebffce9dc83e0, type: 2}
-  m_sharedMaterial: {fileID: 6874088232059199337, guid: 16f37419dbfce2c4da5ebffce9dc83e0, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: ec9a04e0cef20d0468907ab46a64f2a3, type: 2}
+  m_sharedMaterial: {fileID: 6874088232059199337, guid: ec9a04e0cef20d0468907ab46a64f2a3, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -246,7 +245,7 @@ MonoBehaviour:
   m_enableAutoSizing: 1
   m_fontSizeMin: 18
   m_fontSizeMax: 72
-  m_fontStyle: 0
+  m_fontStyle: 1
   m_HorizontalAlignment: 4
   m_VerticalAlignment: 1024
   m_textAlignment: 65535

@@ -19,7 +19,8 @@ public class ItemMetaDataSo : ScriptableObject
     [Header("표시할 아이템 이름 텍스트")] public string Name;
     [Header("표시할 아이템 설명 텍스트")][TextArea(3, 10)] public string InfoText;
     [Header("표시할 아이템 이미지")] public Sprite ItemImage;
-    // 비워두면 조합법 자제가 없는 기초 재료이다.
+    [Header("제작 가능 여부")] public bool Craftable;
     [Header("제작에 필요한 아이템 목록")] public List<ItemMaterialData> ItemsToCreate;
+    [Header("한 번 제작할 때 만들어지는 개수")] public int CreateCount;
 }
 

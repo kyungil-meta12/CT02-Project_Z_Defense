@@ -33,6 +33,7 @@ Before editing `Main.unity`:
 
 - `lineName`
 - `obstacleSlots`
+- `turretBaseSlots`
 - `retreatPoint`
 - `restoredPoint`
 
@@ -41,6 +42,7 @@ Before editing `Main.unity`:
 Rules:
 
 - Obstacle slot lists define which defense line is breached when an obstacle fractures.
+- Turret base slot lists define which turret bases are disabled while that defense line is breached.
 - Retreat and restored points must be on reachable NavMesh or near valid NavMesh sampling positions.
 - Defense-line index order matters. Lower index means earlier/front line.
 - A survivor that retreated behind line `N` must not repair obstacles with index `<= N` until return completes.
@@ -82,6 +84,7 @@ Rules:
 - `BuildPoint` should hold the installed obstacle or gate as a child.
 - Existing scene obstacles should be moved under the correct `BuildPoint` or assigned through the slot's runtime reference.
 - `GameManager` should reference all seven slots through defense-line `obstacleSlots`.
+- `GameManager` should reference each line's matching turret bases through defense-line `turretBaseSlots`; disabling a base root also disables any installed turret under its `BuildPoint`.
 
 ## Obstacle Placement UI Setup
 

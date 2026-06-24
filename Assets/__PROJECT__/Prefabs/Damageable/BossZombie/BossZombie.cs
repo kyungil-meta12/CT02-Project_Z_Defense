@@ -831,23 +831,19 @@ public class BossZombie : PoolObject, IDamageable, IAimPointProvider, IFrostStat
     private void Die()
     {
         IsAlive = false; // 생존 상태 비활성화
-        GameManager.Inst.IncreaseKillCount();
-        GrantKillReward(); // 이 메서드 내부에서 rewardResult를 얻는다.
-
-        // 코인 획득량에 따라 다른 코인 파티클을 생성한다.
-        if (CoinParticleCreator.Inst)
+        rewardResult.Clear();
+        if (hpUI != null)
         {
-            CoinParticleCreator.Inst.Create(rewardResult, transform.position, transform.localScale * rewardParticleScale);
+            hpUI.gameObject.SetActive(false); // hp UI 비활성화
         }
 
-        hpUI.gameObject.SetActive(false); // hp UI 비활성화
         TriggerFrostDeathEffectIfNeeded();
         ResetFrostStatus();
         ResetPoisonStatus();
         ResetElectroStatus();
         ResetIgnitionStatus();
 
-        if (agent.enabled)
+        if (agent != null && agent.enabled)
         {
             if (agent.isOnNavMesh)
             {
@@ -864,7 +860,28 @@ public class BossZombie : PoolObject, IDamageable, IAimPointProvider, IFrostStat
 
         SetCollidersEnabled(false); // 사망 후 터렛 타겟/발사체 충돌 대상에서 제외
 
-        isDieBV.Value = true;
+        if (isDieBV != null)
+        {
+            isDieBV.Value = true;
+        }
+
+        if (GameManager.Inst != null)
+        {
+            GameManager.Inst.IncreaseKillCount();
+        }
+
+        GrantKillReward(); // 이 메서드 내부에서 rewardResult를 얻는다.
+        SpawnKillRewardVisuals();
+    }
+
+    // 계산된 처치 보상 결과를 바탕으로 보스 사망 코인 파티클을 생성한다
+    private void SpawnKillRewardVisuals()
+    {
+        // 코인 획득량에 따라 다른 코인 파티클을 생성한다.
+        if (CoinParticleCreator.Inst)
+        {
+            CoinParticleCreator.Inst.Create(rewardResult, transform.position, transform.localScale * rewardParticleScale);
+        }
     }
 
     // 빙결 상태로 사망한 경우 Frost 사망 전용 이펙트를 실행한다

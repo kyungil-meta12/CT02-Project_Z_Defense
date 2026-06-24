@@ -672,23 +672,12 @@ public class NormalZombie : PoolObject, IDamageable, IAimPointProvider, IFrostSt
     private void Die()
     {
         IsAlive = false; // 생존 상태 비활성화
-        GameManager.Inst.IncreaseKillCount();
-        GrantKillReward();  // rewardResult를 이 메서드 내부에서 얻는다.
-
-        // 이외의 보상은 필드에 아이템 형식으로 드랍한다.
-        // 드랍하지 않을 수도 있다.
-        foreach (RewardCurrencyType type in Enum.GetValues(typeof(RewardCurrencyType)))
+        rewardResult.Clear();
+        if (hpUI != null)
         {
-            itemDropper.CreateDropItem(rewardResult, transform.position, type);
+            hpUI.gameObject.SetActive(false); // hp UI 비활성화
         }
 
-        // 코인 획득량에 따라 다른 코인 파티클을 생성한다.
-        if (CoinParticleCreator.Inst)
-        {
-            CoinParticleCreator.Inst.Create(rewardResult, transform.position, transform.localScale * rewardParticleScale);
-        }
-
-        hpUI.gameObject.SetActive(false); // hp UI 비활성화
         TriggerFrostDeathEffectIfNeeded();
         TriggerPoisonDeathBurstIfNeeded();
         ResetFrostStatus();
@@ -697,12 +686,51 @@ public class NormalZombie : PoolObject, IDamageable, IAimPointProvider, IFrostSt
         ResetIgnitionStatus();
         attackState = false; // 공격 상태 초기화
         attackTarget = null; // 공격 대상 초기화
-        agent.enabled = false; // 에이전트 비활성화
-        anim.SetBool("IsAttackState", false);
-        anim.SetTrigger("DeadTrigger"); // 죽는 애니메이션으로 변경
+        if (agent != null)
+        {
+            agent.enabled = false; // 에이전트 비활성화
+        }
+
+        if (anim != null)
+        {
+            anim.SetBool("IsAttackState", false);
+            anim.SetTrigger("DeadTrigger"); // 죽는 애니메이션으로 변경
+        }
+
         SetCollidersEnabled(false); // 히트 콜라이더 비활성화
         StopRigidbodySimulation();
-        rb.constraints = RigidbodyConstraints.FreezeRotation; // 모든 방향 회전 방지
+        if (rb != null)
+        {
+            rb.constraints = RigidbodyConstraints.FreezeRotation; // 모든 방향 회전 방지
+        }
+
+        if (GameManager.Inst != null)
+        {
+            GameManager.Inst.IncreaseKillCount();
+        }
+
+        GrantKillReward();  // rewardResult를 이 메서드 내부에서 얻는다.
+        SpawnKillRewardVisualsAndDrops();
+    }
+
+    // 계산된 처치 보상 결과를 바탕으로 드롭 아이템과 코인 파티클을 생성한다
+    private void SpawnKillRewardVisualsAndDrops()
+    {
+        if (itemDropper != null)
+        {
+            // 이외의 보상은 필드에 아이템 형식으로 드랍한다.
+            // 드랍하지 않을 수도 있다.
+            foreach (RewardCurrencyType type in Enum.GetValues(typeof(RewardCurrencyType)))
+            {
+                itemDropper.CreateDropItem(rewardResult, transform.position, type);
+            }
+        }
+
+        // 코인 획득량에 따라 다른 코인 파티클을 생성한다.
+        if (CoinParticleCreator.Inst)
+        {
+            CoinParticleCreator.Inst.Create(rewardResult, transform.position, transform.localScale * rewardParticleScale);
+        }
     }
 
     // 빙결 상태로 사망한 경우 Frost 사망 전용 이펙트를 실행한다

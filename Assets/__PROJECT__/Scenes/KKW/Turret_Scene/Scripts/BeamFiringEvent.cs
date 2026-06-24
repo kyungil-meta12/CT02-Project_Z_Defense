@@ -13,9 +13,14 @@ public class BeamFiringEvent : FiringEvent
         MuzzleForward = 1
     }
 
+    [Header("빔 기본 설정")]
     [SerializeField] private GameObject beamPrefab;
     [SerializeField] private BeamAttackProfileSO attackProfile;
+    [Header("상태 효과")]
     [SerializeField] private FrostStatusProfileSO frostStatusProfile;
+    [Header("데미지 폴리싱")]
+    [SerializeField] private TurretDamagePolishProfileSO damagePolishProfile;
+    [Header("빔 유지")]
     [SerializeField, Min(0.01f)] private float beamVisibleDuration = 0.15f;
     [SerializeField, Min(0.01f)] private float minBeamDistance = 0.1f;
     [SerializeField, Min(0.01f)] private float targetValidationInterval = 0.1f;
@@ -101,6 +106,12 @@ public class BeamFiringEvent : FiringEvent
         frostStatusLevel = Mathf.Max(1, level);
     }
 
+    // 외부 터렛 정의에서 사용할 데미지 폴리싱 프로필을 설정한다
+    public void SetDamagePolishProfile(TurretDamagePolishProfileSO damagePolishProfile_)
+    {
+        damagePolishProfile = damagePolishProfile_;
+    }
+
     // 런타임 projectile scale 진행 값을 빔 스케일에도 반영한다
     public void SetProjectileScale(float scale)
     {
@@ -108,7 +119,7 @@ public class BeamFiringEvent : FiringEvent
     }
 
     // 빔 발사 요청마다 현재 타겟과 빔 유지 상태를 갱신한다
-    public override void Fire(GameObject projectilePrefab, GameObject target, float projectileSpeed, float projectileScale_, float projectileDamage, int projectilePierceCount, bool logProjectileDamage, PoisonStatusPayload poisonStatusPayload, ElectroStatusPayload electroStatusPayload)
+    public override void Fire(GameObject projectilePrefab, GameObject target, float projectileSpeed, float projectileScale_, float projectileDamage, int projectilePierceCount, bool logProjectileDamage, PoisonStatusPayload poisonStatusPayload, ElectroStatusPayload electroStatusPayload, TurretDamagePolishProfileSO damagePolishProfile_)
     {
         if (beamPrefab == null || target == null || !target.activeInHierarchy)
         {
@@ -117,6 +128,7 @@ public class BeamFiringEvent : FiringEvent
         }
 
         SetProjectileScale(projectileScale_);
+        SetDamagePolishProfile(damagePolishProfile_);
         EnsureBeamInstances();
         bool targetChanged = currentTarget != target;
         if (targetChanged)
@@ -497,14 +509,34 @@ public class BeamFiringEvent : FiringEvent
         }
 
         float safeDamage = Mathf.Max(0.0f, projectileDamage);
-        NotifyNonElectroDamageReceived(damageable, safeDamage);
-        damageable.TakeDamage(safeDamage);
+        TurretDamagePolishResult damageResult = RollDamage(safeDamage);
+        NotifyNonElectroDamageReceived(damageable, damageResult.Damage);
+        DamagePopupContext.Begin(damageResult.Type);
+        try
+        {
+            damageable.TakeDamage(damageResult.Damage);
+        }
+        finally
+        {
+            DamagePopupContext.End();
+        }
         ApplyFrostStatus(damageable);
 
         if (logProjectileDamage)
         {
-            Debug.Log($"[BeamFiringEvent] 빔 데미지 적용: {safeDamage:0.###}", this);
+            Debug.Log($"[BeamFiringEvent] 빔 데미지 적용: {damageResult.Damage:0.###}", this);
         }
+    }
+
+    // 현재 데미지 폴리싱 프로필에 따라 빔 피해 결과를 계산한다
+    private TurretDamagePolishResult RollDamage(float baseDamage)
+    {
+        if (damagePolishProfile == null)
+        {
+            return new TurretDamagePolishResult(baseDamage, TurretDamagePolishType.Normal);
+        }
+
+        return damagePolishProfile.RollDamage(baseDamage);
     }
 
     // 프로필 설정에 따라 이번 틱에 적용할 데미지를 계산한다

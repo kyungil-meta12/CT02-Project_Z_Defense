@@ -1,5 +1,6 @@
 using TMPro;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 /// <summary>
 /// 데미지 팝업 프리팹과 설정을 관리하고 피격 위치에 팝업을 스폰한다.
@@ -42,21 +43,35 @@ public class DamagePopupSpawner : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// 대상 위치 위에 데미지 숫자 팝업을 표시한다
-    /// </summary>
-    /// <param name="target"></param>
-    /// <param name="damage"></param>
+    // 대상 위치 위에 데미지 숫자 팝업을 표시한다
     public static void SpawnDamage(Transform target, float damage)
     {
-        if (target == null || damage <= 0f)
+        SpawnDamage(target, damage, DamagePopupContext.CurrentType);
+    }
+
+    // 대상 위치 위에 타입별 데미지 숫자 팝업을 표시한다
+    public static void SpawnDamage(Transform target, float damage, TurretDamagePolishType damageType)
+    {
+        SpawnDamage(target, damage, damageType, DamagePopupTargetType.Default);
+    }
+
+    // 대상 위치 위에 대상 종류와 데미지 타입별 데미지 숫자 팝업을 표시한다
+    public static void SpawnDamage(Transform target, float damage, TurretDamagePolishType damageType, DamagePopupTargetType targetType)
+    {
+        if (target == null)
         {
             return;
         }
 
         DamagePopupSpawner spawner = GetOrCreateInstance();
-        Vector3 spawnPosition = target.position + (Vector3.up * spawner.settings.HeightOffset);
-        spawner.Spawn(Mathf.RoundToInt(damage), spawnPosition);
+        if (!spawner.settings.ShowZeroOrNegativeDamage && damage <= 0f)
+        {
+            return;
+        }
+
+        Vector3 spawnPosition = spawner.settings.GetSpawnPosition(target.position, targetType);
+        int damageValue = spawner.settings.ShowRoundedDamage ? Mathf.RoundToInt(damage) : Mathf.FloorToInt(damage);
+        spawner.Spawn(damageValue, spawnPosition, damageType);
     }
 
     // 씬 인스턴스가 없으면 런타임 컨테이너 아래에 스포너를 생성한다
@@ -112,6 +127,12 @@ public class DamagePopupSpawner : MonoBehaviour
     // 데미지 숫자 팝업을 풀에서 가져와 표시한다
     private void Spawn(int damageValue, Vector3 position)
     {
+        Spawn(damageValue, position, TurretDamagePolishType.Normal);
+    }
+
+    // 데미지 숫자 팝업을 타입별 표시 설정과 함께 풀에서 가져와 표시한다
+    private void Spawn(int damageValue, Vector3 position, TurretDamagePolishType damageType)
+    {
         if (targetCamera == null)
         {
             targetCamera = Camera.main;
@@ -130,7 +151,7 @@ public class DamagePopupSpawner : MonoBehaviour
             return;
         }
 
-        popup.Init(damageValue, position, settings, targetCamera);
+        popup.Init(damageValue, position, settings, targetCamera, damageType);
     }
 
     // 설정 또는 리소스에서 데미지 팝업 프리팹을 확보한다
@@ -208,5 +229,31 @@ public class DamagePopupSpawner : MonoBehaviour
 
         textMesh.color = settings.DamageColor;
         textMesh.text = "0";
+
+        Renderer textRenderer = textMesh.renderer;
+        if (textRenderer != null)
+        {
+            ApplySortingLayer(textRenderer, settings.RenderSortingLayerName);
+            textRenderer.sortingOrder = settings.RenderSortingOrder;
+            textRenderer.shadowCastingMode = settings.DisableRendererShadows ? ShadowCastingMode.Off : ShadowCastingMode.On;
+            textRenderer.receiveShadows = !settings.DisableRendererShadows;
+        }
+    }
+
+    // 설정된 Sorting Layer가 있으면 팝업 렌더러에 적용한다
+    private static void ApplySortingLayer(Renderer targetRenderer, string sortingLayerName)
+    {
+        if (targetRenderer == null || string.IsNullOrWhiteSpace(sortingLayerName))
+        {
+            return;
+        }
+
+        int sortingLayerId = SortingLayer.NameToID(sortingLayerName);
+        if (sortingLayerId == 0 && sortingLayerName != "Default")
+        {
+            return;
+        }
+
+        targetRenderer.sortingLayerID = sortingLayerId;
     }
 }

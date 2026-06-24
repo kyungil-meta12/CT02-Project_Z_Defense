@@ -59,6 +59,7 @@ Do not use display names as stable IDs.
 | `TurretStatGrowthProfileSO` | Tier-level-based growth calculation using completed growth steps. |
 | `TurretUpgradeCostProfileSO` | Calculates upgrade costs from current tier level to target tier level. |
 | `TurretVFXProfileSO` | Attack VFX selection data: projectile prefab or beam prefab, optional beam attack profile reference, muzzle VFX, muzzle duration. Audio is intentionally removed until the project-level sound system is rebuilt. |
+| `TurretDamagePolishProfileSO` | Optional per-turret damage polish rules: random damage variance, critical hits, heavy hits, and damage popup type. Leave empty to keep deterministic legacy damage. |
 | `BeamAttackProfileSO` | Beam-specific attack rules: damage tick interval, damage multiplier, DPS interpretation, target mode, pierce radius, max targets, and damage layer mask. |
 | `FrostStatusProfileSO` | Frost-specific status rules: slow buildup, max slow, freeze timing, freeze explosion, max-HP damage, secondary explosion slow, related VFX references, and optional primary-target max-HP damage growth. |
 | `PoisonStatusProfileSO` | Poison-specific status rules: max-HP tick damage ratio, tick interval, duration, stack limit, stack refresh mode, boss damage multiplier, and optional death burst profile reference. |
@@ -83,13 +84,15 @@ Do not use display names as stable IDs.
 7. `TurretDefinitionSO.poisonStatusProfile` provides Poison-specific status values when the selected attack is a projectile Poison turret.
 8. `TurretDefinitionSO.electroStatusProfile` provides Electro-specific chain, Shock stack, Overload trigger policy, single-target Overload damage, and stun values when the selected attack is an Electro projectile turret.
 9. `TurretDefinitionSO.ignitionStatusProfile` provides Ignition burn values when the selected attack uses an Ignition area detector.
-10. `TurretProjectileScaleProgressionSO` selects projectile scale.
-11. Projectile firing logic applies projectile prefab, speed, damage, pierce count, scale, collision ignore rules, and optional Poison/Electro payloads per spawn.
-12. Beam firing logic keeps the beam VFX alive between fire requests and applies damage by `BeamAttackProfileSO.damageTickInterval`.
-13. `IgnitionDamageApplier` reads targets from `IgnitionConeDetector` and forwards Ignition payloads to `IIgnitionStatusEffectReceiver`.
-14. `ProjectileDamageDealer` applies projectile damage to `IDamageable` targets, forwards Poison payloads to `IPoisonStatusEffectReceiver`, and triggers Electro chain damage when an Electro payload is active.
-15. `ProjectileHitDetector` handles tracked target, trigger/collision, and movement raycast hit paths.
-16. Damage receivers spawn damage popups where appropriate.
+10. `TurretDefinitionSO.damagePolishProfile` optionally provides random damage variance, critical hit, and heavy hit rules for projectile and beam damage.
+11. `TurretProjectileScaleProgressionSO` selects projectile scale.
+12. Projectile firing logic applies projectile prefab, speed, damage, pierce count, scale, collision ignore rules, and optional Poison/Electro payloads per spawn.
+13. Beam firing logic keeps the beam VFX alive between fire requests and applies damage by `BeamAttackProfileSO.damageTickInterval`.
+14. `IgnitionDamageApplier` reads targets from `IgnitionConeDetector` and forwards Ignition payloads to `IIgnitionStatusEffectReceiver`.
+15. `ProjectileDamageDealer` applies projectile damage to `IDamageable` targets, forwards Poison payloads to `IPoisonStatusEffectReceiver`, and triggers Electro chain damage when an Electro payload is active.
+16. `ProjectileDamageDealer` and `BeamFiringEvent` roll `TurretDamagePolishProfileSO` before `IDamageable.TakeDamage`; damage receivers then read the short-lived popup context through `DamagePopupSpawner`.
+17. `ProjectileHitDetector` handles tracked target, trigger/collision, and movement raycast hit paths.
+18. Damage receivers spawn damage popups where appropriate.
 
 ## Beam Attack Runtime Flow
 

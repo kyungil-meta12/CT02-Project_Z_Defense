@@ -485,7 +485,7 @@ public class BossZombie : PoolObject, IDamageable, IAimPointProvider, IFrostStat
             //Debug.Log($"[BossZombie] Damage:{appliedDamage:0.###}, HP:{CurrHp:0.###}/{TotalHp:0.###}", this);
         }
 
-        DamagePopupSpawner.SpawnDamage(transform, appliedDamage);
+        DamagePopupSpawner.SpawnDamage(transform, appliedDamage, DamagePopupContext.CurrentType, DamagePopupTargetType.BossZombie);
 
         if (CurrHp > 0f && poisonStatusRuntime != null && poisonStatusRuntime.IsActive)
         {

@@ -13,12 +13,33 @@ MonoBehaviour:
   m_Name: DamagePopupSettings
   m_EditorClassIdentifier: 
   damagePopupPrefab: {fileID: 11400000, guid: d44bbdc7cffb4b7089a0dae151333770, type: 3}
-  initialPoolSize: 32
+  initialPoolSize: 50
   fontSize: 24
   fontAsset: {fileID: 0}
   damageColor: {r: 1, g: 0.35, b: 0.12, a: 1}
+  criticalDamageColor: {r: 1, g: 0.9, b: 0.1, a: 1}
+  heavyDamageColor: {r: 1, g: 0.15, b: 0.05, a: 1}
+  normalTextFormat: '{0}'
+  criticalTextFormat: CRIT {0}
+  heavyTextFormat: HEAVY {0}
+  showRoundedDamage: 1
+  showZeroOrNegativeDamage: 0
+  heightOffset: 4
+  spawnOffset: {x: 0, y: 0, z: 0}
+  normalZombieHeightOffset: 4
+  normalZombieSpawnOffset: {x: 0, y: 0, z: 0}
+  bossZombieHeightOffset: 12
+  bossZombieSpawnOffset: {x: 0, y: 0, z: 0}
+  randomHorizontalRadius: 0.15
+  randomVerticalRange: 0.05
   lifetime: 0.75
-  heightOffset: 2.2
-  moveOffset: {x: 0, y: 1.2, z: 0}
+  moveOffset: {x: 0, y: 1.5, z: 0}
   startScale: 1.15
   endScale: 0.85
+  criticalScaleMultiplier: 1.1
+  heavyScaleMultiplier: 1.3
+  renderSortingLayerName: WorldUI
+  renderSortingOrder: 500
+  cameraForwardOffset: 0.25
+  renderOverSceneGeometry: 1
+  disableRendererShadows: 1

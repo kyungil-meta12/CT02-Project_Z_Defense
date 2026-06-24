@@ -122,13 +122,17 @@ Flow:
 2. Damage receiver calls `DamagePopupSpawner.SpawnDamage(targetTransform, damage)` when visual feedback is needed.
 3. Spawner loads settings and prefab from `Resources/UI` if needed.
 4. Spawner gets a pooled `DamagePopup` instance.
-5. `DamagePopup.Init` applies text/settings/camera each spawn.
+5. `DamagePopup.Init` applies text/settings/camera and optional damage type styling each spawn.
 6. Popup animates and returns to pool.
 
 Rules:
 
 - Do not allocate popup prefabs per hit manually.
 - Always reinitialize pooled popup text, color, scale, lifetime, and camera-dependent values.
+- Turret critical or heavy hit styling is passed through `DamagePopupContext` only during the corresponding `IDamageable.TakeDamage` call.
+- Popup position offset, random spread, text formats, colors, scale multipliers, and lifetime are configured in `Resources/UI/DamagePopupSettings.asset`.
+- Normal zombie and boss zombie popup positions can be tuned separately through the same `DamagePopupSettings.asset`.
+- Popup render sorting, camera-forward offset, shadow disabling, and optional depth-test override are configured in the same asset to prevent damage text from being hidden by zombie meshes or HP bars.
 - Avoid logs per damage tick.
 
 ## Warning Popup

@@ -153,6 +153,9 @@ Each survivor should have:
 - Animator parameters matching configured names when animations are required
 - Valid `vaultObstacleLayerMask`, or an `Obstacle` layer available for fallback
 - Optional `visibleRoot` child if treatment should hide the visual while keeping the survivor controller alive
+- Optional `roleVisualEntries` entries for role-specific renderer Mesh/Material swaps; index `0 = survivor`, `1 = constructionWorker`, `2 = engineer`
+- Each `RoleVisualEntry` owns `normal` and `wounded` visual sets. Connect each set's Mesh and optional Material array in the Inspector.
+- `RoleVisualEntry.role` is Inspector display metadata only. Runtime visual lookup uses the list index and `SurvivorRole` enum order.
 - `engineerStandbyArriveDistance` large enough for the turret base footprint so engineers stop near the base instead of pushing into the center point
 
 Survivor movement depends on:
@@ -162,6 +165,9 @@ Survivor movement depends on:
 - Positive repair range
 - Valid retreat/restored points for defense-line movement
 - Valid final rear point and hospital point for rescued survivor treatment flow
+- Valid `roleVisualEntries` visual set Mesh references when role-based visuals are required; missing `wounded` Mesh falls back to `normal`, and missing both falls back to the renderer's default Mesh/Material cached on `Awake`
+- Rescue survivors use the `wounded` visual condition until treatment completes, then switch back to `normal` before role selection.
+- `visibleRoot` should reference the survivor visual object with `SkinnedMeshRenderer`; the survivor caches that renderer with `GetComponent` on `Awake`.
 
 Rescue and role UI setup:
 

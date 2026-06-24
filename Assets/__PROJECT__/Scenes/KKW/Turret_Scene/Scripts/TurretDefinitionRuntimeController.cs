@@ -1,4 +1,5 @@
 ﻿using ProjectZima.PolygonModularTurretsPack;
+using System;
 using UnityEngine;
 using ProjectZDefense.StatusEffects;
 
@@ -23,6 +24,8 @@ public class TurretDefinitionRuntimeController : MonoBehaviour
     [SerializeField] private FiringEvent targetFiringEvent;
     [SerializeField] private string currentTurretName;
     [SerializeField] private string availableEvolutionNames;
+
+    public event Action<TurretDefinitionRuntimeController> Applied;
 
     public TurretDefinitionSO CurrentTurretDefinition
     {
@@ -157,6 +160,14 @@ public class TurretDefinitionRuntimeController : MonoBehaviour
             //    $"ProjectileSpeed:{runtimeStat.projectileSpeed:0.###}, ProjectileCount:{runtimeStat.projectileCount}, PierceCount:{runtimeStat.pierceCount}",
             //    this);
         }
+
+        NotifyApplied();
+    }
+
+    // 터렛 정의 적용 완료를 외부 표시 시스템에 알린다
+    private void NotifyApplied()
+    {
+        Applied?.Invoke(this);
     }
 
     // 현재 레벨에서 진화 후보가 하나 이상 있는지 확인한다
@@ -738,3 +749,4 @@ public class TurretDefinitionRuntimeController : MonoBehaviour
         return definition.name;
     }
 }
+

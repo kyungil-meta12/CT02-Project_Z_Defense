@@ -11,6 +11,7 @@ public class TurretEngineerSeatButton : MonoBehaviour
     [Header("참조")]
     [SerializeField] private Button button;
     [SerializeField] private TMP_Text labelText;
+    [SerializeField] private TMP_Text buffValueText;
 
     private TurretTemporaryUpgradePopupUI owner;
     private int seatIndex = -1;
@@ -35,8 +36,8 @@ public class TurretEngineerSeatButton : MonoBehaviour
         UnbindButton();
     }
 
-    // 버튼이 가리킬 탑승 슬롯 인덱스와 표시 라벨을 갱신한다
-    public void Configure(TurretTemporaryUpgradePopupUI owner_, int seatIndex_, string label)
+    // 버튼이 가리킬 탑승 슬롯 인덱스와 표시 라벨 및 버프 수치를 갱신한다
+    public void Configure(TurretTemporaryUpgradePopupUI owner_, int seatIndex_, string label, string buffValue)
     {
         owner = owner_;
         seatIndex = seatIndex_;
@@ -46,6 +47,11 @@ public class TurretEngineerSeatButton : MonoBehaviour
         if (labelText != null)
         {
             labelText.text = label;
+        }
+
+        if (buffValueText != null)
+        {
+            buffValueText.text = buffValue;
         }
 
         if (button != null)
@@ -63,6 +69,11 @@ public class TurretEngineerSeatButton : MonoBehaviour
         if (labelText != null)
         {
             labelText.text = string.Empty;
+        }
+
+        if (buffValueText != null)
+        {
+            buffValueText.text = string.Empty;
         }
 
         if (button != null)

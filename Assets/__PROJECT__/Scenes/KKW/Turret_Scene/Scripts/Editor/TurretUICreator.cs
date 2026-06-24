@@ -17,7 +17,9 @@ internal static class TurretUICreator
     private const int DEFAULT_EVOLUTION_BUTTON_COUNT = 4;
     private const int DEFAULT_ENGINEER_SEAT_BUTTON_COUNT = 4;
 
+#if PROJECTZ_ENABLE_LEGACY_UI_CREATORS
     [MenuItem(PLACEMENT_MENU_PATH)]
+#endif
     // 메뉴 실행 시 터렛 배치 UI Canvas와 수동 배치 버튼을 현재 씬에 생성하거나 기존 UI를 선택한다
     private static void CreateTurretPlacementUI()
     {
@@ -50,7 +52,9 @@ internal static class TurretUICreator
         EditorSceneManager.MarkSceneDirty(rootObject.scene);
     }
 
+#if PROJECTZ_ENABLE_LEGACY_UI_CREATORS
     [MenuItem(UPGRADE_MENU_PATH)]
+#endif
     // 메뉴 실행 시 터렛 업그레이드 팝업 Canvas와 하위 UI를 현재 씬에 생성하거나 기존 팝업을 선택한다
     private static void CreateTurretUpgradePopupUI()
     {

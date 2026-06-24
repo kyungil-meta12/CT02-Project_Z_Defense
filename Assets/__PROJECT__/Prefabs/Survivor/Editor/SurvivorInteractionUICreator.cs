@@ -12,7 +12,9 @@ internal static class SurvivorInteractionUICreator
     private const string ROOT_NAME = "SurvivorInteractionPopup";
     private const int ENGINEER_TARGET_SLOT_COUNT = 8;
 
+#if PROJECTZ_ENABLE_LEGACY_UI_CREATORS
     [MenuItem(MENU_PATH)]
+#endif
     // 메뉴 실행 시 생존자 상호작용 Canvas와 하위 UI를 현재 씬에 생성하거나 기존 UI를 선택한다
     private static void CreateSurvivorInteractionUI()
     {

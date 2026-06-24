@@ -11,7 +11,9 @@ internal static class GameOverPanelUICreator
     private const string CANVAS_NAME = "GameOverPanelCanvas";
     private const string ROOT_NAME = "GameOverPanelController";
 
+#if PROJECTZ_ENABLE_LEGACY_UI_CREATORS
     [MenuItem(MENU_PATH)]
+#endif
     // 메뉴 실행 시 게임오버 페이드 Canvas와 하위 UI를 현재 씬에 생성하거나 기존 UI를 선택한다
     private static void CreateGameOverPanelUI()
     {

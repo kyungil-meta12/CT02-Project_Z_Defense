@@ -845,17 +845,15 @@ Placement preview scale rules:
 - `validPreviewColor` and `invalidPreviewColor` are fallback colors only. If the matching preview material field is assigned, `TurretPlacementPreview` uses that material as authored and does not override its color through `MaterialPropertyBlock`.
 - Runtime fallback preview materials are only created for missing material fields, so assigning `validPreviewMaterial` avoids creating the unused valid fallback material.
 
-`TurretPlacementUI` still has a legacy rebuild helper, but `rebuildOnStart` should stay disabled for production scenes. Use `Project Z Defense/UI/Create Turret Placement UI` to create editable scene buttons, preferably after selecting the desired `TurretShopEntrySO` assets in the Project window.
+`TurretPlacementUI` still has a legacy rebuild helper, but `rebuildOnStart` should stay disabled for production scenes. The legacy `Project Z Defense/UI/Create Turret Placement UI` creator menu is disabled by default; place editable scene buttons manually and assign the desired `TurretShopEntrySO` assets.
 
 ## Turret Upgrade UI Setup
 
-Create the turret upgrade/evolution popup from the editor menu:
+The turret upgrade/evolution popup is manually maintained in the scene. The legacy `Project Z Defense/UI/Create Turret Upgrade Popup UI` creator menu is disabled by default.
 
-- `Project Z Defense/UI/Create Turret Upgrade Popup UI`
+The editable `TurretUpgradePopupCanvas` and `TurretUpgradePopup` hierarchy should wire the serialized references on `TurretTemporaryUpgradePopupUI`. The popup uses a full-screen transparent `BackgroundButton` as the show/hide root, with the visible `Panel` as its child, matching the survivor interaction UI outside-click pattern. The runtime component does not create Canvas, popup panels, or evolution buttons. Add more `EvolutionButton_*` children in the editor if a turret can expose more evolution choices than the default buttons.
 
-The menu creates an editable `TurretUpgradePopupCanvas` and `TurretUpgradePopup` hierarchy in the current scene, then wires the serialized references on `TurretTemporaryUpgradePopupUI`. The popup uses a full-screen transparent `BackgroundButton` as the show/hide root, with the visible `Panel` as its child, matching the survivor interaction UI outside-click pattern. The runtime component does not create Canvas, popup panels, or evolution buttons. Add more `EvolutionButton_*` children in the editor if a turret can expose more evolution choices than the default buttons.
-
-The popup also includes an `EngineerSeatTriggers` row above the upgrade content. `TurretTemporaryUpgradePopupUI.engineerSeatTriggerCount` controls how many prebuilt seat trigger buttons are considered. Active buttons are shown only for engineers that have fully reached and mounted the selected turret. Clicking a seat trigger dismounts that engineer, removes the `TurretEngineerBuffReceiver` stack, restores the survivor object, and sends the engineer back to the rear gathering point when available.
+The popup also includes an `EngineerSeatTriggers` row above the upgrade content. `TurretTemporaryUpgradePopupUI.engineerSeatTriggerCount` controls how many prebuilt seat trigger buttons are considered. Active buttons are shown only for engineers that have fully reached and mounted the selected turret. Clicking a seat trigger dismounts that engineer, removes the `TurretEngineerBuffReceiver` stack, restores the survivor object, and sends the engineer back to the rear gathering point when available. If a seat button has a manually assigned `TurretEngineerSeatButton.buffValueText`, it displays the per-engineer damage bonus with `+10%` style formatting.
 
 Turret selection uses direct pointer input only when `EventSystem.current.IsPointerOverGameObject()` is false. Outside-click dismissal is handled by the transparent background button's `OnClick`, so clicks inside the visible panel stay in UI space and do not run world selection.
 
@@ -865,6 +863,7 @@ Engineer buff policy:
 - The damage buff is applied only after the engineer reaches the turret standby/build point.
 - Mounted engineers are hidden through the survivor visibility/interaction controls instead of destroying the survivor instance.
 - `TurretEngineerBuffReceiver.OnBuffStateChanged` is used by the turret popup to refresh active engineer seat triggers without making zombie spawn, drop, or survivor rescue systems respond to the mount/dismount state.
+- `TurretEngineerBuffReceiver.DamageBonusRatioPerEngineer` is used only for UI display of the existing serialized buff value; it is not exported or imported by turret CSV tools.
 - `TurretDefinitionSO.maxEngineerSeatCount` owns the maximum mounted engineer count for each turret definition. `0` means engineers cannot mount that turret.
 - Initial engineer seat limits are 1st generation `1`, 2nd generation `2`, and 3rd generation `3`; future balance changes should adjust the SO or CSV value, not the runtime code.
 - `TurretDataCsvEditorTool` exports and imports this value through the `MaxEngineerSeatCount` column.

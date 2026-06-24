@@ -23,6 +23,7 @@ public class TurretEngineerBuffReceiver : MonoBehaviour
 
     public static event Action<TurretEngineerBuffReceiver> OnBuffStateChanged;
     public int EngineerCount => engineers.Count;
+    public float DamageBonusRatioPerEngineer => Mathf.Max(0.0f, damageBonusRatioPerEngineer);
 
     // 컴포넌트 추가 시 필요한 참조를 자동으로 수집한다
     private void Reset()
@@ -111,7 +112,7 @@ public class TurretEngineerBuffReceiver : MonoBehaviour
         RemoveMissingEngineers();
 
         currentEngineerCount = engineers.Count;
-        currentDamageBonusRatio = Mathf.Max(0.0f, damageBonusRatioPerEngineer) * currentEngineerCount;
+        currentDamageBonusRatio = DamageBonusRatioPerEngineer * currentEngineerCount;
         currentDamageMultiplier = 1.0f + currentDamageBonusRatio;
 
         if (statProfileApplier == null)

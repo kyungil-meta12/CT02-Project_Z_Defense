@@ -128,11 +128,9 @@ Notes:
 
 ## Obstacle Upgrade UI Setup
 
-Obstacle upgrade UI can be placed from the Unity menu:
+Obstacle upgrade UI is manually maintained in the scene. The legacy `Project Z Defense/UI/Create Obstacle Upgrade Popup UI` menu is disabled by default and should not be used for new UI generation.
 
-- `Project Z Defense/UI/Create Obstacle Upgrade Popup UI`
-
-The menu creates an editable `ObstacleUpgradePopupCanvas` and `ObstacleUpgradePopup` hierarchy in the current scene, then attaches `ObstacleUpgradePopupUI` to the popup controller root and wires the serialized UI references. The visible background image, layout group, texts, and button live under `ObstacleUpgradePopup/Panel`; only `Panel` is hidden or shown at runtime so the controller object stays active for click detection. The runtime component does not create Canvas or popup objects, so layout and styling should be edited directly in the scene.
+The editable `ObstacleUpgradePopupCanvas` and `ObstacleUpgradePopup` hierarchy should attach `ObstacleUpgradePopupUI` to the popup controller root and wire the serialized UI references. The visible background image, layout group, texts, and button live under `ObstacleUpgradePopup/Panel`; only `Panel` is hidden or shown at runtime so the controller object stays active for click detection. The runtime component does not create Canvas or popup objects, so layout and styling should be edited directly in the scene.
 
 Setup notes:
 
@@ -179,11 +177,9 @@ Rescue and role UI setup:
 
 ## Game Over Panel Setup
 
-Create the UI from the editor menu:
+Game over UI is manually maintained in the scene. The legacy `Project Z Defense > UI > Create Game Over Panel UI` menu is disabled by default and should not be used for new UI generation.
 
-- `Project Z Defense > UI > Create Game Over Panel UI`
-
-The menu creates:
+Expected hierarchy:
 
 - `GameOverPanelCanvas`
 - `GameOverPanelController`
@@ -243,12 +239,13 @@ For turret placement details, use `TURRET_SYSTEM.md` as the source of truth.
 Minimum scene requirements:
 
 - `TurretPlacementController` has a target camera or `Camera.main` exists.
-- Create editable turret placement buttons from `Project Z Defense > UI > Create Turret Placement UI`, or place `TurretPlacementSlotUI` buttons manually and assign `placementController` plus `TurretShopEntrySO`.
+- Place `TurretPlacementSlotUI` buttons manually and assign `placementController` plus `TurretShopEntrySO`. The legacy `Project Z Defense > UI > Create Turret Placement UI` menu is disabled by default.
 - Keep `TurretPlacementUI.rebuildOnStart` disabled unless runtime-generated legacy buttons are intentionally needed.
-- Create the turret upgrade/evolution popup from `Project Z Defense > UI > Create Turret Upgrade Popup UI`; the runtime popup controller expects serialized scene UI references and a full-screen transparent `BackgroundButton`.
+- Maintain the turret upgrade/evolution popup manually; the legacy `Project Z Defense > UI > Create Turret Upgrade Popup UI` menu is disabled by default. The runtime popup controller expects serialized scene UI references and a full-screen transparent `BackgroundButton`.
 - The transparent `BackgroundButton` should cover the screen, have an alpha-0 `Image` with `raycastTarget` enabled, and call `TurretTemporaryUpgradePopupUI.OnBackgroundButtonClicked`.
-- The generated popup includes `EngineerSeatTriggers` above the main upgrade content. Keep the desired number of `TurretEngineerSeatButton` children in that container and match `engineerSeatTriggerCount` on `TurretTemporaryUpgradePopupUI`.
+- The popup includes `EngineerSeatTriggers` above the main upgrade content. Keep the desired number of `TurretEngineerSeatButton` children in that container and match `engineerSeatTriggerCount` on `TurretTemporaryUpgradePopupUI`.
 - `engineerSeatTriggerCount` is only the prepared popup button pool size; actual mount limits come from each selected turret's `TurretDefinitionSO.maxEngineerSeatCount`.
+- If a seat button has a right-side buff text, assign it to `TurretEngineerSeatButton.buffValueText`; mounted engineers display their per-engineer damage bonus as `+10%` style text.
 - `turretBaseLayerMask` includes only intended turret base hit areas.
 - Each `TurretBaseSlot` has `BuildPoint` and `PlacementHitArea`.
 - `PlacementHitArea` collider is on the expected layer.

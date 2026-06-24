@@ -64,6 +64,9 @@ public class TurretEngineerBuffReceiver : MonoBehaviour
             return false;
         }
 
+        RefreshReferences();
+        RemoveMissingEngineers();
+
         for (int i = 0; i < engineers.Count; i++)
         {
             if (engineers[i] == engineer)
@@ -72,7 +75,8 @@ public class TurretEngineerBuffReceiver : MonoBehaviour
             }
         }
 
-        return true;
+        int maxEngineerSeatCount = GetMaxEngineerSeatCount();
+        return maxEngineerSeatCount > 0 && engineers.Count < maxEngineerSeatCount;
     }
 
     // 지정 인덱스의 탑승 엔지니어를 반환한다
@@ -104,6 +108,7 @@ public class TurretEngineerBuffReceiver : MonoBehaviour
     private void ApplyBuff()
     {
         RefreshReferences();
+        RemoveMissingEngineers();
 
         currentEngineerCount = engineers.Count;
         currentDamageBonusRatio = Mathf.Max(0.0f, damageBonusRatioPerEngineer) * currentEngineerCount;
@@ -122,6 +127,29 @@ public class TurretEngineerBuffReceiver : MonoBehaviour
         }
 
         OnBuffStateChanged?.Invoke(this);
+    }
+
+    // 현재 터렛 정의에서 엔지니어 최대 탑승 수를 읽는다
+    private int GetMaxEngineerSeatCount()
+    {
+        if (runtimeController == null || runtimeController.CurrentTurretDefinition == null)
+        {
+            return 0;
+        }
+
+        return Mathf.Max(0, runtimeController.CurrentTurretDefinition.maxEngineerSeatCount);
+    }
+
+    // 파괴되거나 사라진 엔지니어 참조를 목록에서 제거한다
+    private void RemoveMissingEngineers()
+    {
+        for (int i = engineers.Count - 1; i >= 0; i--)
+        {
+            if (engineers[i] == null)
+            {
+                engineers.RemoveAt(i);
+            }
+        }
     }
 
     // 등록된 모든 엔지니어에게 배치 해제를 알리고 목록을 비운다

@@ -124,9 +124,27 @@ public class EngineerBuffTargetPanelUI : MonoBehaviour
     }
 
     // 지정 슬롯이 엔지니어 버프 대상으로 유효한지 확인한다
-    private static bool IsValidTargetSlot(TurretBaseSlot slot)
+    private bool IsValidTargetSlot(TurretBaseSlot slot)
     {
-        return slot != null && slot.isActiveAndEnabled && slot.RefreshAndGetCurrentTurret() != null;
+        if (slot == null || !slot.isActiveAndEnabled || pendingEngineer == null)
+        {
+            return false;
+        }
+
+        TurretDefinitionRuntimeController currentTurret = slot.RefreshAndGetCurrentTurret();
+        if (currentTurret == null)
+        {
+            return false;
+        }
+
+        TurretEngineerBuffReceiver buffReceiver = currentTurret.GetComponent<TurretEngineerBuffReceiver>();
+        if (buffReceiver != null)
+        {
+            return buffReceiver.CanRegisterEngineer(pendingEngineer);
+        }
+
+        TurretDefinitionSO definition = currentTurret.CurrentTurretDefinition;
+        return definition != null && definition.maxEngineerSeatCount > 0;
     }
 
     // 버튼에 표시할 터렛 대상 이름을 만든다

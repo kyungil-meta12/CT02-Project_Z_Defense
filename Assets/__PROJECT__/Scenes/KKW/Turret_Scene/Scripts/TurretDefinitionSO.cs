@@ -24,6 +24,10 @@ public class TurretDefinitionSO : ScriptableObject
     public TurretProjectileScaleProgressionSO projectileScaleProgressionProfile;
     public TurretEvolutionProgressionSO evolutionProgressionProfile;
 
+    [Header("엔지니어")]
+    [Tooltip("0이면 엔지니어가 탑승할 수 없습니다. 양수 값은 이 터렛에 동시에 탑승할 수 있는 최대 엔지니어 수입니다.")]
+    public int maxEngineerSeatCount;
+
     [Header("상태이상")]
     public FrostStatusProfileSO frostStatusProfile;
     public PoisonStatusProfileSO poisonStatusProfile;
@@ -34,5 +38,6 @@ public class TurretDefinitionSO : ScriptableObject
     private void OnValidate()
     {
         maxLevel = Mathf.Max(0, maxLevel);
+        maxEngineerSeatCount = Mathf.Max(0, maxEngineerSeatCount);
     }
 }

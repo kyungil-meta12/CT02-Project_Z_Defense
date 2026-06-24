@@ -17,6 +17,7 @@ MonoBehaviour:
   basePrefab: {fileID: 7365071274755673582, guid: 25330f4b0283ef64c8f7a365aa4456df, type: 3}
   baseStatProfile: {fileID: 11400000, guid: 60f8713b883c93e4f8aee50bd7eb871a, type: 2}
   maxLevel: 0
+  maxEngineerSeatCount: 2
   statGrowthProfile: {fileID: 11400000, guid: fa2d4e383ac6648439b5ccbc48f1a1e3, type: 2}
   upgradeCostProfile: {fileID: 11400000, guid: ab14464203c1bc5479e44051428e995e, type: 2}
   vfxProgressionProfile: {fileID: 11400000, guid: 29cbe8b4bfbff7546a8d37a4cfff4a48, type: 2}

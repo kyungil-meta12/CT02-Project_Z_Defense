@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: BossZombie_Tank Reward Profile SO
   m_EditorClassIdentifier: Assembly-CSharp::ZombieRewardProfileSO
   rewards:
-  - currencyType: 1
+  - currencyType: 0
     amount: 1000
     dropChance: 1
     minAmountMultiplier: 0.8

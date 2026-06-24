@@ -13,6 +13,6 @@ MonoBehaviour:
   m_Name: Lethal_Red_1 Upgrade Cost Profile SO
   m_EditorClassIdentifier: Assembly-CSharp::TurretUpgradeCostProfileSO
   baseCostsPerLevel:
-  - currencyType: 1
+  - currencyType: 0
     amount: 3200
   additionalCostPercentPerTierLevel: 3

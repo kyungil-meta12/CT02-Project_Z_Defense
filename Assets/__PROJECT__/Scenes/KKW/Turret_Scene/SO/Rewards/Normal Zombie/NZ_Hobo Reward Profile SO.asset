@@ -13,12 +13,12 @@ MonoBehaviour:
   m_Name: NZ_Hobo Reward Profile SO
   m_EditorClassIdentifier: Assembly-CSharp::ZombieRewardProfileSO
   rewards:
-  - currencyType: 1
+  - currencyType: 0
     amount: 75
     dropChance: 1
     minAmountMultiplier: 0.8
     maxAmountMultiplier: 1.2
-  - currencyType: 3
+  - currencyType: 2
     amount: 75
     dropChance: 0
     minAmountMultiplier: 0.8

@@ -13,6 +13,6 @@ MonoBehaviour:
   m_Name: Machinegun_Red_3 Upgrade Cost Profile SO
   m_EditorClassIdentifier: Assembly-CSharp::TurretUpgradeCostProfileSO
   baseCostsPerLevel:
-  - currencyType: 1
+  - currencyType: 0
     amount: 10571
   additionalCostPercentPerTierLevel: 5

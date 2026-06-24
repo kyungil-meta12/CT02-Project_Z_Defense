@@ -212,6 +212,33 @@ MonoBehaviour:
   hospitalPoint: {fileID: 0}
   finalRearPoint: {fileID: 0}
   registerWithGameManagerOnEnable: 1
+  visualCondition: 0
+  roleVisualEntries:
+  - role: 0
+    normal:
+      mesh: {fileID: 4300080, guid: dbbc53a6bc8f5c64bb234194ce1380aa, type: 3}
+      materials:
+      - {fileID: 2100000, guid: 22c283d0da5c2d844b4e375afbcc8cb6, type: 2}
+    wounded:
+      mesh: {fileID: 4300074, guid: dbbc53a6bc8f5c64bb234194ce1380aa, type: 3}
+      materials:
+      - {fileID: 2100000, guid: 1e309550b4cf2bb44bf90b600ffb9723, type: 2}
+  - role: 1
+    normal:
+      mesh: {fileID: 4300094, guid: dbbc53a6bc8f5c64bb234194ce1380aa, type: 3}
+      materials:
+      - {fileID: 2100000, guid: ef1f51bd99702a34696e8f15a2a6c324, type: 2}
+    wounded:
+      mesh: {fileID: 0}
+      materials: []
+  - role: 2
+    normal:
+      mesh: {fileID: 4300096, guid: dbbc53a6bc8f5c64bb234194ce1380aa, type: 3}
+      materials:
+      - {fileID: 2100000, guid: 70535cd9e2b507c45b018cfd9adec4e6, type: 2}
+    wounded:
+      mesh: {fileID: 0}
+      materials: []
   vaultObstacleLayerMask:
     serializedVersion: 2
     m_Bits: 512

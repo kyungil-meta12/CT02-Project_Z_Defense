@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
 
@@ -8,6 +9,37 @@ using UnityEngine.AI;
 [RequireComponent(typeof(Animator))]
 public class Survivor : MonoBehaviour
 {
+    // 역할 외형 상태별 Mesh와 Material 세트를 보관한다
+    [System.Serializable]
+    private class VisualSet
+    {
+        [SerializeField] private Mesh mesh;
+        [SerializeField] private Material[] materials = System.Array.Empty<Material>();
+
+        public Mesh Mesh => mesh;
+        public Material[] Materials => materials;
+    }
+
+    // 역할별 렌더러 교체에 사용할 Inspector 표시 데이터를 보관한다
+    [System.Serializable]
+    private class RoleVisualEntry
+    {
+        [SerializeField] private SurvivorRole role;
+        [SerializeField] private VisualSet normal;
+        [SerializeField] private VisualSet wounded;
+
+        // 현재 외형 상태에 맞는 외형 세트를 반환한다
+        public VisualSet GetVisualSet(SurvivorVisualCondition condition)
+        {
+            if (condition == SurvivorVisualCondition.Wounded && wounded != null && wounded.Mesh != null)
+            {
+                return wounded;
+            }
+
+            return normal != null && normal.Mesh != null ? normal : null;
+        }
+    }
+
     private enum SurvivorState
     {
         Idle,
@@ -26,6 +58,12 @@ public class Survivor : MonoBehaviour
         EngineerAssigned,
         ReturningToEngineerGathering,
         Vaulting
+    }
+
+    private enum SurvivorVisualCondition
+    {
+        Normal,
+        Wounded
     }
 
     private const int NO_DEFENSE_LINE = -1;
@@ -63,6 +101,12 @@ public class Survivor : MonoBehaviour
     [SerializeField] private Transform hospitalPoint;
     [SerializeField] private Transform finalRearPoint;
     [SerializeField] private bool registerWithGameManagerOnEnable = true;
+
+    [Header("역할 외형")]
+    [SerializeField] private SurvivorVisualCondition visualCondition = SurvivorVisualCondition.Normal;
+    [SerializeField] private List<RoleVisualEntry> roleVisualEntries = new List<RoleVisualEntry>();
+    private Mesh defaultRoleMesh;
+    private Material[] defaultRoleMaterials = System.Array.Empty<Material>();
 
     [Header("장애물 넘기")]
     [SerializeField] private LayerMask vaultObstacleLayerMask;
@@ -104,6 +148,7 @@ public class Survivor : MonoBehaviour
     private bool isInitializedAsRescueSurvivor;
     private TurretEngineerBuffReceiver assignedEngineerBuffReceiver;
     private TurretBaseSlot assignedTurretSlot;
+    private SkinnedMeshRenderer roleSkinnedMeshRenderer;
 
     public int ActiveDefenseLineIndex => activeDefenseLineIndex;
     public SurvivorRole Role => role;
@@ -124,8 +169,11 @@ public class Survivor : MonoBehaviour
         hasRepairParameter = HasAnimatorParameter(repairHash);
         hasVaultParameter = HasAnimatorParameter(vaultHash);
         AutoBindInteractionReferences();
+        AutoBindRoleVisualReferences();
+        CacheDefaultRoleVisual();
         ConfigureDefaultVaultLayerMask();
         ConfigureAgent(spec != null ? spec.repairRange : 0f);
+        ApplyRoleVisual();
     }
 
     // 활성화될 때 기본 대기 상태로 초기화한다
@@ -271,6 +319,8 @@ public class Survivor : MonoBehaviour
     public void StartRescueRun(Transform finalRearPoint_)
     {
         role = SurvivorRole.survivor;
+        visualCondition = SurvivorVisualCondition.Wounded;
+        ApplyRoleVisual();
         isInitializedAsRescueSurvivor = true;
         finalRearPoint = finalRearPoint_;
         defenseMoveTarget = finalRearPoint;
@@ -311,6 +361,8 @@ public class Survivor : MonoBehaviour
         }
 
         role = nextRole;
+        visualCondition = SurvivorVisualCondition.Normal;
+        ApplyRoleVisual();
         ClearRepairTarget();
         ClearEngineerAssignment();
         ChangeState(GetIdleStateForRole());
@@ -659,6 +711,8 @@ public class Survivor : MonoBehaviour
         }
 
         SetInteractionVisible(true);
+        visualCondition = SurvivorVisualCondition.Normal;
+        ApplyRoleVisual();
 
         if (finalRearPoint == null)
         {
@@ -1335,6 +1389,80 @@ public class Survivor : MonoBehaviour
         {
             agent.enabled = visible;
         }
+    }
+
+    // 현재 역할 인덱스에 맞는 Mesh와 Material을 렌더러에 적용한다
+    private void ApplyRoleVisual()
+    {
+        if (roleVisualEntries == null || roleVisualEntries.Count == 0)
+        {
+            return;
+        }
+
+        int roleIndex = (int)role;
+        if (roleIndex < 0 || roleIndex >= roleVisualEntries.Count)
+        {
+            return;
+        }
+
+        RoleVisualEntry entry = roleVisualEntries[roleIndex];
+        if (entry == null)
+        {
+            return;
+        }
+
+        VisualSet visualSet = entry.GetVisualSet(visualCondition);
+        if (visualSet == null || visualSet.Mesh == null)
+        {
+            ApplyDefaultRoleVisual();
+            return;
+        }
+
+        ApplyRoleVisualSet(visualSet.Mesh, visualSet.Materials);
+    }
+
+    // 캐시한 기본 Mesh와 Material을 렌더러에 되돌린다
+    private void ApplyDefaultRoleVisual()
+    {
+        ApplyRoleVisualSet(defaultRoleMesh, defaultRoleMaterials);
+    }
+
+    // 지정한 Mesh와 Material을 현재 역할 렌더러에 적용한다
+    private void ApplyRoleVisualSet(Mesh mesh, Material[] materials)
+    {
+        if (roleSkinnedMeshRenderer == null || mesh == null)
+        {
+            return;
+        }
+
+        roleSkinnedMeshRenderer.sharedMesh = mesh;
+        if (materials != null && materials.Length > 0)
+        {
+            roleSkinnedMeshRenderer.sharedMaterials = materials;
+        }
+    }
+
+    // 역할 외형 변경 전 렌더러의 기본 Mesh와 Material을 저장한다
+    private void CacheDefaultRoleVisual()
+    {
+        if (roleSkinnedMeshRenderer != null)
+        {
+            defaultRoleMesh = roleSkinnedMeshRenderer.sharedMesh;
+            defaultRoleMaterials = roleSkinnedMeshRenderer.sharedMaterials;
+            return;
+        }
+    }
+
+    // visibleRoot에서 역할 외형을 적용할 SkinnedMeshRenderer를 찾는다
+    private void AutoBindRoleVisualReferences()
+    {
+        if (visibleRoot != null)
+        {
+            roleSkinnedMeshRenderer = visibleRoot.GetComponent<SkinnedMeshRenderer>();
+            return;
+        }
+
+        roleSkinnedMeshRenderer = GetComponentInChildren<SkinnedMeshRenderer>(true);
     }
 
     // 상호작용 참조가 비어 있으면 기본 참조를 자동 연결한다

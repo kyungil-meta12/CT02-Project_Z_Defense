@@ -12,5 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0fd42e1feba94a66a711f38228e72860, type: 3}
   m_Name: ObstacleUpgradeCostProfile
   m_EditorClassIdentifier: Assembly-CSharp::ObstacleUpgradeCostProfileSO
-  baseCostsPerLevel: []
-  additionalCostPercentPerLevel: 0
+  baseCostsPerLevel:
+  - currencyType: 0
+    amount: 100
+  additionalCostPercentPerLevel: 10

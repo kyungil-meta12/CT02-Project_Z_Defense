@@ -67,5 +67,6 @@
         "*.sln": "*.csproj",
         "*.slnx": "*.csproj"
     },
-    "dotnet.defaultSolution": "CT02-Project_Z_Defense.slnx"
+    "dotnet.defaultSolution": "CT02-Project_Z_Defense.slnx",
+    "claudeCodeChat.permissions.yoloMode": false
 }

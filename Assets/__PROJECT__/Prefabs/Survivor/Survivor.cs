@@ -44,7 +44,7 @@ public class Survivor : MonoBehaviour
     [SerializeField] private float minTargetSearchInterval = 0.25f;
     [SerializeField] private float destinationRefreshInterval = 0.5f;
     [SerializeField] private float moveTimeout = 8f;
-    [SerializeField, Min(0.1f)] private float defenseMoveWarningInterval = 2f;
+    [SerializeField, Min(0.1f)] private float defenseMoveWarningInterval = 5f;
 
     [Header("방어선 이동")]
     [SerializeField] private float defensePointStoppingDistance = 0.4f;
@@ -846,7 +846,7 @@ public class Survivor : MonoBehaviour
         }
 
         nextDefenseMoveWarningTime = Time.time + Mathf.Max(0.1f, defenseMoveWarningInterval);
-        Debug.LogWarning(message, this);
+        Debug.Log(message, this);
     }
 
     // 현재 상태에 맞는 이동 목적지가 비어 있으면 저장된 기준 지점으로 복구한다

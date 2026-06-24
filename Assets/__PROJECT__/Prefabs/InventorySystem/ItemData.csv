@@ -1,4 +1,4 @@
-﻿Type,Name,InfoText,ItemImageAssetPath,ItemsToCreate
-Coin,코인,좀비 사태 이전에 사용되던 화폐.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/polyperfect/Low Poly Icon Pack/Images/Icons/Coins/Icon_Coin_Dollar_Gold_LP.png,
-FirePart,일반 기계 부품,흔하게 볼 수 있는 기계 부품. 그 만큼 범용성이 좋다.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/polyperfect/Low Poly Icon Pack/Images/Icons/Resources Items/Icon_Gear_Wheel_LP.png,
-SpecialPart,정밀 기계 부품,비싸고 정밀해서 전문가가 조심히 다루어야 하는 부품이다.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/polyperfect/Low Poly Icon Pack/Images/Icons/Common/Icon_Gear_Wheels_Group_LP.png,
+﻿Type,Name,InfoText,ItemImageAssetPath,Craftable,ItemsToCreate,CreateCount
+Coin,코인,좀비 사태 이전에 사용되던 화폐.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/polyperfect/Low Poly Icon Pack/Images/Icons/Coins/Icon_Coin_Dollar_Gold_LP.png,False,,100
+FirePart,일반 기계 부품,흔하게 볼 수 있는 기계 부품. 그 만큼 범용성이 좋다.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/polyperfect/Low Poly Icon Pack/Images/Icons/Resources Items/Icon_Gear_Wheel_LP.png,True,,100
+SpecialPart,정밀 기계 부품,비싸고 정밀해서 전문가가 조심히 다루어야 하는 부품이다.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/polyperfect/Low Poly Icon Pack/Images/Icons/Common/Icon_Gear_Wheels_Group_LP.png,True,,100

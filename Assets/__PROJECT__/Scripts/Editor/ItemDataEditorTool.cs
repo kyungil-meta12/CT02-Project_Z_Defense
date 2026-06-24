@@ -15,7 +15,9 @@ public class ItemDataEditorTool : EditorWindow
     private const string NAME_COLUMN = "Name";
     private const string INFO_TEXT_COLUMN = "InfoText";
     private const string IMAGE_PATH_COLUMN = "ItemImageAssetPath";
+    private const string CRAFTABLE_COLUMN = "Craftable";
     private const string CRAFT_COLUMN = "ItemsToCreate";
+    private const string CREATE_COUNT_COLUMN = "CreateCount";
     private const string DEFAULT_CSV_PATH = "Assets/__PROJECT__/Prefabs/InventorySystem/ItemData.csv";
     private const string DEFAULT_SO_SAVE_PATH = "Assets/__PROJECT__/Prefabs/InventorySystem/Items";
     private const string DEFAULT_LIST_SO_PATH = "Assets/__PROJECT__/Prefabs/InventorySystem/ItemMetaDataList.asset";
@@ -55,7 +57,7 @@ public class ItemDataEditorTool : EditorWindow
 
         treatMissingSpriteAsError = EditorGUILayout.Toggle("이미지 누락을 오류 처리", treatMissingSpriteAsError);
 
-        EditorGUILayout.HelpBox("CSV 컬럼: Type, Name, InfoText, ItemImageAssetPath, ItemsToCreate. 제작 재료는 Type:Count;Type:Count 형식입니다. 없는 enum은 Import를 중단하고 별도 버튼으로 RewardCurrencyType.cs를 재생성합니다.", MessageType.Info);
+        EditorGUILayout.HelpBox("CSV 컬럼: Type, Name, InfoText, ItemImageAssetPath, Craftable, ItemsToCreate, CreateCount. 제작 재료는 Type:Count;Type:Count 형식입니다. 없는 enum은 Import를 중단하고 별도 버튼으로 RewardCurrencyType.cs를 재생성합니다.", MessageType.Info);
 
         EditorGUILayout.BeginHorizontal();
         if (GUILayout.Button("CSV로 익스포트", GUILayout.Height(34)))
@@ -182,7 +184,9 @@ public class ItemDataEditorTool : EditorWindow
             itemSo.Name = row.Name;
             itemSo.InfoText = row.InfoText;
             itemSo.ItemImage = row.ItemImage;
+            itemSo.Craftable = row.Craftable;
             itemSo.ItemsToCreate = row.ItemsToCreate;
+            itemSo.CreateCount = row.CreateCount;
             EditorUtility.SetDirty(itemSo);
             importedItems.Add(itemSo);
         }
@@ -214,7 +218,7 @@ public class ItemDataEditorTool : EditorWindow
         }
 
         StringBuilder builder = new StringBuilder(1024);
-        builder.AppendLine($"{TYPE_COLUMN},{NAME_COLUMN},{INFO_TEXT_COLUMN},{IMAGE_PATH_COLUMN},{CRAFT_COLUMN}");
+        builder.AppendLine($"{TYPE_COLUMN},{NAME_COLUMN},{INFO_TEXT_COLUMN},{IMAGE_PATH_COLUMN},{CRAFTABLE_COLUMN},{CRAFT_COLUMN},{CREATE_COUNT_COLUMN}");
         for (int i = 0; i < targetListSo.MetaDataList.Count; i++)
         {
             ItemMetaDataSo item = targetListSo.MetaDataList[i];
@@ -233,7 +237,11 @@ public class ItemDataEditorTool : EditorWindow
             builder.Append(',');
             builder.Append(EscapeCsvField(imagePath));
             builder.Append(',');
+            builder.Append(EscapeCsvField(item.Craftable.ToString()));
+            builder.Append(',');
             builder.Append(EscapeCsvField(craftText));
+            builder.Append(',');
+            builder.Append(EscapeCsvField(item.CreateCount.ToString()));
             builder.AppendLine();
         }
 
@@ -368,7 +376,7 @@ public class ItemDataEditorTool : EditorWindow
             }
         }
 
-        string[] requiredColumns = { TYPE_COLUMN, NAME_COLUMN, INFO_TEXT_COLUMN, IMAGE_PATH_COLUMN, CRAFT_COLUMN };
+        string[] requiredColumns = { TYPE_COLUMN, NAME_COLUMN, INFO_TEXT_COLUMN, IMAGE_PATH_COLUMN, CRAFTABLE_COLUMN, CRAFT_COLUMN, CREATE_COUNT_COLUMN };
         for (int i = 0; i < requiredColumns.Length; i++)
         {
             if (!headerMap.ContainsKey(requiredColumns[i]))
@@ -530,7 +538,9 @@ public class ItemDataEditorTool : EditorWindow
         string itemName = GetField(fields, headerMap, NAME_COLUMN);
         string infoText = GetField(fields, headerMap, INFO_TEXT_COLUMN);
         string imagePath = GetField(fields, headerMap, IMAGE_PATH_COLUMN).Trim();
+        string craftableText = GetField(fields, headerMap, CRAFTABLE_COLUMN).Trim();
         string craftText = GetField(fields, headerMap, CRAFT_COLUMN).Trim();
+        string createCountText = GetField(fields, headerMap, CREATE_COUNT_COLUMN).Trim();
 
         if (string.IsNullOrEmpty(typeText))
         {
@@ -547,6 +557,18 @@ public class ItemDataEditorTool : EditorWindow
         if (!Enum.TryParse(typeText, out RewardCurrencyType itemType))
         {
             AddMissingEnumName(typeText);
+            return false;
+        }
+
+        if (!bool.TryParse(craftableText, out bool craftable))
+        {
+            errors.Add($"{lineNumber}행: Craftable 값이 유효하지 않습니다. 값: {craftableText}");
+            return false;
+        }
+
+        if (!int.TryParse(createCountText, out int createCount) || createCount < 0)
+        {
+            errors.Add($"{lineNumber}행: CreateCount 값이 유효하지 않습니다. 값: {createCountText}");
             return false;
         }
 
@@ -578,7 +600,9 @@ public class ItemDataEditorTool : EditorWindow
             Name = itemName,
             InfoText = infoText,
             ItemImage = sprite,
-            ItemsToCreate = craftItems
+            Craftable = craftable,
+            ItemsToCreate = craftItems,
+            CreateCount = createCount
         });
         return true;
     }
@@ -963,6 +987,10 @@ public class ItemDataEditorTool : EditorWindow
         {
             action?.Invoke();
         }
+        catch (ExitGUIException)
+        {
+            throw;
+        }
         catch (Exception exception)
         {
             ClearRunState();
@@ -978,7 +1006,9 @@ public class ItemDataEditorTool : EditorWindow
         public string Name;
         public string InfoText;
         public Sprite ItemImage;
+        public bool Craftable;
         public List<ItemMaterialData> ItemsToCreate;
+        public int CreateCount;
     }
 }
 #endif

@@ -686,6 +686,10 @@ public class ObstacleUpgradeCostCsvEditorTool : EditorWindow
         {
             action?.Invoke();
         }
+        catch (ExitGUIException)
+        {
+            throw;
+        }
         catch (Exception exception)
         {
             ClearRunState();

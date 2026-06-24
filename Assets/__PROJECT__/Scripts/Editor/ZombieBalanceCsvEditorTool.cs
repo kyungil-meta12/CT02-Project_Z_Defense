@@ -1093,6 +1093,10 @@ public class ZombieBalanceCsvEditorTool : EditorWindow
         {
             action?.Invoke();
         }
+        catch (ExitGUIException)
+        {
+            throw;
+        }
         catch (Exception exception)
         {
             ClearRunState();

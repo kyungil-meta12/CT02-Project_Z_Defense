@@ -10,7 +10,6 @@ public class DamagePopup : PoolObject
 
     private TMP_Text textMesh;
     private TextMeshProUGUI uiTextMesh;
-    private TextMeshPro legacyWorldText;
     private Canvas popupCanvas;
     private TMP_FontAsset defaultFontAsset;
     private Camera targetCamera;
@@ -153,7 +152,7 @@ public class DamagePopup : PoolObject
         transform.rotation = Quaternion.LookRotation(transform.position - cameraTransform.position, cameraTransform.up);
     }
 
-    // TextMeshProUGUI와 월드 캔버스를 확보하고 기존 월드 메시 텍스트를 비활성화한다
+    // TextMeshProUGUI와 월드 캔버스를 확보한다
     private void EnsureTextMesh()
     {
         uiTextMesh = GetComponentInChildren<TextMeshProUGUI>(true);
@@ -171,17 +170,6 @@ public class DamagePopup : PoolObject
 
         uiTextMesh.raycastTarget = false;
         textMesh = uiTextMesh;
-
-        legacyWorldText = GetComponent<TextMeshPro>();
-        if (legacyWorldText != null)
-        {
-            legacyWorldText.enabled = false;
-            Renderer legacyRenderer = legacyWorldText.renderer;
-            if (legacyRenderer != null)
-            {
-                legacyRenderer.enabled = false;
-            }
-        }
 
         if (defaultFontAsset == null)
         {

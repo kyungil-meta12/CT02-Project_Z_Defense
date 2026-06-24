@@ -348,7 +348,7 @@ public class NormalZombie : PoolObject, IDamageable, IAimPointProvider, IFrostSt
             //Debug.Log($"[NormalZombie] Damage:{appliedDamage:0.###}, HP:{CurrHp:0.###}/{TotalHp:0.###}", this);
         }
 
-        DamagePopupSpawner.SpawnDamage(transform, new DamageInfo(appliedDamage, damageInfo.PopupType), DamagePopupTargetType.NormalZombie);
+        DamagePopupSpawner.SpawnDamage(transform, new DamageInfo(appliedDamage, damageInfo.PopupType, damageInfo.PopupPolicy), DamagePopupTargetType.NormalZombie);
 
         if (CurrHp > 0f && poisonStatusRuntime != null && poisonStatusRuntime.IsActive)
         {

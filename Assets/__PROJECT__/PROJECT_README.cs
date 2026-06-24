@@ -147,7 +147,7 @@
  * - ZombieWaveSpawnProfileSO는 일반/보스 공통으로 웨이브 구간, 스폰 수, 스폰 간격, 등장 프리팹 가중치, 보스 마지막 스폰, HP/공격력/속도/보상 배율을 소유한다.
  * - 기존 ZombieSpawnData 기반 스폰 간격/스폰 수 성장 데이터는 제거되었고, Main 씬의 ZombieSpawner는 ZombieWaveSpawnProfileSO를 사용한다.
  * - 현재 1차 캠페인 밸런스는 1~500웨이브 기준이며, 451~500 구간 hpMultiplier 280으로 후반 Elite 일반 좀비가 약 79,800~100,800 HP 범위에 들어오도록 잡는다.
- * - 데미지 발생 시 DamageInfo를 통해 데미지 값과 팝업 타입을 함께 전달하고, DamagePopupSpawner.SpawnDamage를 통해 월드 캔버스 데미지 숫자를 표시한다.
+ * - 데미지 발생 시 DamageInfo를 통해 데미지 값, 팝업 타입, 표시 정책을 함께 전달하고, DamagePopupSpawner.SpawnDamage를 통해 월드 캔버스 데미지 숫자를 표시한다.
  * - TargetFinder는 콜라이더 자식이 아니라 태그 또는 IDamageable 기준의 안정적인 타겟 루트를 반환한다.
  * - TargetFinder의 시야 판정은 인스펙터 설정에 따라 ObstacleBuildSlot 보조 콜라이더,
  *   설치된 Obstacle 콜라이더, 추가 무시 레이어를 통과시킬 수 있다.

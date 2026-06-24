@@ -21,6 +21,8 @@ public class DamagePopupSettings : ScriptableObject
     public const int DEFAULT_MAX_STACK_SLOTS = 5;
     public const float DEFAULT_STACK_HORIZONTAL_STEP = 0.35f;
     public const float DEFAULT_STACK_VERTICAL_STEP = 0.18f;
+    public const float DEFAULT_ACCUMULATION_WINDOW = 0.12f;
+    public const int DEFAULT_MAX_POPUPS_PER_SECOND = 45;
 
     [Header("풀")]
     [Tooltip("MemoryPool에서 사용할 데미지 팝업 프리팹")]
@@ -88,6 +90,14 @@ public class DamagePopupSettings : ScriptableObject
     [Tooltip("연속 팝업 슬롯마다 위쪽으로 벌어지는 거리")]
     [SerializeField, Min(0f)] private float stackVerticalStep = DEFAULT_STACK_VERTICAL_STEP;
 
+    [Header("표시량 제어")]
+    [Tooltip("누적 정책 데미지를 같은 대상 기준으로 합산해 표시한다.")]
+    [SerializeField] private bool useAccumulatedDamagePopup = true;
+    [Tooltip("같은 대상의 누적 정책 데미지를 하나의 팝업으로 합산할 시간")]
+    [SerializeField, Min(0.01f)] private float accumulationWindow = DEFAULT_ACCUMULATION_WINDOW;
+    [Tooltip("1초 동안 즉시 생성 가능한 데미지 팝업 최대 개수. 0이면 제한하지 않는다.")]
+    [SerializeField, Min(0)] private int maxPopupsPerSecond = DEFAULT_MAX_POPUPS_PER_SECOND;
+
     [Header("움직임")]
     [Tooltip("데미지 팝업 유지 시간")]
     [SerializeField, Min(0.01f)] private float lifetime = DEFAULT_LIFETIME;
@@ -128,6 +138,9 @@ public class DamagePopupSettings : ScriptableObject
     public int MaxStackSlots => maxStackSlots;
     public float StackHorizontalStep => stackHorizontalStep;
     public float StackVerticalStep => stackVerticalStep;
+    public bool UseAccumulatedDamagePopup => useAccumulatedDamagePopup;
+    public float AccumulationWindow => accumulationWindow;
+    public int MaxPopupsPerSecond => maxPopupsPerSecond;
     public float StartScale => startScale;
     public float EndScale => endScale;
     public float CriticalScaleMultiplier => criticalScaleMultiplier;
@@ -253,6 +266,8 @@ public class DamagePopupSettings : ScriptableObject
         maxStackSlots = Mathf.Max(1, maxStackSlots);
         stackHorizontalStep = Mathf.Max(0f, stackHorizontalStep);
         stackVerticalStep = Mathf.Max(0f, stackVerticalStep);
+        accumulationWindow = Mathf.Max(0.01f, accumulationWindow);
+        maxPopupsPerSecond = Mathf.Max(0, maxPopupsPerSecond);
         cameraForwardOffset = Mathf.Max(0f, cameraForwardOffset);
         startScale = Mathf.Max(0f, startScale);
         endScale = Mathf.Max(0f, endScale);

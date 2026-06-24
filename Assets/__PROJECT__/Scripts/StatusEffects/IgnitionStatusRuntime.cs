@@ -171,7 +171,7 @@ public sealed class IgnitionStatusRuntime : MonoBehaviour
             return;
         }
 
-        damageable.TakeDamage(new DamageInfo(damage));
+        damageable.TakeDamage(new DamageInfo(damage, DamagePopupType.Normal, DamagePopupPolicy.Accumulate));
     }
 
     // 현재 설정에 맞는 Ignition 1틱 데미지를 계산한다

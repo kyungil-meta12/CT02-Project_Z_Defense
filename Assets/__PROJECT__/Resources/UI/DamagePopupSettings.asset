@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: DamagePopupSettings
   m_EditorClassIdentifier: 
   damagePopupPrefab: {fileID: 11400000, guid: d44bbdc7cffb4b7089a0dae151333770, type: 3}
-  initialPoolSize: 50
+  initialPoolSize: 60
   fontSize: 36
   worldCanvasScale: 0.04
   textRectWidth: 12
@@ -41,6 +41,9 @@ MonoBehaviour:
   maxStackSlots: 5
   stackHorizontalStep: 0.35
   stackVerticalStep: 0.18
+  useAccumulatedDamagePopup: 1
+  accumulationWindow: 0.12
+  maxPopupsPerSecond: 45
   lifetime: 0.75
   moveOffset: {x: 0, y: 1.5, z: 0}
   startScale: 1.15

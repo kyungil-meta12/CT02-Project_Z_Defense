@@ -9,14 +9,19 @@ public class DamagePopupSpawner : MonoBehaviour
     private const string DAMAGE_POPUP_RESOURCE_PATH = "UI/DamagePopup";
     private const string DAMAGE_POPUP_SETTINGS_RESOURCE_PATH = "UI/DamagePopupSettings";
     private const string RUNTIME_SYSTEMS_CONTAINER_NAME = "RuntimeSystems";
+    private const float POPUP_RATE_WINDOW_SECONDS = 1.0f;
 
     private static readonly Dictionary<int, PopupStackState> PopupStackStates = new Dictionary<int, PopupStackState>(128);
+    private static readonly Dictionary<int, AccumulatedPopupState> AccumulatedPopupStates = new Dictionary<int, AccumulatedPopupState>(128);
     private static DamagePopupSpawner Inst;
 
     [SerializeField] private DamagePopupSettings settings;
 
+    private readonly List<int> accumulationFlushKeys = new List<int>(128);
     private DamagePopup damagePopupPrefab;
     private Camera targetCamera;
+    private float popupRateWindowStartTime;
+    private int popupCountInCurrentWindow;
 
     // 싱글톤 인스턴스와 팝업 풀을 초기화한다
     private void Awake()
@@ -29,10 +34,19 @@ public class DamagePopupSpawner : MonoBehaviour
 
         Inst = this;
         PopupStackStates.Clear();
+        AccumulatedPopupStates.Clear();
+        popupRateWindowStartTime = Time.time;
+        popupCountInCurrentWindow = 0;
         targetCamera = Camera.main;
         EnsureSettings();
         EnsurePrefab();
         Prewarm();
+    }
+
+    // 누적된 데미지 팝업 표시 시점을 갱신한다
+    private void Update()
+    {
+        FlushDueAccumulatedPopups(Time.time);
     }
 
     // 현재 싱글톤 인스턴스가 제거될 때 정적 참조를 정리한다
@@ -70,11 +84,137 @@ public class DamagePopupSpawner : MonoBehaviour
             return;
         }
 
-        spawner.RefreshTargetCamera();
-        Vector3 spawnPosition = spawner.settings.GetSpawnPosition(target.position, targetType);
-        spawnPosition += spawner.GetStackedSpawnOffset(target);
-        int damageValue = spawner.settings.ShowRoundedDamage ? Mathf.RoundToInt(damageInfo.Damage) : Mathf.FloorToInt(damageInfo.Damage);
-        spawner.Spawn(damageValue, spawnPosition, damageInfo.PopupType);
+        spawner.HandleDamagePopup(target, damageInfo, targetType);
+    }
+
+    // 데미지 팝업 정책에 맞춰 즉시 표시하거나 누적한다
+    private void HandleDamagePopup(Transform target, DamageInfo damageInfo, DamagePopupTargetType targetType)
+    {
+        switch (damageInfo.PopupPolicy)
+        {
+            case DamagePopupPolicy.Suppressed:
+                return;
+            case DamagePopupPolicy.Accumulate:
+                if (settings.UseAccumulatedDamagePopup)
+                {
+                    AccumulateDamagePopup(target, damageInfo, targetType);
+                    return;
+                }
+
+                SpawnDamageNow(target, damageInfo, targetType, true);
+                return;
+            case DamagePopupPolicy.Throttled:
+                SpawnDamageNow(target, damageInfo, targetType, true);
+                return;
+            default:
+                SpawnDamageNow(target, damageInfo, targetType, false);
+                return;
+        }
+    }
+
+    // 같은 대상의 누적 정책 데미지를 합산한다
+    private void AccumulateDamagePopup(Transform target, DamageInfo damageInfo, DamagePopupTargetType targetType)
+    {
+        int targetId = target.GetInstanceID();
+        float currentTime = Time.time;
+        AccumulatedPopupState state;
+        if (!AccumulatedPopupStates.TryGetValue(targetId, out state) || state.Target == null)
+        {
+            state = new AccumulatedPopupState(target, targetType, damageInfo.Damage, damageInfo.PopupType, currentTime + settings.AccumulationWindow);
+            AccumulatedPopupStates[targetId] = state;
+            return;
+        }
+
+        state.AddDamage(damageInfo.Damage, damageInfo.PopupType);
+        state.RefreshTarget(target, targetType);
+        AccumulatedPopupStates[targetId] = state;
+    }
+
+    // 표시 시간이 된 누적 팝업을 한 번에 처리한다
+    private void FlushDueAccumulatedPopups(float currentTime)
+    {
+        if (AccumulatedPopupStates.Count == 0)
+        {
+            return;
+        }
+
+        accumulationFlushKeys.Clear();
+        foreach (KeyValuePair<int, AccumulatedPopupState> pair in AccumulatedPopupStates)
+        {
+            if (pair.Value.Target == null || currentTime >= pair.Value.FlushTime)
+            {
+                accumulationFlushKeys.Add(pair.Key);
+            }
+        }
+
+        for (int i = 0; i < accumulationFlushKeys.Count; i++)
+        {
+            FlushAccumulatedPopup(accumulationFlushKeys[i]);
+        }
+    }
+
+    // 지정 대상의 누적 팝업을 표시하고 버퍼에서 제거한다
+    private void FlushAccumulatedPopup(int targetId)
+    {
+        AccumulatedPopupState state;
+        if (!AccumulatedPopupStates.TryGetValue(targetId, out state))
+        {
+            return;
+        }
+
+        AccumulatedPopupStates.Remove(targetId);
+        if (state.Target == null)
+        {
+            return;
+        }
+
+        DamageInfo accumulatedInfo = new DamageInfo(state.Damage, state.PopupType, DamagePopupPolicy.Throttled);
+        SpawnDamageNow(state.Target, accumulatedInfo, state.TargetType, true);
+    }
+
+    // 대상 위치 위에 데미지 팝업을 즉시 표시한다
+    private void SpawnDamageNow(Transform target, DamageInfo damageInfo, DamagePopupTargetType targetType, bool applyRateLimit)
+    {
+        if (target == null)
+        {
+            return;
+        }
+
+        if (applyRateLimit && !TryConsumePopupRateBudget())
+        {
+            return;
+        }
+
+        RefreshTargetCamera();
+        Vector3 spawnPosition = settings.GetSpawnPosition(target.position, targetType);
+        spawnPosition += GetStackedSpawnOffset(target);
+        int damageValue = settings.ShowRoundedDamage ? Mathf.RoundToInt(damageInfo.Damage) : Mathf.FloorToInt(damageInfo.Damage);
+        Spawn(damageValue, spawnPosition, damageInfo.PopupType);
+    }
+
+    // 초당 팝업 표시 제한 예산을 하나 소비한다
+    private bool TryConsumePopupRateBudget()
+    {
+        int maxPopupsPerSecond = settings.MaxPopupsPerSecond;
+        if (maxPopupsPerSecond <= 0)
+        {
+            return true;
+        }
+
+        float currentTime = Time.time;
+        if (currentTime - popupRateWindowStartTime >= POPUP_RATE_WINDOW_SECONDS)
+        {
+            popupRateWindowStartTime = currentTime;
+            popupCountInCurrentWindow = 0;
+        }
+
+        if (popupCountInCurrentWindow >= maxPopupsPerSecond)
+        {
+            return false;
+        }
+
+        popupCountInCurrentWindow++;
+        return true;
     }
 
     // 씬 인스턴스가 없으면 런타임 컨테이너 아래에 스포너를 생성한다
@@ -247,6 +387,42 @@ public class DamagePopupSpawner : MonoBehaviour
         return nextSlot;
     }
 
+    private struct AccumulatedPopupState
+    {
+        public Transform Target;
+        public DamagePopupTargetType TargetType;
+        public float Damage;
+        public DamagePopupType PopupType;
+        public float FlushTime;
+
+        // 누적 팝업 상태를 초기화한다
+        public AccumulatedPopupState(Transform target, DamagePopupTargetType targetType, float damage, DamagePopupType popupType, float flushTime)
+        {
+            Target = target;
+            TargetType = targetType;
+            Damage = Mathf.Max(0.0f, damage);
+            PopupType = popupType;
+            FlushTime = flushTime;
+        }
+
+        // 누적 데미지와 더 높은 우선순위의 팝업 타입을 반영한다
+        public void AddDamage(float damage, DamagePopupType popupType)
+        {
+            Damage += Mathf.Max(0.0f, damage);
+            if (DamagePopupSpawner.GetPopupTypePriority(popupType) > DamagePopupSpawner.GetPopupTypePriority(PopupType))
+            {
+                PopupType = popupType;
+            }
+        }
+
+        // 재사용 대상 참조와 대상 종류를 최신 상태로 갱신한다
+        public void RefreshTarget(Transform target, DamagePopupTargetType targetType)
+        {
+            Target = target;
+            TargetType = targetType;
+        }
+    }
+
     private readonly struct PopupStackState
     {
         public readonly int SlotIndex;
@@ -257,6 +433,20 @@ public class DamagePopupSpawner : MonoBehaviour
         {
             SlotIndex = slotIndex;
             LastSpawnTime = lastSpawnTime;
+        }
+    }
+
+    // 팝업 타입 우선순위를 반환한다
+    private static int GetPopupTypePriority(DamagePopupType popupType)
+    {
+        switch (popupType)
+        {
+            case DamagePopupType.Heavy:
+                return 2;
+            case DamagePopupType.Critical:
+                return 1;
+            default:
+                return 0;
         }
     }
 }

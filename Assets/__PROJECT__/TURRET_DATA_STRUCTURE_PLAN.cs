@@ -454,6 +454,7 @@
  * 1. IDamageable implementation receives TakeDamage(DamageInfo).
  * 2. The implementation updates CurrHp and IsAlive.
  * 3. DamagePopupSpawner.SpawnDamage(targetTransform, damageInfo) is called for visible feedback.
+ * 3-1. High-frequency damage can use DamagePopupPolicy.Accumulate so same-target damage is merged before popup creation.
  * 4. DamagePopupSpawner lazily creates itself if no scene instance exists.
  * 5. It loads UI/DamagePopupSettings and UI/DamagePopup from Resources.
  * 6. It prewarms MemoryPool with the configured InitialPoolSize.

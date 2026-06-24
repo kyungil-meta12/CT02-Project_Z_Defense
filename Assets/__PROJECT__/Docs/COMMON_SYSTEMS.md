@@ -25,7 +25,7 @@ Rules:
 - HP should be clamped between `0` and `TotalHp`.
 - Repeated death handling must be guarded.
 - Implementations own their mutable HP state; external systems read state and call `TakeDamage(DamageInfo)` only.
-- `DamageInfo` carries the applied damage value and the popup display type used by damage feedback.
+- `DamageInfo` carries the applied damage value, popup display type, and popup display policy used by damage feedback.
 
 ## Status Effect Receivers
 
@@ -131,6 +131,8 @@ Rules:
 - Do not allocate popup prefabs per hit manually.
 - Always reinitialize pooled popup text, color, scale, lifetime, and camera-dependent values.
 - Turret critical or heavy hit styling is passed through `DamageInfo.PopupType`, not through a static temporary context.
+- High-frequency paths can pass `DamageInfo.PopupPolicy = Accumulate` so same-target damage is merged within `DamagePopupSettings.accumulationWindow`.
+- `DamagePopupSettings.maxPopupsPerSecond` limits throttled and accumulated popup creation to prevent runaway popup counts during rapid-fire, beam, DoT, and chain damage.
 - Popup position offset, random spread, text formats, colors, scale multipliers, and lifetime are configured in `Resources/UI/DamagePopupSettings.asset`.
 - Normal zombie and boss zombie popup positions can be tuned separately through the same `DamagePopupSettings.asset`.
 - Popup world-canvas sorting and camera-forward offset are configured in the same asset to prevent damage text from being hidden by zombie meshes or HP bars.

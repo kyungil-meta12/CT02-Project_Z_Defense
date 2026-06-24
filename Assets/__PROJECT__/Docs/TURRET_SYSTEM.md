@@ -90,7 +90,7 @@ Do not use display names as stable IDs.
 13. Beam firing logic keeps the beam VFX alive between fire requests and applies damage by `BeamAttackProfileSO.damageTickInterval`.
 14. `IgnitionDamageApplier` reads targets from `IgnitionConeDetector` and forwards Ignition payloads to `IIgnitionStatusEffectReceiver`.
 15. `ProjectileDamageDealer` applies projectile damage to `IDamageable` targets, forwards Poison payloads to `IPoisonStatusEffectReceiver`, and triggers Electro chain damage when an Electro payload is active.
-16. `ProjectileDamageDealer` and `BeamFiringEvent` roll `TurretDamagePolishProfileSO` before `IDamageable.TakeDamage`; damage and popup style are passed together through `DamageInfo`.
+16. `ProjectileDamageDealer` and `BeamFiringEvent` roll `TurretDamagePolishProfileSO` before `IDamageable.TakeDamage`; damage, popup style, and popup policy are passed together through `DamageInfo`.
 17. `ProjectileHitDetector` handles tracked target, trigger/collision, and movement raycast hit paths.
 18. Damage receivers spawn damage popups where appropriate.
 

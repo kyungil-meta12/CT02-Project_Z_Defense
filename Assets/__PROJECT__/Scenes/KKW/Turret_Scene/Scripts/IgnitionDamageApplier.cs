@@ -228,7 +228,7 @@ public sealed class IgnitionDamageApplier : MonoBehaviour, ITurretRuntimeStatRec
                 continue;
             }
 
-            target.TakeDamage(new DamageInfo(damage));
+            target.TakeDamage(new DamageInfo(damage, DamagePopupType.Normal, DamagePopupPolicy.Accumulate));
 
             if (logDamage)
             {

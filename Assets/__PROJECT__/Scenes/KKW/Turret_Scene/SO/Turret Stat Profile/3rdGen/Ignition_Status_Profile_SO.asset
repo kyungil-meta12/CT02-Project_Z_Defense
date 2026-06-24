@@ -13,13 +13,13 @@ MonoBehaviour:
   m_Name: Ignition_Status_Profile_SO
   m_EditorClassIdentifier: Assembly-CSharp::IgnitionStatusProfileSO
   damageMultiplier: 0
-  maxHpDamageRatioPerTick: 0.01
-  tickInterval: 0.2
-  duration: 5
+  maxHpDamageRatioPerTick: 0.025
+  tickInterval: 1
+  duration: 10
   maxStackCount: 1
   stackRefreshMode: 0
   reactionDamageMultiplier: 0
-  reactionMaxHpDamageRatioPerTick: 0.015
-  reactionTickInterval: 0.1
+  reactionMaxHpDamageRatioPerTick: 0.3
+  reactionTickInterval: 0.5
   bossDamageMultiplier: 1
   interactionFlags: -1

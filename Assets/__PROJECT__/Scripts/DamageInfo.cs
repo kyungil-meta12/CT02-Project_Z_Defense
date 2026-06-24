@@ -5,11 +5,13 @@ public readonly struct DamageInfo
 {
     public readonly float Damage;
     public readonly DamagePopupType PopupType;
+    public readonly DamagePopupPolicy PopupPolicy;
 
-    // 데미지 값과 팝업 표시 타입을 저장한다
-    public DamageInfo(float damage, DamagePopupType popupType = DamagePopupType.Normal)
+    // 데미지 값, 팝업 표시 타입, 팝업 표시 정책을 저장한다
+    public DamageInfo(float damage, DamagePopupType popupType = DamagePopupType.Normal, DamagePopupPolicy popupPolicy = DamagePopupPolicy.Immediate)
     {
         Damage = damage;
         PopupType = popupType;
+        PopupPolicy = popupPolicy;
     }
 }

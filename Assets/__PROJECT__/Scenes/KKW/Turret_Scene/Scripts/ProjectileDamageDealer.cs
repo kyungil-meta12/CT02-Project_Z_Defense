@@ -100,7 +100,8 @@ public class ProjectileDamageDealer : MonoBehaviour
 
         TurretDamagePolishResult damageResult = RollDamage();
         NotifyNonElectroDamageReceived(damageable, damageResult.Damage);
-        damageable.TakeDamage(new DamageInfo(damageResult.Damage, damageResult.PopupType));
+        DamagePopupPolicy popupPolicy = ResolveDirectHitPopupPolicy(damageResult.PopupType);
+        damageable.TakeDamage(new DamageInfo(damageResult.Damage, damageResult.PopupType, popupPolicy));
         hitDamageables.Add(damageable);
         ApplyPoisonStatus(damageable);
         ApplyElectroStatus(hitCollider, damageable, 0, damageResult.Damage);
@@ -123,6 +124,17 @@ public class ProjectileDamageDealer : MonoBehaviour
         }
 
         return damagePolishProfile.RollDamage(damage);
+    }
+
+    // 직접 타격 데미지의 팝업 표시 정책을 결정한다
+    private static DamagePopupPolicy ResolveDirectHitPopupPolicy(DamagePopupType popupType)
+    {
+        if (popupType == DamagePopupType.Critical || popupType == DamagePopupType.Heavy)
+        {
+            return DamagePopupPolicy.Immediate;
+        }
+
+        return DamagePopupPolicy.Accumulate;
     }
 
     // 데미지가 적용된 대상에게 Poison 상태 효과를 전달한다

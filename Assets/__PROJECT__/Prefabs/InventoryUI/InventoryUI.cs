@@ -1,4 +1,5 @@
 using IncrementalLib;
+using System;
 using System.Collections.Generic;
 using TMPro;
 using Unity.Android.Gradle.Manifest;
@@ -20,10 +21,16 @@ public class InventoryUI : MonoBehaviour
     [Header("인벤토리 아이템 버튼 프리펩")] public GameObject inventoryCellPrefab;
     [Header("크래프트 아이템 버튼 프리펩")] public GameObject craftCellPrefab;
     [Header("크래프트 필요 아이템 표시기 프리펩")] public GameObject craftCellNeedInfoPrefab;
+    [Header("인벤토리 탭 버튼")] public Button invenTabButton;
+    [Header("크래프트 탭 버튼")] public Button craftTabButton;
     [Header("아이템 이름 텍스트 객체")] public TextMeshProUGUI itemNameText;
     [Header("아이템 정보 텍스트 객체")] public TextMeshProUGUI itemInfoText;
+    [Header("아이템 정보 이미지")] public Image itemInfoImage;
     [Header("패널 텍스트 객체")] public TextMeshProUGUI pannelTitletext;
+    [Header("제작 버튼")] public Button makeButton;
     [Header("배경 객체")] public Image background;
+    [Header("선택된 탭 색상")] public Color selectedTabColor;
+    [Header("선택된 셀 색상")] public Color selectedCellColor;
 
     // 메타데이터 목록
     private List<ItemMetaDataSo> metaDataList = new();
@@ -45,7 +52,15 @@ public class InventoryUI : MonoBehaviour
     private List<TextMeshProUGUI> craftTextList = new();
     private Dictionary<RewardCurrencyType, TextMeshProUGUI> craftCountTextList = new();
 
+    // 마지막으로 선택된 크래프트 아이템 타입
+    private RewardCurrencyType latestSelectedCraftType = 0;
+    private Button latestSelectedCraftCell;
 
+    // 마지막으로 선택된 인벤토리 아이템 타입
+    private Button latestSelectedInvenCell;
+
+    // 원본 셀 버튼 색상
+    private Color originCellColor;
 
     // 열려있는가?
     private bool openState = false;
@@ -128,6 +143,9 @@ public class InventoryUI : MonoBehaviour
             }
         }
 
+        // 기본 셀 버튼 컬러 얻기
+        originCellColor = inventoryCellPrefab.GetComponent<Button>().colors.normalColor;
+
         OnCloseInventory();
     }
  
@@ -194,6 +212,13 @@ public class InventoryUI : MonoBehaviour
     public void OnInventoryCellClick(Button button)
     {
         SetInfoText(invenButtonDict, button);
+        SetInfoImage(invenButtonDict, button);
+        if(latestSelectedInvenCell && latestSelectedInvenCell != button)
+        {
+            SetButtonColor(latestSelectedInvenCell, originCellColor);
+        }
+        SetButtonColor(button, selectedCellColor);
+        latestSelectedInvenCell = button;
     }
 
     /// <summary>
@@ -203,6 +228,14 @@ public class InventoryUI : MonoBehaviour
     public void OnCraftCellClick(Button button)
     {
         SetInfoText(craftButtonDict, button);
+        SetInfoImage(craftButtonDict, button);
+        latestSelectedCraftType = craftButtonDict[button];
+        if(latestSelectedCraftCell && latestSelectedCraftCell != button)
+        {
+            SetButtonColor(latestSelectedCraftCell, originCellColor);
+        }
+        SetButtonColor(button, selectedCellColor);
+        latestSelectedCraftCell = button;
     }
 
     /// <summary>
@@ -225,6 +258,30 @@ public class InventoryUI : MonoBehaviour
         {
             SetToCraft();
         }
+    }
+
+    public void OnMakeButtonClick()
+    {
+        if(!latestSelectedCraftCell)
+        {
+            Debug.LogWarning("[InventoryUI] 아이템이 선택되지 않음");
+            return;
+        }
+        var needItems = metaDataList.Find(meta => meta.Type == latestSelectedCraftType).ItemsToCreate;
+        foreach(var item in needItems)
+        {
+            if(InventorySystem.Inst.CanUseItem(item.Type, item.Count))
+            {
+                InventorySystem.Inst.UseItem(item.Type, item.Count);
+            }
+            else
+            {
+                Debug.LogWarning($"[InvectoryUI] 아이템이 부족하여 제작할 수 없음 | 부족한 아이템: {item.Type} | 필요 개수: {item.Count} | 현재 개수: {InventorySystem.Inst.GetCount(item.Type)}");
+                return;
+            }
+        }
+
+        Debug.Log($"[InventoryUI] 아이템 제작 완료 |  아이템: {latestSelectedCraftType}");
     }
 
     /// <summary>
@@ -259,12 +316,42 @@ public class InventoryUI : MonoBehaviour
         }        
     }
 
+    /// <summary>
+    /// 아이템 정보 이미지를 설정한다. // null 전달 시 이미지를 숨긴다.
+    /// </summary>
+    /// <param name="dict"></param>
+    /// <param name="button"></param>
+    private void SetInfoImage(Dictionary<Button, RewardCurrencyType> dict, Button button)
+    {
+        SetImageVisibility(itemInfoImage, dict != null && button != null);
+        if(dict != null && button != null)
+        {
+            itemInfoImage.sprite = metaDataList.Find(meta => meta.Type == dict[button]).ItemImage;
+        }
+    }
+
     private void SetCraftItemOwnCountText(RewardCurrencyType type)
     {
         if(craftCountTextList.ContainsKey(type))
         {
             craftCountTextList[type].text = InventorySystem.Inst.GetCountString(type);
         }
+    }
+
+    /// <summary>
+    /// 버튼의 색상을 변경한다. 투명도는 유지된다.
+    /// </summary>
+    /// <param name="button"></param>
+    /// <param name="color"></param>
+    private void SetButtonColor(Button button, Color color)
+    {
+        var colorBlock = button.colors;
+        var opacity = colorBlock.normalColor.a;
+        colorBlock.normalColor = new Color(color.r, color.g, color.b, opacity);
+        colorBlock.pressedColor = colorBlock.normalColor;
+        colorBlock.selectedColor = colorBlock.normalColor;
+        colorBlock.highlightedColor = colorBlock.normalColor;
+        button.colors = colorBlock;
     }
 
     /// <summary>
@@ -277,6 +364,25 @@ public class InventoryUI : MonoBehaviour
         scrollRect.velocity = Vector2.zero;
     }
 
+
+    /// <summary>
+    /// 모든 셀 선택을 초기화 한다.
+    /// </summary>
+    private void ResetCellSelectionAll()
+    {
+        if(latestSelectedCraftCell)
+        {
+            SetButtonColor(latestSelectedCraftCell, originCellColor);
+        }
+        latestSelectedCraftCell = null;
+
+        if(latestSelectedInvenCell)
+        {
+            SetButtonColor(latestSelectedInvenCell, originCellColor);
+        }
+        latestSelectedInvenCell = null;
+    }
+
      /// <summary>
     /// 인벤토리 상태로 설정한다.
     /// </summary>
@@ -285,8 +391,13 @@ public class InventoryUI : MonoBehaviour
         inventoryContent.SetActive(true);
         craftContent.SetActive(false);
         SetInfoText(null, null);
+        SetInfoImage(null, null);
+        SetButtonColor(invenTabButton, selectedTabColor);
+        SetButtonColor(craftTabButton, Color.black);
         pannelTitletext.text = "Inventory";
         ResetScroll(inventoryContent);
+        ResetCellSelectionAll();
+        makeButton.gameObject.SetActive(false);
     }
 
     /// <summary>
@@ -296,8 +407,13 @@ public class InventoryUI : MonoBehaviour
         inventoryContent.SetActive(false);
         craftContent.SetActive(true);
         SetInfoText(null, null);
+        SetInfoImage(null, null);
+        SetButtonColor(invenTabButton, Color.black);
+        SetButtonColor(craftTabButton, selectedTabColor);
         pannelTitletext.text = "Craft";
         ResetScroll(craftContent);
+        ResetCellSelectionAll();
+        makeButton.gameObject.SetActive(true);
     }
 
     // 인벤토리 셀을 새로고침 한다.

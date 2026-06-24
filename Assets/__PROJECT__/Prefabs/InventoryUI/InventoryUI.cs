@@ -22,6 +22,7 @@ public class InventoryUI : MonoBehaviour
     [Header("크래프트 필요 아이템 표시기 프리펩")] public GameObject craftCellNeedInfoPrefab;
     [Header("아이템 이름 텍스트 객체")] public TextMeshProUGUI itemNameText;
     [Header("아이템 정보 텍스트 객체")] public TextMeshProUGUI itemInfoText;
+    [Header("아이템 정보 이미지")] public Image itemInfoImage;
     [Header("패널 텍스트 객체")] public TextMeshProUGUI pannelTitletext;
     [Header("제작 버튼")] public Button makeButton;
     [Header("배경 객체")] public Image background;
@@ -195,6 +196,7 @@ public class InventoryUI : MonoBehaviour
     public void OnInventoryCellClick(Button button)
     {
         SetInfoText(invenButtonDict, button);
+        SetInfoImage(invenButtonDict, button);
     }
 
     /// <summary>
@@ -204,6 +206,7 @@ public class InventoryUI : MonoBehaviour
     public void OnCraftCellClick(Button button)
     {
         SetInfoText(craftButtonDict, button);
+        SetInfoImage(craftButtonDict, button);
     }
 
     /// <summary>
@@ -265,6 +268,20 @@ public class InventoryUI : MonoBehaviour
         }        
     }
 
+    /// <summary>
+    /// 아이템 정보 이미지를 설정한다. // null 전달 시 이미지를 숨긴다.
+    /// </summary>
+    /// <param name="dict"></param>
+    /// <param name="button"></param>
+    private void SetInfoImage(Dictionary<Button, RewardCurrencyType> dict, Button button)
+    {
+        SetImageVisibility(itemInfoImage, dict != null && button != null);
+        if(dict != null && button != null)
+        {
+            itemInfoImage.sprite = metaDataList.Find(meta => meta.Type == dict[button]).ItemImage;
+        }
+    }
+
     private void SetCraftItemOwnCountText(RewardCurrencyType type)
     {
         if(craftCountTextList.ContainsKey(type))
@@ -291,6 +308,7 @@ public class InventoryUI : MonoBehaviour
         inventoryContent.SetActive(true);
         craftContent.SetActive(false);
         SetInfoText(null, null);
+        SetInfoImage(null, null);
         pannelTitletext.text = "Inventory";
         ResetScroll(inventoryContent);
         makeButton.gameObject.SetActive(false);
@@ -303,6 +321,7 @@ public class InventoryUI : MonoBehaviour
         inventoryContent.SetActive(false);
         craftContent.SetActive(true);
         SetInfoText(null, null);
+        SetInfoImage(null, null);
         pannelTitletext.text = "Craft";
         ResetScroll(craftContent);
         makeButton.gameObject.SetActive(true);

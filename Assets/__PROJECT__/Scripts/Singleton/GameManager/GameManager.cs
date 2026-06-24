@@ -20,6 +20,8 @@ public class GameManager : MonoBehaviour
         [Header("방어선 설정")]
         public string lineName;
         public List<ObstacleBuildSlot> obstacleSlots = new List<ObstacleBuildSlot>(3);
+        [Header("터렛 베이스")]
+        public List<TurretBaseSlot> turretBaseSlots = new List<TurretBaseSlot>(3);
         [Tooltip("도망 포인트")]
         public Transform retreatPoint;
         [Tooltip("복귀 포인트")]
@@ -367,6 +369,7 @@ public class GameManager : MonoBehaviour
 
         //Debug.Log($"[GameManager] 방어선 {defenseLineIndex} 붕괴! 생존자 대피 명령 전달");
         defenseLine.isBreached = true;
+        ApplyDefenseLineTurretBaseState(defenseLineIndex, false);
         CommandSurvivorsToRetreat(defenseLineIndex, defenseLine.retreatPoint, isGateBreached);
 
         if (isGateBreached)
@@ -416,6 +419,7 @@ public class GameManager : MonoBehaviour
 
         //Debug.Log($"[GameManager] 방어선 {defenseLineIndex} 복구됨! 생존자 복귀 명령 전달");
         defenseLine.isBreached = false;
+        ApplyDefenseLineTurretBaseState(defenseLineIndex, true);
         CommandSurvivorsToRestoredPoint(defenseLineIndex, defenseLine.restoredPoint);
     }
 
@@ -594,10 +598,43 @@ public class GameManager : MonoBehaviour
             }
 
             defenseLine.isBreached = !IsDefenseLineFullyBuilt(i);
+            ApplyDefenseLineTurretBaseState(i, !defenseLine.isBreached);
             if (defenseLine.isBreached)
             {
                 CommandSurvivorsToRetreat(i, defenseLine.retreatPoint, IsGateDefenseLine(defenseLine));
             }
+        }
+    }
+
+    // 방어선 상태에 맞춰 연결된 터렛 베이스 루트를 활성화하거나 비활성화한다
+    private void ApplyDefenseLineTurretBaseState(int defenseLineIndex, bool isAvailable)
+    {
+        if (defenseLines == null)
+        {
+            return;
+        }
+
+        if (defenseLineIndex < 0 || defenseLineIndex >= defenseLines.Count)
+        {
+            return;
+        }
+
+        DefenseLineEntry defenseLine = defenseLines[defenseLineIndex];
+        if (defenseLine == null || defenseLine.turretBaseSlots == null)
+        {
+            return;
+        }
+
+        for (int i = defenseLine.turretBaseSlots.Count - 1; i >= 0; i--)
+        {
+            TurretBaseSlot turretBaseSlot = defenseLine.turretBaseSlots[i];
+            if (turretBaseSlot == null)
+            {
+                defenseLine.turretBaseSlots.RemoveAt(i);
+                continue;
+            }
+
+            turretBaseSlot.SetDefenseLineAvailable(isAvailable);
         }
     }
 
@@ -688,6 +725,11 @@ public class GameManager : MonoBehaviour
             if (defenseLine.obstacleSlots == null)
             {
                 defenseLine.obstacleSlots = new List<ObstacleBuildSlot>(3);
+            }
+
+            if (defenseLine.turretBaseSlots == null)
+            {
+                defenseLine.turretBaseSlots = new List<TurretBaseSlot>(3);
             }
         }
     }
@@ -871,6 +913,7 @@ public class GameManager : MonoBehaviour
             }
 
             defenseLine.isBreached = false;
+            ApplyDefenseLineTurretBaseState(i, true);
 
             if (defenseLine.obstacleSlots == null)
             {

@@ -33,6 +33,7 @@ Before editing `Main.unity`:
 
 - `lineName`
 - `obstacleSlots`
+- `turretBaseSlots`
 - `retreatPoint`
 - `restoredPoint`
 
@@ -41,6 +42,7 @@ Before editing `Main.unity`:
 Rules:
 
 - Obstacle slot lists define which defense line is breached when an obstacle fractures.
+- Turret base slot lists define which turret bases are disabled while that defense line is breached.
 - Retreat and restored points must be on reachable NavMesh or near valid NavMesh sampling positions.
 - Defense-line index order matters. Lower index means earlier/front line.
 - A survivor that retreated behind line `N` must not repair obstacles with index `<= N` until return completes.
@@ -82,6 +84,7 @@ Rules:
 - `BuildPoint` should hold the installed obstacle or gate as a child.
 - Existing scene obstacles should be moved under the correct `BuildPoint` or assigned through the slot's runtime reference.
 - `GameManager` should reference all seven slots through defense-line `obstacleSlots`.
+- `GameManager` should reference each line's matching turret bases through defense-line `turretBaseSlots`; disabling a base root also disables any installed turret under its `BuildPoint`.
 
 ## Obstacle Placement UI Setup
 
@@ -125,11 +128,9 @@ Notes:
 
 ## Obstacle Upgrade UI Setup
 
-Obstacle upgrade UI can be placed from the Unity menu:
+Obstacle upgrade UI is manually maintained in the scene. The legacy `Project Z Defense/UI/Create Obstacle Upgrade Popup UI` menu is disabled by default and should not be used for new UI generation.
 
-- `Project Z Defense/UI/Create Obstacle Upgrade Popup UI`
-
-The menu creates an editable `ObstacleUpgradePopupCanvas` and `ObstacleUpgradePopup` hierarchy in the current scene, then attaches `ObstacleUpgradePopupUI` to the popup controller root and wires the serialized UI references. The visible background image, layout group, texts, and button live under `ObstacleUpgradePopup/Panel`; only `Panel` is hidden or shown at runtime so the controller object stays active for click detection. The runtime component does not create Canvas or popup objects, so layout and styling should be edited directly in the scene.
+The editable `ObstacleUpgradePopupCanvas` and `ObstacleUpgradePopup` hierarchy should attach `ObstacleUpgradePopupUI` to the popup controller root and wire the serialized UI references. The visible background image, layout group, texts, and button live under `ObstacleUpgradePopup/Panel`; only `Panel` is hidden or shown at runtime so the controller object stays active for click detection. The runtime component does not create Canvas or popup objects, so layout and styling should be edited directly in the scene.
 
 Setup notes:
 
@@ -172,14 +173,13 @@ Rescue and role UI setup:
 - `EngineerBuffTargetPanelUI` should keep eight target buttons and eight `TurretBaseSlot` references; buttons stay visible and become interactable only when the mapped slot has a placed turret.
 - Assign survivor and turret slot layer masks so click selection and engineer drag use `Physics.RaycastNonAlloc` only against relevant layers.
 - Turrets can receive stackable engineer damage buffs through `TurretEngineerBuffReceiver`; the interaction controller adds it to the selected turret at runtime if it is missing.
+- `TurretDefinitionSO.maxEngineerSeatCount` controls how many engineers can mount each turret. Current default setup uses 1st generation `1`, 2nd generation `2`, and 3rd generation `3`; `0` disables engineer mounting for that definition.
 
 ## Game Over Panel Setup
 
-Create the UI from the editor menu:
+Game over UI is manually maintained in the scene. The legacy `Project Z Defense > UI > Create Game Over Panel UI` menu is disabled by default and should not be used for new UI generation.
 
-- `Project Z Defense > UI > Create Game Over Panel UI`
-
-The menu creates:
+Expected hierarchy:
 
 - `GameOverPanelCanvas`
 - `GameOverPanelController`
@@ -194,6 +194,27 @@ Scene wiring:
 - Set `GameManager.gameOverFadeInDuration` and `gameOverFadeOutDuration`; default runtime expectation is 10 seconds each.
 - Ensure `ZombieSpawner` exists in the scene so it can register with `GameManager` and participate in pause, despawn, previous-wave prepare, and resume.
 - Ensure obstacle slots have stored `ObstacleDefinitionSO` progress if they need to be rebuilt after gate destruction.
+
+## Warning Popup Setup
+
+Warning popups are scene-authored UI and pooled at runtime.
+
+Required setup:
+
+- Create a warning popup prefab manually.
+- Add `WarningPopup` to the prefab root.
+- Assign the prefab child `Image` to `WarningPopup.iconImage`.
+- Assign the prefab child `TMP_Text` to `WarningPopup.messageText`.
+- Add `WarningPopupManager` to a scene runtime UI object.
+- Assign `WarningPopupManager.popupPrefab` and `popupRoot`.
+- Leave `popupIconSprites` empty until message-type icons are ready, then add sprites in the Inspector.
+
+Rules:
+
+- The popup prefab root is pooled through `MemoryPool`; do not instantiate it manually for repeated warnings.
+- `WarningPopup` forces child image raycast and child text raycast off so it does not block `CameraTouchHandler`.
+- If multiple warnings occur, the manager stacks them under `popupRoot` and returns the oldest popup when `maxVisibleCount` is reached.
+- Gameplay and UI code should use `WarningPopupManager.ShowWarning(...)` instead of directly controlling popup instances.
 
 ## Zombie Spawner Setup
 
@@ -218,11 +239,13 @@ For turret placement details, use `TURRET_SYSTEM.md` as the source of truth.
 Minimum scene requirements:
 
 - `TurretPlacementController` has a target camera or `Camera.main` exists.
-- Create editable turret placement buttons from `Project Z Defense > UI > Create Turret Placement UI`, or place `TurretPlacementSlotUI` buttons manually and assign `placementController` plus `TurretShopEntrySO`.
+- Place `TurretPlacementSlotUI` buttons manually and assign `placementController` plus `TurretShopEntrySO`. The legacy `Project Z Defense > UI > Create Turret Placement UI` menu is disabled by default.
 - Keep `TurretPlacementUI.rebuildOnStart` disabled unless runtime-generated legacy buttons are intentionally needed.
-- Create the turret upgrade/evolution popup from `Project Z Defense > UI > Create Turret Upgrade Popup UI`; the runtime popup controller expects serialized scene UI references and a full-screen transparent `BackgroundButton`.
+- Maintain the turret upgrade/evolution popup manually; the legacy `Project Z Defense > UI > Create Turret Upgrade Popup UI` menu is disabled by default. The runtime popup controller expects serialized scene UI references and a full-screen transparent `BackgroundButton`.
 - The transparent `BackgroundButton` should cover the screen, have an alpha-0 `Image` with `raycastTarget` enabled, and call `TurretTemporaryUpgradePopupUI.OnBackgroundButtonClicked`.
-- The generated popup includes `EngineerSeatTriggers` above the main upgrade content. Keep the desired number of `TurretEngineerSeatButton` children in that container and match `engineerSeatTriggerCount` on `TurretTemporaryUpgradePopupUI`.
+- The popup includes `EngineerSeatTriggers` above the main upgrade content. Keep the desired number of `TurretEngineerSeatButton` children in that container and match `engineerSeatTriggerCount` on `TurretTemporaryUpgradePopupUI`.
+- `engineerSeatTriggerCount` is only the prepared popup button pool size; actual mount limits come from each selected turret's `TurretDefinitionSO.maxEngineerSeatCount`.
+- If a seat button has a right-side buff text, assign it to `TurretEngineerSeatButton.buffValueText`; mounted engineers display their per-engineer damage bonus as `+10%` style text.
 - `turretBaseLayerMask` includes only intended turret base hit areas.
 - Each `TurretBaseSlot` has `BuildPoint` and `PlacementHitArea`.
 - `PlacementHitArea` collider is on the expected layer.

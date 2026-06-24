@@ -42,7 +42,15 @@ public class TurretBaseSlot : MonoBehaviour
     {
         get
         {
-            return buildPoint != null && currentTurret == null && currentTurretObject == null;
+            return isActiveAndEnabled && buildPoint != null && currentTurret == null && currentTurretObject == null;
+        }
+    }
+
+    public bool IsDefenseLineAvailable
+    {
+        get
+        {
+            return gameObject.activeSelf;
         }
     }
 
@@ -75,6 +83,17 @@ public class TurretBaseSlot : MonoBehaviour
         }
 
         return hitCollider == placementHitArea || hitCollider.transform.IsChildOf(transform);
+    }
+
+    // 방어선 상태에 따라 터렛 베이스 루트의 활성 상태를 변경한다
+    public void SetDefenseLineAvailable(bool isAvailable)
+    {
+        if (gameObject.activeSelf == isAvailable)
+        {
+            return;
+        }
+
+        gameObject.SetActive(isAvailable);
     }
 
     // 상점 엔트리의 기본 비용을 지불한 뒤 터렛을 배치한다

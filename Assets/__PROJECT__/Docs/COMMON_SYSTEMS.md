@@ -82,6 +82,7 @@ Use when repeatedly spawning:
 - projectiles
 - VFX
 - damage popups
+- warning popups
 - temporary runtime helpers
 
 Rules:
@@ -134,6 +135,29 @@ Rules:
 - Normal zombie and boss zombie popup positions can be tuned separately through the same `DamagePopupSettings.asset`.
 - Popup world-canvas sorting and camera-forward offset are configured in the same asset to prevent damage text from being hidden by zombie meshes or HP bars.
 - Avoid logs per damage tick.
+
+## Warning Popup
+
+Paths:
+
+- `Assets/__PROJECT__/Scripts/UI/WarningPopup.cs`
+- `Assets/__PROJECT__/Scripts/UI/WarningPopupManager.cs`
+
+Flow:
+
+1. Gameplay or UI code calls `WarningPopupManager.ShowWarning(...)`.
+2. The manager resolves the optional icon by `popupIconSprites` index.
+3. The manager gets a pooled `WarningPopup` instance from `MemoryPool`.
+4. `WarningPopup.Init` applies the message, icon sprite, and display duration.
+5. The popup disables UI interaction/raycast targets and returns to the pool when its lifetime ends.
+
+Rules:
+
+- The warning popup prefab is authored in Unity and assigned to `WarningPopupManager.popupPrefab`.
+- The prefab root must include `WarningPopup`; its child `Image` and `TMP_Text` references are assigned on that component.
+- The manager does not create popup visuals or load warning assets from `Resources`.
+- `popupIconSprites` starts empty; designers add message-type icons in the Inspector.
+- Warning popups must not block `CameraTouchHandler` input, so child `Image.raycastTarget` and `TMP_Text.raycastTarget` stay disabled.
 
 ## PooledObjectUtility
 

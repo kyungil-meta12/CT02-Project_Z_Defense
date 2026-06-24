@@ -464,7 +464,7 @@ public class TurretTemporaryUpgradePopupUI : MonoBehaviour
                 continue;
             }
 
-            seatButton.Configure(this, i, "Engineer " + (i + 1));
+            seatButton.Configure(this, i, "Engineer " + (i + 1), FormatEngineerBuffValue(buffReceiver));
             visibleCount++;
         }
 
@@ -478,6 +478,17 @@ public class TurretTemporaryUpgradePopupUI : MonoBehaviour
             engineerSeatButtons[i].Clear();
             engineerSeatButtons[i].gameObject.SetActive(false);
         }
+    }
+
+    // 엔지니어 1명당 적용되는 버프 수치를 UI 문자열로 변환한다
+    private static string FormatEngineerBuffValue(TurretEngineerBuffReceiver buffReceiver)
+    {
+        if (buffReceiver == null || buffReceiver.DamageBonusRatioPerEngineer <= 0.0f)
+        {
+            return string.Empty;
+        }
+
+        return $"+{buffReceiver.DamageBonusRatioPerEngineer * 100.0f:0.#}%";
     }
 
     // 선택 터렛의 엔지니어 버프 상태가 바뀌면 탑승 슬롯 UI를 갱신한다

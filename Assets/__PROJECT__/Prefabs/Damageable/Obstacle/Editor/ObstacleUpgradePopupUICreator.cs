@@ -11,7 +11,9 @@ internal static class ObstacleUpgradePopupUICreator
     private const string CANVAS_NAME = "ObstacleUpgradePopupCanvas";
     private const string POPUP_NAME = "ObstacleUpgradePopup";
 
+#if PROJECTZ_ENABLE_LEGACY_UI_CREATORS
     [MenuItem(MENU_PATH)]
+#endif
     // 메뉴 실행 시 장애물 업그레이드 팝업 Canvas와 하위 UI를 현재 씬에 생성하거나 기존 팝업을 선택한다
     private static void CreateObstacleUpgradePopupUI()
     {

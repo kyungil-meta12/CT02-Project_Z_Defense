@@ -8,7 +8,7 @@ using UnityEditor;
 using UnityEngine;
 
 /// <summary>
-/// 터렛 정의, 기본 스탯, 성장, 업그레이드 비용을 단일 CSV로 관리한다.
+/// 터렛 정의, 엔지니어 제한, 기본 스탯, 성장, 업그레이드 비용을 단일 CSV로 관리한다.
 /// </summary>
 public class TurretDataCsvEditorTool : EditorWindow
 {
@@ -32,7 +32,7 @@ public class TurretDataCsvEditorTool : EditorWindow
         EditorGUILayout.LabelField("터렛 데이터 CSV 관리 도구", EditorStyles.boldLabel);
         EditorGUILayout.Space();
         EditorGUILayout.LabelField("CSV 파일 경로", CSV_PATH);
-        EditorGUILayout.HelpBox("Definition 1행이 기본 스탯, 성장 파라미터, 업그레이드 비용을 함께 관리합니다. 레벨별 결과표는 터렛 밸런스 리포트에서 자동 계산합니다.", MessageType.Info);
+        EditorGUILayout.HelpBox("Definition 1행이 엔지니어 제한, 기본 스탯, 성장 파라미터, 업그레이드 비용을 함께 관리합니다. 레벨별 결과표는 터렛 밸런스 리포트에서 자동 계산합니다.", MessageType.Info);
 
         EditorGUILayout.BeginHorizontal();
         if (GUILayout.Button("CSV로 익스포트", GUILayout.Height(34)))
@@ -169,6 +169,7 @@ public class TurretDataCsvEditorTool : EditorWindow
             "TurretId",
             "DisplayName",
             "MaxLevel",
+            "MaxEngineerSeatCount",
             "BaseStatProfilePath",
             "Damage",
             "Range",
@@ -210,6 +211,7 @@ public class TurretDataCsvEditorTool : EditorWindow
             definition.turretId,
             definition.displayName,
             definition.maxLevel,
+            definition.maxEngineerSeatCount,
             AssetDatabase.GetAssetPath(stat),
             stat == null ? 0.0f : stat.damage,
             stat == null ? 0.0f : stat.range,
@@ -251,6 +253,7 @@ public class TurretDataCsvEditorTool : EditorWindow
         definition.turretId = ReadString(row, headerMap, "TurretId");
         definition.displayName = ReadString(row, headerMap, "DisplayName");
         definition.maxLevel = ReadInt(row, headerMap, "MaxLevel", lineNumber, 0);
+        definition.maxEngineerSeatCount = ReadOptionalInt(row, headerMap, "MaxEngineerSeatCount", lineNumber, 0);
         ApplyStatProfile(row, headerMap, lineNumber, definition);
         ApplyGrowthProfile(row, headerMap, lineNumber, definition);
         ApplyCostProfile(row, headerMap, lineNumber, definition);
@@ -701,6 +704,23 @@ public class TurretDataCsvEditorTool : EditorWindow
 
         AddMessage($"{lineNumber}행: {columnName} 정수 값이 유효하지 않아 {fallback}을 사용합니다. 값: {value}");
         return fallback;
+    }
+
+    // 선택 CSV 정수 컬럼이 없거나 비어 있으면 기본값을 반환한다
+    private int ReadOptionalInt(List<string> row, Dictionary<string, int> headerMap, string columnName, int lineNumber, int fallback)
+    {
+        if (!headerMap.ContainsKey(columnName))
+        {
+            return fallback;
+        }
+
+        string value = ReadString(row, headerMap, columnName);
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return fallback;
+        }
+
+        return ReadInt(row, headerMap, columnName, lineNumber, fallback);
     }
 
     // CSV 행에서 실수 값을 읽는다

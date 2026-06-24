@@ -111,7 +111,7 @@ public static class FrostStatusEffectUtility
             return;
         }
 
-        primaryTarget.TakeDamage(primaryDamage);
+        primaryTarget.TakeDamage(new DamageInfo(primaryDamage));
     }
 
     // 빙결 폭발 범위 안의 생존 대상에게 원 대상을 제외하고 중복 없이 데미지를 적용한다
@@ -146,7 +146,7 @@ public static class FrostStatusEffectUtility
                 continue;
             }
 
-            damageable.TakeDamage(payload.freezeExplosionDamage);
+            damageable.TakeDamage(new DamageInfo(payload.freezeExplosionDamage));
             ApplyExplosionSlow(payload, damageable);
             DamagedTargets[damagedCount] = damageable;
             damagedCount++;

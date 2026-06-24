@@ -60,7 +60,7 @@ All runtime damage receivers that participate in shared combat should follow `ID
 float TotalHp { get; }
 float CurrHp { get; }
 bool IsAlive { get; }
-void TakeDamage(float damage);
+void TakeDamage(DamageInfo damageInfo);
 ```
 
 Current implementations include:

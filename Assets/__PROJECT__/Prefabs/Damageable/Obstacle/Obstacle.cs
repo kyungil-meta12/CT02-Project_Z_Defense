@@ -165,13 +165,13 @@ public class Obstacle : MonoBehaviour, IDamageable
     }
 
     //피격
-    public void TakeDamage(float damage)
+    public void TakeDamage(DamageInfo damageInfo)
     {
         if(!IsAlive)
         {
             return;
         }
-        CurrHp -= damage;
+        CurrHp -= Mathf.Max(0f, damageInfo.Damage);
         CurrHp = Mathf.Clamp(CurrHp, 0f, TotalHp);
         if (hpUI != null)
         {

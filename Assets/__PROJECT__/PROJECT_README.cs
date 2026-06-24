@@ -104,7 +104,7 @@
  *     float TotalHp { get; }
  *     float CurrHp { get; }
  *     bool IsAlive { get; }
- *     void TakeDamage(float damage);
+ *     void TakeDamage(DamageInfo damageInfo);
  * }
  *
  * public interface ITargetable
@@ -147,7 +147,7 @@
  * - ZombieWaveSpawnProfileSO는 일반/보스 공통으로 웨이브 구간, 스폰 수, 스폰 간격, 등장 프리팹 가중치, 보스 마지막 스폰, HP/공격력/속도/보상 배율을 소유한다.
  * - 기존 ZombieSpawnData 기반 스폰 간격/스폰 수 성장 데이터는 제거되었고, Main 씬의 ZombieSpawner는 ZombieWaveSpawnProfileSO를 사용한다.
  * - 현재 1차 캠페인 밸런스는 1~500웨이브 기준이며, 451~500 구간 hpMultiplier 280으로 후반 Elite 일반 좀비가 약 79,800~100,800 HP 범위에 들어오도록 잡는다.
- * - 데미지 발생 시 DamagePopupSpawner.SpawnDamage를 통해 월드 공간 데미지 숫자를 표시한다.
+ * - 데미지 발생 시 DamageInfo를 통해 데미지 값과 팝업 타입을 함께 전달하고, DamagePopupSpawner.SpawnDamage를 통해 월드 캔버스 데미지 숫자를 표시한다.
  * - TargetFinder는 콜라이더 자식이 아니라 태그 또는 IDamageable 기준의 안정적인 타겟 루트를 반환한다.
  * - TargetFinder의 시야 판정은 인스펙터 설정에 따라 ObstacleBuildSlot 보조 콜라이더,
  *   설치된 Obstacle 콜라이더, 추가 무시 레이어를 통과시킬 수 있다.
@@ -181,7 +181,7 @@
  * - 임시 런타임 업그레이드 팝업은 가능한 진화 엔트리 수만큼 버튼을 동적으로 생성하므로 4분기 진입 UI를 표시할 수 있다.
  * - 터렛 스탯, VFX 프로필, 발사체 크기, 진화 규칙은 ScriptableObject 기반 데이터로 분리되어 있다.
  * - 메인 씬에는 터렛 진화 UI와 좀비 타겟팅/피격 흐름이 연결되어 있다.
- * - DamagePopupSettings는 데미지 팝업 프리팹, 풀 초기 크기, 폰트, 색상, 위치, 이동, 스케일, 유지 시간을 관리한다.
+ * - DamagePopupSettings는 데미지 팝업 프리팹, 풀 초기 크기, 폰트, 색상, 위치, 이동, 스케일, 유지 시간, 월드 캔버스 정렬을 관리한다.
  * - DamagePopup.prefab과 DamagePopupSettings.asset은 Assets/__PROJECT__/Resources/UI 경로에서 Resources.Load로 사용한다.
  * - TurretPlacementUI는 하단 터렛 슬롯 목록을 표시하고, 드래그/클릭으로 터렛 배치 흐름을 시작한다.
  * - TurretPlacementController는 터렛 아이콘 드래그 중 TurretBase 레이어의 PlacementHitArea를 Raycast하여 설치 가능 여부를 판단한다.

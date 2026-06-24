@@ -1,6 +1,5 @@
-using TMPro;
+﻿using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Rendering;
 
 /// <summary>
 /// 데미지 팝업 프리팹과 설정을 관리하고 피격 위치에 팝업을 스폰한다.
@@ -11,6 +10,7 @@ public class DamagePopupSpawner : MonoBehaviour
     private const string DAMAGE_POPUP_SETTINGS_RESOURCE_PATH = "UI/DamagePopupSettings";
     private const string RUNTIME_SYSTEMS_CONTAINER_NAME = "RuntimeSystems";
 
+    private static readonly Dictionary<int, PopupStackState> PopupStackStates = new Dictionary<int, PopupStackState>(128);
     private static DamagePopupSpawner Inst;
 
     [SerializeField] private DamagePopupSettings settings;
@@ -28,6 +28,7 @@ public class DamagePopupSpawner : MonoBehaviour
         }
 
         Inst = this;
+        PopupStackStates.Clear();
         targetCamera = Camera.main;
         EnsureSettings();
         EnsurePrefab();
@@ -43,20 +44,20 @@ public class DamagePopupSpawner : MonoBehaviour
         }
     }
 
-    // 대상 위치 위에 데미지 숫자 팝업을 표시한다
+    // 대상 위치 위에 일반 데미지 숫자 팝업을 표시한다
     public static void SpawnDamage(Transform target, float damage)
     {
-        SpawnDamage(target, damage, DamagePopupContext.CurrentType);
+        SpawnDamage(target, new DamageInfo(damage));
     }
 
-    // 대상 위치 위에 타입별 데미지 숫자 팝업을 표시한다
-    public static void SpawnDamage(Transform target, float damage, TurretDamagePolishType damageType)
+    // 대상 위치 위에 데미지 정보 기반 숫자 팝업을 표시한다
+    public static void SpawnDamage(Transform target, DamageInfo damageInfo)
     {
-        SpawnDamage(target, damage, damageType, DamagePopupTargetType.Default);
+        SpawnDamage(target, damageInfo, DamagePopupTargetType.Default);
     }
 
-    // 대상 위치 위에 대상 종류와 데미지 타입별 데미지 숫자 팝업을 표시한다
-    public static void SpawnDamage(Transform target, float damage, TurretDamagePolishType damageType, DamagePopupTargetType targetType)
+    // 대상 위치 위에 대상 종류와 데미지 정보 기반 숫자 팝업을 표시한다
+    public static void SpawnDamage(Transform target, DamageInfo damageInfo, DamagePopupTargetType targetType)
     {
         if (target == null)
         {
@@ -64,14 +65,16 @@ public class DamagePopupSpawner : MonoBehaviour
         }
 
         DamagePopupSpawner spawner = GetOrCreateInstance();
-        if (!spawner.settings.ShowZeroOrNegativeDamage && damage <= 0f)
+        if (!spawner.settings.ShowZeroOrNegativeDamage && damageInfo.Damage <= 0f)
         {
             return;
         }
 
+        spawner.RefreshTargetCamera();
         Vector3 spawnPosition = spawner.settings.GetSpawnPosition(target.position, targetType);
-        int damageValue = spawner.settings.ShowRoundedDamage ? Mathf.RoundToInt(damage) : Mathf.FloorToInt(damage);
-        spawner.Spawn(damageValue, spawnPosition, damageType);
+        spawnPosition += spawner.GetStackedSpawnOffset(target);
+        int damageValue = spawner.settings.ShowRoundedDamage ? Mathf.RoundToInt(damageInfo.Damage) : Mathf.FloorToInt(damageInfo.Damage);
+        spawner.Spawn(damageValue, spawnPosition, damageInfo.PopupType);
     }
 
     // 씬 인스턴스가 없으면 런타임 컨테이너 아래에 스포너를 생성한다
@@ -124,20 +127,10 @@ public class DamagePopupSpawner : MonoBehaviour
         GetOrCreateMemoryPool().Prewarm(damagePopupPrefab, settings.InitialPoolSize);
     }
 
-    // 데미지 숫자 팝업을 풀에서 가져와 표시한다
-    private void Spawn(int damageValue, Vector3 position)
-    {
-        Spawn(damageValue, position, TurretDamagePolishType.Normal);
-    }
-
     // 데미지 숫자 팝업을 타입별 표시 설정과 함께 풀에서 가져와 표시한다
-    private void Spawn(int damageValue, Vector3 position, TurretDamagePolishType damageType)
+    private void Spawn(int damageValue, Vector3 position, DamagePopupType damageType)
     {
-        if (targetCamera == null)
-        {
-            targetCamera = Camera.main;
-        }
-
+        RefreshTargetCamera();
         EnsurePrefab();
 
         if (damagePopupPrefab == null)
@@ -161,21 +154,18 @@ public class DamagePopupSpawner : MonoBehaviour
 
         if (damagePopupPrefab != null)
         {
-            ApplyTextSettings(damagePopupPrefab.GetComponent<TextMeshPro>());
             return;
         }
 
         if (settings != null && settings.DamagePopupPrefab != null)
         {
             damagePopupPrefab = settings.DamagePopupPrefab;
-            ApplyTextSettings(damagePopupPrefab.GetComponent<TextMeshPro>());
             return;
         }
 
         damagePopupPrefab = Resources.Load<DamagePopup>(DAMAGE_POPUP_RESOURCE_PATH);
         if (damagePopupPrefab != null)
         {
-            ApplyTextSettings(damagePopupPrefab.GetComponent<TextMeshPro>());
             return;
         }
 
@@ -187,12 +177,9 @@ public class DamagePopupSpawner : MonoBehaviour
     {
         GameObject popupObject = new GameObject("DamagePopup");
         popupObject.transform.SetParent(transform);
+        DamagePopup popup = popupObject.AddComponent<DamagePopup>();
         popupObject.SetActive(false);
-
-        TextMeshPro textMesh = popupObject.AddComponent<TextMeshPro>();
-        ApplyTextSettings(textMesh);
-
-        return popupObject.AddComponent<DamagePopup>();
+        return popup;
     }
 
     // 데미지 팝업 설정을 확보하고 없으면 런타임 기본값을 사용한다
@@ -211,49 +198,65 @@ public class DamagePopupSpawner : MonoBehaviour
         }
     }
 
-    // 팝업 프리팹의 TextMeshPro 표시 설정을 적용한다
-    private void ApplyTextSettings(TextMeshPro textMesh)
+    // 팝업 배치에 사용할 카메라 참조를 갱신한다
+    private void RefreshTargetCamera()
     {
-        if (textMesh == null)
+        if (targetCamera == null)
         {
-            return;
-        }
-
-        textMesh.alignment = TextAlignmentOptions.Center;
-        textMesh.fontSize = settings.FontSize;
-        textMesh.enableAutoSizing = false;
-        if (settings.FontAsset != null)
-        {
-            textMesh.font = settings.FontAsset;
-        }
-
-        textMesh.color = settings.DamageColor;
-        textMesh.text = "0";
-
-        Renderer textRenderer = textMesh.renderer;
-        if (textRenderer != null)
-        {
-            ApplySortingLayer(textRenderer, settings.RenderSortingLayerName);
-            textRenderer.sortingOrder = settings.RenderSortingOrder;
-            textRenderer.shadowCastingMode = settings.DisableRendererShadows ? ShadowCastingMode.Off : ShadowCastingMode.On;
-            textRenderer.receiveShadows = !settings.DisableRendererShadows;
+            targetCamera = Camera.main;
         }
     }
 
-    // 설정된 Sorting Layer가 있으면 팝업 렌더러에 적용한다
-    private static void ApplySortingLayer(Renderer targetRenderer, string sortingLayerName)
+    // 같은 대상에게 연속으로 뜨는 팝업의 시작 위치를 분산한다
+    private Vector3 GetStackedSpawnOffset(Transform target)
     {
-        if (targetRenderer == null || string.IsNullOrWhiteSpace(sortingLayerName))
+        if (!settings.UseStackedSpawnOffset || target == null)
         {
-            return;
+            return Vector3.zero;
         }
 
-        int sortingLayerId = SortingLayer.NameToID(sortingLayerName);
-        if (sortingLayerId == 0 && sortingLayerName != "Default")
+        int targetId = target.GetInstanceID();
+        float currentTime = Time.time;
+        int slotIndex = ResolveStackSlot(targetId, currentTime);
+        if (slotIndex <= 0)
         {
-            return;
+            return Vector3.zero;
         }
 
-        targetRenderer.sortingLayerID = sortingLayerId;
+        Vector3 cameraRight = targetCamera != null ? targetCamera.transform.right : Vector3.right;
+        int horizontalIndex = ((slotIndex + 1) / 2) * (slotIndex % 2 == 0 ? -1 : 1);
+        float horizontalOffset = horizontalIndex * settings.StackHorizontalStep;
+        float verticalOffset = slotIndex * settings.StackVerticalStep;
+        return (cameraRight * horizontalOffset) + (Vector3.up * verticalOffset);
+    }
+
+    // 대상별 최근 팝업 상태를 기준으로 이번 팝업의 분산 슬롯을 계산한다
+    private int ResolveStackSlot(int targetId, float currentTime)
+    {
+        PopupStackState state;
+        if (!PopupStackStates.TryGetValue(targetId, out state) || currentTime - state.LastSpawnTime > settings.StackWindow)
+        {
+            state = new PopupStackState(0, currentTime);
+            PopupStackStates[targetId] = state;
+            return 0;
+        }
+
+        int maxSlots = Mathf.Max(1, settings.MaxStackSlots);
+        int nextSlot = (state.SlotIndex + 1) % maxSlots;
+        PopupStackStates[targetId] = new PopupStackState(nextSlot, currentTime);
+        return nextSlot;
+    }
+
+    private readonly struct PopupStackState
+    {
+        public readonly int SlotIndex;
+        public readonly float LastSpawnTime;
+
+        // 연속 팝업 슬롯과 마지막 생성 시간을 저장한다
+        public PopupStackState(int slotIndex, float lastSpawnTime)
+        {
+            SlotIndex = slotIndex;
+            LastSpawnTime = lastSpawnTime;
+        }
     }
 }

@@ -100,15 +100,7 @@ public class ProjectileDamageDealer : MonoBehaviour
 
         TurretDamagePolishResult damageResult = RollDamage();
         NotifyNonElectroDamageReceived(damageable, damageResult.Damage);
-        DamagePopupContext.Begin(damageResult.Type);
-        try
-        {
-            damageable.TakeDamage(damageResult.Damage);
-        }
-        finally
-        {
-            DamagePopupContext.End();
-        }
+        damageable.TakeDamage(new DamageInfo(damageResult.Damage, damageResult.PopupType));
         hitDamageables.Add(damageable);
         ApplyPoisonStatus(damageable);
         ApplyElectroStatus(hitCollider, damageable, 0, damageResult.Damage);
@@ -127,7 +119,7 @@ public class ProjectileDamageDealer : MonoBehaviour
     {
         if (damagePolishProfile == null)
         {
-            return new TurretDamagePolishResult(damage, TurretDamagePolishType.Normal);
+            return new TurretDamagePolishResult(damage, DamagePopupType.Normal);
         }
 
         return damagePolishProfile.RollDamage(damage);

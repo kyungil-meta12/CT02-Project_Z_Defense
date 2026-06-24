@@ -4,20 +4,12 @@
 public readonly struct TurretDamagePolishResult
 {
     public readonly float Damage;
-    public readonly TurretDamagePolishType Type;
-
-    public bool IsSpecial
-    {
-        get
-        {
-            return Type != TurretDamagePolishType.Normal;
-        }
-    }
+    public readonly DamagePopupType PopupType;
 
     // 계산된 데미지와 표시 타입을 저장한다
-    public TurretDamagePolishResult(float damage, TurretDamagePolishType type)
+    public TurretDamagePolishResult(float damage, DamagePopupType popupType)
     {
         Damage = damage;
-        Type = type;
+        PopupType = popupType;
     }
 }

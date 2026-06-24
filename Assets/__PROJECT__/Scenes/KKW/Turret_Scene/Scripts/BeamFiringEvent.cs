@@ -511,15 +511,7 @@ public class BeamFiringEvent : FiringEvent
         float safeDamage = Mathf.Max(0.0f, projectileDamage);
         TurretDamagePolishResult damageResult = RollDamage(safeDamage);
         NotifyNonElectroDamageReceived(damageable, damageResult.Damage);
-        DamagePopupContext.Begin(damageResult.Type);
-        try
-        {
-            damageable.TakeDamage(damageResult.Damage);
-        }
-        finally
-        {
-            DamagePopupContext.End();
-        }
+        damageable.TakeDamage(new DamageInfo(damageResult.Damage, damageResult.PopupType));
         ApplyFrostStatus(damageable);
 
         if (logProjectileDamage)
@@ -533,7 +525,7 @@ public class BeamFiringEvent : FiringEvent
     {
         if (damagePolishProfile == null)
         {
-            return new TurretDamagePolishResult(baseDamage, TurretDamagePolishType.Normal);
+            return new TurretDamagePolishResult(baseDamage, DamagePopupType.Normal);
         }
 
         return damagePolishProfile.RollDamage(baseDamage);

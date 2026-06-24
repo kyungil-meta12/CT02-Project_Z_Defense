@@ -79,39 +79,39 @@ public class TurretDamagePolishProfileSO : ScriptableObject
     public TurretDamagePolishResult RollDamage(float baseDamage)
     {
         float damage = Mathf.Max(0.0f, baseDamage);
-        TurretDamagePolishType type = RollSpecialType();
+        DamagePopupType popupType = RollSpecialType();
 
         if (useDamageVariance)
         {
             damage *= Random.Range(MinDamageMultiplier, MaxDamageMultiplier);
         }
 
-        if (type == TurretDamagePolishType.Heavy)
+        if (popupType == DamagePopupType.Heavy)
         {
             damage *= HeavyHitMultiplier;
         }
-        else if (type == TurretDamagePolishType.Critical)
+        else if (popupType == DamagePopupType.Critical)
         {
             damage *= CriticalMultiplier;
         }
 
-        return new TurretDamagePolishResult(damage, type);
+        return new TurretDamagePolishResult(damage, popupType);
     }
 
     // 강타와 치명타 중 이번 피해의 특수 타입을 확률로 결정한다
-    private TurretDamagePolishType RollSpecialType()
+    private DamagePopupType RollSpecialType()
     {
         if (heavyHitChance > 0.0f && Random.value < HeavyHitChance)
         {
-            return TurretDamagePolishType.Heavy;
+            return DamagePopupType.Heavy;
         }
 
         if (criticalChance > 0.0f && Random.value < CriticalChance)
         {
-            return TurretDamagePolishType.Critical;
+            return DamagePopupType.Critical;
         }
 
-        return TurretDamagePolishType.Normal;
+        return DamagePopupType.Normal;
     }
 
     // 인스펙터 입력값을 유효한 데미지 폴리싱 범위로 보정한다

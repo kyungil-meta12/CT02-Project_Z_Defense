@@ -1,17 +1,18 @@
-using TMPro;
+﻿using TMPro;
 using UnityEngine;
-using UnityEngine.Rendering;
 
 /// <summary>
-/// 월드 공간에서 데미지 숫자를 표시하고 수명 종료 시 풀로 반환한다.
+/// 월드 공간 캔버스에서 데미지 숫자를 표시하고 수명 종료 시 풀로 반환한다.
 /// </summary>
-[RequireComponent(typeof(TextMeshPro))]
 public class DamagePopup : PoolObject
 {
-    private TextMeshPro textMesh;
+    private const string WORLD_CANVAS_NAME = "DamagePopupWorldCanvas";
+
+    private TMP_Text textMesh;
+    private TextMeshProUGUI uiTextMesh;
+    private TextMeshPro legacyWorldText;
+    private Canvas popupCanvas;
     private TMP_FontAsset defaultFontAsset;
-    private Renderer cachedRenderer;
-    private Material popupMaterialInstance;
     private Camera targetCamera;
     private float lifetime;
     private float elapsedTime;
@@ -20,9 +21,10 @@ public class DamagePopup : PoolObject
     private Color startColor;
     private float startScale;
     private float endScale;
+    private int currentTextLength;
     private bool isInitialized;
 
-    // 텍스트 메시 컴포넌트를 초기화한다
+    // 텍스트와 월드 캔버스 컴포넌트를 초기화한다
     private void Awake()
     {
         EnsureTextMesh();
@@ -41,41 +43,10 @@ public class DamagePopup : PoolObject
         isInitialized = false;
     }
 
-    // 생성한 TMP 머티리얼 인스턴스를 정리한다
-    private void OnDestroy()
-    {
-        if (popupMaterialInstance == null)
-        {
-            return;
-        }
-
-        if (Application.isPlaying)
-        {
-            Destroy(popupMaterialInstance);
-        }
-        else
-        {
-            DestroyImmediate(popupMaterialInstance);
-        }
-    }
-
-    // 데미지 팝업 문자열을 지정한 표시 설정으로 초기화한다
-    public void Init(string text, Vector3 position, DamagePopupSettings settings, Camera camera_)
-    {
-        settings = PrepareTextMesh(settings);
-        textMesh.text = text;
-        ApplyRuntimeState(position, settings, camera_);
-    }
-
-    // 데미지 팝업 숫자를 GC 부담이 낮은 TMP 숫자 설정 경로로 초기화한다
-    public void Init(int damageValue, Vector3 position, DamagePopupSettings settings, Camera camera_)
-    {
-        Init(damageValue, position, settings, camera_, TurretDamagePolishType.Normal);
-    }
-
     // 데미지 팝업 숫자를 타입별 표시 설정과 함께 초기화한다
-    public void Init(int damageValue, Vector3 position, DamagePopupSettings settings, Camera camera_, TurretDamagePolishType damageType)
+    public void Init(int damageValue, Vector3 position, DamagePopupSettings settings, Camera camera_, DamagePopupType damageType)
     {
+        targetCamera = camera_;
         settings = PrepareTextMesh(settings);
         SetDamageText(damageValue, settings, damageType);
         ApplyRuntimeState(position, settings, camera_, damageType);
@@ -116,7 +87,7 @@ public class DamagePopup : PoolObject
             settings = DamagePopupSettings.CreateRuntimeDefault();
         }
 
-        if (textMesh == null)
+        if (textMesh == null || popupCanvas == null)
         {
             EnsureTextMesh();
         }
@@ -125,27 +96,24 @@ public class DamagePopup : PoolObject
         textMesh.alignment = TextAlignmentOptions.Center;
         textMesh.fontSize = settings.FontSize;
         textMesh.enableAutoSizing = false;
+        textMesh.fontSizeMin = settings.FontSize;
+        textMesh.fontSizeMax = settings.FontSize;
+        textMesh.enableWordWrapping = false;
+        textMesh.overflowMode = TextOverflowModes.Overflow;
         textMesh.font = settings.FontAsset != null ? settings.FontAsset : defaultFontAsset;
-        ApplyRendererSettings(settings);
+        ApplyWorldCanvasScale(settings);
+        ApplyCanvasSettings(settings);
         return settings;
     }
 
-    // 팝업의 위치, 이동, 생명주기 상태를 적용한다
-    private void ApplyRuntimeState(Vector3 position, DamagePopupSettings settings, Camera camera_)
-    {
-        ApplyRuntimeState(position, settings, camera_, TurretDamagePolishType.Normal);
-    }
-
     // 팝업의 위치, 이동, 생명주기, 타입별 표시 상태를 적용한다
-    private void ApplyRuntimeState(Vector3 position, DamagePopupSettings settings, Camera camera_, TurretDamagePolishType damageType)
+    private void ApplyRuntimeState(Vector3 position, DamagePopupSettings settings, Camera camera_, DamagePopupType damageType)
     {
-        targetCamera = camera_;
         lifetime = Mathf.Max(0.01f, settings.Lifetime);
         elapsedTime = 0f;
-        startPosition = position;
+        startPosition = ApplyCameraForwardOffset(position, settings, camera_);
         moveOffset = settings.MoveOffset;
         startColor = settings.GetDamageColor(damageType);
-        startPosition = ApplyCameraForwardOffset(startPosition, settings, camera_);
         float scaleMultiplier = settings.GetScaleMultiplier(damageType);
         startScale = settings.StartScale * scaleMultiplier;
         endScale = settings.EndScale * scaleMultiplier;
@@ -153,19 +121,24 @@ public class DamagePopup : PoolObject
 
         transform.position = startPosition;
         transform.localScale = Vector3.one * startScale;
+        textMesh.color = startColor;
     }
 
     // 데미지 타입에 맞는 텍스트 라벨과 숫자를 설정한다
-    private void SetDamageText(int damageValue, DamagePopupSettings settings, TurretDamagePolishType damageType)
+    private void SetDamageText(int damageValue, DamagePopupSettings settings, DamagePopupType damageType)
     {
         string textFormat = settings.GetTextFormat(damageType);
         if (textFormat.Contains("{0}"))
         {
             textMesh.SetText(textFormat, damageValue);
+            currentTextLength = CountFormattedDamageTextLength(textFormat, damageValue);
+            ApplyTextRectSize(settings);
             return;
         }
 
         textMesh.SetText(textFormat);
+        currentTextLength = textFormat.Length;
+        ApplyTextRectSize(settings);
     }
 
     // 팝업이 현재 카메라를 바라보게 회전시킨다
@@ -180,90 +153,145 @@ public class DamagePopup : PoolObject
         transform.rotation = Quaternion.LookRotation(transform.position - cameraTransform.position, cameraTransform.up);
     }
 
-    // TextMeshPro 컴포넌트를 확보하고 기본 폰트를 저장한다
+    // TextMeshProUGUI와 월드 캔버스를 확보하고 기존 월드 메시 텍스트를 비활성화한다
     private void EnsureTextMesh()
     {
-        textMesh = GetComponent<TextMeshPro>();
-        if (textMesh == null)
+        uiTextMesh = GetComponentInChildren<TextMeshProUGUI>(true);
+        if (uiTextMesh == null)
         {
-            textMesh = gameObject.AddComponent<TextMeshPro>();
+            uiTextMesh = CreateWorldCanvasText();
+        }
+
+        popupCanvas = uiTextMesh.GetComponentInParent<Canvas>();
+        if (popupCanvas != null)
+        {
+            popupCanvas.renderMode = RenderMode.WorldSpace;
+            popupCanvas.overrideSorting = true;
+        }
+
+        uiTextMesh.raycastTarget = false;
+        textMesh = uiTextMesh;
+
+        legacyWorldText = GetComponent<TextMeshPro>();
+        if (legacyWorldText != null)
+        {
+            legacyWorldText.enabled = false;
+            Renderer legacyRenderer = legacyWorldText.renderer;
+            if (legacyRenderer != null)
+            {
+                legacyRenderer.enabled = false;
+            }
         }
 
         if (defaultFontAsset == null)
         {
             defaultFontAsset = textMesh.font;
         }
-
-        if (cachedRenderer == null)
-        {
-            cachedRenderer = textMesh.renderer;
-        }
     }
 
-    // 팝업 렌더러가 HP바와 3D 메시 뒤에 묻히지 않도록 표시 우선순위를 적용한다
-    private void ApplyRendererSettings(DamagePopupSettings settings)
+    // 월드 캔버스 자식 오브젝트와 TMP UGUI 텍스트를 생성한다
+    private TextMeshProUGUI CreateWorldCanvasText()
     {
-        if (cachedRenderer == null)
-        {
-            cachedRenderer = GetComponent<Renderer>();
-        }
+        GameObject canvasObject = new GameObject(WORLD_CANVAS_NAME, typeof(RectTransform), typeof(Canvas), typeof(TextMeshProUGUI));
+        canvasObject.transform.SetParent(transform, false);
+        canvasObject.transform.localPosition = Vector3.zero;
+        canvasObject.transform.localRotation = Quaternion.identity;
+        canvasObject.transform.localScale = Vector3.one;
 
-        if (cachedRenderer == null)
+        RectTransform rectTransform = canvasObject.GetComponent<RectTransform>();
+        rectTransform.sizeDelta = new Vector2(DamagePopupSettings.DEFAULT_TEXT_RECT_WIDTH, DamagePopupSettings.DEFAULT_TEXT_RECT_HEIGHT);
+        rectTransform.anchorMin = new Vector2(0.5f, 0.5f);
+        rectTransform.anchorMax = new Vector2(0.5f, 0.5f);
+        rectTransform.pivot = new Vector2(0.5f, 0.5f);
+
+        return canvasObject.GetComponent<TextMeshProUGUI>();
+    }
+
+    // 월드 캔버스의 정렬 레이어와 카메라를 설정한다
+    private void ApplyCanvasSettings(DamagePopupSettings settings)
+    {
+        if (popupCanvas == null)
         {
             return;
         }
 
-        ApplySortingLayer(cachedRenderer, settings.RenderSortingLayerName);
-        cachedRenderer.sortingOrder = settings.RenderSortingOrder;
-        cachedRenderer.shadowCastingMode = settings.DisableRendererShadows ? ShadowCastingMode.Off : ShadowCastingMode.On;
-        cachedRenderer.receiveShadows = !settings.DisableRendererShadows;
-
-        ApplyDepthTestMode(settings);
+        popupCanvas.worldCamera = targetCamera;
+        popupCanvas.sortingLayerID = ResolveSortingLayerId(settings.RenderSortingLayerName);
+        popupCanvas.sortingOrder = settings.RenderSortingOrder;
     }
 
-    // 설정된 Sorting Layer가 있으면 팝업 렌더러에 적용한다
-    private static void ApplySortingLayer(Renderer targetRenderer, string sortingLayerName)
+    // 텍스트가 줄바꿈되지 않도록 TMP UGUI RectTransform 크기를 설정한다
+    private void ApplyTextRectSize(DamagePopupSettings settings)
     {
-        if (targetRenderer == null || string.IsNullOrWhiteSpace(sortingLayerName))
+        if (uiTextMesh == null)
         {
             return;
+        }
+
+        int safeTextLength = Mathf.Max(1, currentTextLength);
+        float dynamicWidth = Mathf.Max(settings.TextRectWidth, safeTextLength * settings.TextWidthPerCharacter);
+        RectTransform rectTransform = uiTextMesh.rectTransform;
+        rectTransform.sizeDelta = new Vector2(dynamicWidth, settings.TextRectHeight);
+    }
+
+    // 실제 표시될 데미지 텍스트 길이를 GC 없이 계산한다
+    private static int CountFormattedDamageTextLength(string textFormat, int damageValue)
+    {
+        int placeholderIndex = textFormat.IndexOf("{0}", System.StringComparison.Ordinal);
+        if (placeholderIndex < 0)
+        {
+            return textFormat.Length;
+        }
+
+        return textFormat.Length - 3 + CountIntegerDigits(damageValue);
+    }
+
+    // 정수 데미지 값의 표시 자릿수를 계산한다
+    private static int CountIntegerDigits(int value)
+    {
+        if (value == 0)
+        {
+            return 1;
+        }
+
+        int digitCount = value < 0 ? 1 : 0;
+        int remainingValue = Mathf.Abs(value);
+        while (remainingValue > 0)
+        {
+            digitCount++;
+            remainingValue /= 10;
+        }
+
+        return digitCount;
+    }
+
+    // 월드 캔버스 자식 스케일을 설정값에 맞게 적용한다
+    private void ApplyWorldCanvasScale(DamagePopupSettings settings)
+    {
+        if (uiTextMesh == null)
+        {
+            return;
+        }
+
+        float safeScale = Mathf.Max(0.001f, settings.WorldCanvasScale);
+        uiTextMesh.transform.localScale = Vector3.one * safeScale;
+    }
+
+    // 설정된 Sorting Layer 이름을 유효한 ID로 변환한다
+    private static int ResolveSortingLayerId(string sortingLayerName)
+    {
+        if (string.IsNullOrWhiteSpace(sortingLayerName))
+        {
+            return SortingLayer.NameToID("Default");
         }
 
         int sortingLayerId = SortingLayer.NameToID(sortingLayerName);
         if (sortingLayerId == 0 && sortingLayerName != "Default")
         {
-            return;
+            return SortingLayer.NameToID("Default");
         }
 
-        targetRenderer.sortingLayerID = sortingLayerId;
-    }
-
-    // TMP 머티리얼 인스턴스의 깊이 테스트 방식을 팝업 전용으로 설정한다
-    private void ApplyDepthTestMode(DamagePopupSettings settings)
-    {
-        if (textMesh == null)
-        {
-            return;
-        }
-
-        Material sourceMaterial = textMesh.fontMaterial != null ? textMesh.fontMaterial : textMesh.fontSharedMaterial;
-        if (sourceMaterial == null)
-        {
-            return;
-        }
-
-        if (popupMaterialInstance == null || popupMaterialInstance.shader != sourceMaterial.shader)
-        {
-            popupMaterialInstance = new Material(sourceMaterial);
-            popupMaterialInstance.name = sourceMaterial.name + " DamagePopupInstance";
-        }
-
-        if (popupMaterialInstance.HasProperty("unity_GUIZTestMode"))
-        {
-            popupMaterialInstance.SetFloat("unity_GUIZTestMode", settings.RenderOverSceneGeometry ? (float)CompareFunction.Always : (float)CompareFunction.LessEqual);
-        }
-
-        textMesh.fontMaterial = popupMaterialInstance;
+        return sortingLayerId;
     }
 
     // 카메라 방향으로 팝업 위치를 당겨 메시나 HP바와 같은 깊이에 겹치는 상황을 줄인다

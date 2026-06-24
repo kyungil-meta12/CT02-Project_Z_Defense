@@ -14,7 +14,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   damagePopupPrefab: {fileID: 11400000, guid: d44bbdc7cffb4b7089a0dae151333770, type: 3}
   initialPoolSize: 50
-  fontSize: 24
+  fontSize: 36
+  worldCanvasScale: 0.04
+  textRectWidth: 12
+  textRectHeight: 3
+  textWidthPerCharacter: 1.2
   fontAsset: {fileID: 0}
   damageColor: {r: 1, g: 0.35, b: 0.12, a: 1}
   criticalDamageColor: {r: 1, g: 0.9, b: 0.1, a: 1}
@@ -32,6 +36,11 @@ MonoBehaviour:
   bossZombieSpawnOffset: {x: 0, y: 0, z: 0}
   randomHorizontalRadius: 0.15
   randomVerticalRange: 0.05
+  useStackedSpawnOffset: 1
+  stackWindow: 0.12
+  maxStackSlots: 5
+  stackHorizontalStep: 0.35
+  stackVerticalStep: 0.18
   lifetime: 0.75
   moveOffset: {x: 0, y: 1.5, z: 0}
   startScale: 1.15
@@ -41,5 +50,3 @@ MonoBehaviour:
   renderSortingLayerName: WorldUI
   renderSortingOrder: 500
   cameraForwardOffset: 0.25
-  renderOverSceneGeometry: 1
-  disableRendererShadows: 1

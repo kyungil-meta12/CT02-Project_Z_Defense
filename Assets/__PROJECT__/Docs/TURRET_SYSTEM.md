@@ -90,7 +90,7 @@ Do not use display names as stable IDs.
 13. Beam firing logic keeps the beam VFX alive between fire requests and applies damage by `BeamAttackProfileSO.damageTickInterval`.
 14. `IgnitionDamageApplier` reads targets from `IgnitionConeDetector` and forwards Ignition payloads to `IIgnitionStatusEffectReceiver`.
 15. `ProjectileDamageDealer` applies projectile damage to `IDamageable` targets, forwards Poison payloads to `IPoisonStatusEffectReceiver`, and triggers Electro chain damage when an Electro payload is active.
-16. `ProjectileDamageDealer` and `BeamFiringEvent` roll `TurretDamagePolishProfileSO` before `IDamageable.TakeDamage`; damage receivers then read the short-lived popup context through `DamagePopupSpawner`.
+16. `ProjectileDamageDealer` and `BeamFiringEvent` roll `TurretDamagePolishProfileSO` before `IDamageable.TakeDamage`; damage and popup style are passed together through `DamageInfo`.
 17. `ProjectileHitDetector` handles tracked target, trigger/collision, and movement raycast hit paths.
 18. Damage receivers spawn damage popups where appropriate.
 
@@ -903,7 +903,7 @@ Engineer buff policy:
 - Evolution effects should spawn through `PooledObjectUtility.SpawnEffect`.
 - Frost freeze explosion effects should spawn through `PooledObjectUtility.SpawnEffect` and should use a real pool when repeated frequently.
 - `ProjectileHitDetector` must clear target/collider state on reuse.
-- `DamagePopup.Init` must receive settings every spawn because pooled text objects retain previous state.
+- `DamagePopup.Init` must receive settings every spawn because pooled world-canvas text objects retain previous state.
 
 ## Third-Generation VFX Pooling Matrix
 

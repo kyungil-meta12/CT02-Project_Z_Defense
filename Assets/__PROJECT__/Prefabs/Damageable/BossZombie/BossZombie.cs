@@ -466,14 +466,14 @@ public class BossZombie : PoolObject, IDamageable, IAimPointProvider, IFrostStat
     }
     
     // 외부 공격으로 받은 데미지를 체력에 반영하고 사망 여부를 확인한다
-    public void TakeDamage(float damage)
+    public void TakeDamage(DamageInfo damageInfo)
     {
         if (!IsAlive)
         {
             return;
         }
 
-        float appliedDamage = Mathf.Max(0f, damage);
+        float appliedDamage = Mathf.Max(0f, damageInfo.Damage);
         CurrHp -= appliedDamage;
         StoreDamage(appliedDamage);
         CurrHp = Mathf.Clamp(CurrHp, 0f, TotalHp);
@@ -485,7 +485,7 @@ public class BossZombie : PoolObject, IDamageable, IAimPointProvider, IFrostStat
             //Debug.Log($"[BossZombie] Damage:{appliedDamage:0.###}, HP:{CurrHp:0.###}/{TotalHp:0.###}", this);
         }
 
-        DamagePopupSpawner.SpawnDamage(transform, appliedDamage, DamagePopupContext.CurrentType, DamagePopupTargetType.BossZombie);
+        DamagePopupSpawner.SpawnDamage(transform, new DamageInfo(appliedDamage, damageInfo.PopupType, damageInfo.PopupPolicy), DamagePopupTargetType.BossZombie);
 
         if (CurrHp > 0f && poisonStatusRuntime != null && poisonStatusRuntime.IsActive)
         {
@@ -819,7 +819,7 @@ public class BossZombie : PoolObject, IDamageable, IAimPointProvider, IFrostStat
             return false;
         }
 
-        iDmg.TakeDamage(damage);
+        iDmg.TakeDamage(new DamageInfo(damage));
         return true;
     }
     

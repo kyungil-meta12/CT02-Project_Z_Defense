@@ -161,7 +161,7 @@ public class NormalZombie : PoolObject, IDamageable, IAimPointProvider, IFrostSt
     IEnumerator AutoDeathCoroutine()
     {
         yield return new WaitForSeconds(10f);
-        TakeDamage(500f);
+        TakeDamage(new DamageInfo(500f));
     }
 
     // 매 프레임 사망 반환과 이동/공격 상태를 갱신한다
@@ -304,7 +304,7 @@ public class NormalZombie : PoolObject, IDamageable, IAimPointProvider, IFrostSt
             {
                 if (iDmg.IsAlive)
                 {
-                    iDmg.TakeDamage(attackDamage);
+                    iDmg.TakeDamage(new DamageInfo(attackDamage));
                 }
                 else
                 {
@@ -329,16 +329,15 @@ public class NormalZombie : PoolObject, IDamageable, IAimPointProvider, IFrostSt
     /// 대미지를 가한다<para/>
     /// IDamageable method
     /// </summary>
-    /// <param name="damage"></param>
     // 외부 공격으로 받은 데미지를 체력에 반영하고 사망 여부를 확인한다
-    public void TakeDamage(float damage)
+    public void TakeDamage(DamageInfo damageInfo)
     {
         if (!IsAlive) // 한 번 체력이 0이 되면 더 이상 TakeDamage를 받지 않음
         {
             return;
         }
 
-        float appliedDamage = Mathf.Max(0f, damage);
+        float appliedDamage = Mathf.Max(0f, damageInfo.Damage);
         CurrHp -= appliedDamage;
         CurrHp = Mathf.Clamp(CurrHp, 0f, TotalHp);
         hpUI.gameObject.SetActive(true);
@@ -349,7 +348,7 @@ public class NormalZombie : PoolObject, IDamageable, IAimPointProvider, IFrostSt
             //Debug.Log($"[NormalZombie] Damage:{appliedDamage:0.###}, HP:{CurrHp:0.###}/{TotalHp:0.###}", this);
         }
 
-        DamagePopupSpawner.SpawnDamage(transform, appliedDamage, DamagePopupContext.CurrentType, DamagePopupTargetType.NormalZombie);
+        DamagePopupSpawner.SpawnDamage(transform, new DamageInfo(appliedDamage, damageInfo.PopupType, damageInfo.PopupPolicy), DamagePopupTargetType.NormalZombie);
 
         if (CurrHp > 0f && poisonStatusRuntime != null && poisonStatusRuntime.IsActive)
         {

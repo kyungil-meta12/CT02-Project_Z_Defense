@@ -511,15 +511,8 @@ public class BeamFiringEvent : FiringEvent
         float safeDamage = Mathf.Max(0.0f, projectileDamage);
         TurretDamagePolishResult damageResult = RollDamage(safeDamage);
         NotifyNonElectroDamageReceived(damageable, damageResult.Damage);
-        DamagePopupContext.Begin(damageResult.Type);
-        try
-        {
-            damageable.TakeDamage(damageResult.Damage);
-        }
-        finally
-        {
-            DamagePopupContext.End();
-        }
+        DamagePopupPolicy popupPolicy = ResolveBeamPopupPolicy(damageResult.PopupType);
+        damageable.TakeDamage(new DamageInfo(damageResult.Damage, damageResult.PopupType, popupPolicy));
         ApplyFrostStatus(damageable);
 
         if (logProjectileDamage)
@@ -533,10 +526,21 @@ public class BeamFiringEvent : FiringEvent
     {
         if (damagePolishProfile == null)
         {
-            return new TurretDamagePolishResult(baseDamage, TurretDamagePolishType.Normal);
+            return new TurretDamagePolishResult(baseDamage, DamagePopupType.Normal);
         }
 
         return damagePolishProfile.RollDamage(baseDamage);
+    }
+
+    // 빔 틱 데미지의 팝업 표시 정책을 결정한다
+    private static DamagePopupPolicy ResolveBeamPopupPolicy(DamagePopupType popupType)
+    {
+        if (popupType == DamagePopupType.Critical || popupType == DamagePopupType.Heavy)
+        {
+            return DamagePopupPolicy.Immediate;
+        }
+
+        return DamagePopupPolicy.Accumulate;
     }
 
     // 프로필 설정에 따라 이번 틱에 적용할 데미지를 계산한다

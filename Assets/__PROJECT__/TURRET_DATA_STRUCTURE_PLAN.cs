@@ -201,9 +201,9 @@
  * public float evolutionEffectDuration;
  *
  * 8. DamagePopupSettings
- * - Holds runtime configuration for world-space damage numbers.
+ * - Holds runtime configuration for world-canvas damage numbers.
  * - Loaded through Resources.Load("UI/DamagePopupSettings") by DamagePopupSpawner.
- * - References the DamagePopup prefab and controls pool size, font size, optional TMP font asset, color, lifetime, height offset, movement offset, start scale, and end scale.
+ * - References the DamagePopup prefab and controls pool size, font size, optional TMP font asset, color, lifetime, spawn offsets, movement offset, scale, text formats, random spread, and Canvas sorting.
  * - The current asset lives under:
  *   Assets/__PROJECT__/Resources/UI/DamagePopupSettings.asset
  * - The DamagePopup prefab lives in the same Resources folder so it can be loaded without a scene reference.
@@ -422,7 +422,7 @@
  *   float TotalHp { get; }
  *   float CurrHp { get; }
  *   bool IsAlive { get; }
- *   void TakeDamage(float damage);
+ *   void TakeDamage(DamageInfo damageInfo);
  * - Damageable state is read-only to external systems. Implementations update HP and alive state internally.
  * - ProjectileDamageDealer skips null targets, dead targets, and already-hit IDamageable instances.
  * - ProjectileDamageDealer stores the tracked target IDamageable on spawn so HOVL hit VFX cannot consume a projectile on a non-damage child collider without applying damage.
@@ -451,13 +451,14 @@
  *
  * Damage Popup Runtime Flow
  *
- * 1. IDamageable implementation receives TakeDamage.
+ * 1. IDamageable implementation receives TakeDamage(DamageInfo).
  * 2. The implementation updates CurrHp and IsAlive.
- * 3. DamagePopupSpawner.SpawnDamage(targetTransform, damage) is called for visible feedback.
+ * 3. DamagePopupSpawner.SpawnDamage(targetTransform, damageInfo) is called for visible feedback.
+ * 3-1. High-frequency damage can use DamagePopupPolicy.Accumulate so same-target damage is merged before popup creation.
  * 4. DamagePopupSpawner lazily creates itself if no scene instance exists.
  * 5. It loads UI/DamagePopupSettings and UI/DamagePopup from Resources.
  * 6. It prewarms MemoryPool with the configured InitialPoolSize.
- * 7. DamagePopup.Init applies text, DamagePopupSettings, and camera.
+ * 7. DamagePopup.Init applies TextMeshProUGUI text, DamagePopupSettings, Canvas sorting, and camera.
  * 8. DamagePopup fades and moves upward, then returns itself to the pool through PoolObject.Despawn.
  *
  * Current Balance Data

@@ -37,7 +37,7 @@ public static class ElectroChainLightningUtility
             Vector3 nextPosition = ResolveTargetPosition(nextTarget, nextCollider, currentPosition);
             Transform nextTransform = ResolveTargetTransform(nextTarget);
             ElectroChainLinkEffectUtility.Play(payload, currentCollider, nextCollider, currentTransform, nextTransform, currentPosition, nextPosition);
-            nextTarget.TakeDamage(chainDamage);
+            nextTarget.TakeDamage(new DamageInfo(chainDamage, DamagePopupType.Normal, DamagePopupPolicy.Accumulate));
             ApplyElectroStatus(payload, nextTarget, chainIndex, sourceDamage);
             RegisterChainedTarget(nextTarget, ref chainedTargetCount);
             currentCollider = nextCollider;

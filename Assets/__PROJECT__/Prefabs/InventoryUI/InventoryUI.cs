@@ -88,7 +88,7 @@ public class InventoryUI : MonoBehaviour
             button.interactable = false;
 
             // 클릭 이벤트 추가
-            button.onClick.AddListener(() => OnInventoryCellClick(button));
+            button.GetComponent<PassEventToScrollRect>().onButtonClick.AddListener(() => OnInventoryCellClick(button));
 
             // 버튼 목록에 추가
             invenButtonDict.Add(button, 0);
@@ -131,7 +131,8 @@ public class InventoryUI : MonoBehaviour
                 }
 
                 // 클릭 이벤트 추가
-                button.onClick.AddListener(() => OnCraftCellClick(button));
+                button.GetComponent<PassEventToScrollRect>().onButtonClick.AddListener(() => OnCraftCellClick(button));
+
 
                 // 크래프트 버튼 목록에 추가
                 craftButtonDict.Add(button, type);
@@ -234,6 +235,9 @@ public class InventoryUI : MonoBehaviour
         }
         SetButtonColor(button, selectedCellColor);
         latestSelectedCraftCell = button;
+
+        // 한 번 크래프트 아이템 셀을 터치하면 작업 버튼이 다시 활성화 된다.
+        makeButton.gameObject.SetActive(true);
     }
 
     /// <summary>
@@ -412,7 +416,6 @@ public class InventoryUI : MonoBehaviour
         pannelTitletext.text = "Craft";
         ResetScroll(craftContent);
         ResetCellSelectionAll();
-        makeButton.gameObject.SetActive(true);
     }
 
     // 인벤토리 셀을 새로고침 한다.

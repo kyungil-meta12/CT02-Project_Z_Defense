@@ -11,7 +11,7 @@ public class WorldUIAnimation : MonoBehaviour
     void Awake()
     {
         cam = Camera.main;
-        originPos = transform.position;
+        originPos = transform.localPosition;
     }
 
     void Update()
@@ -19,6 +19,6 @@ public class WorldUIAnimation : MonoBehaviour
         // 위 아래로 왕복한다.
         BillboardUtil.SetBillboardQuad(transform, cam);
         sinValue += Time.deltaTime * tripSpeed;
-        transform.position = originPos + new Vector3(Mathf.Sin(-sinValue) * tripScale, Mathf.Sin(sinValue) * tripScale, 0f);
+        transform.localPosition = originPos + new Vector3(Mathf.Sin(-sinValue) * tripScale, Mathf.Sin(sinValue) * tripScale, 0f);
     }
 }

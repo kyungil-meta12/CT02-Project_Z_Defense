@@ -107,7 +107,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &4800657022498175195
 RectTransform:
   m_ObjectHideFlags: 0
@@ -246,7 +246,7 @@ MonoBehaviour:
   m_linkedTextComponent: {fileID: 0}
   parentLinkedComponent: {fileID: 0}
   m_enableKerning: 1
-  m_ActiveFontFeatures: 00000000
+  m_ActiveFontFeatures: 6e72656b
   m_enableExtraPadding: 0
   checkPaddingRequired: 0
   m_isRichText: 1
@@ -471,16 +471,16 @@ MonoBehaviour:
     toNumber: 100
   durationFadeIn: 0.2
   enableOffsetFadeIn: 1
-  offsetFadeIn: {x: 0.5, y: 0}
+  offsetFadeIn: {x: 0, y: 0.6}
   enableScaleFadeIn: 1
-  scaleFadeIn: {x: 2, y: 2}
+  scaleFadeIn: {x: 0.4, y: 4}
   enableCrossScaleFadeIn: 0
   crossScaleFadeIn: {x: 1, y: 1.5}
   enableShakeFadeIn: 0
   shakeOffsetFadeIn: {x: 0, y: 1.5}
   shakeFrequencyFadeIn: 4
   durationFadeOut: 0.2
-  enableOffsetFadeOut: 1
+  enableOffsetFadeOut: 0
   offsetFadeOut: {x: 0.5, y: 0}
   enableScaleFadeOut: 0
   scaleFadeOut: {x: 2, y: 2}
@@ -746,7 +746,7 @@ MonoBehaviour:
   enablePooling: 1
   poolSize: 160
   disableOnSceneLoad: 1
-  editorLastFont: 
+  editorLastFont: Basic-Glow3D
   position: {x: 0, y: 0, z: 0}
 --- !u!210 &7017044102814686624
 SortingGroup:

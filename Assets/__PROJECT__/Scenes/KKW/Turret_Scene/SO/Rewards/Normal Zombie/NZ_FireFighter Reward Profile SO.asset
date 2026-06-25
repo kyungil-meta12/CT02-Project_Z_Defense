@@ -18,9 +18,9 @@ MonoBehaviour:
     dropChance: 1
     minAmountMultiplier: 0.8
     maxAmountMultiplier: 1.2
-  - currencyType: 2
-    amount: 220
-    dropChance: 0
-    minAmountMultiplier: 0.8
-    maxAmountMultiplier: 1.2
+  - currencyType: 1
+    amount: 1
+    dropChance: 1
+    minAmountMultiplier: 1
+    maxAmountMultiplier: 1
   modifiers: []

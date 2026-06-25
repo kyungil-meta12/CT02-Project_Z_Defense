@@ -32,14 +32,22 @@ public class DropItem : PoolObject
         // 아이템 매니저에 보상 개수만큼 추가
         InventorySystem.Inst.AddItem(rewardType, dropCount);
 
-        // 드옵 아이템 목록에서 아이템 제거
-        DropItemManager.Inst.RemoveItem(this);
-
         // 아이템 획득 파티클 추가
         var pickupParticle = MemoryPool.Inst.GetInstance<PoolParticle>(pickupParticlePrefab);
         pickupParticle.transform.position = transform.position;
         pickupParticle.transform.localScale = transform.localScale;
 
         ReturnInstance();
+    }
+
+    /// <summary>
+    /// 월드에서 직접 아이템을 줍는다.
+    /// </summary>
+    public void PickItem()
+    {
+        GetItem(); // 아이템 획득
+        
+        // 드롭 아이템 목록에서 아이템 제거
+        DropItemManager.Inst.RemoveItem(this);
     }
 }

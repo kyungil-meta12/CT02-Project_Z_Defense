@@ -9,6 +9,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 5913017314681374047}
+  - component: {fileID: 2777080016926952328}
   m_Layer: 15
   m_Name: DropItem_FirePart
   m_TagString: Untagged
@@ -33,6 +34,21 @@ Transform:
   - {fileID: 2100692922333922781}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &2777080016926952328
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3834023848925762396}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1e95299739c448b419eddbd46a00112b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::DropItem
+  rewardType: 0
+  dropCount: 0
+  pickupParticlePrefab: {fileID: 6927962580313983396, guid: 3d83bf73b5f747b4fb1774986d432db9, type: 3}
 --- !u!1001 &1578961470535652820
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -136,14 +152,14 @@ PrefabInstance:
     - target: {fileID: 6610464560689841449, guid: 676fb99fa57699c45b5e56652faed1dc, type: 3}
       propertyPath: OnTouchEvent.m_PersistentCalls.m_Calls.Array.data[0].m_Target
       value: 
-      objectReference: {fileID: 2270979329586564431}
+      objectReference: {fileID: 2777080016926952328}
     - target: {fileID: 6610464560689841449, guid: 676fb99fa57699c45b5e56652faed1dc, type: 3}
       propertyPath: OnTouchEvent.m_PersistentCalls.m_Calls.Array.data[0].m_CallState
       value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 6610464560689841449, guid: 676fb99fa57699c45b5e56652faed1dc, type: 3}
       propertyPath: OnTouchEvent.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
-      value: GetItem
+      value: PickItem
       objectReference: {fileID: 0}
     - target: {fileID: 6610464560689841449, guid: 676fb99fa57699c45b5e56652faed1dc, type: 3}
       propertyPath: OnTouchEvent.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
@@ -165,39 +181,20 @@ PrefabInstance:
       propertyPath: m_Layer
       value: 15
       objectReference: {fileID: 0}
+    - target: {fileID: 8895372683705119231, guid: 676fb99fa57699c45b5e56652faed1dc, type: 3}
+      propertyPath: m_IsTrigger
+      value: 1
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: 7030619819816839663, guid: 676fb99fa57699c45b5e56652faed1dc, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 2270979329586564431}
+    m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 676fb99fa57699c45b5e56652faed1dc, type: 3}
 --- !u!4 &6381832273932740320 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 5582576447331775284, guid: 676fb99fa57699c45b5e56652faed1dc, type: 3}
   m_PrefabInstance: {fileID: 1578961470535652820}
   m_PrefabAsset: {fileID: 0}
---- !u!1 &8392561734598966331 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 7030619819816839663, guid: 676fb99fa57699c45b5e56652faed1dc, type: 3}
-  m_PrefabInstance: {fileID: 1578961470535652820}
-  m_PrefabAsset: {fileID: 0}
---- !u!114 &2270979329586564431
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8392561734598966331}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1e95299739c448b419eddbd46a00112b, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::DropItem
-  rewardType: 0
-  dropCount: 0
-  pickupParticlePrefab: {fileID: 6927962580313983396, guid: 3d83bf73b5f747b4fb1774986d432db9, type: 3}
 --- !u!1001 &2645842056844122946
 PrefabInstance:
   m_ObjectHideFlags: 0

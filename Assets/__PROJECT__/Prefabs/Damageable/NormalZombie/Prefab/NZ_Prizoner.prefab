@@ -36,6 +36,14 @@ PrefabInstance:
       propertyPath: 'visualSlots.Array.data[4].targetRenderers.Array.data[0]'
       value: 
       objectReference: {fileID: 2594874627355072250}
+    - target: {fileID: 5687897227173672291, guid: 4696f3a76ac50b74dba3cd8982cf1807, type: 3}
+      propertyPath: drops.Array.data[0].ItemPrefab
+      value: 
+      objectReference: {fileID: 2777080016926952328, guid: 0d9a9cf12778f4c478cde9c355a04e4a, type: 3}
+    - target: {fileID: 5687897227173672291, guid: 4696f3a76ac50b74dba3cd8982cf1807, type: 3}
+      propertyPath: drops.Array.data[1].ItemPrefab
+      value: 
+      objectReference: {fileID: 6416900757913687957, guid: 89009a750bcbb434681a1039e01fd260, type: 3}
     - target: {fileID: 5764995620041688112, guid: 4696f3a76ac50b74dba3cd8982cf1807, type: 3}
       propertyPath: m_IsActive
       value: 0

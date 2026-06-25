@@ -1,6 +1,4 @@
 using UnityEngine;
-using UnityEngine.EventSystems;
-
 
 public class DropItem : PoolObject
 {
@@ -14,19 +12,6 @@ public class DropItem : PoolObject
     void Awake()
     {
         particle = GetComponentInChildren<ParticleSystem>();
-    }
-
-    void Start()
-    {
-        CameraTouchHandler.Inst.OnCameraTargetTouchEvent += OnTouchEvent;
-    }
-
-    void OnDestroy()
-    {
-        if (CameraTouchHandler.Inst)
-        {
-            CameraTouchHandler.Inst.OnCameraTargetTouchEvent -= OnTouchEvent;
-        }
     }
 
     public override void OnSpawn()
@@ -47,21 +32,14 @@ public class DropItem : PoolObject
         // 아이템 매니저에 보상 개수만큼 추가
         InventorySystem.Inst.AddItem(rewardType, dropCount);
 
+        // 드옵 아이템 목록에서 아이템 제거
+        DropItemManager.Inst.RemoveItem(this);
+
         // 아이템 획득 파티클 추가
         var pickupParticle = MemoryPool.Inst.GetInstance<PoolParticle>(pickupParticlePrefab);
         pickupParticle.transform.position = transform.position;
         pickupParticle.transform.localScale = transform.localScale;
 
         ReturnInstance();
-    }
-
-    // 아이템을 터치하면 회수되면서 월드 상에서 인스턴스가 메모리 풀로 회수된다.
-    public void OnTouchEvent(RaycastHit hit)
-    {
-        if (hit.collider.gameObject == gameObject)
-        {
-            GetItem(); // 아이템 획득
-            DropItemManager.Inst.RemoveItem(this); // 드롭된 아이템 목록에서 아이템 제거
-        }
     }
 }

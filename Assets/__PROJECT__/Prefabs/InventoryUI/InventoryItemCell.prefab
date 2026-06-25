@@ -151,7 +151,7 @@ GameObject:
   - component: {fileID: 6906632490376971300}
   - component: {fileID: 2648166654864034197}
   m_Layer: 5
-  m_Name: CountText
+  m_Name: ItemCount
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -206,8 +206,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: 500
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: ec9a04e0cef20d0468907ab46a64f2a3, type: 2}
-  m_sharedMaterial: {fileID: 6874088232059199337, guid: ec9a04e0cef20d0468907ab46a64f2a3, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 2f19c5723d5938144a3d2cff85a107c1, type: 2}
+  m_sharedMaterial: {fileID: 8627694614124292958, guid: 2f19c5723d5938144a3d2cff85a107c1, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -231,7 +231,7 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 34.65
+  m_fontSize: 36.2
   m_fontSizeBase: 36
   m_fontWeight: 400
   m_enableAutoSizing: 1

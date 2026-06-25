@@ -8,8 +8,8 @@ using UnityEngine;
 [Serializable]
 public struct ItemMaterialData
 {
-    [Header("필요 개수")] public int Count;
     [Header("아이템 타입")] public RewardCurrencyType Type;
+    [Header("필요 개수")] public int Count;
 }
 
 [CreateAssetMenu(fileName = "ItemMetaData", menuName = "Scriptable Objects/ItemMetaData")]

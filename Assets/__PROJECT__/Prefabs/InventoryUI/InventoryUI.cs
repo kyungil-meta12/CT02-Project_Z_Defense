@@ -22,6 +22,7 @@ public class InventoryUI : MonoBehaviour
     [Header("크래프트 필요 아이템 표시기 프리펩")] public GameObject craftCellNeedInfoPrefab;
     [Header("인벤토리 탭 버튼")] public Button invenTabButton;
     [Header("크래프트 탭 버튼")] public Button craftTabButton;
+    [Header("아이템 보유량 텍스트 객체")] public TextMeshProUGUI itemCountText;
     [Header("아이템 이름 텍스트 객체")] public TextMeshProUGUI itemNameText;
     [Header("아이템 정보 텍스트 객체")] public TextMeshProUGUI itemInfoText;
     [Header("아이템 정보 이미지")] public Image itemInfoImage;
@@ -31,6 +32,7 @@ public class InventoryUI : MonoBehaviour
     [Header("배경 객체")] public Image background;
     [Header("선택된 탭 색상")] public Color selectedTabColor;
     [Header("선택된 셀 색상")] public Color selectedCellColor;
+    [Header("절전 전환 버튼")] public GameObject powerSavingSwitchButton;
 
     // 메타데이터 목록
     private List<ItemMetaDataSo> metaDataList = new();
@@ -48,6 +50,10 @@ public class InventoryUI : MonoBehaviour
 
     // 크래프트 버튼 데이터
     private Dictionary<Button, RewardCurrencyType> craftButtonDict = new();
+    
+    // 현재 선택된 크래프트 아이템을 제작하는데에 필요한 아이템 관련 데이터 딕셔너리
+    private Dictionary<RewardCurrencyType, ItemMaterialData> needItemData = new();
+    private Dictionary<RewardCurrencyType, TextMeshProUGUI> needItemText = new();
 
     // 마지막으로 선택된 크래프트 아이템 타입
     private RewardCurrencyType latestSelectedCraftType = 0;
@@ -155,6 +161,8 @@ public class InventoryUI : MonoBehaviour
         {
             RefreshInventoryCell();
         }
+
+        UpdateNeedItemData(data.Type);
     }
 
     /// <summary>
@@ -166,6 +174,7 @@ public class InventoryUI : MonoBehaviour
         background.gameObject.SetActive(true);
         RefreshInventoryCell();
         SetToInventory();
+        powerSavingSwitchButton.SetActive(false);
         openState = true;
     }
 
@@ -176,6 +185,7 @@ public class InventoryUI : MonoBehaviour
     {
         mainController.SetActive(false);
         background.gameObject.SetActive(false);
+        powerSavingSwitchButton.SetActive(true);
         openState = false;
     }
 
@@ -223,7 +233,11 @@ public class InventoryUI : MonoBehaviour
             var text = needItemViewerList[i].GetComponentInChildren<TextMeshProUGUI>();
             image.sprite = metaDataList.Find(meta => meta.Type == needItems[i].Type).ItemImage;
             SetImageVisibility(image, true);
-            text.text = needItems[i].Count.ToString();
+
+            // 각 필요 아이템에 대해서도 실시간으로 보유량을 표시하기 위해 딕셔너리에 데이터 추가 후 반영
+            needItemData.Add(needItems[i].Type, needItems[i]);
+            needItemText.Add(needItems[i].Type, text);
+            UpdateNeedItemData(needItems[i].Type);
         }
 
         // 한 번 크래프트 아이템 셀을 터치하면 작업 버튼이 다시 활성화 된다.
@@ -276,11 +290,34 @@ public class InventoryUI : MonoBehaviour
         Debug.Log($"[InventoryUI] 아이템 제작 완료 |  아이템: {latestSelectedCraftType}");
     }
 
+    /// <summary>
+    /// 필요 아이템 표시기를 초기화 한다.
+    /// </summary>
     private void ResetNeedItemViewer()
     {
+        needItemData.Clear();
+        needItemText.Clear();
         foreach(var viwer in needItemViewerList)
         {
             viwer.SetActive(false);
+        }
+    }
+
+    /// <summary>
+    /// 현재 활성화 된 필요 아이템 표시기를 초기화 한다.
+    /// </summary>
+    /// <param name="type"></param>
+    private void UpdateNeedItemData(RewardCurrencyType type)
+    {
+        if(needItemData.Count == 0)
+        {
+            return;
+        }
+
+        if(needItemData.ContainsKey(type))
+        {
+            var needData = needItemData[type];
+            needItemText[type].text = needData.Count.ToString() + "/" + InventorySystem.Inst.GetCountString(type);
         }
     }
 
@@ -306,6 +343,7 @@ public class InventoryUI : MonoBehaviour
         {
             itemNameText.text = "";
             itemInfoText.text = "";
+            itemCountText.text = "";
         }
         else
         {
@@ -313,6 +351,7 @@ public class InventoryUI : MonoBehaviour
             var metaData = metaDataList.Find(meta => meta.Type == type);
             itemNameText.text = metaData.Name;
             itemInfoText.text = metaData.InfoText;
+            itemCountText.text = "보유량: " + InventorySystem.Inst.GetCountString(type);
         }
     }
 
@@ -386,7 +425,7 @@ public class InventoryUI : MonoBehaviour
         SetInfoImage(null, null);
         SetButtonColor(invenTabButton, selectedTabColor);
         SetButtonColor(craftTabButton, Color.black);
-        pannelTitletext.text = "Inventory";
+        pannelTitletext.text = "창고";
         ResetScroll(inventoryContent);
         ResetCellSelectionAll();
         ResetNeedItemViewer();
@@ -404,7 +443,7 @@ public class InventoryUI : MonoBehaviour
         SetInfoImage(null, null);
         SetButtonColor(invenTabButton, Color.black);
         SetButtonColor(craftTabButton, selectedTabColor);
-        pannelTitletext.text = "Craft";
+        pannelTitletext.text = "아이템 제작";
         ResetScroll(craftContent);
         ResetCellSelectionAll();
         ResetNeedItemViewer();

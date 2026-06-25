@@ -18,7 +18,7 @@ MonoBehaviour:
   dnpNormalPrefab: {fileID: 3106269974086679045, guid: 9a4f1a36d88f4a71aa8cf1c2b5e7d903, type: 3}
   dnpCriticalPrefab: {fileID: 3106269974086679045, guid: 9a4f1a36d88f4a71aa8cf1c2b5e7d903, type: 3}
   dnpHeavyPrefab: {fileID: 3106269974086679045, guid: 9a4f1a36d88f4a71aa8cf1c2b5e7d903, type: 3}
-  dnpScale: 0.35
+  dnpScale: 2
   dnpUseTypePrefix: 1
   dnpCriticalPrefix: 'CRIT '
   dnpHeavyPrefix: 'HEAVY '

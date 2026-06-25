@@ -91,8 +91,11 @@ Do not use display names as stable IDs.
 14. `IgnitionDamageApplier` reads targets from `IgnitionConeDetector` and forwards Ignition payloads to `IIgnitionStatusEffectReceiver`.
 15. `ProjectileDamageDealer` applies projectile damage to `IDamageable` targets, forwards Poison payloads to `IPoisonStatusEffectReceiver`, and triggers Electro chain damage when an Electro payload is active.
 16. `ProjectileDamageDealer` and `BeamFiringEvent` roll `TurretDamagePolishProfileSO` before `IDamageable.TakeDamage`; damage, popup style, and popup policy are passed together through `DamageInfo`.
-17. `ProjectileHitDetector` handles tracked target, trigger/collision, and movement raycast hit paths.
-18. Damage receivers spawn damage popups where appropriate.
+17. `ProjectileDamageDealer` resolves direct-hit popup policy through `DamagePopupPolicyResolver.ResolveDirectHit`, so normal hits accumulate while critical/heavy direct hits display immediately.
+18. `BeamFiringEvent` resolves beam tick popup policy through `DamagePopupPolicyResolver.ResolveHighFrequencyTick`, so all beam tick popups accumulate to avoid high-frequency critical/heavy spam.
+19. `DamagePopupPolicyResolver` reads `DamagePopupPolicyProfile.asset` through `DamagePopupSettings.asset` when the profile is assigned, so popup policy tuning does not require code changes.
+20. `ProjectileHitDetector` handles tracked target, trigger/collision, and movement raycast hit paths.
+21. Damage receivers spawn damage popups where appropriate.
 
 ## Beam Attack Runtime Flow
 
@@ -905,7 +908,9 @@ Engineer buff policy:
 - Evolution effects should spawn through `PooledObjectUtility.SpawnEffect`.
 - Frost freeze explosion effects should spawn through `PooledObjectUtility.SpawnEffect` and should use a real pool when repeated frequently.
 - `ProjectileHitDetector` must clear target/collider state on reuse.
-- Damage popup generation must go through `DamagePopupSpawner` so accumulation, throttling, stacked offsets, and the selected DNP/project backend stay centralized.
+- Damage popup generation must go through `DamagePopupSpawner` so accumulation, throttling, stacked offsets, and DNP rendering stay centralized.
+- Direct projectile hits should use `DamagePopupPolicyResolver.ResolveDirectHit`.
+- Beam ticks, DoT, chain, AoE, and status burst damage should use accumulated popup policies so same-target damage stays readable and bounded.
 
 ## Third-Generation VFX Pooling Matrix
 

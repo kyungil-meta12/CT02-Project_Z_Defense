@@ -201,12 +201,12 @@
  * public float evolutionEffectDuration;
  *
  * 8. DamagePopupSettings
- * - Holds runtime configuration for world-canvas damage numbers.
+ * - Holds runtime configuration for DNP Mesh damage numbers.
  * - Loaded through Resources.Load("UI/DamagePopupSettings") by DamagePopupSpawner.
- * - References the DamagePopup prefab and controls pool size, font size, optional TMP font asset, color, lifetime, spawn offsets, movement offset, scale, text formats, random spread, and Canvas sorting.
+ * - References DNP prefab settings and controls popup policy, spawn offsets, random spread, colors, type scale multipliers, DNP scale, type prefixes, accumulation, throttling, and runtime stats.
  * - The current asset lives under:
  *   Assets/__PROJECT__/Resources/UI/DamagePopupSettings.asset
- * - The DamagePopup prefab lives in the same Resources folder so it can be loaded without a scene reference.
+ * - The project DNP prefab and policy profile live in the same Resources folder so runtime-created spawners can resolve the configured assets.
  *
  * 9. TurretShopEntrySO
  * - Holds data for turret placement UI entries.
@@ -396,8 +396,8 @@
  * - Projectile speed, damage, pierce count, and collision ignores must also be refreshed on spawn.
  * - Do not rely on prefab state or previous pooled object state.
  * - Evolution effects should be spawned through PooledObjectUtility.SpawnEffect.
- * - DamagePopup instances are pooled through MemoryPool and prewarmed using DamagePopupSettings.InitialPoolSize.
- * - DamagePopup.Init must receive DamagePopupSettings every spawn because pooled text objects retain previous state.
+ * - DNP damage popup instances use DamageNumbersPro pooling and are prewarmed through DnpDamagePopupBackend.
+ * - DnpDamagePopupBackend applies camera, color, prefix, and scale values every spawn because DNP popup instances are reused.
  * - ProjectileHitDetector clears target/collider state through Init whenever a projectile is reused.
  * - Frost freeze explosion effects should also spawn through PooledObjectUtility.SpawnEffect.
  * - If Ice_Cubes_Explosion is used frequently, its duplicated project prefab should inherit or include PoolObject so SpawnEffect does not fall back to Instantiate/Destroy.
@@ -456,10 +456,10 @@
  * 3. DamagePopupSpawner.SpawnDamage(targetTransform, damageInfo) is called for visible feedback.
  * 3-1. High-frequency damage can use DamagePopupPolicy.Accumulate so same-target damage is merged before popup creation.
  * 4. DamagePopupSpawner lazily creates itself if no scene instance exists.
- * 5. It loads UI/DamagePopupSettings and UI/DamagePopup from Resources.
- * 6. It prewarms MemoryPool with the configured InitialPoolSize.
- * 7. DamagePopup.Init applies TextMeshProUGUI text, DamagePopupSettings, Canvas sorting, and camera.
- * 8. DamagePopup fades and moves upward, then returns itself to the pool through PoolObject.Despawn.
+ * 5. It loads UI/DamagePopupSettings from Resources when no scene reference is assigned.
+ * 6. It applies accumulation, rate limiting, target-type offsets, and stacked spawn offsets.
+ * 7. DnpDamagePopupBackend spawns the configured DamageNumberMesh prefab and injects camera, color, prefix, and scale.
+ * 8. DamageNumbersPro owns popup animation and pooling.
  *
  * Current Balance Data
  *

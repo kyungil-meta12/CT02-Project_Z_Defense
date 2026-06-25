@@ -12,35 +12,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c1f265cc17e44d16a63f2ae705167a30, type: 3}
   m_Name: DamagePopupSettings
   m_EditorClassIdentifier: 
-  damagePopupPrefab: {fileID: 11400000, guid: d44bbdc7cffb4b7089a0dae151333770, type: 3}
-  initialPoolSize: 60
-  popupBackend: 1
-  dnpNormalPrefab: {fileID: 3106269974086679045, guid: 9a4f1a36d88f4a71aa8cf1c2b5e7d903, type: 3}
-  dnpCriticalPrefab: {fileID: 3106269974086679045, guid: 9a4f1a36d88f4a71aa8cf1c2b5e7d903, type: 3}
-  dnpHeavyPrefab: {fileID: 3106269974086679045, guid: 9a4f1a36d88f4a71aa8cf1c2b5e7d903, type: 3}
-  dnpScale: 2
-  dnpUseTypePrefix: 1
-  dnpCriticalPrefix: 'CRIT '
-  dnpHeavyPrefix: 'HEAVY '
-  fontSize: 36
-  worldCanvasScale: 0.04
-  textRectWidth: 12
-  textRectHeight: 3
-  textWidthPerCharacter: 1.2
-  fontAsset: {fileID: 0}
-  damageColor: {r: 1, g: 0.35, b: 0.12, a: 1}
-  criticalDamageColor: {r: 1, g: 0.9, b: 0.1, a: 1}
-  heavyDamageColor: {r: 1, g: 0.15, b: 0.05, a: 1}
-  normalTextFormat: '{0}'
-  criticalTextFormat: CRIT {0}
-  heavyTextFormat: HEAVY {0}
+  popupPolicyProfile: {fileID: 11400000, guid: b7f7a8c5e7c04d0ea3f4fb792edcc712, type: 2}
   showRoundedDamage: 1
   showZeroOrNegativeDamage: 0
-  heightOffset: 4
+  heightOffset: 6
   spawnOffset: {x: 0, y: 0, z: 0}
   normalZombieHeightOffset: 4
   normalZombieSpawnOffset: {x: 0, y: 0, z: 0}
-  bossZombieHeightOffset: 12
+  bossZombieHeightOffset: 15
   bossZombieSpawnOffset: {x: 0, y: 0, z: 0}
   randomHorizontalRadius: 0.15
   randomVerticalRange: 0.05
@@ -48,16 +27,21 @@ MonoBehaviour:
   stackWindow: 0.12
   maxStackSlots: 5
   stackHorizontalStep: 0.35
-  stackVerticalStep: 0.18
+  stackVerticalStep: 0.3
   useAccumulatedDamagePopup: 1
-  accumulationWindow: 0.12
+  accumulationWindow: 0.15
   maxPopupsPerSecond: 45
-  lifetime: 0.75
-  moveOffset: {x: 0, y: 1.5, z: 0}
-  startScale: 1.15
-  endScale: 0.85
+  enableRuntimeStats: 1
+  runtimeStatsLogInterval: 5
+  damageColor: {r: 1, g: 0.35, b: 0.12, a: 1}
+  criticalDamageColor: {r: 1, g: 0.9, b: 0.1, a: 1}
+  heavyDamageColor: {r: 1, g: 0.15, b: 0.05, a: 1}
   criticalScaleMultiplier: 1.1
   heavyScaleMultiplier: 1.3
-  renderSortingLayerName: WorldUI
-  renderSortingOrder: 500
-  cameraForwardOffset: 0.25
+  dnpNormalPrefab: {fileID: 3106269974086679045, guid: 9a4f1a36d88f4a71aa8cf1c2b5e7d903, type: 3}
+  dnpCriticalPrefab: {fileID: 3106269974086679045, guid: 9a4f1a36d88f4a71aa8cf1c2b5e7d903, type: 3}
+  dnpHeavyPrefab: {fileID: 3106269974086679045, guid: 9a4f1a36d88f4a71aa8cf1c2b5e7d903, type: 3}
+  dnpScale: 2.5
+  dnpUseTypePrefix: 1
+  dnpCriticalPrefix: 'CRIT '
+  dnpHeavyPrefix: 'HEAVY '

@@ -24,28 +24,28 @@ MonoBehaviour:
   - minPlacedCount: 1
     costs:
     - currencyType: 0
-      amount: 25000
+      amount: 2500
   - minPlacedCount: 2
     costs:
     - currencyType: 0
-      amount: 250000
+      amount: 25000
   - minPlacedCount: 3
     costs:
     - currencyType: 0
-      amount: 1000000
+      amount: 100000
   - minPlacedCount: 4
     costs:
     - currencyType: 0
-      amount: 3000000
+      amount: 300000
   - minPlacedCount: 5
     costs:
     - currencyType: 0
-      amount: 6000000
+      amount: 600000
   - minPlacedCount: 5
     costs:
     - currencyType: 0
-      amount: 6000000
+      amount: 1000000
   - minPlacedCount: 5
     costs:
     - currencyType: 0
-      amount: 6000000
+      amount: 10000000

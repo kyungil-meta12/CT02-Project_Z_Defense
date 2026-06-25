@@ -1,3 +1,3 @@
 ﻿DefinitionPath,ObstacleId,DisplayName,SlotType,MaxLevel,UpgradeCostProfilePath,BaseCosts,AdditionalCostPercentPerLevel
-Assets/__PROJECT__/Prefabs/Damageable/Obstacle/SO/ObstacleDefinition.asset,10,Obstacle,Obstacle,500,Assets/__PROJECT__/Prefabs/Damageable/Obstacle/SO/ObstacleUpgradeCostProfile.asset,,0
-Assets/__PROJECT__/Prefabs/Damageable/Obstacle/SO/GateDefinition.asset,00,Gate,Gate,500,Assets/__PROJECT__/Prefabs/Damageable/Obstacle/SO/GateUpgradeCostProfile.asset,,0
+Assets/__PROJECT__/Prefabs/Damageable/Obstacle/SO/ObstacleDefinition.asset,10,Obstacle,Obstacle,500,Assets/__PROJECT__/Prefabs/Damageable/Obstacle/SO/ObstacleUpgradeCostProfile.asset,Coin:100,10
+Assets/__PROJECT__/Prefabs/Damageable/Obstacle/SO/GateDefinition.asset,00,Gate,Gate,500,Assets/__PROJECT__/Prefabs/Damageable/Obstacle/SO/GateUpgradeCostProfile.asset,Coin:100,10

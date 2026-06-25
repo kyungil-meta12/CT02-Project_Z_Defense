@@ -91,7 +91,12 @@ public class TurretDataCsvEditorTool : EditorWindow
             AppendDefinitionRow(builder, definitions[i]);
         }
 
-        WriteUtf8Csv(CSV_PATH, builder.ToString());
+        if (!WriteUtf8Csv(CSV_PATH, builder.ToString()))
+        {
+            FlushMessagesToConsole(false);
+            return;
+        }
+
         AddMessage($"터렛 CSV 익스포트 완료: {definitions.Count}개 Definition");
         FlushMessagesToConsole(true);
     }
@@ -655,17 +660,33 @@ public class TurretDataCsvEditorTool : EditorWindow
     }
 
     // CSV 파일을 UTF-8 BOM으로 저장한다
-    private static void WriteUtf8Csv(string path, string text)
+    private bool WriteUtf8Csv(string path, string text)
     {
-        string directoryPath = Path.GetDirectoryName(path);
-        if (!string.IsNullOrEmpty(directoryPath))
+        try
         {
-            Directory.CreateDirectory(directoryPath);
-        }
+            string directoryPath = Path.GetDirectoryName(path);
+            if (!string.IsNullOrEmpty(directoryPath))
+            {
+                Directory.CreateDirectory(directoryPath);
+            }
 
-        File.WriteAllText(path, text, new UTF8Encoding(true));
-        AssetDatabase.ImportAsset(path, ImportAssetOptions.ForceUpdate);
-        AssetDatabase.Refresh();
+            File.WriteAllText(path, text, new UTF8Encoding(true));
+            AssetDatabase.ImportAsset(path, ImportAssetOptions.ForceUpdate);
+            AssetDatabase.Refresh();
+            return true;
+        }
+        catch (IOException exception)
+        {
+            AddMessage("CSV 파일을 저장할 수 없습니다. 파일이 Excel 등 다른 프로그램에서 열려 있으면 닫고 다시 시도하세요: " + path);
+            AddMessage(exception.Message);
+            return false;
+        }
+        catch (UnauthorizedAccessException exception)
+        {
+            AddMessage("CSV 파일 저장 권한이 없습니다. 파일 권한 또는 읽기 전용 상태를 확인하세요: " + path);
+            AddMessage(exception.Message);
+            return false;
+        }
     }
 
     // CSV 행이 비어 있는지 확인한다

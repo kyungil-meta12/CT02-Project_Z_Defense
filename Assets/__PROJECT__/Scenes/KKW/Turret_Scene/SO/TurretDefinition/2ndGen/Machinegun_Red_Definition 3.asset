@@ -17,12 +17,12 @@ MonoBehaviour:
   basePrefab: {fileID: 5345693528658615356, guid: e9c677624ae509d4d82d9eb826f483be, type: 3}
   baseStatProfile: {fileID: 11400000, guid: 1f2459b97daf7bd48ae52e4153f98c93, type: 2}
   maxLevel: 0
-  maxEngineerSeatCount: 2
   statGrowthProfile: {fileID: 11400000, guid: 660773e6c0470dd448cf837d604c1231, type: 2}
   upgradeCostProfile: {fileID: 11400000, guid: dd7c1843527f33247b240a150efca986, type: 2}
   vfxProgressionProfile: {fileID: 11400000, guid: a0c91a161947ab84eaf959658d0419d8, type: 2}
   projectileScaleProgressionProfile: {fileID: 11400000, guid: bbcfb35342b87524bb759c97dc38f09e, type: 2}
   evolutionProgressionProfile: {fileID: 11400000, guid: 9c65aa79ddb3a7d4b86fed813f2b8c64, type: 2}
+  maxEngineerSeatCount: 2
   damagePolishProfile: {fileID: 11400000, guid: 2d8ad581254a1e24a897dea70846de12, type: 2}
   frostStatusProfile: {fileID: 0}
   poisonStatusProfile: {fileID: 0}

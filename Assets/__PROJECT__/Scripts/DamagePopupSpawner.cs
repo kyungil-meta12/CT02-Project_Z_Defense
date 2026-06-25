@@ -465,7 +465,7 @@ public class DamagePopupSpawner : MonoBehaviour
             return;
         }
 
-        Debug.Log($"[DamagePopupSpawner] 팝업 계측 {interval:0.##}초 - 요청:{statsRequestedCount}, 생성:{statsSpawnedCount}, 생성실패:{statsSpawnFailedCount}, 제한폐기:{statsRateLimitedCount}, 억제:{statsSuppressedCount}, 누적요청:{statsAccumulatedRequestCount}, 누적합산:{statsAccumulationMergedCount}, 대기타겟:{AccumulatedPopupStates.Count}", this);
+        //Debug.Log($"[DamagePopupSpawner] 팝업 계측 {interval:0.##}초 - 요청:{statsRequestedCount}, 생성:{statsSpawnedCount}, 생성실패:{statsSpawnFailedCount}, 제한폐기:{statsRateLimitedCount}, 억제:{statsSuppressedCount}, 누적요청:{statsAccumulatedRequestCount}, 누적합산:{statsAccumulationMergedCount}, 대기타겟:{AccumulatedPopupStates.Count}", this);
         ResetRuntimeStats(currentTime);
     }
 

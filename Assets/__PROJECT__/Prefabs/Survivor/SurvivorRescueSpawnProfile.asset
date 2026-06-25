@@ -19,15 +19,15 @@ MonoBehaviour:
     spawnChance: 1
   - wave: 4
     spawnChance: 1
-  - wave: 10
-    spawnChance: 1
-  - wave: 15
-    spawnChance: 1
   - wave: 20
     spawnChance: 1
-  - wave: 30
-    spawnChance: 1
-  - wave: 40
-    spawnChance: 1
   - wave: 50
+    spawnChance: 1
+  - wave: 100
+    spawnChance: 1
+  - wave: 200
+    spawnChance: 1
+  - wave: 300
+    spawnChance: 1
+  - wave: 400
     spawnChance: 1

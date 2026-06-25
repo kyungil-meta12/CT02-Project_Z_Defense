@@ -151,7 +151,7 @@ GameObject:
   - component: {fileID: 6906632490376971300}
   - component: {fileID: 2648166654864034197}
   m_Layer: 5
-  m_Name: CountText
+  m_Name: ItemCount
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

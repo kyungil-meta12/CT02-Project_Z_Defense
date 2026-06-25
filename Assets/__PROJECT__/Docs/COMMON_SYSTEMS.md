@@ -81,7 +81,6 @@ Use when repeatedly spawning:
 - zombies
 - projectiles
 - VFX
-- damage popups
 - warning popups
 - temporary runtime helpers
 
@@ -111,13 +110,14 @@ Check these before finishing pooled-object work:
 
 Paths:
 
-- `Assets/__PROJECT__/Scripts/DamagePopup.cs`
-- `Assets/__PROJECT__/Scripts/DamagePopupBackend.cs`
+- `Assets/__PROJECT__/Scripts/DamagePopupPolicyProfileSO.cs`
+- `Assets/__PROJECT__/Scripts/IDamagePopupRenderBackend.cs`
+- `Assets/__PROJECT__/Scripts/DnpDamagePopupBackend.cs`
 - `Assets/__PROJECT__/Scripts/DamagePopupSpawner.cs`
 - `Assets/__PROJECT__/Scripts/DamagePopupSettings.cs`
 - `Assets/__PROJECT__/Docs/DAMAGE_POPUP_DNP_MIGRATION.md`
-- `Assets/__PROJECT__/Resources/UI/DamagePopup.prefab`
 - `Assets/__PROJECT__/Resources/UI/DNP_DamagePopup_RedGlow.prefab`
+- `Assets/__PROJECT__/Resources/UI/DamagePopupPolicyProfile.asset`
 - `Assets/__PROJECT__/Resources/UI/DamagePopupSettings.asset`
 
 Flow:
@@ -126,21 +126,39 @@ Flow:
 2. Damage receiver calls `DamagePopupSpawner.SpawnDamage(targetTransform, damageInfo)` when visual feedback is needed.
 3. Spawner loads settings from `Resources/UI` if needed.
 4. Spawner keeps same-target accumulation, per-second throttling, and stacked spawn offset policy in project code.
-5. If `DamagePopupSettings.popupBackend` is `DamageNumbersProMesh`, the spawner uses the configured `DamageNumberMesh` prefab and DamageNumbersPro pooling/updater.
-6. If the DNP prefab is missing or the backend is `ProjectWorldCanvas`, the spawner falls back to the project `DamagePopup` MemoryPool path.
+5. Spawner delegates rendering to `DnpDamagePopupBackend`.
+6. If the DNP prefab is missing or spawn fails, the spawner records `생성실패` in runtime stats and skips the visual instead of using a legacy fallback.
 
 Rules:
 
 - Do not allocate popup prefabs per hit manually.
+- Gameplay code must call `DamagePopupSpawner.SpawnDamage(...)`; it must not call DNP prefabs directly.
+- Rendering-specific implementation belongs in a backend adapter such as `DnpDamagePopupBackend`, not in damage receivers.
 - Keep Private Assets originals unchanged. Use duplicated project prefabs such as `DNP_DamagePopup_RedGlow.prefab` for tuned DamageNumbersPro settings.
-- Always reinitialize pooled popup text, color, scale, lifetime, and camera-dependent values.
+- DNP popup instances must receive camera, color, prefix, and scale values through `DnpDamagePopupBackend`.
 - Turret critical or heavy hit styling is passed through `DamageInfo.PopupType`, not through a static temporary context.
 - High-frequency paths can pass `DamageInfo.PopupPolicy = Accumulate` so same-target damage is merged within `DamagePopupSettings.accumulationWindow`.
+- Use `DamagePopupPolicyResolver` for shared popup policy decisions.
+- `DamagePopupPolicyResolver` reads `DamagePopupSettings.PopupPolicyProfile` when available and falls back to safe code defaults when the profile is missing.
+- `DamagePopupPolicyProfile.asset` owns tunable policies for direct hits, high-frequency ticks, chain, DoT, AoE, and status burst damage.
 - `DamagePopupSettings.maxPopupsPerSecond` limits throttled and accumulated popup creation to prevent runaway popup counts during rapid-fire, beam, DoT, and chain damage.
-- Popup position offset, random spread, text formats, colors, scale multipliers, and lifetime are configured in `Resources/UI/DamagePopupSettings.asset`.
+- `DamagePopupSettings.enableRuntimeStats` can be enabled during profiling to log popup request, spawn, spawn-failure, rate-limit, accumulation, and pending-target counts at `runtimeStatsLogInterval`.
+- Keep runtime stats disabled for normal play unless profiling or diagnosing popup behavior.
+- Popup position offset, random spread, colors, scale multipliers, DNP scale, and type prefixes are configured in `Resources/UI/DamagePopupSettings.asset`.
+- `DamagePopupSettings.asset` Inspector sections are split by responsibility:
+  - `공통 표시 정책`: policy profile reference, damage rounding, and zero/negative display policy.
+  - `공통 생성 위치`: target-type height offsets and random spawn spread.
+  - `공통 연속 피격 분산`: same-target stacked popup offsets.
+  - `공통 표시량 제어`: accumulation and global popup rate budget.
+  - `런타임 계측`: optional profiling logs for popup request/spawn/drop/failure counts.
+  - `공통 타입 스타일`: normal/critical/heavy color and scale multipliers.
+  - `DNP 렌더링`: DamageNumbersPro prefabs, DNP scale, and type prefixes.
 - Normal zombie and boss zombie popup positions can be tuned separately through the same `DamagePopupSettings.asset`.
-- World Canvas sorting and camera-forward offset apply to the fallback project backend. DNP Mesh visibility is controlled by the DNP prefab settings such as `renderThroughWalls`, `faceCameraView`, and `consistentScreenSize`.
+- DNP Mesh visibility is controlled by the DNP prefab settings such as `renderThroughWalls`, `faceCameraView`, and `consistentScreenSize`.
 - For the current Orthographic main camera, keep DNP `renderThroughWalls` and `consistentScreenSize` disabled. These Perspective-oriented options can make popups too small to see.
+- `DNP_DamagePopup_RedGlow.prefab` should keep root `SortingGroup` and child renderer sorting at `WorldUI / Order 1000` so damage numbers render above `HpUI.prefab`, which uses a world-space Canvas on `WorldUI / Order 0`.
+- Current DNP pool baseline is `poolSize = 160`. With about `200` spawns per 5 seconds and `lifetime = 0.85`, this is expected to be enough unless Profiler shows repeated runtime `Instantiate`, popup-related `GC.Alloc`, or visible spawn spikes.
+- Current late-wave profiling target is `생성실패 = 0`, low `제한폐기`, and roughly half of high-frequency popup requests merged through accumulation.
 - DamageNumbersPro migration status, tuned values, and next work plan are tracked in `DAMAGE_POPUP_DNP_MIGRATION.md`.
 - Avoid logs per damage tick.
 
@@ -200,8 +218,8 @@ Follow-up pooling rules:
 
 Allowed current Resources loads:
 
-- `UI/DamagePopup`
 - `UI/DamagePopupSettings`
+- `UI/DNP_DamagePopup_RedGlow`
 
 Rules:
 

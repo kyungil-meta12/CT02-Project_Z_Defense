@@ -263,7 +263,8 @@ Current runtime Resources paths:
 
 | Resource | Expected Path |
 | --- | --- |
-| Damage popup prefab | `Assets/__PROJECT__/Resources/UI/DamagePopup.prefab` |
+| DNP damage popup prefab | `Assets/__PROJECT__/Resources/UI/DNP_DamagePopup_RedGlow.prefab` |
+| Damage popup policy profile | `Assets/__PROJECT__/Resources/UI/DamagePopupPolicyProfile.asset` |
 | Damage popup settings | `Assets/__PROJECT__/Resources/UI/DamagePopupSettings.asset` |
 
 Rules:

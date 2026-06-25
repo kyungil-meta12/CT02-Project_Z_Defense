@@ -9,7 +9,7 @@ This document is the shortest map for finding where project code, scenes, prefab
 | Path | Role | Notes |
 | --- | --- | --- |
 | `Assets/__PROJECT__/Prefabs` | Runtime gameplay prefabs and their local scripts/data | Zombies, boss zombies, obstacles, survivors, spawner, HP UI, MemoryPool prefab. |
-| `Assets/__PROJECT__/Scripts` | Shared project-level runtime systems | `GameManager`, `MemoryPool`, `PoolObject`, `DamagePopup`, camera, item systems. |
+| `Assets/__PROJECT__/Scripts` | Shared project-level runtime systems | `GameManager`, `MemoryPool`, `PoolObject`, `DamagePopupSpawner`, DNP popup backend, camera, item systems. |
 | `Assets/__PROJECT__/Scenes` | Main scene, test scenes, scene-owned feature work | `Main.unity` is the current integration scene. `KKW/Turret_Scene` owns turret-related feature assets. |
 | `Assets/__PROJECT__/Resources` | Runtime `Resources.Load` targets | Keep paths stable. Current UI resources live under `Resources/UI`. |
 | `Assets/__PROJECT__/Public Assets` | Project-owned shared art/font assets | Safe to reference from project systems. |
@@ -26,7 +26,7 @@ This document is the shortest map for finding where project code, scenes, prefab
 | Obstacle placement | `Prefabs/Damageable/Obstacle/ObstacleBuild*`, `Prefabs/Damageable/Obstacle/ObstaclePlacement*` | Fixed defense-line obstacle/gate slot placement and rebuild UI. |
 | Spawning | `Prefabs/ZombieSpawner`, `Scenes/KKW/Turret_Scene/SO/Zombie Wave Spawn Profile`, `Scenes/KKW/Turret_Scene/SO/Zombie_Specs` | `ZombieWaveSpawnProfileSO` driven wave ranges, spawn counts, weighted zombie entries, boss final spawn, and runtime stat/reward multipliers. Zombie specs own only baseline stats and random variance. |
 | Turrets | `Scenes/KKW/Turret_Scene` | Turret definitions, stats, evolution, placement, projectile damage, VFX profile data. |
-| Common feedback | `Scripts/DamagePopup*`, `Resources/UI` | World-space damage number spawning and pooling. |
+| Common feedback | `Scripts/DamagePopup*`, `Resources/UI` | World-space DNP damage number policy, spawning, sorting, and runtime profiling settings. |
 | Status effects | `Scripts/StatusEffects` | Shared status-effect visuals and per-target runtimes such as `FrostStatusRuntime` and `PoisonStatusRuntime`. |
 | Targeting filters | `Scripts/Targeting` | Project-owned target candidate filter interfaces and reusable filter components. |
 | Pooling | `Scripts/Singleton/MemoryPool`, `Scripts/PoolObject` | Runtime object reuse and pool containers. |

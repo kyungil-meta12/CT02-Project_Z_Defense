@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using DamageNumbersPro;
 using UnityEngine;
 
 /// <summary>
@@ -7,8 +6,6 @@ using UnityEngine;
 /// </summary>
 public class DamagePopupSpawner : MonoBehaviour
 {
-    private const string DAMAGE_POPUP_RESOURCE_PATH = "UI/DamagePopup";
-    private const string DNP_DAMAGE_POPUP_RESOURCE_PATH = "UI/DNP_DamagePopup_RedGlow";
     private const string DAMAGE_POPUP_SETTINGS_RESOURCE_PATH = "UI/DamagePopupSettings";
     private const string RUNTIME_SYSTEMS_CONTAINER_NAME = "RuntimeSystems";
     private const float POPUP_RATE_WINDOW_SECONDS = 1.0f;
@@ -20,11 +17,19 @@ public class DamagePopupSpawner : MonoBehaviour
     [SerializeField] private DamagePopupSettings settings;
 
     private readonly List<int> accumulationFlushKeys = new List<int>(128);
-    private DamagePopup damagePopupPrefab;
-    private DamageNumberMesh fallbackDnpPrefab;
+    private IDamagePopupRenderBackend activeRenderBackend;
     private Camera targetCamera;
     private float popupRateWindowStartTime;
     private int popupCountInCurrentWindow;
+    private float statsWindowStartTime;
+    private int statsRequestedCount;
+    private int statsSuppressedCount;
+    private int statsAccumulatedRequestCount;
+    private int statsAccumulationMergedCount;
+    private int statsRateLimitedCount;
+    private int statsSpawnedCount;
+    private int statsSpawnFailedCount;
+    private bool hasLoggedSpawnFailure;
 
     // 싱글톤 인스턴스와 팝업 풀을 초기화한다
     private void Awake()
@@ -42,20 +47,24 @@ public class DamagePopupSpawner : MonoBehaviour
         popupCountInCurrentWindow = 0;
         targetCamera = Camera.main;
         EnsureSettings();
-        if (settings.PopupBackend != DamagePopupBackend.DamageNumbersProMesh || GetDnpPrefab(DamagePopupType.Normal) == null)
+        DamagePopupPolicyResolver.SetSettings(settings);
+        InitializeRenderBackend();
+        ResetRuntimeStats(Time.time);
+        if (activeRenderBackend == null)
         {
-            EnsurePrefab();
-            Prewarm();
+            Debug.LogError("[DamagePopupSpawner] DNP 데미지 팝업 백엔드를 초기화하지 못했습니다. DamagePopupSettings의 DNP 프리팹 연결을 확인하세요.", this);
             return;
         }
 
-        PrewarmDnpPopups();
+        activeRenderBackend.Prewarm();
     }
 
     // 누적된 데미지 팝업 표시 시점을 갱신한다
     private void Update()
     {
-        FlushDueAccumulatedPopups(Time.time);
+        float currentTime = Time.time;
+        FlushDueAccumulatedPopups(currentTime);
+        LogRuntimeStatsIfNeeded(currentTime);
     }
 
     // 현재 싱글톤 인스턴스가 제거될 때 정적 참조를 정리한다
@@ -99,9 +108,11 @@ public class DamagePopupSpawner : MonoBehaviour
     // 데미지 팝업 정책에 맞춰 즉시 표시하거나 누적한다
     private void HandleDamagePopup(Transform target, DamageInfo damageInfo, DamagePopupTargetType targetType)
     {
+        RecordPopupRequest();
         switch (damageInfo.PopupPolicy)
         {
             case DamagePopupPolicy.Suppressed:
+                RecordSuppressedPopup();
                 return;
             case DamagePopupPolicy.Accumulate:
                 if (settings.UseAccumulatedDamagePopup)
@@ -124,6 +135,7 @@ public class DamagePopupSpawner : MonoBehaviour
     // 같은 대상의 누적 정책 데미지를 합산한다
     private void AccumulateDamagePopup(Transform target, DamageInfo damageInfo, DamagePopupTargetType targetType)
     {
+        RecordAccumulatedRequest();
         int targetId = target.GetInstanceID();
         float currentTime = Time.time;
         AccumulatedPopupState state;
@@ -134,6 +146,7 @@ public class DamagePopupSpawner : MonoBehaviour
             return;
         }
 
+        RecordAccumulationMerged();
         state.AddDamage(damageInfo.Damage, damageInfo.PopupType);
         state.RefreshTarget(target, targetType);
         AccumulatedPopupStates[targetId] = state;
@@ -191,6 +204,7 @@ public class DamagePopupSpawner : MonoBehaviour
 
         if (applyRateLimit && !TryConsumePopupRateBudget())
         {
+            RecordRateLimitedPopup();
             return;
         }
 
@@ -240,19 +254,6 @@ public class DamagePopupSpawner : MonoBehaviour
         return spawnerObject.AddComponent<DamagePopupSpawner>();
     }
 
-    // 메모리 풀이 없으면 런타임 컨테이너 아래에 생성한다
-    private static MemoryPool GetOrCreateMemoryPool()
-    {
-        if (MemoryPool.Inst != null)
-        {
-            return MemoryPool.Inst;
-        }
-
-        GameObject memoryPoolObject = new GameObject("MemoryPool");
-        memoryPoolObject.transform.SetParent(GetOrCreateRuntimeSystemsContainer());
-        return memoryPoolObject.AddComponent<MemoryPool>();
-    }
-
     // 런타임 시스템을 묶을 컨테이너 트랜스폼을 반환한다
     private static Transform GetOrCreateRuntimeSystemsContainer()
     {
@@ -265,175 +266,34 @@ public class DamagePopupSpawner : MonoBehaviour
         return new GameObject(RUNTIME_SYSTEMS_CONTAINER_NAME).transform;
     }
 
-    // 설정된 초기 개수만큼 데미지 팝업을 풀에 미리 생성한다
-    private void Prewarm()
+    // DNP 데미지 팝업 렌더러를 초기화한다
+    private void InitializeRenderBackend()
     {
-        if (settings.PopupBackend == DamagePopupBackend.DamageNumbersProMesh)
+        activeRenderBackend = null;
+
+        DnpDamagePopupBackend dnpBackend = new DnpDamagePopupBackend(settings);
+        if (dnpBackend.IsAvailable)
         {
-            return;
+            activeRenderBackend = dnpBackend;
         }
-
-        if (damagePopupPrefab == null)
-        {
-            return;
-        }
-
-        GetOrCreateMemoryPool().Prewarm(damagePopupPrefab, settings.InitialPoolSize);
-    }
-
-    // DamageNumbersPro 프리팹의 자체 풀을 미리 생성한다
-    private void PrewarmDnpPopups()
-    {
-        DamageNumberMesh normalPrefab = GetDnpPrefab(DamagePopupType.Normal);
-        DamageNumberMesh criticalPrefab = GetDnpPrefab(DamagePopupType.Critical);
-        DamageNumberMesh heavyPrefab = GetDnpPrefab(DamagePopupType.Heavy);
-
-        PrewarmDnpPrefab(normalPrefab);
-        if (criticalPrefab != normalPrefab)
-        {
-            PrewarmDnpPrefab(criticalPrefab);
-        }
-
-        if (heavyPrefab != normalPrefab && heavyPrefab != criticalPrefab)
-        {
-            PrewarmDnpPrefab(heavyPrefab);
-        }
-    }
-
-    // 지정한 DamageNumbersPro 프리팹의 풀을 미리 채운다
-    private static void PrewarmDnpPrefab(DamageNumberMesh dnpPrefab)
-    {
-        if (dnpPrefab == null)
-        {
-            return;
-        }
-
-        dnpPrefab.PrewarmPool();
     }
 
     // 데미지 숫자 팝업을 타입별 표시 설정과 함께 풀에서 가져와 표시한다
     private void Spawn(int damageValue, Vector3 position, DamagePopupType damageType)
     {
         RefreshTargetCamera();
-        if (settings.PopupBackend == DamagePopupBackend.DamageNumbersProMesh && TrySpawnDnpPopup(damageValue, position, damageType))
+        if (activeRenderBackend != null && activeRenderBackend.TrySpawn(damageValue, position, damageType, targetCamera))
         {
+            RecordSpawnedPopup();
             return;
         }
 
-        SpawnProjectPopup(damageValue, position, damageType);
-    }
-
-    // DamageNumbersPro Mesh 백엔드로 데미지 팝업을 생성한다
-    private bool TrySpawnDnpPopup(int damageValue, Vector3 position, DamagePopupType damageType)
-    {
-        DamageNumberMesh dnpPrefab = GetDnpPrefab(damageType);
-        if (dnpPrefab == null)
+        RecordSpawnFailedPopup();
+        if (!hasLoggedSpawnFailure)
         {
-            return false;
+            hasLoggedSpawnFailure = true;
+            Debug.LogWarning("[DamagePopupSpawner] DNP 데미지 팝업 생성에 실패했습니다. DNP 프리팹과 풀 설정을 확인하세요.", this);
         }
-
-        DamageNumber popup = dnpPrefab.Spawn(position, damageValue);
-        if (popup == null)
-        {
-            return false;
-        }
-
-        ConfigureDnpPopup(popup, damageType);
-        return true;
-    }
-
-    // 설정 프리팹이 비어 있으면 Resources 기본 DNP 프리팹을 반환한다
-    private DamageNumberMesh GetDnpPrefab(DamagePopupType damageType)
-    {
-        DamageNumberMesh dnpPrefab = settings.GetDnpPrefab(damageType);
-        if (dnpPrefab != null)
-        {
-            return dnpPrefab;
-        }
-
-        if (fallbackDnpPrefab == null)
-        {
-            fallbackDnpPrefab = Resources.Load<DamageNumberMesh>(DNP_DAMAGE_POPUP_RESOURCE_PATH);
-        }
-
-        return fallbackDnpPrefab;
-    }
-
-    // DamageNumbersPro 팝업에 프로젝트 타입별 스타일을 적용한다
-    private void ConfigureDnpPopup(DamageNumber popup, DamagePopupType damageType)
-    {
-        if (targetCamera != null)
-        {
-            popup.cameraOverride = targetCamera.transform;
-            popup.fovCamera = targetCamera;
-            popup.orthographicCamera = targetCamera;
-            if (targetCamera.orthographic)
-            {
-                popup.renderThroughWalls = false;
-                popup.consistentScreenSize = false;
-            }
-        }
-
-        popup.SetColor(settings.GetDamageColor(damageType));
-        popup.enableLeftText = settings.DnpUseTypePrefix && damageType != DamagePopupType.Normal;
-        popup.leftText = settings.GetDnpPrefix(damageType);
-        float scaleMultiplier = settings.DnpScale * settings.GetScaleMultiplier(damageType);
-        popup.SetScale(scaleMultiplier);
-        popup.UpdateText();
-    }
-
-    // 프로젝트 기본 World Canvas 백엔드로 데미지 팝업을 생성한다
-    private void SpawnProjectPopup(int damageValue, Vector3 position, DamagePopupType damageType)
-    {
-        EnsurePrefab();
-
-        if (damagePopupPrefab == null)
-        {
-            return;
-        }
-
-        DamagePopup popup = GetOrCreateMemoryPool().GetInstance<DamagePopup>(damagePopupPrefab);
-        if (popup == null)
-        {
-            return;
-        }
-
-        popup.Init(damageValue, position, settings, targetCamera, damageType);
-    }
-
-    // 설정 또는 리소스에서 데미지 팝업 프리팹을 확보한다
-    private void EnsurePrefab()
-    {
-        EnsureSettings();
-
-        if (damagePopupPrefab != null)
-        {
-            return;
-        }
-
-        if (settings != null && settings.DamagePopupPrefab != null)
-        {
-            damagePopupPrefab = settings.DamagePopupPrefab;
-            return;
-        }
-
-        damagePopupPrefab = Resources.Load<DamagePopup>(DAMAGE_POPUP_RESOURCE_PATH);
-        if (damagePopupPrefab != null)
-        {
-            return;
-        }
-
-        damagePopupPrefab = CreateRuntimePrefab();
-    }
-
-    // 리소스 프리팹이 없을 때 사용할 런타임 기본 팝업을 만든다
-    private DamagePopup CreateRuntimePrefab()
-    {
-        GameObject popupObject = new GameObject("DamagePopup");
-        popupObject.transform.SetParent(transform);
-        DamagePopup popup = popupObject.AddComponent<DamagePopup>();
-        popupObject.SetActive(false);
-        return popup;
     }
 
     // 데미지 팝업 설정을 확보하고 없으면 런타임 기본값을 사용한다
@@ -499,6 +359,114 @@ public class DamagePopupSpawner : MonoBehaviour
         int nextSlot = (state.SlotIndex + 1) % maxSlots;
         PopupStackStates[targetId] = new PopupStackState(nextSlot, currentTime);
         return nextSlot;
+    }
+
+    // 런타임 계측 카운터를 초기화한다
+    private void ResetRuntimeStats(float currentTime)
+    {
+        statsWindowStartTime = currentTime;
+        statsRequestedCount = 0;
+        statsSuppressedCount = 0;
+        statsAccumulatedRequestCount = 0;
+        statsAccumulationMergedCount = 0;
+        statsRateLimitedCount = 0;
+        statsSpawnedCount = 0;
+        statsSpawnFailedCount = 0;
+    }
+
+    // 팝업 요청 수를 기록한다
+    private void RecordPopupRequest()
+    {
+        if (!settings.EnableRuntimeStats)
+        {
+            return;
+        }
+
+        statsRequestedCount++;
+    }
+
+    // 표시 억제된 팝업 수를 기록한다
+    private void RecordSuppressedPopup()
+    {
+        if (!settings.EnableRuntimeStats)
+        {
+            return;
+        }
+
+        statsSuppressedCount++;
+    }
+
+    // 누적 정책으로 접수된 팝업 수를 기록한다
+    private void RecordAccumulatedRequest()
+    {
+        if (!settings.EnableRuntimeStats)
+        {
+            return;
+        }
+
+        statsAccumulatedRequestCount++;
+    }
+
+    // 기존 누적 상태에 합산된 팝업 수를 기록한다
+    private void RecordAccumulationMerged()
+    {
+        if (!settings.EnableRuntimeStats)
+        {
+            return;
+        }
+
+        statsAccumulationMergedCount++;
+    }
+
+    // 초당 표시량 제한으로 버린 팝업 수를 기록한다
+    private void RecordRateLimitedPopup()
+    {
+        if (!settings.EnableRuntimeStats)
+        {
+            return;
+        }
+
+        statsRateLimitedCount++;
+    }
+
+    // 실제 생성된 팝업 수를 기록한다
+    private void RecordSpawnedPopup()
+    {
+        if (!settings.EnableRuntimeStats)
+        {
+            return;
+        }
+
+        statsSpawnedCount++;
+    }
+
+    // 백엔드 생성 실패 팝업 수를 기록한다
+    private void RecordSpawnFailedPopup()
+    {
+        if (!settings.EnableRuntimeStats)
+        {
+            return;
+        }
+
+        statsSpawnFailedCount++;
+    }
+
+    // 설정된 간격마다 데미지 팝업 계측 로그를 출력한다
+    private void LogRuntimeStatsIfNeeded(float currentTime)
+    {
+        if (!settings.EnableRuntimeStats)
+        {
+            return;
+        }
+
+        float interval = settings.RuntimeStatsLogInterval;
+        if (currentTime - statsWindowStartTime < interval)
+        {
+            return;
+        }
+
+        Debug.Log($"[DamagePopupSpawner] 팝업 계측 {interval:0.##}초 - 요청:{statsRequestedCount}, 생성:{statsSpawnedCount}, 생성실패:{statsSpawnFailedCount}, 제한폐기:{statsRateLimitedCount}, 억제:{statsSuppressedCount}, 누적요청:{statsAccumulatedRequestCount}, 누적합산:{statsAccumulationMergedCount}, 대기타겟:{AccumulatedPopupStates.Count}", this);
+        ResetRuntimeStats(currentTime);
     }
 
     private struct AccumulatedPopupState

@@ -111,7 +111,9 @@ public static class TurretStatCalculator
     // 터렛 정의에서 데미지 성장 종료 레벨을 찾는다
     private static int ResolveGrowthEndLevel(TurretDefinitionSO definition)
     {
-        int evolutionLevel = GetNearestEvolutionRequiredLevel(definition.evolutionProgressionProfile);
+        int evolutionLevel = definition.evolutionProgressionProfile == null
+            ? 0
+            : definition.evolutionProgressionProfile.GetNextRequiredEvolutionLevel(1);
         if (evolutionLevel > 1)
         {
             return evolutionLevel;
@@ -123,33 +125,6 @@ public static class TurretStatCalculator
         }
 
         return FALLBACK_GROWTH_END_LEVEL;
-    }
-
-    // 진화 후보 중 가장 가까운 요구 레벨을 반환한다
-    private static int GetNearestEvolutionRequiredLevel(TurretEvolutionProgressionSO progression)
-    {
-        if (progression == null || progression.evolutionEntries == null)
-        {
-            return 0;
-        }
-
-        int nearestLevel = 0;
-        for (int i = 0; i < progression.evolutionEntries.Length; i++)
-        {
-            TurretEvolutionEntry entry = progression.evolutionEntries[i];
-            if (entry == null || entry.targetDefinition == null)
-            {
-                continue;
-            }
-
-            int requiredLevel = Mathf.Max(1, entry.requiredLevel);
-            if (nearestLevel == 0 || requiredLevel < nearestLevel)
-            {
-                nearestLevel = requiredLevel;
-            }
-        }
-
-        return nearestLevel;
     }
 
     // 완료된 구간 성장 횟수를 계산한다

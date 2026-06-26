@@ -954,7 +954,7 @@ The validator checks:
 - `maxLevel` values set together with `evolutionProgressionProfile`.
 - evolution entries that target the same `TurretDefinitionSO` as their source definition.
 
-Use `Project Z Defense/Reports/Turret Balance Report` when reviewing balance changes. The report window summarizes turret Lv1/Lv100 DPS, upgrade costs, evolution costs, wave reward estimates, and how many extra upgrade levels one average wave reward can buy for each upgrade cost tier. Use its CSV export when sharing a balance pass outside Unity.
+Use `Tools/터렛 웨이브 밸런스 시뮬레이션` when reviewing balance changes. The report window runs an editor-only numeric simulation from current SO data: `InventorySystem.initialWalletCurrencies` initial Coin, cumulative average wave Coin (current wave's own reward excluded from that wave's available budget, since it hasn't been earned yet), per-wave boss spawn count, turret placement costs, greedy upgrade distribution, total turret DPS, total wave HP, and estimated clear seconds. Wave spawn profile ranges are expanded into one report row per wave, because `spawnCount` is per wave, not a range total. The window checks source data signatures during auto refresh and recalculates the table only when relevant data changes. The main tab shows the best single-turret-type setup per wave; the second tab lists one row per turret shop entry × wave × strategy (1대 집중/최대 설치/최적) with combat and budget-usage columns together; the third tab lists source data warnings tagged with a severity (정보/경고). CSV export writes `wave_clear_simulation.csv`, `turret_scenario_details.csv`, and `source_data_warnings.csv` with Korean headers.
 
 For each turret definition:
 

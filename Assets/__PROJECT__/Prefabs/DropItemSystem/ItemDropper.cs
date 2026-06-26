@@ -13,7 +13,7 @@ public struct DropAttribute
 /// </summary>
 public class ItemDropper : MonoBehaviour
 {
-    [SerializeField] public DropAttribute[] drops;
+    [SerializeField] public DropItem dropItemPrefab;
 
     /// <summary>
     /// 특정 위치에 아이템을 생성한다.
@@ -24,51 +24,15 @@ public class ItemDropper : MonoBehaviour
     public void CreateDropItem(RewardResult inputResult, Vector3 spawnPosition, RewardCurrencyType rewardType)
     {
         // 코인은 드랍하지 않음
-        if(rewardType == RewardCurrencyType.Coin)
+        // inputResult.dict에 키가 없어도 드랍하지 않는다.
+        if(rewardType == RewardCurrencyType.Coin || !inputResult.dict.ContainsKey(rewardType))
         {
             return;
         }
-
-        foreach(var d in drops)
-        {
-            if(d.CurrencyType == rewardType && inputResult.dict.ContainsKey(rewardType))
-            {
-                var dropCount = inputResult.dict[rewardType];
-                if(dropCount == 0)
-                {
-                    return;
-                }
-                var itemComp = MemoryPool.Inst.GetInstance<DropItem>(d.ItemPrefab);
-                itemComp.transform.position = spawnPosition;
-                itemComp.rewardType = rewardType;
-                itemComp.dropCount = dropCount;
-                //print($"[ItemDropper] 아이템 드롭 완료 | 타입: {rewardType} | 개수: {dropCount} | 위치: {spawnPosition}");
-                return;
-            }
-        }
-    }
-
-    /// <summary>
-    /// 드랍 아이템 테스트용 메서드. 실제 게임 로직에 사용하지 말 것.
-    /// </summary>
-    /// <param name="spawnPosition"></param>
-    /// <param name="rewardType"></param>
-    /// <param name="dropCount"></param>
-    public void TestDropItem(Vector3 spawnPosition, RewardCurrencyType rewardType, int dropCount)
-    {
-        foreach (var d in drops)
-        {
-            if (d.CurrencyType == rewardType)
-            {
-                var itemComp = MemoryPool.Inst.GetInstance<DropItem>(d.ItemPrefab);
-                itemComp.transform.position = spawnPosition;
-                itemComp.rewardType = rewardType;
-                itemComp.dropCount = dropCount;
-                print($"[ItemDropper] 아이템 드롭 완료 | 타입: {rewardType} | 개수: {dropCount} | 위치: {spawnPosition}");
-                return;
-            }
-        }
-
-        Debug.LogError($"[ItemDropper] RewardCurrencyType이 일치하는 아이템을 찾을 수 없음 | 시도 타입: {rewardType}");
+        
+        // 드롭 아이템 프리펩을 생성하고, 타입을 설정하고, 위치를 설정한다.
+        var itemComp = MemoryPool.Inst.GetInstance<DropItem>(dropItemPrefab);
+        itemComp.SetupItem(rewardType, inputResult.dict[rewardType]);
+        itemComp.transform.position = spawnPosition;
     }
 }

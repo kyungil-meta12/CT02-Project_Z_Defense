@@ -20,6 +20,6 @@ public class ItemDropTest : MonoBehaviour
     IEnumerator TestCoroutine()
     {
         yield return new WaitForSeconds(3f);
-        dropper.TestDropItem(transform.position, dropType, 10);
+        //dropper.TestDropItem(transform.position, dropType, 10);
     }
 }

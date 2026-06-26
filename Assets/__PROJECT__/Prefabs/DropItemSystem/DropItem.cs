@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 public class DropItem : PoolObject
@@ -6,12 +7,15 @@ public class DropItem : PoolObject
     [HideInInspector] public int dropCount;
 
     public PoolParticle pickupParticlePrefab;
+    public MeshRenderer mashRenderer;
+    private Material material;
 
     private ParticleSystem particle;
 
     void Awake()
     {
         particle = GetComponentInChildren<ParticleSystem>();
+        material = mashRenderer.material;
     }
 
     public override void OnSpawn()
@@ -20,6 +24,18 @@ public class DropItem : PoolObject
         particle.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
         particle.Play();
         DropItemManager.Inst.AddItem(this); // 드롭된 아이템 목록에 아이템 추가
+    }
+
+    /// <summary>
+    /// 아이템을 세팅한다. 세팅 시 각 타입에 맞는 이미지로 변경된다.
+    /// </summary>
+    /// <param name="itemType"></param>
+    /// <param name="amount"></param>
+    public void SetupItem(RewardCurrencyType itemType, int amount)
+    {
+        rewardType = itemType;
+        dropCount = amount;
+        material.mainTexture = InventorySystem.Inst.GetMetaData(itemType).ItemImage.texture;
     }
 
     /// <summary>

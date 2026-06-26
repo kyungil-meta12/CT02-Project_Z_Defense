@@ -2388,11 +2388,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fd57f329a1d1f3744b4fc70f05b0ae8e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ItemDropper
-  drops:
-  - CurrencyType: 1
-    ItemPrefab: {fileID: 2777080016926952328, guid: 0d9a9cf12778f4c478cde9c355a04e4a, type: 3}
-  - CurrencyType: 2
-    ItemPrefab: {fileID: 6416900757913687957, guid: 89009a750bcbb434681a1039e01fd260, type: 3}
+  dropItemPrefab: {fileID: 2777080016926952328, guid: 0d9a9cf12778f4c478cde9c355a04e4a, type: 3}
 --- !u!54 &-888220476763322617
 Rigidbody:
   m_ObjectHideFlags: 0

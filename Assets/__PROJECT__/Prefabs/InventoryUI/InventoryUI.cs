@@ -66,6 +66,25 @@ public class InventoryUI : MonoBehaviour
     private bool openState = false;
 
 
+    // 제작 버튼을 누르고 있는 상태
+    private bool makeButtonPressState = false;
+
+    // 제작 버튼을 오래 눌러 자동 제작되는 상태
+    private bool autoMakeState = false;
+
+    // 제작 버튼을 누르고 있을 떄 누적되는 시간 -> 자동 제작 진입
+    private float autoMakeEnterAccumTime = 0f;
+
+    // 제작 버튼을 누르고 있을 때 누적되는 시간 -> 자동 제작 실행
+    private float autoMakeAccumTime = 0f;
+
+    // 제작 버튼을 얼마나 누르고 있어야 자동 제작으로 넘어가는지?
+    [Header("자동 제작 진입 시간")] public float autoMakeEnterTime;
+
+    // 제작 버튼을 누르고 있을 떄 자동으로 제작되는 간격
+    [Header("자동 제작 간격")] public float autoMakeInterval;
+
+
     // 인벤토리를 닫은 상태로 시작
     void Awake()
     {
@@ -134,6 +153,28 @@ public class InventoryUI : MonoBehaviour
         if (InventorySystem.Inst)
         {
             InventorySystem.Inst.OnItemCountChange -= OnItemValueChanged;
+        }
+    }
+
+    void Update()
+    {
+        // 제작 버튼을 꾹 누르고 있으면 자동으로 제작이 된다.
+        if(makeButtonPressState)
+        {
+            autoMakeEnterAccumTime += Time.deltaTime;
+            if(autoMakeEnterAccumTime >= autoMakeEnterTime - autoMakeInterval)
+            {
+                autoMakeState = true;
+            }
+            if(autoMakeState)
+            {
+                autoMakeAccumTime += Time.deltaTime;
+                if (autoMakeAccumTime >= autoMakeInterval)
+                {
+                    autoMakeAccumTime -= autoMakeInterval;
+                    MakeItem();
+                }
+            }
         }
     }
 
@@ -259,7 +300,30 @@ public class InventoryUI : MonoBehaviour
         }
     }
 
-    public void OnMakeButtonClick()
+    public void OnMakeButtonDown()
+    {
+        makeButtonPressState = true;
+    }
+
+    public void OnMakeButtonUp()
+    {
+        makeButtonPressState = false;
+
+        if(autoMakeState) // 자동 제작 상태였다면 그냥 리턴
+        {
+            autoMakeState = false; // 자동 제작 상태 초기화
+            autoMakeEnterAccumTime = 0f;
+            autoMakeAccumTime = 0f;
+            return;
+        }
+
+        MakeItem();
+    }
+
+    /// <summary>
+    /// 아이템을 제작한다.
+    /// </summary>
+    private void MakeItem()
     {
         if (!latestSelectedCraftCell)
         {

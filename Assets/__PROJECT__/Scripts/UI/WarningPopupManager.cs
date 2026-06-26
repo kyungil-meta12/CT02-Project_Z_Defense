@@ -91,6 +91,16 @@ public class WarningPopupManager : MonoBehaviour
     }
 
     /// <summary>
+    /// 기본 아이콘 없이 표시 시간으로 경고 메시지를 표시한다.
+    /// </summary>
+    /// <param name="message"></param>
+    /// <param name="duration"></param>
+    public static void ShowWarningForDuration(string message, float duration)
+    {
+        ShowWarning(message, -1, duration);
+    }
+
+    /// <summary>
     /// 지정한 아이콘 인덱스로 경고 메시지를 표시한다.
     /// </summary>
     /// <param name="message"></param>

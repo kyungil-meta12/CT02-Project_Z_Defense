@@ -264,6 +264,7 @@ public class InventoryUI : MonoBehaviour
         if (!latestSelectedCraftCell)
         {
             Debug.LogWarning("[InventoryUI] 아이템이 선택되지 않음");
+            WarningPopupManager.ShowWarningForDuration("선택된 아이템이 없습니다.", 1f);
             return;
         }
         var needItems = InventorySystem.Inst.GetMetaData(latestSelectedCraftType).ItemsToCreate;
@@ -276,6 +277,7 @@ public class InventoryUI : MonoBehaviour
             else
             {
                 Debug.LogWarning($"[InvectoryUI] 아이템이 부족하여 제작할 수 없음 | 부족한 아이템: {item.Type} | 필요 개수: {item.Count} | 현재 개수: {InventorySystem.Inst.GetCount(item.Type)}");
+                WarningPopupManager.ShowWarningForDuration("아이템 보유량이 부족합니다.", 1f);
                 return;
             }
         }

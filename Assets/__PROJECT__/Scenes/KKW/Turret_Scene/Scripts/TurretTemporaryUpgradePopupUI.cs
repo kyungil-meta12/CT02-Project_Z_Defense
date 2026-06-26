@@ -871,7 +871,7 @@ public class TurretTemporaryUpgradePopupUI : MonoBehaviour
             return new TurretRuntimeStat();
         }
 
-        return TurretStatCalculator.Calculate(definition.baseStatProfile, definition.statGrowthProfile, tierLevel);
+        return TurretStatCalculator.Calculate(definition, tierLevel);
     }
 
     // 터렛 스탯을 팝업에 표시할 여러 줄 문자열로 변환한다

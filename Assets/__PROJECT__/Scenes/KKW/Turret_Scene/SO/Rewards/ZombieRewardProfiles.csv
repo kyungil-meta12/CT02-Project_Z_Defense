@@ -1,4 +1,4 @@
-﻿ProfilePath,CurrencyType,Amount,DropChance,MinAmountMultiplier,MaxAmountMultiplier
+﻿ProfilePath(보상 프로필 경로),CurrencyType(재화 타입),Amount(기본 수량),DropChance(드롭 확률),MinAmountMultiplier(최소 수량 배율),MaxAmountMultiplier(최대 수량 배율)
 Assets/__PROJECT__/Scenes/KKW/Turret_Scene/SO/Rewards/Boss Zombie/BossZombie_Boomer Reward Profile SO.asset,Coin,1000,1,0.8,1.2
 Assets/__PROJECT__/Scenes/KKW/Turret_Scene/SO/Rewards/Boss Zombie/BossZombie_Screamer Reward Profile SO.asset,Coin,1000,1,0.8,1.2
 Assets/__PROJECT__/Scenes/KKW/Turret_Scene/SO/Rewards/Boss Zombie/BossZombie_Tank Reward Profile SO.asset,Coin,1000,1,0.8,1.2

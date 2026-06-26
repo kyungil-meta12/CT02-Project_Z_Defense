@@ -57,7 +57,7 @@ public class ItemDataEditorTool : EditorWindow
 
         treatMissingSpriteAsError = EditorGUILayout.Toggle("이미지 누락을 오류 처리", treatMissingSpriteAsError);
 
-        EditorGUILayout.HelpBox("CSV 컬럼: Type, Name, InfoText, ItemImageAssetPath, Craftable, ItemsToCreate, CreateCount. 제작 재료는 Type:Count;Type:Count 형식입니다. 없는 enum은 Import를 중단하고 별도 버튼으로 RewardCurrencyType.cs를 재생성합니다.", MessageType.Info);
+        EditorGUILayout.HelpBox("CSV 컬럼은 컬럼명(한글 설명) 형태로 출력됩니다. 제작 재료는 Type:Count;Type:Count 형식입니다. 없는 enum은 Import를 중단하고 별도 버튼으로 RewardCurrencyType.cs를 재생성합니다.", MessageType.Info);
 
         EditorGUILayout.BeginHorizontal();
         if (GUILayout.Button("CSV로 익스포트", GUILayout.Height(34)))
@@ -218,7 +218,7 @@ public class ItemDataEditorTool : EditorWindow
         }
 
         StringBuilder builder = new StringBuilder(1024);
-        builder.AppendLine($"{TYPE_COLUMN},{NAME_COLUMN},{INFO_TEXT_COLUMN},{IMAGE_PATH_COLUMN},{CRAFTABLE_COLUMN},{CRAFT_COLUMN},{CREATE_COUNT_COLUMN}");
+        builder.AppendLine($"{TYPE_COLUMN}(아이템 타입),{NAME_COLUMN}(표시 이름),{INFO_TEXT_COLUMN}(설명 텍스트),{IMAGE_PATH_COLUMN}(이미지 에셋 경로),{CRAFTABLE_COLUMN}(제작 가능 여부),{CRAFT_COLUMN}(제작 재료 목록),{CREATE_COUNT_COLUMN}(제작 수량)");
         for (int i = 0; i < targetListSo.MetaDataList.Count; i++)
         {
             ItemMetaDataSo item = targetListSo.MetaDataList[i];
@@ -369,7 +369,7 @@ public class ItemDataEditorTool : EditorWindow
         headerMap = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
         for (int i = 0; i < headers.Count; i++)
         {
-            string header = (headers[i] ?? string.Empty).Trim();
+            string header = NormalizeHeaderName(headers[i]);
             if (!string.IsNullOrEmpty(header) && !headerMap.ContainsKey(header))
             {
                 headerMap.Add(header, i);
@@ -387,6 +387,19 @@ public class ItemDataEditorTool : EditorWindow
         }
 
         return true;
+    }
+
+    // 설명이 붙은 CSV 헤더에서 실제 컬럼 키만 추출한다
+    private static string NormalizeHeaderName(string header)
+    {
+        string normalizedHeader = (header ?? string.Empty).Trim('\uFEFF').Trim();
+        int descriptionIndex = normalizedHeader.IndexOf('(');
+        if (descriptionIndex < 0)
+        {
+            descriptionIndex = normalizedHeader.IndexOf('（');
+        }
+
+        return descriptionIndex >= 0 ? normalizedHeader.Substring(0, descriptionIndex).Trim() : normalizedHeader;
     }
 
     // CSV 파일을 UTF-8, UTF-16, CP949 순서로 읽는다

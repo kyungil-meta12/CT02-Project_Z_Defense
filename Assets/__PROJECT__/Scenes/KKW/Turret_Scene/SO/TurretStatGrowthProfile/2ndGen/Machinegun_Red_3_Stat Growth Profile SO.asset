@@ -12,6 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5e18c5f48204fa04fb0e390cc01c28bf, type: 3}
   m_Name: Machinegun_Red_3_Stat Growth Profile SO
   m_EditorClassIdentifier: Assembly-CSharp::TurretStatGrowthProfileSO
+  targetDamageAtMaxLevel: 2997.262
+  damageLogCurveStrength: 4
   damagePercentPerLevel: 0.303
   rangePerLevel: 0.1010101
   fireIntervalReductionPerLevel: 0.0004488

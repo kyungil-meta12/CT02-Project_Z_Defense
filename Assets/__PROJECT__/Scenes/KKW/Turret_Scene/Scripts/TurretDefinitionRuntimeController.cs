@@ -138,7 +138,7 @@ public class TurretDefinitionRuntimeController : MonoBehaviour
             return;
         }
 
-        TurretRuntimeStat runtimeStat = TurretStatCalculator.Calculate(turretDefinition.baseStatProfile, turretDefinition.statGrowthProfile, level);
+        TurretRuntimeStat runtimeStat = TurretStatCalculator.Calculate(turretDefinition, level);
         RefreshRuntimeNames();
 
         if (applyStatsToTurret && statProfileApplier != null)

@@ -184,7 +184,7 @@ Runtime behavior:
 2. Survivor role is stored as `SurvivorRole`: `survivor`, `constructionWorker`, or `engineer`.
 3. In `Idle`, only `constructionWorker` survivors periodically ask `GameManager.TryGetRepairTarget` for a damaged obstacle.
 4. In `MoveToTarget`, survivor moves toward the reserved obstacle using `NavMeshAgent` and throttled destination refresh, and may vault over detected `Obstacle` objects along the path.
-5. In `Repairing`, survivor calls `Obstacle.Repair` until the obstacle is fully repaired or target becomes invalid.
+5. In `Repairing`, survivor repairs the target by a `SurvivorSpec` percentage of the obstacle's maximum HP per second and calls `Obstacle.Repair` until the obstacle is fully repaired or target becomes invalid.
 6. In `Retreating` or `ReturningToDefensePoint`, survivor moves to the configured defense point and may vault over `Obstacle` objects.
 7. Rescue survivors can spawn at wave start from `SurvivorRescueSpawner`; `SurvivorRescueSpawnProfileSO` decides whether the current wave attempts a spawn and which chance to use.
 8. Spawned rescue survivors move from zombie spawn points to the final rear point, wait for treatment, move to the hospital, hide for the treatment timer, return, and then wait for role selection.

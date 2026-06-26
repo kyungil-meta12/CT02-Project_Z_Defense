@@ -12,6 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ed32018ee4c345438ac3d88651b5718b, type: 3}
   m_Name: Ignition_Turret_Stat Growth Profile SO
   m_EditorClassIdentifier: Assembly-CSharp::IgnitionTurretStatGrowthProfileSO
+  targetDamageAtMaxLevel: 20
+  damageLogCurveStrength: 4
   damagePercentPerLevel: 0
   rangePerLevel: 0
   fireIntervalReductionPerLevel: 0

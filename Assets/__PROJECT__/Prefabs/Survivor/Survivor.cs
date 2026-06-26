@@ -134,6 +134,7 @@ public class Survivor : MonoBehaviour
     private float vaultDetectionTimer;
     private float nextVaultTime;
     private float defenseMoveRetryTimer;
+    private float runtimeRepairRateMultiplier = 1.0f;
     private int moveSpeedHash;
     private int repairHash;
     private int vaultHash;
@@ -597,7 +598,7 @@ public class Survivor : MonoBehaviour
         }
     }
 
-    // 대상의 내구도를 초당 수리량 기준으로 회복한다
+    // 대상의 내구도를 최대 체력 비례 수리율 기준으로 회복한다
     private void UpdateRepairing()
     {
         if (!IsValidRepairTarget())
@@ -616,15 +617,42 @@ public class Survivor : MonoBehaviour
         agent.isStopped = true;
         LookAt(repairTarget.transform.position);
 
-        float repairAmount = spec.GetRepairHpPerSecond() * Time.deltaTime;
+        float repairAmount = CalculateRepairAmount(repairTarget);
         repairTarget.Repair(repairAmount);
 
         if (!repairTarget.IsDamaged)
         {
-            repairTarget.hpUI.gameObject.SetActive(false);
+            if (repairTarget.hpUI != null)
+            {
+                repairTarget.hpUI.gameObject.SetActive(false);
+            }
+
             ClearRepairTarget();
             ChangeState(SurvivorState.Idle);
         }
+    }
+
+    // 대상 최대 체력과 런타임 배율을 반영한 이번 프레임 수리량을 계산한다
+    private float CalculateRepairAmount(Obstacle target)
+    {
+        if (spec == null || target == null || target.TotalHp <= 0.0f || runtimeRepairRateMultiplier <= 0.0f)
+        {
+            return 0.0f;
+        }
+
+        float repairRatioPerSecond = spec.GetRepairMaxHpRatioPerSecond();
+        if (repairRatioPerSecond <= 0.0f)
+        {
+            return 0.0f;
+        }
+
+        return target.TotalHp * repairRatioPerSecond * runtimeRepairRateMultiplier * Time.deltaTime;
+    }
+
+    // 아이템 등 외부 효과에서 수리 속도 배율을 설정한다
+    public void SetRepairRateMultiplier(float multiplier)
+    {
+        runtimeRepairRateMultiplier = Mathf.Max(0.0f, multiplier);
     }
 
     // 방어선 대피 또는 복귀 포인트까지 이동한다

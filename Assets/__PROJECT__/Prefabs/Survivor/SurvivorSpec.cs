@@ -10,9 +10,9 @@ public class SurvivorSpec : ScriptableObject
     public float moveSpeed = 3.5f;
     public float moveSpeedLevelWeight = 0.05f;
 
-    [Header("초당 수리량")]
-    public float repairHpPerSecond = 5f;
-    public float repairHpPerSecondLevelWeight = 0.5f;
+    [Header("초당 최대 체력 비례 수리량")]
+    public float repairMaxHpPercentPerSecond = 10f;
+    public float repairMaxHpPercentPerSecondLevelWeight = 0.05f;
 
     [Header("수리 행동")]
     public float repairRange = 2f;
@@ -25,9 +25,10 @@ public class SurvivorSpec : ScriptableObject
         return moveSpeed + Mathf.Max(0, level - 1) * moveSpeedLevelWeight;
     }
 
-    // 레벨이 반영된 초당 수리량을 계산한다
-    public float GetRepairHpPerSecond()
+    // 레벨이 반영된 초당 최대 체력 비례 수리율을 계산한다
+    public float GetRepairMaxHpRatioPerSecond()
     {
-        return repairHpPerSecond + Mathf.Max(0, level - 1) * repairHpPerSecondLevelWeight;
+        float percentPerSecond = repairMaxHpPercentPerSecond + Mathf.Max(0, level - 1) * repairMaxHpPercentPerSecondLevelWeight;
+        return Mathf.Max(0.0f, percentPerSecond) * 0.01f;
     }
 }

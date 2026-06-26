@@ -58,7 +58,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: -112508593885672785, guid: 69e0ec4d526c5cf4e9fa2c42eed49173, type: 2}
+  - {fileID: -1389305967821746214, guid: 02479d586e688df45842f13ac3faf2db, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -152,7 +152,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: -112508593885672785, guid: 69e0ec4d526c5cf4e9fa2c42eed49173, type: 2}
+  - {fileID: -1389305967821746214, guid: 02479d586e688df45842f13ac3faf2db, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -196,10 +196,10 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 123
+  m_text: 123456789
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 69e0ec4d526c5cf4e9fa2c42eed49173, type: 2}
-  m_sharedMaterial: {fileID: -112508593885672785, guid: 69e0ec4d526c5cf4e9fa2c42eed49173, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 02479d586e688df45842f13ac3faf2db, type: 2}
+  m_sharedMaterial: {fileID: -1389305967821746214, guid: 02479d586e688df45842f13ac3faf2db, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -746,7 +746,7 @@ MonoBehaviour:
   enablePooling: 1
   poolSize: 160
   disableOnSceneLoad: 1
-  editorLastFont: Basic-Glow3D
+  editorLastFont: Basic-Default3D
   position: {x: 0, y: 0, z: 0}
 --- !u!210 &7017044102814686624
 SortingGroup:
@@ -819,7 +819,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: -112508593885672785, guid: 69e0ec4d526c5cf4e9fa2c42eed49173, type: 2}
+  - {fileID: -1389305967821746214, guid: 02479d586e688df45842f13ac3faf2db, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0

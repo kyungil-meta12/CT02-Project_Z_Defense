@@ -19,6 +19,6 @@ MonoBehaviour:
   ItemImage: {fileID: 21300000, guid: f7a01888466e6254e8552b137e14190b, type: 3}
   Craftable: 1
   ItemsToCreate:
-  - Count: 100
-    Type: 1
+  - Type: 1
+    Count: 100
   CreateCount: 100

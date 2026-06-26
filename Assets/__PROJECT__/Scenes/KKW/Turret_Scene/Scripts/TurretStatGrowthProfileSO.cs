@@ -6,18 +6,27 @@ using UnityEngine;
 [CreateAssetMenu(menuName = "Project Z Defense/Turret Stat Growth Profile")]
 public class TurretStatGrowthProfileSO : ScriptableObject
 {
-    [Header("Per Level")]
+    private const float DEFAULT_DAMAGE_LOG_CURVE_STRENGTH = 4.0f;
+
+    [Header("데미지 로그 성장")]
+    public float targetDamageAtMaxLevel = 1.0f;
+    public float damageLogCurveStrength = DEFAULT_DAMAGE_LOG_CURVE_STRENGTH;
+
+    [Header("이전 데미지 성장값")]
+    [HideInInspector]
     public float damagePercentPerLevel = 1.0f;
+
+    [Header("일반 성장")]
     public float rangePerLevel = 0.0f;
     public float fireIntervalReductionPerLevel = 0.0f;
 
-    [Header("Interval Growth")]
+    [Header("구간 성장")]
     public int projectileSpeedIntervalLevel = 50;
     public float projectileSpeedPerInterval = 1.0f;
     public int projectileCountIntervalLevel = 0;
     public int pierceCountIntervalLevel = 0;
 
-    [Header("Limits")]
+    [Header("성장 제한")]
     public float maxRange = 200.0f;
     public float minFireInterval = 0.05f;
     public float maxProjectileSpeed = 200.0f;
@@ -117,6 +126,8 @@ public class TurretStatGrowthProfileSO : ScriptableObject
     // 인스펙터에서 입력한 성장값을 안전한 범위로 보정한다
     protected virtual void OnValidate()
     {
+        targetDamageAtMaxLevel = Mathf.Max(0.0f, targetDamageAtMaxLevel);
+        damageLogCurveStrength = Mathf.Max(0.0f, damageLogCurveStrength);
         damagePercentPerLevel = Mathf.Max(0.0f, damagePercentPerLevel);
         fireIntervalReductionPerLevel = Mathf.Max(0.0f, fireIntervalReductionPerLevel);
         projectileSpeedIntervalLevel = Mathf.Max(0, projectileSpeedIntervalLevel);

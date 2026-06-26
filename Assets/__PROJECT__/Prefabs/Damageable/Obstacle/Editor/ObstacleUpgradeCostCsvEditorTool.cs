@@ -32,7 +32,7 @@ public class ObstacleUpgradeCostCsvEditorTool : EditorWindow
         EditorGUILayout.LabelField("장애물 업그레이드 비용 CSV 관리 도구", EditorStyles.boldLabel);
         EditorGUILayout.Space();
         EditorGUILayout.LabelField("CSV 파일 경로", CSV_PATH);
-        EditorGUILayout.HelpBox("BaseCosts는 Coin:100|FirePart:2 형식으로 입력합니다. 임포트는 UpgradeCostProfilePath의 비용 프로필만 수정하고 Definition 표시 정보는 참고용으로 둡니다.", MessageType.Info);
+        EditorGUILayout.HelpBox("CSV 컬럼은 컬럼명(한글 설명) 형태로 출력됩니다. BaseCosts는 Coin:100|FirePart:2 형식으로 입력합니다. 임포트는 UpgradeCostProfilePath의 비용 프로필만 수정하고 Definition 표시 정보는 참고용으로 둡니다.", MessageType.Info);
 
         EditorGUILayout.BeginHorizontal();
         if (GUILayout.Button("CSV로 익스포트", GUILayout.Height(34)))
@@ -149,14 +149,14 @@ public class ObstacleUpgradeCostCsvEditorTool : EditorWindow
     {
         AppendCsvLine(
             builder,
-            "DefinitionPath",
-            "ObstacleId",
-            "DisplayName",
-            "SlotType",
-            "MaxLevel",
-            "UpgradeCostProfilePath",
-            "BaseCosts",
-            "AdditionalCostPercentPerLevel");
+            "DefinitionPath(장애물 정의 SO 경로)",
+            "ObstacleId(장애물 ID)",
+            "DisplayName(표시 이름)",
+            "SlotType(슬롯 타입)",
+            "MaxLevel(최대 레벨)",
+            "UpgradeCostProfilePath(업그레이드 비용 SO 경로)",
+            "BaseCosts(기본 비용 목록)",
+            "AdditionalCostPercentPerLevel(레벨당 추가 비용 비율)");
     }
 
     // 장애물 Definition 한 개를 CSV 행으로 추가한다
@@ -407,7 +407,7 @@ public class ObstacleUpgradeCostCsvEditorTool : EditorWindow
         headerMap = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
         for (int i = 0; i < headers.Count; i++)
         {
-            string header = (headers[i] ?? string.Empty).Trim('\uFEFF').Trim();
+            string header = NormalizeHeaderName(headers[i]);
             if (!string.IsNullOrEmpty(header) && !headerMap.ContainsKey(header))
             {
                 headerMap.Add(header, i);
@@ -429,6 +429,19 @@ public class ObstacleUpgradeCostCsvEditorTool : EditorWindow
         }
 
         return true;
+    }
+
+    // 설명이 붙은 CSV 헤더에서 실제 컬럼 키만 추출한다
+    private static string NormalizeHeaderName(string header)
+    {
+        string normalizedHeader = (header ?? string.Empty).Trim('\uFEFF').Trim();
+        int descriptionIndex = normalizedHeader.IndexOf('(');
+        if (descriptionIndex < 0)
+        {
+            descriptionIndex = normalizedHeader.IndexOf('（');
+        }
+
+        return descriptionIndex >= 0 ? normalizedHeader.Substring(0, descriptionIndex).Trim() : normalizedHeader;
     }
 
     // 엑셀 구분자 안내 행인지 확인한다

@@ -170,36 +170,37 @@ public class TurretDataCsvEditorTool : EditorWindow
     {
         AppendCsvLine(
             builder,
-            "DefinitionPath",
-            "TurretId",
-            "DisplayName",
-            "MaxLevel",
-            "MaxEngineerSeatCount",
-            "BaseStatProfilePath",
-            "Damage",
-            "Range",
-            "FireInterval",
-            "ProjectileSpeed",
-            "ProjectileCount",
-            "PierceCount",
-            "GrowthProfilePath",
-            "GrowthType",
-            "DamagePercentPerLevel",
-            "RangePerLevel",
-            "FireIntervalReductionPerLevel",
-            "ProjectileSpeedIntervalLevel",
-            "ProjectileSpeedPerInterval",
-            "ProjectileCountIntervalLevel",
-            "PierceCountIntervalLevel",
-            "MaxRange",
-            "MinFireInterval",
-            "MaxProjectileSpeed",
-            "MaxProjectileCount",
-            "MaxPierceCount",
-            "UpgradeCostProfilePath",
-            "UpgradeCostCurrencyType",
-            "UpgradeBaseAmountPerLevel",
-            "UpgradeAdditionalCostPercentPerTierLevel");
+            "DefinitionPath(터렛 정의 SO 경로)",
+            "TurretId(터렛 고유 ID)",
+            "DisplayName(표시 이름)",
+            "MaxLevel(최종 터렛 하드 레벨 상한)",
+            "MaxEngineerSeatCount(최대 엔지니어 탑승 수)",
+            "BaseStatProfilePath(기본 스탯 SO 경로)",
+            "Damage(1레벨 데미지)",
+            "Range(1레벨 사거리)",
+            "FireInterval(1레벨 공격 간격)",
+            "ProjectileSpeed(1레벨 투사체 속도)",
+            "ProjectileCount(1레벨 투사체 수)",
+            "PierceCount(1레벨 관통 수)",
+            "GrowthProfilePath(성장 프로필 SO 경로)",
+            "GrowthType(성장 프로필 타입)",
+            "TargetDamageAtMaxLevel(최대레벨 데미지)",
+            "DamageLogCurveStrength(데미지 로그 곡선 강도)",
+            "RangePerLevel(레벨당 사거리 증가)",
+            "FireIntervalReductionPerLevel(레벨당 공격 간격 감소)",
+            "ProjectileSpeedIntervalLevel(투사체 속도 성장 구간)",
+            "ProjectileSpeedPerInterval(구간당 투사체 속도 증가)",
+            "ProjectileCountIntervalLevel(투사체 수 성장 구간)",
+            "PierceCountIntervalLevel(관통 수 성장 구간)",
+            "MaxRange(최대 사거리)",
+            "MinFireInterval(최소 공격 간격)",
+            "MaxProjectileSpeed(최대 투사체 속도)",
+            "MaxProjectileCount(최대 투사체 수)",
+            "MaxPierceCount(최대 관통 수)",
+            "UpgradeCostProfilePath(업그레이드 비용 SO 경로)",
+            "UpgradeCostCurrencyType(업그레이드 재화 타입)",
+            "UpgradeBaseAmountPerLevel(레벨업 기본 비용)",
+            "UpgradeAdditionalCostPercentPerTierLevel(티어 레벨당 추가 비용 비율)");
     }
 
     // 터렛 Definition 한 개를 CSV 행으로 추가한다
@@ -226,7 +227,8 @@ public class TurretDataCsvEditorTool : EditorWindow
             stat == null ? 0 : stat.pierceCount,
             AssetDatabase.GetAssetPath(growth),
             GetGrowthType(growth),
-            growth == null ? 0.0f : growth.damagePercentPerLevel,
+            growth == null ? 0.0f : growth.targetDamageAtMaxLevel,
+            growth == null ? 0.0f : growth.damageLogCurveStrength,
             growth == null ? 0.0f : growth.rangePerLevel,
             growth == null ? 0.0f : growth.fireIntervalReductionPerLevel,
             growth == null ? 0 : growth.projectileSpeedIntervalLevel,
@@ -299,7 +301,13 @@ public class TurretDataCsvEditorTool : EditorWindow
         }
 
         definition.statGrowthProfile = growth;
-        growth.damagePercentPerLevel = ReadFloat(row, headerMap, "DamagePercentPerLevel", lineNumber, growth.damagePercentPerLevel);
+        if (!headerMap.ContainsKey("TargetDamageAtMaxLevel"))
+        {
+            AddMessage($"{lineNumber}행: TargetDamageAtMaxLevel 컬럼이 없어 기존 최대레벨 데미지를 유지합니다.");
+        }
+
+        growth.targetDamageAtMaxLevel = ReadOptionalFloat(row, headerMap, "TargetDamageAtMaxLevel", lineNumber, growth.targetDamageAtMaxLevel);
+        growth.damageLogCurveStrength = ReadOptionalFloat(row, headerMap, "DamageLogCurveStrength", lineNumber, growth.damageLogCurveStrength);
         growth.rangePerLevel = ReadFloat(row, headerMap, "RangePerLevel", lineNumber, growth.rangePerLevel);
         growth.fireIntervalReductionPerLevel = ReadFloat(row, headerMap, "FireIntervalReductionPerLevel", lineNumber, growth.fireIntervalReductionPerLevel);
         growth.projectileSpeedIntervalLevel = ReadInt(row, headerMap, "ProjectileSpeedIntervalLevel", lineNumber, growth.projectileSpeedIntervalLevel);
@@ -481,7 +489,7 @@ public class TurretDataCsvEditorTool : EditorWindow
         headerMap = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
         for (int i = 0; i < headers.Count; i++)
         {
-            string header = (headers[i] ?? string.Empty).Trim('\uFEFF').Trim();
+            string header = NormalizeHeaderName(headers[i]);
             if (!string.IsNullOrEmpty(header) && !headerMap.ContainsKey(header))
             {
                 headerMap.Add(header, i);
@@ -503,6 +511,24 @@ public class TurretDataCsvEditorTool : EditorWindow
         }
 
         return true;
+    }
+
+    // 설명이 붙은 CSV 헤더에서 실제 컬럼 키만 추출한다
+    private static string NormalizeHeaderName(string header)
+    {
+        string normalized = (header ?? string.Empty).Trim('\uFEFF').Trim();
+        int descriptionStartIndex = normalized.IndexOf('(');
+        if (descriptionStartIndex < 0)
+        {
+            descriptionStartIndex = normalized.IndexOf('（');
+        }
+
+        if (descriptionStartIndex >= 0)
+        {
+            normalized = normalized.Substring(0, descriptionStartIndex).Trim();
+        }
+
+        return normalized;
     }
 
     // 엑셀 구분자 안내 행인지 확인한다
@@ -755,6 +781,23 @@ public class TurretDataCsvEditorTool : EditorWindow
 
         AddMessage($"{lineNumber}행: {columnName} 실수 값이 유효하지 않아 {fallback}을 사용합니다. 값: {value}");
         return fallback;
+    }
+
+    // 선택 CSV 실수 컬럼이 없거나 비어 있으면 기본값을 반환한다
+    private float ReadOptionalFloat(List<string> row, Dictionary<string, int> headerMap, string columnName, int lineNumber, float fallback)
+    {
+        if (!headerMap.ContainsKey(columnName))
+        {
+            return fallback;
+        }
+
+        string value = ReadString(row, headerMap, columnName);
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return fallback;
+        }
+
+        return ReadFloat(row, headerMap, columnName, lineNumber, fallback);
     }
 
     // CSV 행에서 재화 enum 값을 읽는다

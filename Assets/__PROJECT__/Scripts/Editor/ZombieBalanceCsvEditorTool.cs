@@ -155,7 +155,7 @@ public class ZombieBalanceCsvEditorTool : EditorWindow
         SerializedObject serializedObject = new SerializedObject(profile);
         SerializedProperty stages = serializedObject.FindProperty("stages");
         StringBuilder builder = new StringBuilder(4096);
-        builder.AppendLine("MinWave,MaxWave,SpawnInterval,SpawnCount,SpawnBossAsLastEnemy,HpMultiplier,AttackDamageMultiplier,MoveAttackSpeedMultiplier,RewardMultiplier,NormalZombieEntries,BossZombieEntries");
+        builder.AppendLine("MinWave(시작 웨이브),MaxWave(종료 웨이브),SpawnInterval(스폰 간격),SpawnCount(스폰 수),SpawnBossAsLastEnemy(마지막 적 보스 여부),HpMultiplier(체력 배율),AttackDamageMultiplier(공격력 배율),MoveAttackSpeedMultiplier(이동/공격 속도 배율),RewardMultiplier(보상 배율),NormalZombieEntries(일반 좀비 후보),BossZombieEntries(보스 좀비 후보)");
         for (int i = 0; i < stages.arraySize; i++)
         {
             SerializedProperty stage = stages.GetArrayElementAtIndex(i);
@@ -265,7 +265,7 @@ public class ZombieBalanceCsvEditorTool : EditorWindow
         ClearRunState();
         List<ZombieRewardProfileSO> profiles = LoadRewardProfiles();
         StringBuilder builder = new StringBuilder(4096);
-        builder.AppendLine("ProfilePath,CurrencyType,Amount,DropChance,MinAmountMultiplier,MaxAmountMultiplier");
+        builder.AppendLine("ProfilePath(보상 프로필 경로),CurrencyType(재화 타입),Amount(기본 수량),DropChance(드롭 확률),MinAmountMultiplier(최소 수량 배율),MaxAmountMultiplier(최대 수량 배율)");
         for (int i = 0; i < profiles.Count; i++)
         {
             AppendRewardProfileCsvLines(builder, profiles[i]);
@@ -406,7 +406,7 @@ public class ZombieBalanceCsvEditorTool : EditorWindow
         SerializedObject serializedObject = new SerializedObject(profile);
         SerializedProperty stages = serializedObject.FindProperty("stages");
         StringBuilder builder = new StringBuilder(512);
-        builder.AppendLine("Wave,SpawnChance");
+        builder.AppendLine("Wave(웨이브),SpawnChance(구출 생존자 스폰 확률)");
         for (int i = 0; i < stages.arraySize; i++)
         {
             SerializedProperty stage = stages.GetArrayElementAtIndex(i);
@@ -686,7 +686,7 @@ public class ZombieBalanceCsvEditorTool : EditorWindow
         headerMap = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
         for (int i = 0; i < headers.Count; i++)
         {
-            string header = (headers[i] ?? string.Empty).Trim();
+            string header = NormalizeHeaderName(headers[i]);
             if (!string.IsNullOrEmpty(header) && !headerMap.ContainsKey(header))
             {
                 headerMap.Add(header, i);
@@ -703,6 +703,19 @@ public class ZombieBalanceCsvEditorTool : EditorWindow
         }
 
         return true;
+    }
+
+    // 설명이 붙은 CSV 헤더에서 실제 컬럼 키만 추출한다
+    private static string NormalizeHeaderName(string header)
+    {
+        string normalizedHeader = (header ?? string.Empty).Trim('\uFEFF').Trim();
+        int descriptionIndex = normalizedHeader.IndexOf('(');
+        if (descriptionIndex < 0)
+        {
+            descriptionIndex = normalizedHeader.IndexOf('（');
+        }
+
+        return descriptionIndex >= 0 ? normalizedHeader.Substring(0, descriptionIndex).Trim() : normalizedHeader;
     }
 
     // CSV 텍스트를 행과 필드 목록으로 파싱한다

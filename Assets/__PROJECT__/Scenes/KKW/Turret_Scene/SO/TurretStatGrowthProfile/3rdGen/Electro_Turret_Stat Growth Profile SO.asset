@@ -12,6 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2ab945ea5b494c89b09fe3de16f279d2, type: 3}
   m_Name: Electro_Turret_Stat Growth Profile SO
   m_EditorClassIdentifier: Assembly-CSharp::ElectroTurretStatGrowthProfileSO
+  targetDamageAtMaxLevel: 1.349206
+  damageLogCurveStrength: 4
   damagePercentPerLevel: 0.303
   rangePerLevel: 0.0909091
   fireIntervalReductionPerLevel: 0.0029929

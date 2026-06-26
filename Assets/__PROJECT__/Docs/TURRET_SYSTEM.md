@@ -56,7 +56,7 @@ Do not use display names as stable IDs.
 | --- | --- |
 | `TurretDefinitionSO` | Top-level turret identity, prefab, base stat profile, growth, upgrade cost profile, VFX progression, projectile scale progression, status profile, evolution progression, max level, engineer seat limit. |
 | `TurretStatProfileSO` | Base combat values for tier level 1: damage, range, fire interval, projectile speed, projectile count, pierce count. |
-| `TurretStatGrowthProfileSO` | Tier-level-based growth calculation using completed growth steps. |
+| `TurretStatGrowthProfileSO` | Tier-level-based growth calculation. Damage uses max-level target damage with a log curve, while non-damage stats keep per-level or interval growth. |
 | `TurretUpgradeCostProfileSO` | Calculates upgrade costs from current tier level to target tier level. |
 | `TurretVFXProfileSO` | Attack VFX selection data: projectile prefab or beam prefab, optional beam attack profile reference, muzzle VFX, muzzle duration. Audio is intentionally removed until the project-level sound system is rebuilt. |
 | `TurretDamagePolishProfileSO` | Optional per-turret damage polish rules: random damage variance, critical hits, heavy hits, and damage popup type. Leave empty to keep deterministic legacy damage. |
@@ -675,7 +675,7 @@ FrostRay VFX notes:
 Ignition status handling:
 
 - `IgnitionStatusProfileSO` stores Ignition base burn values (`damageMultiplier`, `maxHpDamageRatioPerTick`, `tickInterval`, `duration`, `maxStackCount`, `stackRefreshMode`, reaction burn values, `bossDamageMultiplier`, `interactionFlags`).
-- `Ignition_Turret_Stat Growth Profile SO` uses `IgnitionTurretStatGrowthProfileSO` and owns Ignition-specific scaling for max-HP burn ratio, burn duration, reaction max-HP burn ratio, and reaction tick interval. Common `damagePercentPerLevel`, `rangePerLevel`, and `fireIntervalReductionPerLevel` are set to `0` because Ignition DPS is not `damage / fireInterval` based.
+- `Ignition_Turret_Stat Growth Profile SO` uses `IgnitionTurretStatGrowthProfileSO` and owns Ignition-specific scaling for max-HP burn ratio, burn duration, reaction max-HP burn ratio, and reaction tick interval. Common `targetDamageAtMaxLevel`, `rangePerLevel`, and `fireIntervalReductionPerLevel` can stay flat when Ignition DPS is driven by max-HP burn instead of `damage / fireInterval`.
 - `Ignition_Turret_Definition.ignitionStatusProfile` points to the active Ignition status profile. The runtime `IgnitionDamageApplier` receives the profile, level, and growth profile through `ITurretStatusProfileReceiver`; the prefab-local `IgnitionDamageApplier.ignitionStatusProfile` field can stay empty.
 - `IgnitionConeDetector` owns the cone overlap check using non-alloc physics. `IgnitionDamageApplier` applies the resulting payload to targets implementing `ProjectZDefense.StatusEffects.IIgnitionStatusEffectReceiver`.
 - `IgnitionConeDetector.range` is fixed at `18` for Ignition_Turret. `TurretStatProfileSO.range` is also set to `18` only for targeting/selection consistency; range growth does not drive the flame cone.
@@ -709,7 +709,10 @@ Ignition status handling:
 
 - Current turret forms are balanced around tier level `100` evolution gates.
 - `TurretStatProfileSO` stores tier level `1` base values used immediately after placement or evolution.
-- `TurretStatGrowthProfileSO` grows damage, range, fire interval, projectile speed, projectile count, and pierce count toward tier level `100`.
+- `TurretStatGrowthProfileSO` grows damage toward `targetDamageAtMaxLevel` with a logarithmic curve controlled by `damageLogCurveStrength`.
+- Range, fire interval, projectile speed, projectile count, and pierce count still use the existing per-level or interval growth fields.
+- Damage growth end level is the nearest `EvolutionProgressionSO.requiredLevel`; if no evolution requirement exists, `TurretDefinitionSO.maxLevel` is used, then fallback level `100`.
+- `TurretData.csv` exports damage growth through `TargetDamageAtMaxLevel` and `DamageLogCurveStrength`; `DamagePercentPerLevel` is no longer used by runtime damage growth.
 - The current curve intentionally allows a tier level `100` turret to be stronger than the next evolved turret at tier level `1`, creating a short power dip after evolution and a higher growth ceiling afterward.
 - Range is capped at `maxRange = 66` because larger ranges exceed the current game view.
 - Single-target DPS should be checked from runtime stat values as `damage * projectileCount / fireInterval`.

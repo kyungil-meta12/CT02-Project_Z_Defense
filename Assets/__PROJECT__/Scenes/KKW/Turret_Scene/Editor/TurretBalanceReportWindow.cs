@@ -161,8 +161,8 @@ internal sealed class TurretBalanceReportWindow : EditorWindow
     // 터렛 정의 하나의 Lv1/Lv100 DPS 리포트 행을 추가한다
     private void AddTurretDpsRow(TurretDefinitionSO definition)
     {
-        TurretRuntimeStat levelOne = TurretStatCalculator.Calculate(definition.baseStatProfile, definition.statGrowthProfile, REPORT_LEVEL_MIN);
-        TurretRuntimeStat levelMax = TurretStatCalculator.Calculate(definition.baseStatProfile, definition.statGrowthProfile, REPORT_LEVEL_MAX);
+        TurretRuntimeStat levelOne = TurretStatCalculator.Calculate(definition, REPORT_LEVEL_MIN);
+        TurretRuntimeStat levelMax = TurretStatCalculator.Calculate(definition, REPORT_LEVEL_MAX);
 
         turretDpsRows.Add(new TurretDpsRow
         {

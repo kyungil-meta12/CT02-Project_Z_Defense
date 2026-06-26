@@ -12,6 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1003faea61744862ad5219dafc6947de, type: 3}
   m_Name: Poison_Turret_Stat Growth Profile SO
   m_EditorClassIdentifier: Assembly-CSharp::PoisonTurretStatGrowthProfileSO
+  targetDamageAtMaxLevel: 2.698413
+  damageLogCurveStrength: 4
   damagePercentPerLevel: 0.303
   rangePerLevel: 0.0909091
   fireIntervalReductionPerLevel: 0.0029929

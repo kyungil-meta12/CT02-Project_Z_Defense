@@ -32,7 +32,7 @@ public class ItemDropper : MonoBehaviour
         
         // 드롭 아이템 프리펩을 생성하고, 타입을 설정하고, 위치를 설정한다.
         var itemComp = MemoryPool.Inst.GetInstance<DropItem>(dropItemPrefab);
-        itemComp.SetupItem(rewardType, inputResult.dict[rewardType]);
         itemComp.transform.position = spawnPosition;
+        itemComp.SetupItem(rewardType, inputResult.dict[rewardType]);
     }
 }

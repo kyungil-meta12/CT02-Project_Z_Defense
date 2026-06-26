@@ -1,28 +1,43 @@
 using System;
+using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
+
+/// <summary>
+/// 드롭 아이템 파티클 속성
+/// </summary>
+[Serializable]
+public struct DropItemAttribute
+{
+    public ItemGrade Grade;
+    public PoolObject Particle;
+}
 
 public class DropItem : PoolObject
 {
-    [HideInInspector] public RewardCurrencyType rewardType;
-    [HideInInspector] public int dropCount;
-
     public PoolParticle pickupParticlePrefab;
     public MeshRenderer mashRenderer;
-    private Material material;
+    public List<DropItemAttribute> particleList;
 
-    private ParticleSystem particle;
+    private Dictionary<ItemGrade, PoolObject> particleDict = new();
+    private PoolObject selectedParticle;
+    private Material material;
+    private RewardCurrencyType rewardType;
+    private int dropCount;
 
     void Awake()
     {
-        particle = GetComponentInChildren<ParticleSystem>();
         material = mashRenderer.material;
+
+        // 빠른 탐색을 위해 파티클을 등급별로 딕셔너리에 추가
+        foreach(var p in particleList)
+        {
+            particleDict.Add(p.Grade, p.Particle);
+        }
     }
 
     public override void OnSpawn()
     {
-        // 지정된 파티클을 메모리풀에서 생성한다. 파티클 재생은 DropItemParticle에서 자체적으로 처리한다.
-        particle.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
-        particle.Play();
         DropItemManager.Inst.AddItem(this); // 드롭된 아이템 목록에 아이템 추가
     }
 
@@ -35,7 +50,13 @@ public class DropItem : PoolObject
     {
         rewardType = itemType;
         dropCount = amount;
-        material.mainTexture = InventorySystem.Inst.GetMetaData(itemType).ItemImage.texture;
+        var metaData = InventorySystem.Inst.GetMetaData(itemType);
+        material.mainTexture = metaData.ItemImage.texture;
+
+        // 등급에 맞는 파티클을 선택
+        // PoolParticle에서 알아서 재생
+        selectedParticle = MemoryPool.Inst.GetInstance<PoolObject>(particleDict[metaData.Grade]);
+        selectedParticle.transform.position = transform.position;
     }
 
     /// <summary>
@@ -53,6 +74,8 @@ public class DropItem : PoolObject
         pickupParticle.transform.position = transform.position;
         pickupParticle.transform.localScale = transform.localScale;
 
+        // 파티클도 같이 회수
+        selectedParticle.ReturnToPool();
         ReturnInstance();
     }
 

@@ -34,9 +34,6 @@ public class InventoryUI : MonoBehaviour
     [Header("선택된 셀 색상")] public Color selectedCellColor;
     [Header("절전 전환 버튼")] public GameObject powerSavingSwitchButton;
 
-    // 메타데이터 목록
-    private List<ItemMetaDataSo> metaDataList = new();
-
     // 현재 보유하고 있는 아이템 타입
     private Dictionary<RewardCurrencyType, OwnItemCell> ownTypes = new();
 
@@ -72,10 +69,6 @@ public class InventoryUI : MonoBehaviour
     // 인벤토리를 닫은 상태로 시작
     void Awake()
     {
-
-        // 아이템 메타데이터 리스트를 불러온다.
-        metaDataList = InventorySystem.Inst.itemMetaDataListSo.MetaDataList;
-
         // 아이템 타입 종류 만큼 인벤토리 셀을 생성한다.
         int typeCount = InventorySystem.Inst.Types.Length;
         for (int i = 0; i < typeCount; i++)
@@ -103,7 +96,7 @@ public class InventoryUI : MonoBehaviour
         // 아이템 중에서 제작 가능한 아이템 종류 개수 만큼 크래프트 셀을 생성한다.
         foreach (RewardCurrencyType type in InventorySystem.Inst.Types)
         {
-            var itemData = metaDataList.Find(meta => meta.Type == type);
+            var itemData = InventorySystem.Inst.GetMetaData(type);
             if (itemData.Craftable)
             {
                 var button = Instantiate(craftCellPrefab, craftContent.transform, false).GetComponent<Button>();
@@ -224,14 +217,14 @@ public class InventoryUI : MonoBehaviour
         ResetNeedItemViewer();
         
         // 필요한 아이템들에 대해서만 뷰어 활성화
-        var metaData = metaDataList.Find(meta => meta.Type == latestSelectedCraftType);
+        var metaData = InventorySystem.Inst.GetMetaData(latestSelectedCraftType);
         var needItems = metaData.ItemsToCreate;
         for(int i = 0; i < needItems.Count; i ++)
         {
             needItemViewerList[i].SetActive(true);
             var image = needItemViewerList[i].GetComponentInChildren<Image>();
             var text = needItemViewerList[i].GetComponentInChildren<TextMeshProUGUI>();
-            image.sprite = metaDataList.Find(meta => meta.Type == needItems[i].Type).ItemImage;
+            image.sprite = InventorySystem.Inst.GetMetaData(needItems[i].Type).ItemImage;
             SetImageVisibility(image, true);
 
             // 각 필요 아이템에 대해서도 실시간으로 보유량을 표시하기 위해 딕셔너리에 데이터 추가 후 반영
@@ -273,7 +266,7 @@ public class InventoryUI : MonoBehaviour
             Debug.LogWarning("[InventoryUI] 아이템이 선택되지 않음");
             return;
         }
-        var needItems = metaDataList.Find(meta => meta.Type == latestSelectedCraftType).ItemsToCreate;
+        var needItems = InventorySystem.Inst.GetMetaData(latestSelectedCraftType).ItemsToCreate;
         foreach (var item in needItems)
         {
             if (InventorySystem.Inst.CanUseItem(item.Type, item.Count))
@@ -348,7 +341,7 @@ public class InventoryUI : MonoBehaviour
         else
         {
             var type = dict[button];
-            var metaData = metaDataList.Find(meta => meta.Type == type);
+            var metaData = InventorySystem.Inst.GetMetaData(type);
             itemNameText.text = metaData.Name;
             itemInfoText.text = metaData.InfoText;
             itemCountText.text = "보유량: " + InventorySystem.Inst.GetCountString(type);
@@ -365,7 +358,7 @@ public class InventoryUI : MonoBehaviour
         SetImageVisibility(itemInfoImage, dict != null && button != null);
         if (dict != null && button != null)
         {
-            itemInfoImage.sprite = metaDataList.Find(meta => meta.Type == dict[button]).ItemImage;
+            itemInfoImage.sprite = InventorySystem.Inst.GetMetaData(dict[button]).ItemImage;
         }
     }
 
@@ -481,7 +474,7 @@ public class InventoryUI : MonoBehaviour
             // 버튼 세팅
             invenButtonList[btIndex].interactable = true;
             invenCountTextList[btIndex].text = InventorySystem.Inst.GetCountString(type);
-            invenImageList[btIndex].sprite = metaDataList.Find(meta => meta.Type == type).ItemImage;
+            invenImageList[btIndex].sprite = InventorySystem.Inst.GetMetaData(type).ItemImage;
             SetImageVisibility(invenImageList[btIndex], true);
 
             // 보유 타입 딕셔너리 업데이트

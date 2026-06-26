@@ -31,9 +31,10 @@ public class InventorySystem : MonoBehaviour
 
     // 아이템이 딕셔너리에 추가될 때 사용할 메타데이터 리스트
     public ItemMetaDataListSo itemMetaDataListSo;
-    private List<ItemMetaDataSo> metaDataList = new();
     private Dictionary<RewardCurrencyType, ItemData> itemDict = new();
     private Dictionary<RewardCurrencyType, int> itemCostDict = new();
+    private Dictionary<RewardCurrencyType, ItemMetaDataSo> itemMetaDataDict = new();
+    private List<ItemMetaDataSo> metaDataValidationList = new();
 
     // 아이템 개수 변경 이벤트
     public Action<ItemData, Incremental> OnItemCountChange;
@@ -58,8 +59,15 @@ public class InventorySystem : MonoBehaviour
         // 재화 타입 열거형들을 배열에 저장
         Types = Enum.GetValues(typeof(RewardCurrencyType));
 
-        // 아이템 메타 데이터 리스트를 스크립터블 오브젝트에서 불러오기
-        metaDataList = itemMetaDataListSo.MetaDataList;
+        // 아이쳄 메타 데이터들을 딕셔너리에 저장
+        var metaDataList = itemMetaDataListSo.MetaDataList;
+        foreach(var data in metaDataList)
+        {
+            itemMetaDataDict.Add(data.Type, data);
+        }
+
+        metaDataValidationList = metaDataList;
+
         Inst = this;
     }
 
@@ -99,13 +107,13 @@ public class InventorySystem : MonoBehaviour
     // 중복된 이미지나 타입이 발견되면 에러 메시지 발생후 에디터 종료
     private void CheckItemMetaDataValidation()
     {
-        bool isDuplicateTypeExist = metaDataList.GroupBy(m => m.Type).Any(g => g.Count() > 1);
-        bool isDuplicateImageExist = metaDataList.GroupBy(m => m.ItemImage).Any(g => g.Count() > 1);
+        bool isDuplicateTypeExist = metaDataValidationList.GroupBy(m => m.Type).Any(g => g.Count() > 1);
+        bool isDuplicateImageExist = metaDataValidationList.GroupBy(m => m.ItemImage).Any(g => g.Count() > 1);
         if (isDuplicateTypeExist || isDuplicateImageExist)
         {
             Debug.LogError("[InventorySystem] 아이템 메타 데이터 무결성이 훼손되었습니다.");
-            var duplicateTypeGroup = metaDataList.GroupBy(m => m.Type).Where(g => g.Count() > 1);
-            var duplicateImageGroup = metaDataList.GroupBy(m => m.ItemImage).Where(g => g.Count() > 1);
+            var duplicateTypeGroup = metaDataValidationList.GroupBy(m => m.Type).Where(g => g.Count() > 1);
+            var duplicateImageGroup = metaDataValidationList.GroupBy(m => m.ItemImage).Where(g => g.Count() > 1);
 
             foreach (var group in duplicateTypeGroup)
             {
@@ -231,6 +239,24 @@ public class InventorySystem : MonoBehaviour
 
 
     /// <summary>
+    /// 아이템의 메타데이터를 리턴한다.
+    /// </summary>
+    /// <param name="itemType"></param>
+    /// <returns></returns>
+    public ItemMetaDataSo GetMetaData(RewardCurrencyType itemType)
+    {
+        if(itemMetaDataDict.ContainsKey(itemType))
+        {
+            return itemMetaDataDict[itemType];
+        }
+        else
+        {
+            return null;
+        }
+    }
+
+
+    /// <summary>
     /// 아이템을 사용할 수 있는지 확인한다.
     /// </summary>
     /// <param name="itemType"></param>
@@ -278,7 +304,7 @@ public class InventorySystem : MonoBehaviour
         }
         if (!itemDict.ContainsKey(itemType))
         {
-            var metaData = metaDataList.Find(meta => meta.Type == itemType);
+            var metaData = GetMetaData(itemType);
             if(metaData == null)
             {
                 Debug.LogError($"[InventorySystem] 아이템 정보를 찾을 수 없음 | 찾기 시도 타입: {itemType}");

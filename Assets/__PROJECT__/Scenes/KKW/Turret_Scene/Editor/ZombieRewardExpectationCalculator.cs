@@ -1,19 +1,22 @@
-﻿using UnityEngine;
+using System.Collections.Generic;
+using UnityEngine;
 
-// 좀비 처치 보상의 런타임 지급 규칙을 기대 Coin 계산으로 재현한다.
+// 좀비 처치 보상의 런타임 지급 규칙을 재화별 기대 보상 계산으로 재현한다.
 internal sealed class ZombieRewardExpectationCalculator
 {
-    // 좀비 컴포넌트와 스펙 기준으로 기대 Coin 보상을 계산한다
-    public float CalculateExpectedCoin(ZombieRewardProfileSO rewardProfileOverride, ScriptableObject sourceSpec, int wave, bool isBoss, float rewardMultiplier)
+    // 좀비 컴포넌트와 스펙 기준으로 재화별 기대 보상을 계산한다
+    public Dictionary<RewardCurrencyType, float> CalculateExpectedRewards(ZombieRewardProfileSO rewardProfileOverride, ScriptableObject sourceSpec, int wave, bool isBoss, float rewardMultiplier)
     {
+        Dictionary<RewardCurrencyType, float> result = new Dictionary<RewardCurrencyType, float>();
         ZombieRewardProfileSO rewardProfile = ResolveRewardProfile(rewardProfileOverride, sourceSpec, isBoss);
         if (rewardProfile == null)
         {
-            return 0.0f;
+            return result;
         }
 
         ZombieRewardContext context = CreateContext(sourceSpec, wave, isBoss, rewardMultiplier);
-        return CalculateExpectedCoin(rewardProfile, context);
+        AccumulateExpectedRewards(result, rewardProfile, context);
+        return result;
     }
 
     // 런타임과 같은 우선순위로 보상 프로필을 선택한다
@@ -42,29 +45,33 @@ internal sealed class ZombieRewardExpectationCalculator
         return context.WithRewardMultiplier(rewardMultiplier);
     }
 
-    // 보상 프로필의 모든 Coin 엔트리 기대값을 합산한다
-    private static float CalculateExpectedCoin(ZombieRewardProfileSO rewardProfile, ZombieRewardContext context)
+    // 보상 프로필의 모든 재화 엔트리 기대값을 재화별로 누적한다
+    private static void AccumulateExpectedRewards(Dictionary<RewardCurrencyType, float> target, ZombieRewardProfileSO rewardProfile, ZombieRewardContext context)
     {
         RewardEntry[] rewards = rewardProfile.Rewards;
         if (rewards == null)
         {
-            return 0.0f;
+            return;
         }
 
         ZombieRewardModifier[] modifiers = rewardProfile.Modifiers;
-        float totalExpectedCoin = 0.0f;
         for (int i = 0; i < rewards.Length; i++)
         {
             RewardEntry reward = rewards[i];
-            if (reward == null || reward.currencyType != RewardCurrencyType.Coin || reward.amount <= 0)
+            if (reward == null || reward.amount <= 0)
             {
                 continue;
             }
 
-            totalExpectedCoin += CalculateRewardEntryExpectation(reward, context, modifiers);
-        }
+            float expectation = CalculateRewardEntryExpectation(reward, context, modifiers);
+            if (expectation <= 0.0f)
+            {
+                continue;
+            }
 
-        return totalExpectedCoin;
+            target.TryGetValue(reward.currencyType, out float existing);
+            target[reward.currencyType] = existing + expectation;
+        }
     }
 
     // 단일 보상 엔트리의 기대 지급량을 계산한다
@@ -97,4 +104,3 @@ internal sealed class ZombieRewardExpectationCalculator
         return Mathf.Max(0.0f, amount) * amountMultiplier * averageRandomMultiplier * Mathf.Clamp01(dropChance);
     }
 }
-

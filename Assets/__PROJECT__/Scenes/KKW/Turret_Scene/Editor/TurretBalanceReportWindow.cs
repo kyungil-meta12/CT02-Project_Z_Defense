@@ -7,11 +7,13 @@ internal sealed class TurretBalanceReportWindow : EditorWindow
 {
     private const string MENU_PATH = "Tools/터렛 웨이브 밸런스 시뮬레이션";
     private const double AUTO_REFRESH_INTERVAL_SECONDS = 2.0d;
-    private static readonly string[] TabLabels = { "웨이브 클리어", "터렛 시나리오 상세", "원천 데이터 점검" };
+    private const int GRAPH_TAB_INDEX = 3;
+    private static readonly string[] TabLabels = { "웨이브 클리어", "터렛 시나리오 상세", "원천 데이터 점검", "시각화 그래프" };
 
     private readonly TurretBalanceReportInputCollector inputCollector = new TurretBalanceReportInputCollector();
     private readonly TurretBalanceReportCalculator calculator = new TurretBalanceReportCalculator();
     private readonly TurretBalanceReportTableBuilder tableBuilder = new TurretBalanceReportTableBuilder();
+    private readonly TurretBalanceReportGraphState graphState = new TurretBalanceReportGraphState();
 
     private ReportTableModel[] lastTables =
     {
@@ -19,11 +21,13 @@ internal sealed class TurretBalanceReportWindow : EditorWindow
         new ReportTableModel(),
         new ReportTableModel()
     };
+    private TurretBalanceReportResult lastReport;
     private string lastDataSignature;
     private Vector2 scrollPosition;
     private int selectedTab;
     private double nextAutoRefreshTime;
     private string lastRefreshLabel;
+    private float targetClearSeconds = 30.0f;
 
     // 터렛 웨이브 밸런스 시뮬레이션 창을 연다
     [MenuItem(MENU_PATH)]
@@ -100,6 +104,12 @@ internal sealed class TurretBalanceReportWindow : EditorWindow
         }
 
         EditorGUILayout.Space(6.0f);
+        if (selectedTab == GRAPH_TAB_INDEX)
+        {
+            TurretBalanceReportGraphRenderer.Draw(lastReport, graphState, targetClearSeconds);
+            return;
+        }
+
         scrollPosition = TurretBalanceReportTableRenderer.Draw(GetReportTable(selectedTab), scrollPosition);
     }
 
@@ -129,6 +139,9 @@ internal sealed class TurretBalanceReportWindow : EditorWindow
         }
 
         EditorGUILayout.LabelField("자동 갱신: 켜짐", EditorStyles.miniLabel, GUILayout.Width(100.0f));
+        EditorGUILayout.LabelField("기준 클리어", EditorStyles.miniLabel, GUILayout.Width(58.0f));
+        targetClearSeconds = Mathf.Max(1.0f, EditorGUILayout.FloatField(targetClearSeconds, GUILayout.Width(46.0f)));
+        EditorGUILayout.LabelField("초", EditorStyles.miniLabel, GUILayout.Width(18.0f));
 
         GUILayout.FlexibleSpace();
         EditorGUILayout.LabelField(lastRefreshLabel ?? "새로고침 전", EditorStyles.miniLabel, GUILayout.Width(280.0f));
@@ -147,6 +160,7 @@ internal sealed class TurretBalanceReportWindow : EditorWindow
         lastDataSignature = dataSignature;
         TurretBalanceInputSnapshot snapshot = inputCollector.Collect();
         TurretBalanceReportResult report = calculator.Build(snapshot);
+        lastReport = report;
         lastTables = tableBuilder.Build(report);
 
         lastRefreshLabel = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture);

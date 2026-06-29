@@ -5,6 +5,7 @@ using UnityEngine;
 internal sealed class TurretBalanceInputSnapshot
 {
     public int InitialWalletCoin;
+    public int WaveClearCoinBonusPercentage;
     public readonly List<TurretShopEntrySO> ShopEntries = new List<TurretShopEntrySO>();
     public readonly List<WaveProfileInput> WaveProfiles = new List<WaveProfileInput>();
     public readonly List<ReportWarning> Warnings = new List<ReportWarning>();
@@ -117,7 +118,7 @@ internal sealed class ReportTableModel
     }
 }
 
-// 웨이브별 계산용 요약 행 데이터.
+// 웨이브별 계산용 요약 행 데이터. 재화별 보상은 Dictionary로 보관하고, Coin 예산만 터렛 시뮬레이션이 바로 쓸 수 있도록 별도 필드로 둔다.
 internal struct WaveSummaryRow
 {
     public string ProfilePath;
@@ -133,8 +134,8 @@ internal struct WaveSummaryRow
     public float AverageZombieHp;
     public float TotalWaveHp;
     public int InitialWalletCoin;
-    public float AverageCoinPerWave;
-    public float CumulativeWaveRewardCoin;
+    public Dictionary<RewardCurrencyType, float> AverageRewardPerWave;
+    public Dictionary<RewardCurrencyType, float> CumulativeReward;
     public float AvailableBudgetCoin;
 }
 
@@ -147,16 +148,17 @@ internal struct WaveClearRankEntry
     public float TotalDps;
 }
 
-// 웨이브 클리어 시뮬레이션 표의 행 데이터.
+// 웨이브 클리어 시뮬레이션 표의 행 데이터. 재화별 보상은 Dictionary로 보관해 Coin 외 재화가 추가돼도 그대로 표시된다.
 internal struct WaveClearSimulationRow
 {
     public string WaveLabel;
     public int NormalSpawnCount;
     public int BossSpawnCount;
     public float TotalWaveHp;
-    public float AverageCoinPerWave;
-    public float CumulativeWaveRewardCoin;
+    public Dictionary<RewardCurrencyType, float> AverageRewardPerWave;
+    public Dictionary<RewardCurrencyType, float> CumulativeReward;
     public List<WaveClearRankEntry> TopRanks;
+    public List<WaveClearRankEntry> SpeciesEntries;
     public float BestClearSeconds;
     public string Note;
 }

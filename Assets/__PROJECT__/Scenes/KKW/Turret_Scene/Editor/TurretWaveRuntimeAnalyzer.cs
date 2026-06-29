@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Globalization;
 using UnityEngine;
 
@@ -17,7 +17,7 @@ internal sealed class TurretWaveRuntimeAnalyzer
         }
 
         waveRows.Sort(CompareWaveRows);
-        CalculateCumulativeRewards(snapshot.InitialWalletCoin, waveRows);
+        CalculateCumulativeRewards(snapshot.InitialWalletCoin, snapshot.WaveClearCoinBonusPercentage, waveRows);
     }
 
     // 웨이브 행 정렬 순서를 비교한다
@@ -71,7 +71,9 @@ internal sealed class TurretWaveRuntimeAnalyzer
         AddMissingCandidateWarning(path, stageIndex, wave, bossSpawnCount, bossSummary.CandidateCount, "보스", warnings);
 
         float totalHp = normalSummary.AverageHp * normalSpawnCount + bossSummary.AverageHp * bossSpawnCount;
-        float averageCoinPerWave = normalSummary.AverageCoinPerKill * normalSpawnCount + bossSummary.AverageCoinPerKill * bossSpawnCount;
+        Dictionary<RewardCurrencyType, float> averageRewardPerWave = new Dictionary<RewardCurrencyType, float>();
+        AddScaledRewards(averageRewardPerWave, normalSummary.AverageRewardPerKill, normalSpawnCount);
+        AddScaledRewards(averageRewardPerWave, bossSummary.AverageRewardPerKill, bossSpawnCount);
         int candidateCount = normalSummary.CandidateCount + bossSummary.CandidateCount;
 
         return new WaveSummaryRow
@@ -88,7 +90,7 @@ internal sealed class TurretWaveRuntimeAnalyzer
             CandidateCount = candidateCount,
             AverageZombieHp = spawnCount <= 0 ? 0.0f : totalHp / spawnCount,
             TotalWaveHp = totalHp,
-            AverageCoinPerWave = averageCoinPerWave
+            AverageRewardPerWave = averageRewardPerWave
         };
     }
 
@@ -103,10 +105,14 @@ internal sealed class TurretWaveRuntimeAnalyzer
         ReportWarning.Add(warnings, ReportWarningSeverity.Warning, "ZombieWaveSpawnProfileSO", profilePath, $"{stageIndex + 1}번째 스테이지 {wave}웨이브 {groupLabel} 좀비 스폰 수가 있지만 사용 가능한 후보가 없습니다.");
     }
 
-    // 스폰 후보 가중치를 반영해 평균 HP와 평균 Coin 보상을 계산한다
+    // 스폰 후보 가중치를 반영해 평균 HP와 재화별 평균 보상을 계산한다
     private WeightedZombieSummary CalculateWeightedZombieSummary(List<SpawnEntryInput> entries, int wave, float hpMultiplier, float rewardMultiplier, string profilePath, int stageIndex, string groupLabel, bool isBoss, List<ReportWarning> warnings)
     {
-        WeightedZombieSummary summary = new WeightedZombieSummary();
+        WeightedZombieSummary summary = new WeightedZombieSummary
+        {
+            AverageRewardPerKill = new Dictionary<RewardCurrencyType, float>()
+        };
+
         if (entries == null)
         {
             return summary;
@@ -114,7 +120,7 @@ internal sealed class TurretWaveRuntimeAnalyzer
 
         int totalWeight = 0;
         float weightedHp = 0.0f;
-        float weightedCoin = 0.0f;
+        Dictionary<RewardCurrencyType, float> weightedRewards = new Dictionary<RewardCurrencyType, float>();
         for (int i = 0; i < entries.Count; i++)
         {
             SpawnEntryInput entry = entries[i];
@@ -130,7 +136,8 @@ internal sealed class TurretWaveRuntimeAnalyzer
                 continue;
             }
 
-            if (zombieData.ExpectedCoinReward <= 0.0f)
+            zombieData.ExpectedRewards.TryGetValue(RewardCurrencyType.Coin, out float expectedCoinReward);
+            if (expectedCoinReward <= 0.0f)
             {
                 string prefabName = entry.PrefabReference == null ? "None" : entry.PrefabReference.name;
                 ReportWarning.Add(warnings, ReportWarningSeverity.Warning, "ZombieWaveSpawnProfileSO", profilePath, $"{stageIndex + 1}번째 스테이지 {groupLabel} 엔트리 {prefabName}의 Coin 보상이 0으로 계산됩니다.");
@@ -139,7 +146,7 @@ internal sealed class TurretWaveRuntimeAnalyzer
             totalWeight += weight;
             summary.CandidateCount++;
             weightedHp += zombieData.AverageHp * hpMultiplier * weight;
-            weightedCoin += zombieData.ExpectedCoinReward * weight;
+            AddScaledRewards(weightedRewards, zombieData.ExpectedRewards, weight);
         }
 
         if (totalWeight <= 0)
@@ -148,7 +155,7 @@ internal sealed class TurretWaveRuntimeAnalyzer
         }
 
         summary.AverageHp = weightedHp / totalWeight;
-        summary.AverageCoinPerKill = weightedCoin / totalWeight;
+        AddScaledRewards(summary.AverageRewardPerKill, weightedRewards, 1.0f / totalWeight);
         return summary;
     }
 
@@ -165,7 +172,7 @@ internal sealed class TurretWaveRuntimeAnalyzer
         return safeWave >= entry.MinWave && (entry.MaxWave <= 0 || safeWave <= entry.MaxWave);
     }
 
-    // 프리팹에서 리포트용 HP와 기대 보상 데이터를 읽는다
+    // 프리팹에서 리포트용 HP와 재화별 기대 보상 데이터를 읽는다
     private bool TryGetPrefabBalanceData(SpawnEntryInput entry, int wave, bool isBoss, float rewardMultiplier, out ZombieBalanceData data)
     {
         data = new ZombieBalanceData();
@@ -178,7 +185,7 @@ internal sealed class TurretWaveRuntimeAnalyzer
         if (normalZombie != null)
         {
             data.AverageHp = GetAverageNormalZombieHp(normalZombie);
-            data.ExpectedCoinReward = rewardCalculator.CalculateExpectedCoin(entry.RewardProfileOverride, normalZombie.spec, wave, false, rewardMultiplier);
+            data.ExpectedRewards = rewardCalculator.CalculateExpectedRewards(entry.RewardProfileOverride, normalZombie.spec, wave, false, rewardMultiplier);
             return data.AverageHp > 0.0f;
         }
 
@@ -189,7 +196,7 @@ internal sealed class TurretWaveRuntimeAnalyzer
         }
 
         data.AverageHp = GetAverageBossZombieHp(bossZombie);
-        data.ExpectedCoinReward = rewardCalculator.CalculateExpectedCoin(entry.RewardProfileOverride, bossZombie.spec, wave, isBoss, rewardMultiplier);
+        data.ExpectedRewards = rewardCalculator.CalculateExpectedRewards(entry.RewardProfileOverride, bossZombie.spec, wave, isBoss, rewardMultiplier);
         return data.AverageHp > 0.0f;
     }
 
@@ -219,20 +226,52 @@ internal sealed class TurretWaveRuntimeAnalyzer
         return Mathf.Max(0.0f, zombie.spec.Hp * ((minMultiplier + maxMultiplier) * 0.5f));
     }
 
-    // 웨이브 기대 보상을 누적 보상으로 변환한다
-    private static void CalculateCumulativeRewards(int initialWalletCoin, List<WaveSummaryRow> waveRows)
+    // 웨이브 기대 보상을 웨이브 클리어 보너스(Coin)까지 포함한 누적 보상으로 변환한다
+    private static void CalculateCumulativeRewards(int initialWalletCoin, int waveClearCoinBonusPercentage, List<WaveSummaryRow> waveRows)
     {
-        float cumulativeWaveRewardCoin = 0.0f;
+        Dictionary<RewardCurrencyType, float> cumulativeReward = new Dictionary<RewardCurrencyType, float>
+        {
+            [RewardCurrencyType.Coin] = initialWalletCoin
+        };
+
         for (int i = 0; i < waveRows.Count; i++)
         {
             WaveSummaryRow row = waveRows[i];
             row.InitialWalletCoin = initialWalletCoin;
+
             // 해당 웨이브는 아직 클리어하지 않아 보상을 받기 전이므로, 직전 웨이브까지의 누적 보상만 예산에 포함한다.
-            row.AvailableBudgetCoin = initialWalletCoin + cumulativeWaveRewardCoin;
-            cumulativeWaveRewardCoin += Mathf.Max(0.0f, row.AverageCoinPerWave);
-            // 초기 지갑 Coin까지 포함한 총 누적 보유 코인. 다음 웨이브의 시뮬레이션 예산(AvailableBudgetCoin)과 같은 값이다.
-            row.CumulativeWaveRewardCoin = initialWalletCoin + cumulativeWaveRewardCoin;
+            cumulativeReward.TryGetValue(RewardCurrencyType.Coin, out float budgetCoin);
+            row.AvailableBudgetCoin = budgetCoin;
+
+            AddScaledRewards(cumulativeReward, row.AverageRewardPerWave, 1.0f);
+
+            // 웨이브 클리어 보너스: 이 웨이브에서 모은 Coin 기대값의 일정 퍼센트를 추가로 지급한다(GameManager.AddCoinBouns와 동일한 규칙).
+            row.AverageRewardPerWave.TryGetValue(RewardCurrencyType.Coin, out float waveCoinReward);
+            float bonusCoin = waveCoinReward * waveClearCoinBonusPercentage * 0.01f;
+            if (bonusCoin > 0.0f)
+            {
+                cumulativeReward.TryGetValue(RewardCurrencyType.Coin, out float existingCoin);
+                cumulativeReward[RewardCurrencyType.Coin] = existingCoin + bonusCoin;
+            }
+
+            // 초기 지갑과 웨이브 클리어 보너스까지 포함한 총 누적 보유 재화. 다음 웨이브의 시뮬레이션 예산(AvailableBudgetCoin)과 Coin 값이 같다.
+            row.CumulativeReward = new Dictionary<RewardCurrencyType, float>(cumulativeReward);
             waveRows[i] = row;
+        }
+    }
+
+    // 재화별 보상 표에 다른 보상 표를 배율만큼 곱해 더한다
+    private static void AddScaledRewards(Dictionary<RewardCurrencyType, float> target, Dictionary<RewardCurrencyType, float> source, float scale)
+    {
+        if (source == null || scale == 0.0f)
+        {
+            return;
+        }
+
+        foreach (KeyValuePair<RewardCurrencyType, float> pair in source)
+        {
+            target.TryGetValue(pair.Key, out float existing);
+            target[pair.Key] = existing + pair.Value * scale;
         }
     }
 
@@ -240,7 +279,7 @@ internal sealed class TurretWaveRuntimeAnalyzer
     private struct ZombieBalanceData
     {
         public float AverageHp;
-        public float ExpectedCoinReward;
+        public Dictionary<RewardCurrencyType, float> ExpectedRewards;
     }
 
     // 스폰 후보 가중치를 반영한 평균 데이터.
@@ -248,7 +287,6 @@ internal sealed class TurretWaveRuntimeAnalyzer
     {
         public int CandidateCount;
         public float AverageHp;
-        public float AverageCoinPerKill;
+        public Dictionary<RewardCurrencyType, float> AverageRewardPerKill;
     }
 }
-

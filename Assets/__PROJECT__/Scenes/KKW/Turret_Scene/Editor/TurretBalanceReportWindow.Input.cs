@@ -23,6 +23,7 @@ internal sealed class TurretBalanceReportInputCollector
     {
         TurretBalanceInputSnapshot snapshot = new TurretBalanceInputSnapshot();
         snapshot.InitialWalletCoin = LoadInitialWalletCoin(snapshot.Warnings);
+        snapshot.WaveClearCoinBonusPercentage = LoadWaveClearCoinBonusPercentage(snapshot.Warnings);
         LoadShopEntries(snapshot);
         LoadWaveProfiles(snapshot);
         return snapshot;
@@ -40,6 +41,7 @@ internal sealed class TurretBalanceReportInputCollector
         AppendAssetSignatures(builder, "t:ZombieWaveSpawnProfileSO");
         AppendAssetSignatures(builder, "t:ZombieRewardProfileSO");
         AppendSceneInventorySignature(builder);
+        AppendSceneGameManagerSignature(builder);
         return builder.ToString();
     }
 
@@ -132,6 +134,83 @@ internal sealed class TurretBalanceReportInputCollector
             if (inventorySystem != null)
             {
                 return inventorySystem;
+            }
+        }
+
+        return null;
+    }
+
+    // 열린 씬 게임 매니저의 웨이브 클리어 보너스 서명을 추가한다
+    private static void AppendSceneGameManagerSignature(StringBuilder builder)
+    {
+        GameManager gameManager = FindSceneGameManager();
+        if (gameManager == null)
+        {
+            gameManager = FindPrefabGameManager();
+        }
+
+        builder.Append("GameManager|");
+        builder.Append(gameManager == null ? 0 : gameManager.GetInstanceID());
+        builder.Append('|');
+        builder.Append(gameManager == null ? 0 : EditorUtility.GetDirtyCount(gameManager));
+        builder.Append('|');
+        builder.Append(gameManager == null ? 0 : gameManager.waveClearCoinBonusPercentage);
+        builder.AppendLine();
+    }
+
+    // 게임 매니저의 웨이브 클리어 코인 보너스 퍼센트를 읽는다
+    private static int LoadWaveClearCoinBonusPercentage(List<ReportWarning> warnings)
+    {
+        GameManager gameManager = FindSceneGameManager();
+        if (gameManager != null)
+        {
+            return Mathf.Max(0, gameManager.waveClearCoinBonusPercentage);
+        }
+
+        gameManager = FindPrefabGameManager();
+        if (gameManager != null)
+        {
+            ReportWarning.Add(warnings, ReportWarningSeverity.Info, "GameManager", AssetDatabase.GetAssetPath(gameManager.gameObject), "열려 있는 씬의 GameManager를 찾지 못해 프리팹 웨이브 클리어 보너스 값을 사용했습니다.");
+            return Mathf.Max(0, gameManager.waveClearCoinBonusPercentage);
+        }
+
+        ReportWarning.Add(warnings, ReportWarningSeverity.Warning, "GameManager", "AssetDatabase", "GameManager를 찾지 못해 웨이브 클리어 보너스를 0%로 계산했습니다.");
+        return 0;
+    }
+
+    // 열려 있는 씬의 게임 매니저를 찾는다
+    private static GameManager FindSceneGameManager()
+    {
+        GameManager[] managers = Resources.FindObjectsOfTypeAll<GameManager>();
+        for (int i = 0; i < managers.Length; i++)
+        {
+            GameManager manager = managers[i];
+            if (manager != null && manager.gameObject.scene.IsValid() && !EditorUtility.IsPersistent(manager))
+            {
+                return manager;
+            }
+        }
+
+        return null;
+    }
+
+    // 프리팹 에셋에서 게임 매니저를 찾는다
+    private static GameManager FindPrefabGameManager()
+    {
+        string[] guids = AssetDatabase.FindAssets("t:Prefab");
+        for (int i = 0; i < guids.Length; i++)
+        {
+            string path = AssetDatabase.GUIDToAssetPath(guids[i]);
+            GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(path);
+            if (prefab == null)
+            {
+                continue;
+            }
+
+            GameManager gameManager = prefab.GetComponentInChildren<GameManager>(true);
+            if (gameManager != null)
+            {
+                return gameManager;
             }
         }
 

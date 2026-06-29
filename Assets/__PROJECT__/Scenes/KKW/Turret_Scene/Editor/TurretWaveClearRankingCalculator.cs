@@ -5,7 +5,7 @@ using UnityEngine;
 internal sealed class TurretWaveClearRankingCalculator
 {
     private const int MAX_RANK_COUNT = 3;
-    private const int MAX_SIMULATED_INSTALL_COUNT = 100;
+    private const int MAX_TOTAL_TURRET_INSTALL_COUNT = 8;
 
     // 모든 웨이브에 대해 종류별 상세 데이터(터렛 시나리오 상세와 동일한 레벨 체크포인트의 DPS)를 참고해 상위 순위 목록을 만든다
     public void BuildRanks(TurretBalanceReportResult result, List<TurretEvolutionNode> nodes)
@@ -41,9 +41,10 @@ internal sealed class TurretWaveClearRankingCalculator
             NormalSpawnCount = wave.NormalSpawnCount,
             BossSpawnCount = wave.BossSpawnCount,
             TotalWaveHp = wave.TotalWaveHp,
-            AverageCoinPerWave = wave.AverageCoinPerWave,
-            CumulativeWaveRewardCoin = wave.CumulativeWaveRewardCoin,
+            AverageRewardPerWave = wave.AverageRewardPerWave,
+            CumulativeReward = wave.CumulativeReward,
             TopRanks = topRanks,
+            SpeciesEntries = candidates,
             BestClearSeconds = bestDps <= 0.0f ? 0.0f : wave.TotalWaveHp / bestDps,
             Note = CombineWaveClearNotes(wave, topRanks.Count == 0 ? "예산으로 설치 가능한 터렛이 없습니다." : string.Empty)
         };
@@ -97,7 +98,7 @@ internal sealed class TurretWaveClearRankingCalculator
 
         int installCount = 0;
         int remainingBudget = Mathf.Max(0, budget);
-        while (installCount < MAX_SIMULATED_INSTALL_COUNT)
+        while (installCount < MAX_TOTAL_TURRET_INSTALL_COUNT)
         {
             int rootPlacementCoinCost = TurretEconomySimulationCalculator.GetCoinCost(rootShopEntry.GetPlacementCosts(installCount));
             int unitCoinCost = rootPlacementCoinCost + perUnitNonRootCoinCost;
@@ -122,7 +123,8 @@ internal sealed class TurretWaveClearRankingCalculator
     // 웨이브 대표 행의 비고 문자열을 만든다
     private static string CombineWaveClearNotes(WaveSummaryRow wave, string simulationNote)
     {
-        string rewardNote = wave.SpawnCount > 0 && wave.AverageCoinPerWave <= 0.0f ? "웨이브 획득 코인이 0입니다. 좀비 보상 프로필을 확인하세요." : string.Empty;
+        wave.AverageRewardPerWave.TryGetValue(RewardCurrencyType.Coin, out float averageCoinPerWave);
+        string rewardNote = wave.SpawnCount > 0 && averageCoinPerWave <= 0.0f ? "웨이브 획득 코인이 0입니다. 좀비 보상 프로필을 확인하세요." : string.Empty;
         if (string.IsNullOrWhiteSpace(rewardNote))
         {
             return simulationNote;

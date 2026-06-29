@@ -115,7 +115,7 @@ internal static class TurretBalanceReportTableRenderer
         float totalRowsHeight = GetTotalRowsHeight(table.RowHeights);
         Rect contentRect = new Rect(0.0f, 0.0f, tableWidth, Mathf.Max(bodyRect.height, totalRowsHeight));
         Vector2 nextScrollPosition = GUI.BeginScrollView(bodyRect, scrollPosition, contentRect);
-        DrawVisibleRows(table, bodyRect.height, nextScrollPosition.y, nextScrollPosition.x);
+        DrawVisibleRows(table, bodyRect.height, nextScrollPosition.y);
         GUI.EndScrollView();
 
         return nextScrollPosition;
@@ -165,7 +165,7 @@ internal static class TurretBalanceReportTableRenderer
     }
 
     // 스크롤 위치에 보이는 표 행만, 행마다 다른 높이를 누적해 그린다
-    private static void DrawVisibleRows(ReportTableModel table, float viewportHeight, float verticalScroll, float horizontalScroll)
+    private static void DrawVisibleRows(ReportTableModel table, float viewportHeight, float verticalScroll)
     {
         if (table.Rows.Count <= 0)
         {
@@ -179,7 +179,7 @@ internal static class TurretBalanceReportTableRenderer
             float rowHeight = i < table.RowHeights.Count ? table.RowHeights[i] : RowHeight;
             if (y + rowHeight >= verticalScroll)
             {
-                DrawRow(table.Rows[i], table.ColumnWidths, y, rowHeight, horizontalScroll);
+                DrawRow(table.Rows[i], table.ColumnWidths, y, rowHeight);
             }
 
             y += rowHeight;
@@ -190,10 +190,10 @@ internal static class TurretBalanceReportTableRenderer
         }
     }
 
-    // 표 데이터 행을 캐시된 열 너비와 행 높이, 가로 스크롤 위치로 그린다
-    private static void DrawRow(string[] columns, float[] columnWidths, float y, float rowHeight, float horizontalScroll)
+    // 표 데이터 행을 캐시된 열 너비와 행 높이로 그린다
+    private static void DrawRow(string[] columns, float[] columnWidths, float y, float rowHeight)
     {
-        Rect cellRect = new Rect(-horizontalScroll, y, 0.0f, rowHeight);
+        Rect cellRect = new Rect(0.0f, y, 0.0f, rowHeight);
         for (int i = 0; i < columns.Length; i++)
         {
             cellRect.width = GetColumnWidth(columnWidths, i);

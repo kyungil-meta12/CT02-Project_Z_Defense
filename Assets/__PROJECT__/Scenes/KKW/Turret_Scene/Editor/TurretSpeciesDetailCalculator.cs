@@ -4,8 +4,6 @@ using UnityEngine;
 // 터렛 종류별 단일 설치 진화/레벨 진행 표를 계산한다.
 internal sealed class TurretSpeciesDetailCalculator
 {
-    private const int REFERENCE_LEVEL_STEP = 10;
-
     private readonly TurretEvolutionGraphBuilder graphBuilder = new TurretEvolutionGraphBuilder();
 
     // 입력 스냅샷과 웨이브 행으로 터렛 종류별 상세 행과 기준 레벨 목록을 만들고, 사용한 진화 그래프 노드 목록을 반환한다
@@ -28,7 +26,7 @@ internal sealed class TurretSpeciesDetailCalculator
         return nodes;
     }
 
-    // 1과 10 단위로, 그래프 전체에서 가장 높은 레벨 상한까지 기준 레벨 목록을 만든다
+    // 그래프 전체에서 가장 높은 레벨 상한까지 모든 기준 레벨 목록을 만든다
     private static void BuildReferenceLevels(List<TurretEvolutionNode> nodes, List<int> referenceLevels)
     {
         referenceLevels.Clear();
@@ -43,8 +41,7 @@ internal sealed class TurretSpeciesDetailCalculator
             return;
         }
 
-        referenceLevels.Add(1);
-        for (int level = REFERENCE_LEVEL_STEP; level <= maxCap; level += REFERENCE_LEVEL_STEP)
+        for (int level = 1; level <= maxCap; level++)
         {
             referenceLevels.Add(level);
         }

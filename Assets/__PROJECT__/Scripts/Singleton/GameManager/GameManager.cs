@@ -53,6 +53,7 @@ public class GameManager : MonoBehaviour
     public int DestKillCount{ get; private set; } = 0; // 목표 킬 카운트
 
     [Header("시작 웨이브")] [Min(1)] public int startWave = 1;
+    [Header("웨이브 클리어 보너스")] [Min(0)] public int waveClearCoinBonusPercentage = 20; // 웨이브 클리어 시 웨이브 동안 모은 코인의 이 퍼센트만큼을 보너스로 지급
     [Header("게임 배속")]
     [SerializeField, Min(MIN_TIME_SCALE)] private float startTimeScale = 1f;
     [SerializeField, HideInInspector] private float baseFixedDeltaTime = DEFAULT_FIXED_DELTA_TIME;
@@ -65,6 +66,7 @@ public class GameManager : MonoBehaviour
     private void OnValidate()
     {
         startWave = Mathf.Max(1, startWave);
+        waveClearCoinBonusPercentage = Mathf.Max(0, waveClearCoinBonusPercentage);
         startTimeScale = Mathf.Max(MIN_TIME_SCALE, startTimeScale);
         baseFixedDeltaTime = Mathf.Max(MIN_FIXED_DELTA_TIME, baseFixedDeltaTime);
         EnsureDefaultDefenseLineEntries();
@@ -124,7 +126,7 @@ public class GameManager : MonoBehaviour
         {
             KillCount = 0;
             Wave++;
-            InventorySystem.Inst.AddCoinBouns(20);
+            InventorySystem.Inst.AddCoinBouns(waveClearCoinBonusPercentage);
             OnWaveIncrease?.Invoke(Wave);
         }
     }
@@ -958,6 +960,8 @@ public class GameManager : MonoBehaviour
         Wave = Mathf.Max(1, Wave - 1);
         KillCount = 0;
         DestKillCount = 0;
+        // 웨이브 실패 패널티: 그동안 모은 코인량을 초기화해 클리어 보너스에 누적되지 않도록 한다.
+        InventorySystem.Inst.ResetWaveCollectCoinCount();
 
         int totalSpawnCount = 0;
         for (int i = zombieSpawners.Count - 1; i >= 0; i--)

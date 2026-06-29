@@ -322,12 +322,6 @@ public class InventorySystem : MonoBehaviour
             itemDict.Add(itemType, newItem);
             InvokeEvent(newItem);
 
-            // 코인 타입이라면 웨이브 동안에 얻은 코인량에 더한다.
-            if(itemType == RewardCurrencyType.Coin)
-            {
-                WaveCollectCoinCount += amount;
-            }
-
             print($"[InventorySystem] 새로운 아이템 추가됨 | 타입: {itemType} | 현재 개수: {newItem.Count}");
         }
         else
@@ -337,6 +331,23 @@ public class InventorySystem : MonoBehaviour
             item.CountString = item.Count.ToString();
             InvokeEvent(item);
             //print($"[InventorySystem] 아이템 획득함 | 타입: {itemType} | 현재 개수: {item.Count}");
+        }
+    }
+
+    /// <summary>
+    /// 좀비 처치/드롭 회수 등 웨이브 동안 실제로 획득하는 보상을 지급한다.<para/>
+    /// 초기 지갑 지급, 환불, 보너스 지급은 웨이브 동안 모은 코인량을 오염시키므로 AddItem을 직접 사용한다.
+    /// </summary>
+    /// <param name="itemType"></param>
+    /// <param name="amount"></param>
+    // 웨이브 보상으로 재화를 지급하고, Coin이면 웨이브 동안 모은 코인량도 함께 갱신한다
+    public void AddReward(RewardCurrencyType itemType, Incremental amount)
+    {
+        AddItem(itemType, amount);
+
+        if (amount > 0 && itemType == RewardCurrencyType.Coin)
+        {
+            WaveCollectCoinCount += amount;
         }
     }
 
@@ -446,6 +457,16 @@ public class InventorySystem : MonoBehaviour
         int percentDenominator = 100;
         var result = WaveCollectCoinCount * percentNumerator / percentDenominator;
         AddItem(RewardCurrencyType.Coin, result);
+        WaveCollectCoinCount = 0;
+    }
+
+    /// <summary>
+    /// 웨이브 실패로 재시작할 때 그동안 모은 코인량을 0으로 되돌려 패널티를 준다.<para/>
+    /// GameManager에서 게이트 붕괴로 이전 웨이브를 재시작할 때 호출된다.
+    /// </summary>
+    // 웨이브 재시작 패널티로 웨이브 동안 모은 코인량을 초기화한다
+    public void ResetWaveCollectCoinCount()
+    {
         WaveCollectCoinCount = 0;
     }
 

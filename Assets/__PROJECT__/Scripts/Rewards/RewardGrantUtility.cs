@@ -57,7 +57,7 @@ public static class RewardGrantUtility
         // 코인을 제외한 나머지 보상은 플레이어가 직접 터치하여 얻도록 한다.
         if(reward.currencyType == RewardCurrencyType.Coin)
         {
-            InventorySystem.Inst.AddItem(reward.currencyType, finalAmount);
+            InventorySystem.Inst.AddReward(reward.currencyType, finalAmount);
         }
 
         // 레퍼런스 파라미터를 통해 최종 보상 결과값을 얻는다

@@ -48,13 +48,15 @@ MonoBehaviour:
   pickupParticlePrefab: {fileID: 6927962580313983396, guid: 3d83bf73b5f747b4fb1774986d432db9, type: 3}
   mashRenderer: {fileID: 635571244895453925}
   particleList:
-  - Grade: 0
-    Particle: {fileID: 7993846003304566744, guid: 2906f93ca1240c5499645720555df9e7, type: 3}
-  - Grade: 1
-    Particle: {fileID: 3693047789680819589, guid: 866f55a345cb6e14389618fe9c540c47, type: 3}
-  - Grade: 2
-    Particle: {fileID: 5558582361860170614, guid: 931a83aaac56646469d7be89f9d0fa07, type: 3}
+  - Grade: 4
+    Particle: {fileID: 1862666651079793161, guid: efeb159427e5699449c4bad0eff05e96, type: 3}
   - Grade: 3
+    Particle: {fileID: 7993846003304566744, guid: 2906f93ca1240c5499645720555df9e7, type: 3}
+  - Grade: 2
+    Particle: {fileID: 3693047789680819589, guid: 866f55a345cb6e14389618fe9c540c47, type: 3}
+  - Grade: 1
+    Particle: {fileID: 5558582361860170614, guid: 931a83aaac56646469d7be89f9d0fa07, type: 3}
+  - Grade: 0
     Particle: {fileID: 3547510469555000859, guid: 3900eeb299a46d64c9b86bc1da91aff4, type: 3}
 --- !u!1001 &1578961470535652820
 PrefabInstance:

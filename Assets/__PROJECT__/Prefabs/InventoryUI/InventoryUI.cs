@@ -48,7 +48,7 @@ public class InventoryUI : MonoBehaviour
     private Dictionary<Button, RewardCurrencyType> craftButtonDict = new();
     
     // 현재 선택된 크래프트 아이템을 제작하는데에 필요한 아이템 관련 데이터 딕셔너리
-    private Dictionary<RewardCurrencyType, ItemMaterialData> needItemData = new();
+    private Dictionary<RewardCurrencyType, ItemCreatfData> needItemData = new();
     private Dictionary<RewardCurrencyType, TextMeshProUGUI> needItemText = new();
 
     // 마지막으로 선택된 크래프트 아이템 타입
@@ -115,7 +115,7 @@ public class InventoryUI : MonoBehaviour
         foreach (RewardCurrencyType type in InventorySystem.Inst.Types)
         {
             var itemData = InventorySystem.Inst.GetMetaData(type);
-            if (itemData.Craftable)
+            if (itemData.Createable)
             {
                 var button = Instantiate(craftCellPrefab, craftContent.transform, false).GetComponent<Button>();
                 var imageComp = button.transform.Find("ItemImage").GetComponent<Image>();
@@ -264,13 +264,13 @@ public class InventoryUI : MonoBehaviour
             needItemViewerList[i].SetActive(true);
             var image = needItemViewerList[i].GetComponentInChildren<Image>();
             var text = needItemViewerList[i].GetComponentInChildren<TextMeshProUGUI>();
-            image.sprite = InventorySystem.Inst.GetMetaData(needItems[i].Type).ItemImage;
+            image.sprite = InventorySystem.Inst.GetMetaData(needItems[i].Item.Type).ItemImage;
             SetImageVisibility(image, true);
 
             // 각 필요 아이템에 대해서도 실시간으로 보유량을 표시하기 위해 딕셔너리에 데이터 추가 후 반영
-            needItemData.Add(needItems[i].Type, needItems[i]);
-            needItemText.Add(needItems[i].Type, text);
-            UpdateNeedItemData(needItems[i].Type);
+            needItemData.Add(needItems[i].Item.Type, needItems[i]);
+            needItemText.Add(needItems[i].Item.Type, text);
+            UpdateNeedItemData(needItems[i].Item.Type);
         }
 
         // 한 번 크래프트 아이템 셀을 터치하면 작업 버튼이 다시 활성화 된다.
@@ -333,13 +333,13 @@ public class InventoryUI : MonoBehaviour
         var needItems = InventorySystem.Inst.GetMetaData(latestSelectedCraftType).ItemsToCreate;
         foreach (var item in needItems)
         {
-            if (InventorySystem.Inst.CanUseItem(item.Type, item.Count))
+            if (InventorySystem.Inst.CanUseItem(item.Item.Type, item.Count))
             {
-                InventorySystem.Inst.UseItem(item.Type, item.Count);
+                InventorySystem.Inst.UseItem(item.Item.Type, item.Count);
             }
             else
             {
-                Debug.LogWarning($"[InvectoryUI] 아이템이 부족하여 제작할 수 없음 | 부족한 아이템: {item.Type} | 필요 개수: {item.Count} | 현재 개수: {InventorySystem.Inst.GetCount(item.Type)}");
+                Debug.LogWarning($"[InvectoryUI] 아이템이 부족하여 제작할 수 없음 | 부족한 아이템: {item.Item.Type} | 필요 개수: {item.Count} | 현재 개수: {InventorySystem.Inst.GetCount(item.Item.Type)}");
                 WarningPopupManager.ShowWarningForDuration("아이템 보유량이 부족합니다.", 1f);
                 return;
             }

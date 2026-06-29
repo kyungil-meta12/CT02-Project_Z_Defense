@@ -184,9 +184,9 @@ public class ItemDataEditorTool : EditorWindow
             itemSo.Name = row.Name;
             itemSo.InfoText = row.InfoText;
             itemSo.ItemImage = row.ItemImage;
-            itemSo.Craftable = row.Craftable;
+            itemSo.Createable = row.Craftable;
             itemSo.ItemsToCreate = row.ItemsToCreate;
-            itemSo.CreateCount = row.CreateCount;
+            itemSo.CountPerCraft = row.CreateCount;
             EditorUtility.SetDirty(itemSo);
             importedItems.Add(itemSo);
         }
@@ -237,11 +237,11 @@ public class ItemDataEditorTool : EditorWindow
             builder.Append(',');
             builder.Append(EscapeCsvField(imagePath));
             builder.Append(',');
-            builder.Append(EscapeCsvField(item.Craftable.ToString()));
+            builder.Append(EscapeCsvField(item.Createable.ToString()));
             builder.Append(',');
             builder.Append(EscapeCsvField(craftText));
             builder.Append(',');
-            builder.Append(EscapeCsvField(item.CreateCount.ToString()));
+            builder.Append(EscapeCsvField(item.CountPerCraft.ToString()));
             builder.AppendLine();
         }
 
@@ -602,7 +602,7 @@ public class ItemDataEditorTool : EditorWindow
             }
         }
 
-        if (!TryParseCraftItems(craftText, lineNumber, out List<ItemMaterialData> craftItems, errors))
+        if (!TryParseCraftItems(craftText, lineNumber, out List<ItemCreatfData> craftItems, errors))
         {
             return false;
         }
@@ -621,9 +621,9 @@ public class ItemDataEditorTool : EditorWindow
     }
 
     // 제작 재료 문자열을 ItemMaterialData 목록으로 변환한다
-    private bool TryParseCraftItems(string craftText, int lineNumber, out List<ItemMaterialData> craftItems, List<string> errors)
+    private bool TryParseCraftItems(string craftText, int lineNumber, out List<ItemCreatfData> craftItems, List<string> errors)
     {
-        craftItems = new List<ItemMaterialData>();
+        craftItems = new List<ItemCreatfData>();
         if (string.IsNullOrWhiteSpace(craftText))
         {
             return true;
@@ -664,7 +664,9 @@ public class ItemDataEditorTool : EditorWindow
                 return false;
             }
 
-            craftItems.Add(new ItemMaterialData { Type = materialType, Count = count });
+
+            ///////////////////////////////////// 기능 테스트를 위해 임시 비활성화
+            // craftItems.Add(new ItemCreatfData { Type = materialType, Count = count });
         }
 
         return true;
@@ -855,7 +857,7 @@ public class ItemDataEditorTool : EditorWindow
     }
 
     // 제작 재료 목록을 CSV용 문자열로 변환한다
-    private static string FormatCraftItems(List<ItemMaterialData> craftItems)
+    private static string FormatCraftItems(List<ItemCreatfData> craftItems)
     {
         if (craftItems == null || craftItems.Count == 0)
         {
@@ -870,8 +872,8 @@ public class ItemDataEditorTool : EditorWindow
                 builder.Append(';');
             }
 
-            ItemMaterialData item = craftItems[i];
-            builder.Append(item.Type);
+            ItemCreatfData item = craftItems[i];
+            builder.Append(item.Item.Type);
             builder.Append(':');
             builder.Append(Mathf.Max(0, item.Count));
         }
@@ -1020,7 +1022,7 @@ public class ItemDataEditorTool : EditorWindow
         public string InfoText;
         public Sprite ItemImage;
         public bool Craftable;
-        public List<ItemMaterialData> ItemsToCreate;
+        public List<ItemCreatfData> ItemsToCreate;
         public int CreateCount;
     }
 }

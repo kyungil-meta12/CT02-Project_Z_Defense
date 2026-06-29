@@ -264,13 +264,13 @@ public class InventoryUI : MonoBehaviour
             needItemViewerList[i].SetActive(true);
             var image = needItemViewerList[i].GetComponentInChildren<Image>();
             var text = needItemViewerList[i].GetComponentInChildren<TextMeshProUGUI>();
-            image.sprite = InventorySystem.Inst.GetMetaData(needItems[i].Item.Type).ItemImage;
+            image.sprite = InventorySystem.Inst.GetMetaData(needItems[i].Type).ItemImage;
             SetImageVisibility(image, true);
 
             // 각 필요 아이템에 대해서도 실시간으로 보유량을 표시하기 위해 딕셔너리에 데이터 추가 후 반영
-            needItemData.Add(needItems[i].Item.Type, needItems[i]);
-            needItemText.Add(needItems[i].Item.Type, text);
-            UpdateNeedItemData(needItems[i].Item.Type);
+            needItemData.Add(needItems[i].Type, needItems[i]);
+            needItemText.Add(needItems[i].Type, text);
+            UpdateNeedItemData(needItems[i].Type);
         }
 
         // 한 번 크래프트 아이템 셀을 터치하면 작업 버튼이 다시 활성화 된다.
@@ -333,13 +333,13 @@ public class InventoryUI : MonoBehaviour
         var needItems = InventorySystem.Inst.GetMetaData(latestSelectedCraftType).ItemsToCreate;
         foreach (var item in needItems)
         {
-            if (InventorySystem.Inst.CanUseItem(item.Item.Type, item.Count))
+            if (InventorySystem.Inst.CanUseItem(item.Type, item.Count))
             {
-                InventorySystem.Inst.UseItem(item.Item.Type, item.Count);
+                InventorySystem.Inst.UseItem(item.Type, item.Count);
             }
             else
             {
-                Debug.LogWarning($"[InvectoryUI] 아이템이 부족하여 제작할 수 없음 | 부족한 아이템: {item.Item.Type} | 필요 개수: {item.Count} | 현재 개수: {InventorySystem.Inst.GetCount(item.Item.Type)}");
+                Debug.LogWarning($"[InvectoryUI] 아이템이 부족하여 제작할 수 없음 | 부족한 아이템: {item.Type} | 필요 개수: {item.Count} | 현재 개수: {InventorySystem.Inst.GetCount(item.Type)}");
                 WarningPopupManager.ShowWarningForDuration("아이템 보유량이 부족합니다.", 1f);
                 return;
             }

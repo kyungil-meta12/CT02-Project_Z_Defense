@@ -8,7 +8,7 @@ using UnityEngine;
 [Serializable]
 public struct ItemCreatfData
 {
-    [Header("필요 아이템")] public ItemMetaDataSo Item;
+    [Header("필요 아이템 타입")] public RewardCurrencyType Type;
     [Header("필요 개수")] public int Count;
 }
 
@@ -18,7 +18,7 @@ public struct ItemCreatfData
 [Serializable]
 public struct ItemDecomposeData
 {
-    [Header("나오는 아이템")] public ItemMetaDataSo Item;
+    [Header("나오는 아이템 타입")] public RewardCurrencyType Type;
     [Header("분해 시 나오는 개수 범위")]
     public int min;
     public int max;

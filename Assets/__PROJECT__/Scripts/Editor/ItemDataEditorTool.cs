@@ -664,9 +664,7 @@ public class ItemDataEditorTool : EditorWindow
                 return false;
             }
 
-
-            ///////////////////////////////////// 기능 테스트를 위해 임시 비활성화
-            // craftItems.Add(new ItemCreatfData { Type = materialType, Count = count });
+             craftItems.Add(new ItemCreatfData { Type = materialType, Count = count });
         }
 
         return true;
@@ -873,7 +871,7 @@ public class ItemDataEditorTool : EditorWindow
             }
 
             ItemCreatfData item = craftItems[i];
-            builder.Append(item.Item.Type);
+            builder.Append(item.Type);
             builder.Append(':');
             builder.Append(Mathf.Max(0, item.Count));
         }

@@ -80,7 +80,7 @@ public class InventoryUI : MonoBehaviour
     private Dictionary<ContentType, CellDictionary> cellDict = new();
 
     // 현재 선택된 크래프트 아이템을 제작하는데에 필요한 아이템 관련 데이터 딕셔너리
-    private Dictionary<RewardCurrencyType, ItemCreaftData> needItemData = new();
+    private Dictionary<RewardCurrencyType, ItemCraftData> needItemData = new();
     private Dictionary<RewardCurrencyType, TextMeshProUGUI> needItemText = new();
 
     // 마지막으로 선택된 아이템 타입 및 셀

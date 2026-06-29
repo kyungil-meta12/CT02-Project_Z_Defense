@@ -484,7 +484,7 @@ public class ItemDataEditorTool : EditorWindow
 
         if (!isValid)
         {
-            AddMessage("지원 타입: string, int, float, bool, enum, Sprite, List<ItemCreatfData>, List<ItemDecomposeData>");
+            AddMessage("지원 타입: string, int, float, bool, enum, Sprite, List<ItemCraftData>, List<ItemDecomposeData>");
         }
 
         return isValid;
@@ -499,7 +499,7 @@ public class ItemDataEditorTool : EditorWindow
             || fieldType == typeof(bool)
             || fieldType.IsEnum
             || fieldType == typeof(Sprite)
-            || fieldType == typeof(List<ItemCreatfData>)
+            || fieldType == typeof(List<ItemCraftData>)
             || fieldType == typeof(List<ItemDecomposeData>);
     }
 
@@ -609,9 +609,9 @@ public class ItemDataEditorTool : EditorWindow
             return "SpriteAssetPath";
         }
 
-        if (fieldType == typeof(List<ItemCreatfData>))
+        if (fieldType == typeof(List<ItemCraftData>))
         {
-            return "ItemCreatfDataList";
+            return "ItemCraftDataList";
         }
 
         if (fieldType == typeof(List<ItemDecomposeData>))
@@ -723,9 +723,9 @@ public class ItemDataEditorTool : EditorWindow
             return AssetDatabase.GetAssetPath((Sprite)value);
         }
 
-        if (definition.Field.FieldType == typeof(List<ItemCreatfData>))
+        if (definition.Field.FieldType == typeof(List<ItemCraftData>))
         {
-            return FormatCraftItems((List<ItemCreatfData>)value);
+            return FormatCraftItems((List<ItemCraftData>)value);
         }
 
         if (definition.Field.FieldType == typeof(List<ItemDecomposeData>))
@@ -1040,7 +1040,7 @@ public class ItemDataEditorTool : EditorWindow
             }
         }
 
-        if (!TryParseCraftItems(craftText, lineNumber, out List<ItemCreaftData> craftItems, errors))
+        if (!TryParseCraftItems(craftText, lineNumber, out List<ItemCraftData> craftItems, errors))
         {
             return false;
         }
@@ -1193,10 +1193,10 @@ public class ItemDataEditorTool : EditorWindow
         return false;
     }
 
-    // 제작 재료 문자열을 ItemCreatfData 목록으로 변환한다
-    private bool TryParseCraftItems(string craftText, int lineNumber, out List<ItemCreatfData> craftItems, List<string> errors)
+    // 제작 재료 문자열을 ItemCraftData 목록으로 변환한다
+    private bool TryParseCraftItems(string craftText, int lineNumber, out List<ItemCraftData> craftItems, List<string> errors)
     {
-        craftItems = new List<ItemCreaftData>();
+        craftItems = new List<ItemCraftData>();
         if (string.IsNullOrWhiteSpace(craftText))
         {
             return true;
@@ -1230,7 +1230,7 @@ public class ItemDataEditorTool : EditorWindow
                 return false;
             }
 
-            craftItems.Add(new ItemCreatfData { Type = materialType, Count = count });
+            craftItems.Add(new ItemCraftData { Type = materialType, Count = count });
         }
 
         return true;
@@ -1488,7 +1488,7 @@ public class ItemDataEditorTool : EditorWindow
     }
 
     // 제작 재료 목록을 CSV용 문자열로 변환한다
-    private static string FormatCraftItems(List<ItemCreaftData> craftItems)
+    private static string FormatCraftItems(List<ItemCraftData> craftItems)
     {
         if (craftItems == null || craftItems.Count == 0)
         {
@@ -1503,7 +1503,7 @@ public class ItemDataEditorTool : EditorWindow
                 builder.Append(';');
             }
 
-            ItemCreatfData item = craftItems[i];
+            ItemCraftData item = craftItems[i];
             builder.Append(FormatEnumValue(item.Type));
             builder.Append(':');
             builder.Append(Mathf.Max(0, item.Count));
@@ -1842,7 +1842,7 @@ public class ItemDataEditorTool : EditorWindow
         public ItemGrade Grade;
         public bool Createable;
         public int CountPerCraft;
-        public List<ItemCreatfData> ItemsToCreate;
+        public List<ItemCraftData> ItemsToCreate;
         public bool Decomposable;
         public List<ItemDecomposeData> ItemsFromDecompose;
         public string Name;

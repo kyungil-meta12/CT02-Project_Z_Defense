@@ -28,6 +28,7 @@ public struct ContentData
     public ContentType Type;
     public GameObject Content;
     public Button TabButton;
+    public Button FunctionButton;
 }
 
 public class InventoryUI : MonoBehaviour
@@ -356,6 +357,11 @@ public class InventoryUI : MonoBehaviour
         MakeItem();
     }
 
+    public void OnDecomposeButtonDown()
+    {
+
+    }
+
     /// <summary>
     /// 아이템을 제작한다.
     /// </summary>
@@ -543,13 +549,23 @@ public class InventoryUI : MonoBehaviour
         {
             c.Content.SetActive(false);
             SetButtonColor(c.TabButton, Color.black);
+            if(c.FunctionButton != null)
+            {
+                c.FunctionButton.gameObject.SetActive(false);
+            }
         }
         var selected = contentDict[type];
         var selectedContent = selected.Content;
+        var selectedTabButton = selected.TabButton;
+        var selectedFunctionButton = selected.FunctionButton;
 
         selectedContent.SetActive(true);
         ResetScroll(selectedContent);
-        SetButtonColor(selected.TabButton, selectedTabColor);
+        SetButtonColor(selectedTabButton, selectedTabColor);
+        if(selectedFunctionButton != null)
+        {
+            selectedFunctionButton.gameObject.SetActive(true);
+        }
 
         SetInfoText(null, null);
         SetInfoImage(null, null);
@@ -558,7 +574,6 @@ public class InventoryUI : MonoBehaviour
         ResetNeedItemViewer();
 
         pannelTitletext.text = pannelTitle;
-        makeButton.gameObject.SetActive(type == ContentType.Craft);
     }
 
     private GameObject GetContentObject(ContentType type)

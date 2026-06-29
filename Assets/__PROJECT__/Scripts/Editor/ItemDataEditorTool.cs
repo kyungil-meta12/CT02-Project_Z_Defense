@@ -1040,7 +1040,7 @@ public class ItemDataEditorTool : EditorWindow
             }
         }
 
-        if (!TryParseCraftItems(craftText, lineNumber, out List<ItemCreatfData> craftItems, errors))
+        if (!TryParseCraftItems(craftText, lineNumber, out List<ItemCreaftData> craftItems, errors))
         {
             return false;
         }
@@ -1196,7 +1196,7 @@ public class ItemDataEditorTool : EditorWindow
     // 제작 재료 문자열을 ItemCreatfData 목록으로 변환한다
     private bool TryParseCraftItems(string craftText, int lineNumber, out List<ItemCreatfData> craftItems, List<string> errors)
     {
-        craftItems = new List<ItemCreatfData>();
+        craftItems = new List<ItemCreaftData>();
         if (string.IsNullOrWhiteSpace(craftText))
         {
             return true;
@@ -1488,7 +1488,7 @@ public class ItemDataEditorTool : EditorWindow
     }
 
     // 제작 재료 목록을 CSV용 문자열로 변환한다
-    private static string FormatCraftItems(List<ItemCreatfData> craftItems)
+    private static string FormatCraftItems(List<ItemCreaftData> craftItems)
     {
         if (craftItems == null || craftItems.Count == 0)
         {

@@ -896,7 +896,11 @@ Engineer buff policy:
 ## Runtime Range Indicator
 
 - `TurretTemporaryUpgradePopupUI` owns the selected-turret range display because it already owns turret click selection and selection clearing.
-- `TurretRangeIndicator` renders one reusable `LineRenderer` circle in world space for the currently selected turret.
+- `TurretTemporaryUpgradePopupUI` can require a second click on the same turret within `popupDoubleClickInterval` before opening the upgrade/evolution popup, so the first click can be used as a range-only selection.
+- `TurretRangeIndicator` renders one reusable world-space indicator for the currently selected turret.
+- `TurretRangeIndicator` can use a configured prefab such as `Marker circle simple cyan 1` for polished range presentation, while keeping the previous `LineRenderer` circle as a fallback when no prefab is assigned.
+- Prefab-based range indicators are instantiated once, reused, moved to the selected turret center, and scaled by `range / prefabRadiusAtScaleOne`.
+- Particle-based range indicator prefabs can have their particle loops forced at runtime so short marker effects can stay visible while a turret remains selected.
 - The indicator uses the selected turret's current calculated runtime range, so level-up and evolution changes are reflected when the popup refreshes.
 - The indicator is hidden when selection is cleared or placement input is active.
 

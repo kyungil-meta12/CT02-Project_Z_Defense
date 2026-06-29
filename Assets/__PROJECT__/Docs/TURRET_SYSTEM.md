@@ -904,6 +904,16 @@ Engineer buff policy:
 - The indicator uses the selected turret's current calculated runtime range, so level-up and evolution changes are reflected when the popup refreshes.
 - The indicator is hidden when selection is cleared or placement input is active.
 
+## Upgrade Popup UI V2
+
+- `TurretUpgradePopupPresenter` is the runtime owner for the new upgrade popup. It receives the selected `TurretDefinitionRuntimeController` and optional `TurretBaseSlot`, builds display data, and converts UI input into upgrade, evolution, and engineer dismount commands.
+- `TurretUpgradePopupView` is a pure UI view. It owns serialized references to root, labels, stat rows, action buttons, and engineer seat entries, then emits button events without reading turret gameplay state directly.
+- `TurretUpgradePopupViewModel`, `TurretUpgradeStatViewModel`, `TurretUpgradeActionViewModel`, and `TurretEngineerSeatViewModel` are read-only display models used to keep UI rendering separate from gameplay mutation.
+- `TurretUpgradeStatRowView`, `TurretUpgradeActionButtonView`, and `TurretEngineerSeatEntryView` are reusable row/button views. Prefer adding or reordering these components in the prefab over adding one-off logic to the presenter.
+- The V2 popup scaffold can be built in the scene while the current `TurretTemporaryUpgradePopupUI` remains active. Selection wiring should be switched in a later focused step after the UI prefab hierarchy is complete.
+- `TurretTemporaryUpgradePopupUI.useUpgradePopupV2` switches double-click popup opening to `TurretUpgradePopupPresenter.Show(turret, slot)`. Keep the old popup references as fallback until V2 play-mode validation is complete.
+- When V2 is enabled, the first turret click still hides any open popup and refreshes only the range indicator. The second click on the same turret within `popupDoubleClickInterval` opens V2.
+
 ## Pooling Rules
 
 - Projectile scale must be applied every spawn.

@@ -29438,7 +29438,7 @@ GameObject:
   - component: {fileID: 6315320615969385875}
   - component: {fileID: 5558582361860170614}
   m_Layer: 0
-  m_Name: DropItemParticle_Epic
+  m_Name: DropitemParticle_Epic
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

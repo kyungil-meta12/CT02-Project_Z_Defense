@@ -59,7 +59,7 @@ public class ItemDataEditorTool : EditorWindow
 
         treatMissingSpriteAsError = EditorGUILayout.Toggle("이미지 누락을 오류 처리", treatMissingSpriteAsError);
 
-        EditorGUILayout.HelpBox("CSV 컬럼은 컬럼명(한글 설명) 형태로 출력됩니다. 제작 재료는 Type:Count;Type:Count 형식입니다. 없는 enum은 Import를 중단하고 별도 버튼으로 RewardCurrencyType.cs를 재생성합니다.", MessageType.Info);
+        EditorGUILayout.HelpBox("CSV 컬럼은 컬럼명<타입>(한글 설명) 형태로 출력됩니다. 제작 재료는 Type:Count;Type:Count 형식입니다. 임포트 파서가 없는 타입은 익스포트 전에 중단됩니다.", MessageType.Info);
 
         EditorGUILayout.BeginHorizontal();
         if (GUILayout.Button("CSV로 익스포트", GUILayout.Height(34)))
@@ -154,11 +154,23 @@ public class ItemDataEditorTool : EditorWindow
     private void SyncCsvHeader()
     {
         ClearRunState();
+        CsvColumnDefinition[] columnDefinitions = BuildCsvColumnDefinitions();
+        if (!ValidateSupportedColumnDefinitions(columnDefinitions))
+        {
+            FlushMessagesToConsole(false);
+            return;
+        }
+
         if (!File.Exists(DEFAULT_CSV_PATH))
         {
             StringBuilder builder = new StringBuilder(256);
-            AppendHeader(builder, BuildCsvColumnDefinitions());
-            WriteCsvText(builder.ToString());
+            AppendHeader(builder, columnDefinitions);
+            if (!WriteCsvText(builder.ToString()))
+            {
+                FlushMessagesToConsole(false);
+                return;
+            }
+
             AddMessage("CSV 파일이 없어 헤더만 포함한 파일을 생성했습니다: " + DEFAULT_CSV_PATH);
             FlushMessagesToConsole(true);
             return;
@@ -176,7 +188,6 @@ public class ItemDataEditorTool : EditorWindow
             table.Add(new List<string>());
         }
 
-        CsvColumnDefinition[] columnDefinitions = BuildCsvColumnDefinitions();
         int addedCount = AddMissingHeaderColumns(table, columnDefinitions);
         if (addedCount <= 0)
         {
@@ -185,7 +196,12 @@ public class ItemDataEditorTool : EditorWindow
             return;
         }
 
-        WriteCsvText(BuildCsvText(table));
+        if (!WriteCsvText(BuildCsvText(table)))
+        {
+            FlushMessagesToConsole(false);
+            return;
+        }
+
         AssetDatabase.Refresh();
         AddMessage($"CSV 헤더 동기화 완료: 누락 컬럼 {addedCount}개를 추가했습니다.");
         FlushMessagesToConsole(true);
@@ -269,6 +285,12 @@ public class ItemDataEditorTool : EditorWindow
 
         StringBuilder builder = new StringBuilder(1024);
         CsvColumnDefinition[] columnDefinitions = BuildCsvColumnDefinitions();
+        if (!ValidateSupportedColumnDefinitions(columnDefinitions))
+        {
+            FlushMessagesToConsole(false);
+            return;
+        }
+
         AppendHeader(builder, columnDefinitions);
         for (int i = 0; i < targetListSo.MetaDataList.Count; i++)
         {
@@ -281,7 +303,12 @@ public class ItemDataEditorTool : EditorWindow
             AppendItemRow(builder, columnDefinitions, item);
         }
 
-        WriteCsvText(builder.ToString());
+        if (!WriteCsvText(builder.ToString()))
+        {
+            FlushMessagesToConsole(false);
+            return;
+        }
+
         AssetDatabase.Refresh();
         AddMessage("익스포트 완료: " + DEFAULT_CSV_PATH);
         FlushMessagesToConsole(true);
@@ -311,13 +338,17 @@ public class ItemDataEditorTool : EditorWindow
             return;
         }
 
-        List<string> enumNames = GetCurrentRewardCurrencyNames();
+        List<RewardCurrencyEnumEntry> enumEntries = GetCurrentRewardCurrencyEntries();
         for (int i = 0; i < missingEnumNames.Count; i++)
         {
             string enumName = missingEnumNames[i];
-            if (!enumNames.Contains(enumName))
+            if (!ContainsRewardCurrencyEntry(enumEntries, enumName))
             {
-                enumNames.Add(enumName);
+                enumEntries.Add(new RewardCurrencyEnumEntry
+                {
+                    Name = enumName,
+                    Value = GetNextRewardCurrencyValue(enumEntries)
+                });
             }
         }
 
@@ -326,7 +357,7 @@ public class ItemDataEditorTool : EditorWindow
             return;
         }
 
-        File.WriteAllText(enumPath, BuildRewardCurrencyTypeSource(enumNames), new UTF8Encoding(false));
+        File.WriteAllText(enumPath, BuildRewardCurrencyTypeSource(enumEntries), new UTF8Encoding(false));
         AssetDatabase.Refresh();
         AddMessage("RewardCurrencyType.cs를 재생성했습니다. 컴파일 완료 후 CSV 임포트를 다시 실행하세요.");
         FlushMessagesToConsole(true);
@@ -354,7 +385,12 @@ public class ItemDataEditorTool : EditorWindow
             return false;
         }
 
-        if (!TryBuildHeaderMap(table[0], out Dictionary<string, int> headerMap))
+        if (!TryBuildHeaderMap(table[0], out Dictionary<string, int> headerMap, out Dictionary<string, string> headerTypeMap))
+        {
+            return false;
+        }
+
+        if (!ValidateHeaderTypes(headerTypeMap))
         {
             return false;
         }
@@ -394,15 +430,22 @@ public class ItemDataEditorTool : EditorWindow
     }
 
     // CSV 헤더를 컬럼 인덱스 맵으로 변환한다
-    private bool TryBuildHeaderMap(List<string> headers, out Dictionary<string, int> headerMap)
+    private bool TryBuildHeaderMap(List<string> headers, out Dictionary<string, int> headerMap, out Dictionary<string, string> headerTypeMap)
     {
         headerMap = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+        headerTypeMap = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         for (int i = 0; i < headers.Count; i++)
         {
             string header = NormalizeHeaderName(headers[i]);
             if (!string.IsNullOrEmpty(header) && !headerMap.ContainsKey(header))
             {
                 headerMap.Add(header, i);
+            }
+
+            string typeName = ExtractHeaderTypeName(headers[i]);
+            if (!string.IsNullOrEmpty(header) && !string.IsNullOrEmpty(typeName) && !headerTypeMap.ContainsKey(header))
+            {
+                headerTypeMap.Add(header, typeName);
             }
         }
 
@@ -419,7 +462,67 @@ public class ItemDataEditorTool : EditorWindow
         return true;
     }
 
-    // 설명이 붙은 CSV 헤더에서 실제 컬럼 키만 추출한다
+    // CSV로 임포트 가능한 타입만 헤더 생성과 익스포트를 허용한다
+    private bool ValidateSupportedColumnDefinitions(CsvColumnDefinition[] columnDefinitions)
+    {
+        bool isValid = true;
+        for (int i = 0; i < columnDefinitions.Length; i++)
+        {
+            CsvColumnDefinition definition = columnDefinitions[i];
+            if (IsSupportedCsvFieldType(definition.Field.FieldType))
+            {
+                continue;
+            }
+
+            AddMessage($"익스포트 중단: {definition.Field.Name} 필드는 CSV 임포트 파서가 없는 타입입니다. 타입: {GetReadableTypeName(definition.Field.FieldType)}");
+            isValid = false;
+        }
+
+        if (!isValid)
+        {
+            AddMessage("지원 타입: string, int, float, bool, enum, Sprite, List<ItemMaterialData>");
+        }
+
+        return isValid;
+    }
+
+    // CSV 임포트 파서가 준비된 필드 타입인지 확인한다
+    private static bool IsSupportedCsvFieldType(Type fieldType)
+    {
+        return fieldType == typeof(string)
+            || fieldType == typeof(int)
+            || fieldType == typeof(float)
+            || fieldType == typeof(bool)
+            || fieldType.IsEnum
+            || fieldType == typeof(Sprite)
+            || fieldType == typeof(List<ItemMaterialData>);
+    }
+
+    // CSV 헤더 타입이 현재 ItemMetaDataSo 필드 타입과 일치하는지 확인한다
+    private bool ValidateHeaderTypes(Dictionary<string, string> headerTypeMap)
+    {
+        CsvColumnDefinition[] columnDefinitions = BuildCsvColumnDefinitions();
+        for (int i = 0; i < columnDefinitions.Length; i++)
+        {
+            CsvColumnDefinition definition = columnDefinitions[i];
+            if (!headerTypeMap.TryGetValue(definition.ColumnName, out string csvTypeName))
+            {
+                continue;
+            }
+
+            if (string.Equals(csvTypeName, definition.TypeName, StringComparison.OrdinalIgnoreCase))
+            {
+                continue;
+            }
+
+            AddMessage($"CSV 헤더 타입이 현재 ItemMetaDataSo 필드 타입과 다릅니다. 컬럼: {definition.ColumnName}, CSV: {csvTypeName}, 현재: {definition.TypeName}");
+            return false;
+        }
+
+        return true;
+    }
+
+    // 설명과 타입이 붙은 CSV 헤더에서 실제 컬럼 키만 추출한다
     private static string NormalizeHeaderName(string header)
     {
         string normalizedHeader = (header ?? string.Empty).Trim('\uFEFF').Trim();
@@ -429,7 +532,28 @@ public class ItemDataEditorTool : EditorWindow
             descriptionIndex = normalizedHeader.IndexOf('（');
         }
 
-        return descriptionIndex >= 0 ? normalizedHeader.Substring(0, descriptionIndex).Trim() : normalizedHeader;
+        string columnName = descriptionIndex >= 0 ? normalizedHeader.Substring(0, descriptionIndex).Trim() : normalizedHeader;
+        int typeIndex = columnName.IndexOf('<');
+        return typeIndex >= 0 ? columnName.Substring(0, typeIndex).Trim() : columnName;
+    }
+
+    // CSV 헤더에서 타입 이름을 추출한다
+    private static string ExtractHeaderTypeName(string header)
+    {
+        string normalizedHeader = (header ?? string.Empty).Trim('\uFEFF').Trim();
+        int typeStartIndex = normalizedHeader.IndexOf('<');
+        if (typeStartIndex < 0)
+        {
+            return string.Empty;
+        }
+
+        int typeEndIndex = normalizedHeader.IndexOf('>', typeStartIndex + 1);
+        if (typeEndIndex <= typeStartIndex)
+        {
+            return string.Empty;
+        }
+
+        return normalizedHeader.Substring(typeStartIndex + 1, typeEndIndex - typeStartIndex - 1).Trim();
     }
 
     // ItemMetaDataSo 필드 목록을 CSV 컬럼 정의로 변환한다
@@ -446,6 +570,7 @@ public class ItemDataEditorTool : EditorWindow
             {
                 Field = field,
                 ColumnName = GetCsvColumnName(field),
+                TypeName = GetCsvTypeName(field),
                 Description = GetCsvColumnDescription(field)
             };
         }
@@ -468,6 +593,59 @@ public class ItemDataEditorTool : EditorWindow
         }
 
         return field.Name;
+    }
+
+    // 필드에 대응되는 CSV 타입 이름을 반환한다
+    private static string GetCsvTypeName(FieldInfo field)
+    {
+        Type fieldType = field.FieldType;
+        if (fieldType == typeof(Sprite))
+        {
+            return "SpriteAssetPath";
+        }
+
+        if (fieldType == typeof(List<ItemMaterialData>))
+        {
+            return "ItemMaterialDataList";
+        }
+
+        if (fieldType.IsEnum)
+        {
+            return fieldType.Name;
+        }
+
+        return fieldType.Name;
+    }
+
+    // 사용자에게 표시할 타입 이름을 반환한다
+    private static string GetReadableTypeName(Type type)
+    {
+        if (!type.IsGenericType)
+        {
+            return type.Name;
+        }
+
+        Type[] genericArguments = type.GetGenericArguments();
+        StringBuilder builder = new StringBuilder(type.Name);
+        int genericMarkerIndex = builder.ToString().IndexOf('`');
+        if (genericMarkerIndex >= 0)
+        {
+            builder.Length = genericMarkerIndex;
+        }
+
+        builder.Append('<');
+        for (int i = 0; i < genericArguments.Length; i++)
+        {
+            if (i > 0)
+            {
+                builder.Append(", ");
+            }
+
+            builder.Append(GetReadableTypeName(genericArguments[i]));
+        }
+
+        builder.Append('>');
+        return builder.ToString();
     }
 
     // 필드의 HeaderAttribute 설명을 CSV 설명으로 반환한다
@@ -493,10 +671,16 @@ public class ItemDataEditorTool : EditorWindow
             }
 
             CsvColumnDefinition definition = columnDefinitions[i];
-            builder.Append(EscapeCsvField($"{definition.ColumnName}({definition.Description})"));
+            builder.Append(EscapeCsvField(FormatHeader(definition)));
         }
 
         builder.AppendLine();
+    }
+
+    // CSV 헤더 셀 문자열을 생성한다
+    private static string FormatHeader(CsvColumnDefinition definition)
+    {
+        return $"{definition.ColumnName}<{definition.TypeName}>({definition.Description})";
     }
 
     // 아이템 데이터를 CSV 행으로 추가한다
@@ -534,11 +718,16 @@ public class ItemDataEditorTool : EditorWindow
             return FormatCraftItems((List<ItemMaterialData>)value);
         }
 
+        if (definition.Field.FieldType.IsEnum)
+        {
+            return FormatEnumValue((Enum)value);
+        }
+
         return value.ToString();
     }
 
     // CSV 파일을 UTF-8 BOM 포함 텍스트로 저장한다
-    private static void WriteCsvText(string csvText)
+    private bool WriteCsvText(string csvText)
     {
         string directoryPath = Path.GetDirectoryName(DEFAULT_CSV_PATH);
         if (!string.IsNullOrEmpty(directoryPath))
@@ -546,7 +735,23 @@ public class ItemDataEditorTool : EditorWindow
             Directory.CreateDirectory(directoryPath);
         }
 
-        File.WriteAllText(DEFAULT_CSV_PATH, csvText, new UTF8Encoding(true));
+        try
+        {
+            File.WriteAllText(DEFAULT_CSV_PATH, csvText, new UTF8Encoding(true));
+            return true;
+        }
+        catch (IOException exception)
+        {
+            AddMessage("CSV 파일을 쓸 수 없습니다. Excel이나 다른 프로그램에서 파일을 열어 잠금 중일 수 있습니다. 파일을 닫은 뒤 다시 실행하세요.");
+            AddMessage(exception.Message);
+            return false;
+        }
+        catch (UnauthorizedAccessException exception)
+        {
+            AddMessage("CSV 파일 쓰기 권한이 없습니다: " + DEFAULT_CSV_PATH);
+            AddMessage(exception.Message);
+            return false;
+        }
     }
 
     // CSV 테이블에 누락된 헤더 컬럼을 추가한다
@@ -572,7 +777,7 @@ public class ItemDataEditorTool : EditorWindow
                 continue;
             }
 
-            headers.Add($"{definition.ColumnName}({definition.Description})");
+            headers.Add(FormatHeader(definition));
             for (int rowIndex = 1; rowIndex < table.Count; rowIndex++)
             {
                 table[rowIndex].Add(string.Empty);
@@ -767,23 +972,20 @@ public class ItemDataEditorTool : EditorWindow
             return false;
         }
 
-        if (!IsValidIdentifier(typeText))
+        if (!TryParseRewardCurrencyTypeCell(typeText, lineNumber, TYPE_COLUMN, out RewardCurrencyType itemType, errors, true))
         {
-            errors.Add($"{lineNumber}행: Type이 C# enum 이름으로 유효하지 않습니다. 값: {typeText}");
-            return false;
-        }
-
-        if (!Enum.TryParse(typeText, out RewardCurrencyType itemType))
-        {
-            AddMissingEnumName(typeText);
             return false;
         }
 
         ItemGrade itemGrade = ItemGrade.Common;
-        if (!string.IsNullOrEmpty(gradeText) && !Enum.TryParse(gradeText, out itemGrade))
+        object gradeValue = null;
+        if (!string.IsNullOrEmpty(gradeText) && !TryParseEnumCell(gradeText, typeof(ItemGrade), lineNumber, GRADE_COLUMN, out gradeValue, errors, false))
         {
-            errors.Add($"{lineNumber}행: Grade 값이 유효하지 않습니다. 값: {gradeText}");
             return false;
+        }
+        else if (!string.IsNullOrEmpty(gradeText))
+        {
+            itemGrade = (ItemGrade)gradeValue;
         }
 
         if (!bool.TryParse(craftableText, out bool craftable))
@@ -933,17 +1135,14 @@ public class ItemDataEditorTool : EditorWindow
 
         if (fieldType.IsEnum)
         {
-            try
+            if (TryParseEnumCell(trimmedValue, fieldType, lineNumber, definition.ColumnName, out object enumValue, null, false))
             {
-                object enumValue = Enum.Parse(fieldType, trimmedValue);
                 definition.Field.SetValue(itemSo, enumValue);
                 return true;
             }
-            catch (ArgumentException)
-            {
-                AddMessage($"{lineNumber}행: {definition.ColumnName} enum 값이 유효하지 않아 기존 값을 유지합니다. 값: {value}");
-                return false;
-            }
+
+            AddMessage($"{lineNumber}행: {definition.ColumnName} enum 값이 유효하지 않아 기존 값을 유지합니다. 값: {value}");
+            return false;
         }
 
         if (fieldType == typeof(Sprite))
@@ -988,15 +1187,8 @@ public class ItemDataEditorTool : EditorWindow
             }
 
             string typeText = parts[0].Trim();
-            if (!IsValidIdentifier(typeText))
+            if (!TryParseRewardCurrencyTypeCell(typeText, lineNumber, CRAFT_COLUMN, out RewardCurrencyType materialType, errors, true))
             {
-                errors.Add($"{lineNumber}행: 제작 재료 Type이 C# enum 이름으로 유효하지 않습니다. 값: {typeText}");
-                return false;
-            }
-
-            if (!Enum.TryParse(typeText, out RewardCurrencyType materialType))
-            {
-                AddMissingEnumName(typeText);
                 return false;
             }
 
@@ -1224,12 +1416,96 @@ public class ItemDataEditorTool : EditorWindow
             }
 
             ItemMaterialData item = craftItems[i];
-            builder.Append(item.Type);
+            builder.Append(FormatEnumValue(item.Type));
             builder.Append(':');
             builder.Append(Mathf.Max(0, item.Count));
         }
 
         return builder.ToString();
+    }
+
+    // enum 값을 이름=인덱스 형식으로 변환한다
+    private static string FormatEnumValue(Enum enumValue)
+    {
+        return enumValue + "=" + Convert.ToInt64(enumValue);
+    }
+
+    // RewardCurrencyType 셀을 enum 이름과 인덱스로 검증해 변환한다
+    private bool TryParseRewardCurrencyTypeCell(string text, int lineNumber, string columnName, out RewardCurrencyType result, List<string> errors, bool collectMissingEnum)
+    {
+        result = default;
+        if (TryParseEnumCell(text, typeof(RewardCurrencyType), lineNumber, columnName, out object enumValue, errors, collectMissingEnum))
+        {
+            result = (RewardCurrencyType)enumValue;
+            return true;
+        }
+
+        return false;
+    }
+
+    // enum 셀을 이름 또는 이름=인덱스 형식으로 변환한다
+    private bool TryParseEnumCell(string text, Type enumType, int lineNumber, string columnName, out object enumValue, List<string> errors, bool collectMissingRewardCurrency)
+    {
+        enumValue = null;
+        string safeText = (text ?? string.Empty).Trim();
+        int equalsIndex = safeText.IndexOf('=');
+        string enumName = equalsIndex >= 0 ? safeText.Substring(0, equalsIndex).Trim() : safeText;
+        string enumIndexText = equalsIndex >= 0 ? safeText.Substring(equalsIndex + 1).Trim() : string.Empty;
+        if (!IsValidIdentifier(enumName))
+        {
+            AddEnumParseError(errors, $"{lineNumber}행: {columnName} enum 이름이 C# 식별자로 유효하지 않습니다. 값: {text}");
+            return false;
+        }
+
+        try
+        {
+            enumValue = Enum.Parse(enumType, enumName);
+        }
+        catch (ArgumentException)
+        {
+            if (collectMissingRewardCurrency && enumType == typeof(RewardCurrencyType))
+            {
+                AddMissingEnumName(enumName);
+            }
+            else
+            {
+                AddEnumParseError(errors, $"{lineNumber}행: {columnName} enum 이름이 유효하지 않습니다. 값: {text}");
+            }
+
+            return false;
+        }
+
+        if (string.IsNullOrEmpty(enumIndexText))
+        {
+            return true;
+        }
+
+        if (!long.TryParse(enumIndexText, out long csvEnumIndex))
+        {
+            AddEnumParseError(errors, $"{lineNumber}행: {columnName} enum 인덱스가 정수가 아닙니다. 값: {text}");
+            return false;
+        }
+
+        long currentEnumIndex = Convert.ToInt64(enumValue);
+        if (csvEnumIndex != currentEnumIndex)
+        {
+            AddEnumParseError(errors, $"{lineNumber}행: {columnName} enum 인덱스가 현재 코드와 다릅니다. CSV: {text}, 현재: {enumName}={currentEnumIndex}");
+            return false;
+        }
+
+        return true;
+    }
+
+    // enum 파싱 오류를 검증 목록이나 실행 메시지에 기록한다
+    private void AddEnumParseError(List<string> errors, string message)
+    {
+        if (errors != null)
+        {
+            errors.Add(message);
+            return;
+        }
+
+        AddMessage(message);
     }
 
     // 누락된 enum 이름을 중복 없이 기록한다
@@ -1241,17 +1517,51 @@ public class ItemDataEditorTool : EditorWindow
         }
     }
 
-    // 현재 RewardCurrencyType enum 이름 목록을 반환한다
-    private static List<string> GetCurrentRewardCurrencyNames()
+    // 현재 RewardCurrencyType enum 이름과 값을 반환한다
+    private static List<RewardCurrencyEnumEntry> GetCurrentRewardCurrencyEntries()
     {
         Array values = Enum.GetValues(typeof(RewardCurrencyType));
-        List<string> names = new List<string>(values.Length);
+        List<RewardCurrencyEnumEntry> entries = new List<RewardCurrencyEnumEntry>(values.Length);
         for (int i = 0; i < values.Length; i++)
         {
-            names.Add(values.GetValue(i).ToString());
+            object value = values.GetValue(i);
+            entries.Add(new RewardCurrencyEnumEntry
+            {
+                Name = value.ToString(),
+                Value = Convert.ToInt64(value)
+            });
         }
 
-        return names;
+        return entries;
+    }
+
+    // RewardCurrencyType 엔트리에 같은 이름이 있는지 확인한다
+    private static bool ContainsRewardCurrencyEntry(List<RewardCurrencyEnumEntry> enumEntries, string enumName)
+    {
+        for (int i = 0; i < enumEntries.Count; i++)
+        {
+            if (string.Equals(enumEntries[i].Name, enumName, StringComparison.Ordinal))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    // 새 RewardCurrencyType에 부여할 다음 명시값을 계산한다
+    private static long GetNextRewardCurrencyValue(List<RewardCurrencyEnumEntry> enumEntries)
+    {
+        long maxValue = -1L;
+        for (int i = 0; i < enumEntries.Count; i++)
+        {
+            if (enumEntries[i].Value > maxValue)
+            {
+                maxValue = enumEntries[i].Value;
+            }
+        }
+
+        return maxValue + 1L;
     }
 
     // RewardCurrencyType 스크립트 경로를 찾는다
@@ -1271,18 +1581,19 @@ public class ItemDataEditorTool : EditorWindow
     }
 
     // RewardCurrencyType enum 소스 코드를 생성한다
-    private static string BuildRewardCurrencyTypeSource(List<string> enumNames)
+    private static string BuildRewardCurrencyTypeSource(List<RewardCurrencyEnumEntry> enumEntries)
     {
         StringBuilder builder = new StringBuilder(256);
         builder.AppendLine("/// <summary>");
-        builder.AppendLine("/// 보상과 비용 계산에 공통으로 사용하는 재화 종류.");
+        builder.AppendLine("/// 보상과 비용 계산에 공통으로 사용하는 재화 종류. <para/>");
+        builder.AppendLine("/// 작업 UI에서 오름차순으로 정렬되기 때문에 등급이 높은 아이템일 수록 높은 번호를 부여할 것");
         builder.AppendLine("/// </summary>");
         builder.AppendLine("public enum RewardCurrencyType");
         builder.AppendLine("{");
-        for (int i = 0; i < enumNames.Count; i++)
+        for (int i = 0; i < enumEntries.Count; i++)
         {
-            string suffix = i + 1 < enumNames.Count ? "," : string.Empty;
-            builder.AppendLine($"    {enumNames[i]}{suffix}");
+            string suffix = i + 1 < enumEntries.Count ? "," : string.Empty;
+            builder.AppendLine($"    {enumEntries[i].Name} = {enumEntries[i].Value}{suffix}");
         }
         builder.AppendLine("}");
         return builder.ToString();
@@ -1384,7 +1695,14 @@ public class ItemDataEditorTool : EditorWindow
     {
         public FieldInfo Field;
         public string ColumnName;
+        public string TypeName;
         public string Description;
+    }
+
+    private struct RewardCurrencyEnumEntry
+    {
+        public string Name;
+        public long Value;
     }
 }
 #endif

@@ -1,4 +1,4 @@
-﻿Type(아이템 타입),Grade(아이템 등급),Name(표시할 아이템 이름 텍스트),InfoText(표시할 아이템 설명 텍스트),ItemImageAssetPath(표시할 아이템 이미지),Craftable(제작 가능 여부),ItemsToCreate(제작에 필요한 아이템 목록),CreateCount(한 번 제작할 때 만들어지는 개수)
-Coin,Common,코인,좀비 사태 이전에 사용되던 화폐.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Coins/Icon_Coin_Dollar_Gold_LP.png,True,FirePart:100,100
-FirePart,Rare,일반 기계 부품,흔하게 볼 수 있는 기계 부품. 그 만큼 범용성이 좋다.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Resources Items/Icon_Gear_Wheel_LP.png,True,Coin:20,10
-SpecialPart,Epic,정밀 기계 부품,비싸고 정밀해서 전문가가 조심히 다루어야 하는 부품이다.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Common/Icon_Gear_Wheels_Group_LP.png,True,Coin:50;FirePart:5,3
+﻿Type<RewardCurrencyType>(아이템 타입),Grade<ItemGrade>(아이템 등급),Name<String>(표시할 아이템 이름 텍스트),InfoText<String>(표시할 아이템 설명 텍스트),ItemImageAssetPath<SpriteAssetPath>(표시할 아이템 이미지),Craftable<Boolean>(제작 가능 여부),ItemsToCreate<ItemMaterialDataList>(제작에 필요한 아이템 목록),CreateCount<Int32>(한 번 제작할 때 만들어지는 개수)
+Coin=0,Common=0,코인,좀비 사태 이전에 사용되던 화폐.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Coins/Icon_Coin_Dollar_Gold_LP.png,True,FirePart=1:100,100
+FirePart=1,Rare=1,일반 기계 부품,흔하게 볼 수 있는 기계 부품. 그 만큼 범용성이 좋다.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Resources Items/Icon_Gear_Wheel_LP.png,True,Coin=0:20,10
+SpecialPart=2,Epic=2,정밀 기계 부품,비싸고 정밀해서 전문가가 조심히 다루어야 하는 부품이다.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Common/Icon_Gear_Wheels_Group_LP.png,True,Coin=0:50;FirePart=1:5,3

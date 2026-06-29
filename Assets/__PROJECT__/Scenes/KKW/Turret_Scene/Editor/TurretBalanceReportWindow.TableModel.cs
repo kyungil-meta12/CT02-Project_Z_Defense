@@ -1,4 +1,6 @@
-﻿using System.Globalization;
+﻿using System.Collections.Generic;
+using System.Globalization;
+using System.Text;
 using UnityEditor;
 using UnityEngine;
 
@@ -24,27 +26,114 @@ internal sealed class TurretBalanceReportTableBuilder
     // 웨이브 클리어 표 캐시를 만든다
     private static void BuildWaveClearTableCache(TurretBalanceReportResult report, ReportTableModel table)
     {
-        table.Reset("wave_clear_simulation.csv", $"각 웨이브에서 같은 터렛 한 종류만 쓴다고 가정합니다. 시뮬레이션 예산 코인 = 초기 지갑 Coin {FormatInt(report.InitialWalletCoin)} + 직전 웨이브까지의 누적 웨이브 획득 Coin입니다(해당 웨이브 보상은 아직 받기 전이라 제외). 예상 클리어 초 = 웨이브 총 좀비 HP / 최적 터렛 총 DPS입니다.", "웨이브", "일반 좀비 수", "보스 좀비 수", "전체 좀비 수", "좀비 평균 HP", "웨이브 총 좀비 HP", "웨이브 획득 코인", "누적 웨이브 코인", "시뮬레이션 예산 코인", "최적 터렛", "최적 터렛 수", "최적 터렛 레벨", "최적 터렛 총 DPS", "예상 클리어 초", "비고");
+        table.Reset("wave_clear_simulation.csv", $"각 웨이브에서, 터렛 시나리오 상세의 종류별 레벨 체크포인트 데이터(누적 코인·DPS)를 참고해 그 웨이브 시작 시점의 예산(직전 웨이브까지의 총 누적 코인, 첫 웨이브는 초기 지갑 Coin {FormatInt(report.InitialWalletCoin)})으로 설치 가능한 총 DPS가 가장 높은 1~3순위 종류를 보여줍니다. 총 누적 코인 = 초기 지갑 Coin + 그 웨이브까지의 획득 코인 누적(해당 웨이브 보상 포함)입니다. 예상 클리어 초 = 웨이브 총 좀비 HP / 1순위 총 DPS입니다.", "웨이브", "일반 좀비 수", "보스 좀비 수", "웨이브 총 좀비 HP", "웨이브 획득 코인", "총 누적 코인", "1순위 터렛", "2순위 터렛", "3순위 터렛", "예상 클리어 초", "비고");
         for (int i = 0; i < report.WaveClearRows.Count; i++)
         {
             WaveClearSimulationRow row = report.WaveClearRows[i];
-            table.AddRow(row.WaveLabel, FormatInt(row.NormalSpawnCount), FormatInt(row.BossSpawnCount), FormatInt(row.SpawnCount), FormatFloat(row.AverageZombieHp), FormatFloat(row.TotalWaveHp), FormatFloat(row.AverageCoinPerWave), FormatFloat(row.CumulativeWaveRewardCoin), FormatFloat(row.AvailableBudgetCoin), row.BestTurretName, FormatInt(row.BestInstallCount), row.BestLevelText, FormatFloat(row.BestTotalDps), FormatFloat(row.BestClearSeconds), row.Note);
+            table.AddRow(row.WaveLabel, FormatInt(row.NormalSpawnCount), FormatInt(row.BossSpawnCount), FormatFloat(row.TotalWaveHp), FormatFloat(row.AverageCoinPerWave), FormatFloat(row.CumulativeWaveRewardCoin), FormatRankCell(row.TopRanks, 0), FormatRankCell(row.TopRanks, 1), FormatRankCell(row.TopRanks, 2), FormatFloat(row.BestClearSeconds), row.Note);
         }
 
         TurretBalanceReportTableRenderer.RecalculateColumnWidths(table);
     }
 
+    // 순위 목록에서 지정 순위의 셀 텍스트를 만든다
+    private static string FormatRankCell(List<WaveClearRankEntry> topRanks, int rankIndex)
+    {
+        if (topRanks == null || rankIndex >= topRanks.Count)
+        {
+            return "해당없음";
+        }
+
+        WaveClearRankEntry entry = topRanks[rankIndex];
+        return $"{entry.TurretName}\n{FormatInt(entry.InstallCount)}대 Lv{FormatInt(entry.Level)}\n{FormatFloat(entry.TotalDps)} DPS";
+    }
+
     // 터렛 시나리오 상세 표 캐시를 만든다
     private static void BuildScenarioDetailTableCache(TurretBalanceReportResult report, ReportTableModel table)
     {
-        table.Reset("turret_scenario_details.csv", "터렛 상점 엔트리별로 1대 집중/최대 설치/예산 최적 시나리오의 전투력(레벨/DPS/클리어 시간)과 예산 사용 내역(설치비/업그레이드비/잔여/부족액)을 한 행에 보여줍니다.", "웨이브", "터렛 이름", "시나리오", "설치 터렛 수", "터렛 레벨", "설치 터렛 총 레벨", "터렛 총 DPS", "예상 클리어 초", "시뮬레이션 예산 코인", "터렛 설치 비용", "터렛 업그레이드 비용", "잔여 코인", "다음 업그레이드 부족 코인", "비고");
-        for (int i = 0; i < report.ScenarioDetailRows.Count; i++)
+        table.Reset("turret_species_detail.csv", "진화 그래프의 터렛 종류(노드)별로, 단일 설치 기준 다음 진화에 필요한 누적 재화와 그것이 가능해지는 웨이브(Coin 기준), 그리고 기준 레벨(1, 10, 20, ...)까지 해당 종류 안에서만(진화하지 않고) 레벨업하는 데 드는 누적 재화·DPS·그 Coin이 모이는 웨이브를 보여줍니다. 재화 줄은 실제로 비용이 든 재화 종류 수만큼 늘어납니다.", BuildSpeciesDetailHeaders(report.ScenarioReferenceLevels));
+        for (int i = 0; i < report.SpeciesDetailRows.Count; i++)
         {
-            TurretScenarioDetailRow row = report.ScenarioDetailRows[i];
-            table.AddRow(row.WaveLabel, row.TurretName, row.ScenarioName, FormatInt(row.InstallCount), row.LevelSummary, FormatInt(row.TotalLevel), FormatFloat(row.TotalDps), FormatFloat(row.ClearSeconds), FormatInt(row.BudgetCoin), FormatInt(row.PlacementCost), FormatInt(row.UpgradeCost), FormatInt(row.RemainingCoin), FormatInt(row.NextUpgradeShortage), row.Note);
+            table.AddRow(BuildSpeciesDetailRowColumns(report.SpeciesDetailRows[i]));
         }
 
         TurretBalanceReportTableRenderer.RecalculateColumnWidths(table);
+    }
+
+    // 터렛 종류별 상세 표의 헤더를 기준 레벨 목록에 맞춰 동적으로 만든다
+    private static string[] BuildSpeciesDetailHeaders(List<int> referenceLevels)
+    {
+        string[] headers = new string[3 + referenceLevels.Count];
+        headers[0] = "터렛 이름";
+        headers[1] = "다음 진화 가능 웨이브";
+        headers[2] = "다음 진화까지 누적 소모 재화";
+        for (int i = 0; i < referenceLevels.Count; i++)
+        {
+            headers[3 + i] = $"레벨 {referenceLevels[i]}";
+        }
+
+        return headers;
+    }
+
+    // 터렛 종류별 상세 표의 행 문자열을 만든다
+    private static string[] BuildSpeciesDetailRowColumns(TurretSpeciesDetailRow row)
+    {
+        string[] columns = new string[3 + row.LevelSamples.Count];
+        columns[0] = row.TurretName;
+        columns[1] = !row.HasNextEvolution ? "해당없음" : row.NextEvolutionReached ? FormatInt(row.NextEvolutionWave) : "미도달";
+        columns[2] = !row.HasNextEvolution ? "해당없음" : FormatCostBreakdown(row.NextEvolutionCumulativeCost);
+        for (int i = 0; i < row.LevelSamples.Count; i++)
+        {
+            TurretLevelCostSample sample = row.LevelSamples[i];
+            columns[3 + i] = sample.LevelAvailable
+                ? $"{FormatFloat(sample.Dps)} DPS\n{FormatCostBreakdown(sample.CumulativeCost)}\n{(sample.WaveReached ? $"W{FormatInt(sample.Wave)}" : "미도달")}"
+                : "해당없음";
+        }
+
+        return columns;
+    }
+
+    // 재화별 누적 비용을 재화 종류 수만큼 줄바꿈한 문자열로 만든다
+    private static string FormatCostBreakdown(Dictionary<RewardCurrencyType, int> costs)
+    {
+        if (costs == null || costs.Count == 0)
+        {
+            return "0";
+        }
+
+        List<RewardCurrencyType> currencyTypes = new List<RewardCurrencyType>(costs.Keys);
+        currencyTypes.Sort((left, right) => ((int)left).CompareTo((int)right));
+
+        StringBuilder builder = new StringBuilder();
+        for (int i = 0; i < currencyTypes.Count; i++)
+        {
+            if (i > 0)
+            {
+                builder.Append('\n');
+            }
+
+            builder.Append(GetCurrencyLabel(currencyTypes[i]));
+            builder.Append(' ');
+            builder.Append(FormatInt(costs[currencyTypes[i]]));
+        }
+
+        return builder.ToString();
+    }
+
+    // 재화 종류의 표기용 짧은 이름을 반환한다
+    private static string GetCurrencyLabel(RewardCurrencyType currencyType)
+    {
+        switch (currencyType)
+        {
+            case RewardCurrencyType.Coin:
+                return "코인";
+            case RewardCurrencyType.FirePart:
+                return "파이어 파츠";
+            case RewardCurrencyType.SpecialPart:
+                return "스페셜 파츠";
+            default:
+                return currencyType.ToString();
+        }
     }
 
     // 원천 데이터 점검 표 캐시를 만든다

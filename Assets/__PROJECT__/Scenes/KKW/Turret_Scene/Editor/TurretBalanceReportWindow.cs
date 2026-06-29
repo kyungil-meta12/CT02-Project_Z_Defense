@@ -100,7 +100,7 @@ internal sealed class TurretBalanceReportWindow : EditorWindow
         }
 
         EditorGUILayout.Space(6.0f);
-        scrollPosition = TurretBalanceReportTableRenderer.Draw(GetReportTable(selectedTab), scrollPosition, position);
+        scrollPosition = TurretBalanceReportTableRenderer.Draw(GetReportTable(selectedTab), scrollPosition);
     }
 
     // 선택한 탭의 캐시된 표 데이터를 반환한다

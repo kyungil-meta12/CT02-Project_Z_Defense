@@ -50,7 +50,8 @@ internal sealed class TurretBalanceReportResult
     public int InitialWalletCoin;
     public readonly List<WaveSummaryRow> WaveRows = new List<WaveSummaryRow>();
     public readonly List<WaveClearSimulationRow> WaveClearRows = new List<WaveClearSimulationRow>();
-    public readonly List<TurretScenarioDetailRow> ScenarioDetailRows = new List<TurretScenarioDetailRow>();
+    public readonly List<int> ScenarioReferenceLevels = new List<int>();
+    public readonly List<TurretSpeciesDetailRow> SpeciesDetailRows = new List<TurretSpeciesDetailRow>();
     public readonly List<ReportWarning> Warnings = new List<ReportWarning>();
 }
 
@@ -89,7 +90,9 @@ internal sealed class ReportTableModel
     public string InfoText = string.Empty;
     public string[] Headers = System.Array.Empty<string>();
     public float[] ColumnWidths = System.Array.Empty<float>();
+    public float HeaderHeight = 20.0f;
     public readonly List<string[]> Rows = new List<string[]>(512);
+    public readonly List<float> RowHeights = new List<float>(512);
 
     // 표 모델을 새 헤더와 설명으로 초기화한다
     public void Reset(string fileName, string infoText, params string[] headers)
@@ -97,7 +100,9 @@ internal sealed class ReportTableModel
         FileName = fileName ?? string.Empty;
         InfoText = infoText ?? string.Empty;
         Headers = headers ?? System.Array.Empty<string>();
+        HeaderHeight = 20.0f;
         Rows.Clear();
+        RowHeights.Clear();
 
         if (ColumnWidths.Length != Headers.Length)
         {
@@ -133,61 +138,62 @@ internal struct WaveSummaryRow
     public float AvailableBudgetCoin;
 }
 
+// 웨이브 클리어 시뮬레이션 표 한 순위 항목의 터렛/설치 수/레벨/총 DPS.
+internal struct WaveClearRankEntry
+{
+    public string TurretName;
+    public int InstallCount;
+    public int Level;
+    public float TotalDps;
+}
+
 // 웨이브 클리어 시뮬레이션 표의 행 데이터.
 internal struct WaveClearSimulationRow
 {
     public string WaveLabel;
-    public int SpawnCount;
     public int NormalSpawnCount;
     public int BossSpawnCount;
-    public float AverageZombieHp;
     public float TotalWaveHp;
-    public int InitialWalletCoin;
     public float AverageCoinPerWave;
     public float CumulativeWaveRewardCoin;
-    public float AvailableBudgetCoin;
-    public string BestTurretName;
-    public int BestInstallCount;
-    public string BestLevelText;
-    public float BestTotalDps;
+    public List<WaveClearRankEntry> TopRanks;
     public float BestClearSeconds;
     public string Note;
 }
 
-// 터렛 시나리오 상세 표의 행 데이터. 시나리오(1대 집중/최대 설치/최적)별 전투력과 경제 사용 내역을 한 행에 담는다.
-internal struct TurretScenarioDetailRow
+// 진화 그래프에서 도달 가능한 터렛 종류 하나의 단계/누적 비용 정보. 누적 비용은 재화 종류별로 구분해 보관한다.
+internal sealed class TurretEvolutionNode
 {
-    public string WaveLabel;
-    public string TurretName;
-    public string ScenarioName;
-    public int InstallCount;
-    public string LevelSummary;
-    public int TotalLevel;
-    public float TotalDps;
-    public float ClearSeconds;
-    public int BudgetCoin;
-    public int PlacementCost;
-    public int UpgradeCost;
-    public int RemainingCoin;
-    public int NextUpgradeShortage;
-    public string Note;
+    public TurretDefinitionSO Definition;
+    public TurretShopEntrySO RootShopEntry;
+    public int Tier;
+    public bool IsTerminal;
+    public int RequiredEvolutionLevel;
+    public Dictionary<RewardCurrencyType, int> CumulativeReachCost;
+    public Dictionary<RewardCurrencyType, int> UpgradeCostToRequiredLevel;
+    // 루트 첫 대 설치비를 제외한, 진화/조상 업그레이드 비용(설치 대수가 늘어도 동일하게 적용되는 부분).
+    public int NonRootCoinCost;
 }
 
-// 시뮬레이션 내부 계산 결과 데이터.
-internal struct SimulationResult
+// 기준 레벨 하나에서 단일 설치 기준으로 그 레벨까지 올리는 데 드는 재화별 누적 비용/DPS와, Coin 기준 도달 웨이브 샘플.
+internal struct TurretLevelCostSample
+{
+    public int Level;
+    public bool LevelAvailable;
+    public Dictionary<RewardCurrencyType, int> CumulativeCost;
+    public float Dps;
+    public bool WaveReached;
+    public int Wave;
+}
+
+// 터렛 시나리오 상세 표의 행 데이터. 터렛 종류(진화 그래프 노드) 하나가 다음 단계로 진화하는 시점/비용과 기준 레벨별 누적 비용·DPS·도달 웨이브를 담는다.
+internal struct TurretSpeciesDetailRow
 {
     public string TurretName;
-    public string ScenarioName;
-    public int InstallCount;
-    public int TotalLevel;
-    public float AverageLevel;
-    public string LevelSummary;
-    public int MaxLevel;
-    public int PlacementCost;
-    public int UpgradeCost;
-    public int RemainingCoin;
-    public int NextUpgradeShortage;
-    public float TotalDps;
-    public float ClearSeconds;
-    public string Note;
+    public int Tier;
+    public bool HasNextEvolution;
+    public bool NextEvolutionReached;
+    public int NextEvolutionWave;
+    public Dictionary<RewardCurrencyType, int> NextEvolutionCumulativeCost;
+    public List<TurretLevelCostSample> LevelSamples;
 }

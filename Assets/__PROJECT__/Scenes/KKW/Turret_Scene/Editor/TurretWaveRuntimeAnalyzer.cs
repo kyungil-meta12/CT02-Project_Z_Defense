@@ -230,7 +230,8 @@ internal sealed class TurretWaveRuntimeAnalyzer
             // 해당 웨이브는 아직 클리어하지 않아 보상을 받기 전이므로, 직전 웨이브까지의 누적 보상만 예산에 포함한다.
             row.AvailableBudgetCoin = initialWalletCoin + cumulativeWaveRewardCoin;
             cumulativeWaveRewardCoin += Mathf.Max(0.0f, row.AverageCoinPerWave);
-            row.CumulativeWaveRewardCoin = cumulativeWaveRewardCoin;
+            // 초기 지갑 Coin까지 포함한 총 누적 보유 코인. 다음 웨이브의 시뮬레이션 예산(AvailableBudgetCoin)과 같은 값이다.
+            row.CumulativeWaveRewardCoin = initialWalletCoin + cumulativeWaveRewardCoin;
             waveRows[i] = row;
         }
     }

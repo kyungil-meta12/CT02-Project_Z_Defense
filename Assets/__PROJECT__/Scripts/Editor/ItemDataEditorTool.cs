@@ -602,7 +602,7 @@ public class ItemDataEditorTool : EditorWindow
             }
         }
 
-        if (!TryParseCraftItems(craftText, lineNumber, out List<ItemCreatfData> craftItems, errors))
+        if (!TryParseCraftItems(craftText, lineNumber, out List<ItemCreaftData> craftItems, errors))
         {
             return false;
         }
@@ -621,9 +621,9 @@ public class ItemDataEditorTool : EditorWindow
     }
 
     // 제작 재료 문자열을 ItemMaterialData 목록으로 변환한다
-    private bool TryParseCraftItems(string craftText, int lineNumber, out List<ItemCreatfData> craftItems, List<string> errors)
+    private bool TryParseCraftItems(string craftText, int lineNumber, out List<ItemCreaftData> craftItems, List<string> errors)
     {
-        craftItems = new List<ItemCreatfData>();
+        craftItems = new List<ItemCreaftData>();
         if (string.IsNullOrWhiteSpace(craftText))
         {
             return true;
@@ -664,7 +664,7 @@ public class ItemDataEditorTool : EditorWindow
                 return false;
             }
 
-             craftItems.Add(new ItemCreatfData { Type = materialType, Count = count });
+             craftItems.Add(new ItemCreaftData { Type = materialType, Count = count });
         }
 
         return true;
@@ -855,7 +855,7 @@ public class ItemDataEditorTool : EditorWindow
     }
 
     // 제작 재료 목록을 CSV용 문자열로 변환한다
-    private static string FormatCraftItems(List<ItemCreatfData> craftItems)
+    private static string FormatCraftItems(List<ItemCreaftData> craftItems)
     {
         if (craftItems == null || craftItems.Count == 0)
         {
@@ -870,7 +870,7 @@ public class ItemDataEditorTool : EditorWindow
                 builder.Append(';');
             }
 
-            ItemCreatfData item = craftItems[i];
+            ItemCreaftData item = craftItems[i];
             builder.Append(item.Type);
             builder.Append(':');
             builder.Append(Mathf.Max(0, item.Count));
@@ -1020,7 +1020,7 @@ public class ItemDataEditorTool : EditorWindow
         public string InfoText;
         public Sprite ItemImage;
         public bool Craftable;
-        public List<ItemCreatfData> ItemsToCreate;
+        public List<ItemCreaftData> ItemsToCreate;
         public int CreateCount;
     }
 }

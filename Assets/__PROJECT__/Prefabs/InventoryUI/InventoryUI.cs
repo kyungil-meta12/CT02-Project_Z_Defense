@@ -69,7 +69,7 @@ public class InventoryUI : MonoBehaviour
     private Dictionary<Button, RewardCurrencyType> craftButtonDict = new();
     
     // 현재 선택된 크래프트 아이템을 제작하는데에 필요한 아이템 관련 데이터 딕셔너리
-    private Dictionary<RewardCurrencyType, ItemCreatfData> needItemData = new();
+    private Dictionary<RewardCurrencyType, ItemCreaftData> needItemData = new();
     private Dictionary<RewardCurrencyType, TextMeshProUGUI> needItemText = new();
 
     // 마지막으로 선택된 크래프트 아이템 타입
@@ -149,9 +149,11 @@ public class InventoryUI : MonoBehaviour
                 var button = Instantiate(craftCellPrefab, content.transform, false).GetComponent<Button>();
                 var imageComp = button.transform.Find("ItemImage").GetComponent<Image>();
                 var textComp = button.transform.Find("ItemName").GetComponent<TextMeshProUGUI>();
+                var countTextComp = button.transform.Find("ItemCount").GetComponent<TextMeshProUGUI>();
             
                 imageComp.sprite = itemData.ItemImage;
                 textComp.text = itemData.Name;
+                countTextComp.text = "+" + itemData.CountPerCraft.ToString();
                 SetImageVisibility(imageComp, true);
 
                 // 클릭 이벤트 추가
@@ -219,11 +221,13 @@ public class InventoryUI : MonoBehaviour
         {
             var cellData = ownTypes[data.Type];
             cellData.CountText.text = InventorySystem.Inst.GetCountString(data.Type);
+            itemCountText.text = "보유량: " + cellData.CountText.text;
         }
         else
         {
             RefreshInventoryCell();
         }
+
 
         UpdateNeedItemData(data.Type);
     }
@@ -373,7 +377,8 @@ public class InventoryUI : MonoBehaviour
             WarningPopupManager.ShowWarningForDuration("선택된 아이템이 없습니다.", 1f);
             return;
         }
-        var needItems = InventorySystem.Inst.GetMetaData(latestSelectedCraftType).ItemsToCreate;
+        var metaData = InventorySystem.Inst.GetMetaData(latestSelectedCraftType);
+        var needItems = metaData.ItemsToCreate;
         foreach (var item in needItems)
         {
             if (InventorySystem.Inst.CanUseItem(item.Type, item.Count))
@@ -388,6 +393,7 @@ public class InventoryUI : MonoBehaviour
             }
         }
 
+        InventorySystem.Inst.AddItem(latestSelectedCraftType, metaData.CountPerCraft);
         Debug.Log($"[InventoryUI] 아이템 제작 완료 |  아이템: {latestSelectedCraftType}");
     }
 

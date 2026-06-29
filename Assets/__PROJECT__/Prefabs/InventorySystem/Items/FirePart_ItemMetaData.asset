@@ -15,11 +15,11 @@ MonoBehaviour:
   Type: 1
   Grade: 1
   Createable: 1
-  CountPerCraft: 10
+  CountPerCraft: 100
   ItemsToCreate:
   - Type: 0
     Count: 20
-  Decomposable: 1
+  Decomposable: 0
   ItemsFromDecompose:
   - Type: 0
     min: 1

@@ -58,6 +58,10 @@ internal static class TurretBalanceReportGraphRenderer
         new Color(0.55f, 0.55f, 0.18f)
     };
 
+    private static readonly Color EvolutionStartColor = new Color(0.20f, 0.72f, 0.32f);
+    private static readonly Color EvolutionMiddleColor = new Color(0.18f, 0.56f, 0.95f);
+    private static readonly Color EvolutionEndColor = new Color(0.68f, 0.34f, 0.92f);
+
     // 그래프 탭 전체 UI를 그린다
     public static void Draw(TurretBalanceReportResult report, TurretBalanceReportGraphState state, float targetClearSeconds)
     {
@@ -292,15 +296,16 @@ internal static class TurretBalanceReportGraphRenderer
     // 모든 터렛 종류의 웨이브별 최적 총 DPS 그래프 선을 추가한다
     private static void AddAllTurretDpsSeries(TurretBalanceReportResult report, List<GraphSeries> seriesList, ref int colorIndex, float hpAxisMax, float targetClearSeconds)
     {
-        List<string> turretNames = BuildTurretNameList(report);
-        for (int turretIndex = 0; turretIndex < turretNames.Count; turretIndex++)
+        List<TurretGraphEntry> turretEntries = BuildTurretGraphEntries(report);
+        int maxTier = GetMaxTurretTier(turretEntries);
+        for (int turretIndex = 0; turretIndex < turretEntries.Count; turretIndex++)
         {
-            string turretName = turretNames[turretIndex];
-            GraphSeries series = CreateSeries("처리 가능 HP - " + turretName, "HP", SeriesColors[colorIndex++ % SeriesColors.Length], report.WaveRows.Count);
+            TurretGraphEntry turretEntry = turretEntries[turretIndex];
+            GraphSeries series = CreateSeries("처리 가능 HP - " + turretEntry.TurretName, "HP", GetTurretEvolutionColor(turretEntry.Tier, maxTier, turretIndex), report.WaveRows.Count);
             SetFixedScale(series, 0.0f, hpAxisMax);
             for (int waveIndex = 0; waveIndex < report.WaveRows.Count; waveIndex++)
             {
-                if (TryFindSpeciesEntry(report, waveIndex, turretName, out WaveClearRankEntry entry))
+                if (TryFindSpeciesEntry(report, waveIndex, turretEntry.TurretName, out WaveClearRankEntry entry))
                 {
                     float processableHp = Mathf.Max(0.0f, entry.TotalDps * targetClearSeconds);
                     series.Values.Add(processableHp);
@@ -308,28 +313,88 @@ internal static class TurretBalanceReportGraphRenderer
                     continue;
                 }
 
-                series.Values.Add(0.0f);
+                series.Values.Add(float.NaN);
                 series.PointNotes.Add("설치 불가");
             }
 
             seriesList.Add(series);
+            colorIndex++;
         }
     }
 
-    // 리포트 상세 행에서 터렛 이름 목록을 만든다
-    private static List<string> BuildTurretNameList(TurretBalanceReportResult report)
+    // 리포트 상세 행에서 터렛 이름과 세대 목록을 만든다
+    private static List<TurretGraphEntry> BuildTurretGraphEntries(TurretBalanceReportResult report)
     {
-        List<string> turretNames = new List<string>(report.SpeciesDetailRows.Count);
+        List<TurretGraphEntry> turretEntries = new List<TurretGraphEntry>(report.SpeciesDetailRows.Count);
         for (int i = 0; i < report.SpeciesDetailRows.Count; i++)
         {
             string turretName = report.SpeciesDetailRows[i].TurretName;
-            if (!string.IsNullOrEmpty(turretName) && !turretNames.Contains(turretName))
+            if (!string.IsNullOrEmpty(turretName) && !ContainsTurretName(turretEntries, turretName))
             {
-                turretNames.Add(turretName);
+                turretEntries.Add(new TurretGraphEntry
+                {
+                    TurretName = turretName,
+                    Tier = report.SpeciesDetailRows[i].Tier
+                });
             }
         }
 
-        return turretNames;
+        return turretEntries;
+    }
+
+    // 터렛 이름이 이미 목록에 있는지 확인한다
+    private static bool ContainsTurretName(List<TurretGraphEntry> turretEntries, string turretName)
+    {
+        for (int i = 0; i < turretEntries.Count; i++)
+        {
+            if (turretEntries[i].TurretName == turretName)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    // 터렛 목록에서 가장 깊은 진화 단계를 찾는다
+    private static int GetMaxTurretTier(List<TurretGraphEntry> turretEntries)
+    {
+        int maxTier = 0;
+        for (int i = 0; i < turretEntries.Count; i++)
+        {
+            maxTier = Mathf.Max(maxTier, turretEntries[i].Tier);
+        }
+
+        return maxTier;
+    }
+
+    // 터렛 진화 단계에 따라 초록에서 파랑을 거쳐 보라로 변하는 색상을 반환한다
+    private static Color GetTurretEvolutionColor(int tier, int maxTier, int colorIndex)
+    {
+        float ratio = maxTier <= 0 ? 0.0f : Mathf.Clamp01(tier / (float)maxTier);
+        Color baseColor;
+        if (ratio <= 0.5f)
+        {
+            baseColor = Color.Lerp(EvolutionStartColor, EvolutionMiddleColor, ratio * 2.0f);
+        }
+        else
+        {
+            baseColor = Color.Lerp(EvolutionMiddleColor, EvolutionEndColor, (ratio - 0.5f) * 2.0f);
+        }
+
+        return ApplyTurretColorVariant(baseColor, colorIndex);
+    }
+
+    // 같은 진화 단계의 터렛 선을 구분하기 위해 색상 밝기를 조금 조정한다
+    private static Color ApplyTurretColorVariant(Color color, int colorIndex)
+    {
+        int variantIndex = colorIndex % 5;
+        float strength = (variantIndex - 2) * 0.06f;
+        Color targetColor = strength >= 0.0f ? Color.white : Color.black;
+        Color adjustedColor = Color.Lerp(color, targetColor, Mathf.Abs(strength));
+        adjustedColor.a = color.a;
+
+        return adjustedColor;
     }
 
     // 지정 웨이브의 터렛 종류별 후보 목록에서 이름이 일치하는 항목을 찾는다
@@ -500,20 +565,42 @@ internal static class TurretBalanceReportGraphRenderer
 
         GetSeriesScale(series, out float minValue, out float maxValue);
         Vector3[] points = new Vector3[series.Values.Count];
+        bool[] validPoints = new bool[series.Values.Count];
         for (int i = 0; i < series.Values.Count; i++)
         {
-            points[i] = CalculatePoint(plotRect, i, waveCount, series.Values[i], minValue, maxValue);
+            validPoints[i] = IsValidGraphValue(series.Values[i]);
+            if (validPoints[i])
+            {
+                points[i] = CalculatePoint(plotRect, i, waveCount, series.Values[i], minValue, maxValue);
+            }
         }
 
         Handles.color = series.Color;
-        Handles.DrawAAPolyLine(2.4f, points);
+        DrawValidLineSegments(points, validPoints);
         for (int i = 0; i < points.Length; i++)
         {
+            if (!validPoints[i])
+            {
+                continue;
+            }
+
             Rect pointRect = new Rect(points[i].x - 2.0f, points[i].y - 2.0f, 4.0f, 4.0f);
             EditorGUI.DrawRect(pointRect, series.Color);
         }
 
-        UpdateHoverInfo(series, points, mousePosition, ref hoverInfo);
+        UpdateHoverInfo(series, points, validPoints, mousePosition, ref hoverInfo);
+    }
+
+    // 유효한 값끼리 이어진 선분만 그린다
+    private static void DrawValidLineSegments(Vector3[] points, bool[] validPoints)
+    {
+        for (int i = 0; i < points.Length - 1; i++)
+        {
+            if (validPoints[i] && validPoints[i + 1])
+            {
+                Handles.DrawAAPolyLine(2.4f, points[i], points[i + 1]);
+            }
+        }
     }
 
     // 그래프 선의 정규화 범위를 반환한다
@@ -537,6 +624,11 @@ internal static class TurretBalanceReportGraphRenderer
         for (int i = 0; i < values.Count; i++)
         {
             float value = values[i];
+            if (!IsValidGraphValue(value))
+            {
+                continue;
+            }
+
             if (value < minValue)
             {
                 minValue = value;
@@ -555,6 +647,12 @@ internal static class TurretBalanceReportGraphRenderer
         }
     }
 
+    // 그래프에 표시할 수 있는 유효한 실수 값인지 확인한다
+    private static bool IsValidGraphValue(float value)
+    {
+        return !float.IsNaN(value) && !float.IsInfinity(value);
+    }
+
     // 그래프 좌표계에서 값 하나의 위치를 계산한다
     private static Vector3 CalculatePoint(Rect plotRect, int index, int waveCount, float value, float minValue, float maxValue)
     {
@@ -566,7 +664,7 @@ internal static class TurretBalanceReportGraphRenderer
     }
 
     // 마우스와 가까운 선분을 찾아 hover 정보를 갱신한다
-    private static void UpdateHoverInfo(GraphSeries series, Vector3[] points, Vector2 mousePosition, ref GraphHoverInfo hoverInfo)
+    private static void UpdateHoverInfo(GraphSeries series, Vector3[] points, bool[] validPoints, Vector2 mousePosition, ref GraphHoverInfo hoverInfo)
     {
         if (points.Length <= 0)
         {
@@ -575,12 +673,21 @@ internal static class TurretBalanceReportGraphRenderer
 
         if (points.Length == 1)
         {
-            UpdatePointHoverInfo(series, 0, Vector2.Distance(mousePosition, points[0]), mousePosition, ref hoverInfo);
+            if (validPoints[0])
+            {
+                UpdatePointHoverInfo(series, 0, Vector2.Distance(mousePosition, points[0]), mousePosition, ref hoverInfo);
+            }
+
             return;
         }
 
         for (int i = 0; i < points.Length - 1; i++)
         {
+            if (!validPoints[i] || !validPoints[i + 1])
+            {
+                continue;
+            }
+
             float segmentRatio;
             float distance = DistanceToSegment(mousePosition, points[i], points[i + 1], out segmentRatio);
             int pointIndex = segmentRatio < 0.5f ? i : i + 1;
@@ -711,6 +818,13 @@ internal static class TurretBalanceReportGraphRenderer
         public bool UseFixedScale;
         public float FixedMinValue;
         public float FixedMaxValue;
+    }
+
+    // 터렛 그래프 선의 이름과 세대 정보를 보관한다.
+    private struct TurretGraphEntry
+    {
+        public string TurretName;
+        public int Tier;
     }
 
     // 그래프 hover 상태를 보관한다.

@@ -49,8 +49,9 @@ public class InventoryUI : MonoBehaviour
 
     [Header("패널 컨텐츠 객체 목록")] public List<ContentData> contentList;
 
-    [Header("인벤토리 아이템 버튼 프리펩")] public GameObject inventoryCellPrefab;
-    [Header("크래프트 아이템 버튼 프리펩")] public GameObject craftCellPrefab;
+    [Header("인벤토리 아이템 셀 프리펩")] public GameObject inventoryCellPrefab;
+    [Header("크래프트 아이템 셀 프리펩")] public GameObject craftCellPrefab;
+    [Header("분해 아이템 셀 프리펩")] public GameObject decomposeCellPrefab;
     [Header("크래프트 필요 아이템 표시기 프리펩")] public GameObject craftCellNeedInfoPrefab;
 
     [Header("아이템 보유량 텍스트 객체")] public TextMeshProUGUI itemCountText;
@@ -58,7 +59,7 @@ public class InventoryUI : MonoBehaviour
     [Header("아이템 정보 텍스트 객체")] public TextMeshProUGUI itemInfoText;
     [Header("아이템 정보 이미지")] public Image itemInfoImage;
 
-    [Header("조합 아이템 표시기 객체 목록")] public GameObject[] needItemViewerList;
+    [Header("아이템 표시기 객체 목록")] public GameObject[] itemViewerList;
 
     [Header("패널 텍스트 객체")] public TextMeshProUGUI pannelTitletext;
 
@@ -82,6 +83,10 @@ public class InventoryUI : MonoBehaviour
     // 현재 선택된 크래프트 아이템을 제작하는데에 필요한 아이템 관련 데이터 딕셔너리
     private Dictionary<RewardCurrencyType, ItemCraftData> needItemData = new();
     private Dictionary<RewardCurrencyType, TextMeshProUGUI> needItemText = new();
+
+    // 분해하면 얻는 아이템 관련 데이터 딕셔너리
+    private Dictionary<RewardCurrencyType, ItemDecomposeData> decomposeItemData = new();
+    private Dictionary<RewardCurrencyType, TextMeshProUGUI> decomposeItemText = new();
 
     // 마지막으로 선택된 아이템 타입 및 셀
     private RewardCurrencyType selectedType = 0;
@@ -153,7 +158,7 @@ public class InventoryUI : MonoBehaviour
             {
                 continue;
             }
-            var buttonComp = Instantiate(inventoryCellPrefab, decomposeContent.transform, false).GetComponent<Button>();
+            var buttonComp = Instantiate(decomposeCellPrefab, decomposeContent.transform, false).GetComponent<Button>();
             buttonComp.GetComponent<PassEventToScrollRect>().onButtonClick.AddListener(() => OnDecomposeCellClick(buttonComp));
 
             var imageComp = buttonComp.transform.Find("ItemImage").GetComponent<Image>();
@@ -203,7 +208,7 @@ public class InventoryUI : MonoBehaviour
         }
 
         // 제작 아이템 표시기 초기화
-        ResetNeedItemViewer();
+        ResetItemViewer();
 
         // 기본 셀 버튼 컬러 얻기
         originCellColor = inventoryCellPrefab.GetComponent<Button>().colors.normalColor;
@@ -325,6 +330,22 @@ public class InventoryUI : MonoBehaviour
         SetInfoText(metaData);
         SetInfoImage(metaData);
 
+        ResetItemViewer();
+
+        // 필요한 아이템들에 대해서만 뷰어 활성화
+        var decomposeItems = metaData.ItemsFromDecompose;
+        for (int i = 0; i < decomposeItems.Count; i++)
+        {
+            itemViewerList[i].SetActive(true);
+            var image = itemViewerList[i].GetComponentInChildren<Image>();
+            var text = itemViewerList[i].GetComponentInChildren<TextMeshProUGUI>();
+            image.sprite = InventorySystem.Inst.GetMetaData(decomposeItems[i].Type).ItemImage;
+            SetImageVisibility(image, true);
+            decomposeItemData.Add(decomposeItems[i].Type, decomposeItems[i]);
+            decomposeItemText.Add(decomposeItems[i].Type, text);
+            UpdateDecomposeItemData(decomposeItems[i].Type);
+        }
+
         // 한 번 크래프트 아이템 셀을 터치하면 분해 버튼이 다시 활성화 된다.
         contentDict[ContentType.Decompose].FunctionButton.gameObject.SetActive(true);
     }
@@ -348,15 +369,15 @@ public class InventoryUI : MonoBehaviour
         SetInfoText(metaData);
         SetInfoImage(metaData);
 
-        ResetNeedItemViewer();
+        ResetItemViewer();
         
         // 필요한 아이템들에 대해서만 뷰어 활성화
         var needItems = metaData.ItemsToCreate;
         for(int i = 0; i < needItems.Count; i ++)
         {
-            needItemViewerList[i].SetActive(true);
-            var image = needItemViewerList[i].GetComponentInChildren<Image>();
-            var text = needItemViewerList[i].GetComponentInChildren<TextMeshProUGUI>();
+            itemViewerList[i].SetActive(true);
+            var image = itemViewerList[i].GetComponentInChildren<Image>();
+            var text = itemViewerList[i].GetComponentInChildren<TextMeshProUGUI>();
             image.sprite = InventorySystem.Inst.GetMetaData(needItems[i].Type).ItemImage;
             SetImageVisibility(image, true);
 
@@ -459,18 +480,20 @@ public class InventoryUI : MonoBehaviour
     /// <summary>
     /// 필요 아이템 표시기를 초기화 한다.
     /// </summary>
-    private void ResetNeedItemViewer()
+    private void ResetItemViewer()
     {
+        decomposeItemData.Clear();
+        decomposeItemText.Clear();
         needItemData.Clear();
         needItemText.Clear();
-        foreach(var viwer in needItemViewerList)
+        foreach(var viwer in itemViewerList)
         {
             viwer.SetActive(false);
         }
     }
 
     /// <summary>
-    /// 현재 활성화 된 필요 아이템 표시기를 초기화 한다.
+    /// 현재 활성화 된 아이템 표시기를 초기화 한다.
     /// </summary>
     /// <param name="type"></param>
     private void UpdateNeedItemData(RewardCurrencyType type)
@@ -483,6 +506,23 @@ public class InventoryUI : MonoBehaviour
         {
             var needData = needItemData[type];
             needItemText[type].text = needData.Count.ToString() + "/" + InventorySystem.Inst.GetCountString(type);
+        }
+    }
+
+    /// <summary>
+    /// 현재 활성화 된 아이템 표시기를 초기화 한다
+    /// </summary>
+    /// <param name="type"></param>
+    private void UpdateDecomposeItemData(RewardCurrencyType type)
+    {
+        if (decomposeItemData.Count == 0)
+        {
+            return;
+        }
+        if (decomposeItemData.ContainsKey(type))
+        {
+            var decomposeData = decomposeItemData[type];
+            decomposeItemText[type].text = "+" + decomposeData.min.ToString() + "~" + decomposeData.max.ToString();
         }
     }
 
@@ -659,7 +699,7 @@ public class InventoryUI : MonoBehaviour
 
         ResetInfoArea();
         ResetCellSelectionAll();
-        ResetNeedItemViewer();
+        ResetItemViewer();
 
         pannelTitletext.text = pannelTitle;
         currentContent = type;

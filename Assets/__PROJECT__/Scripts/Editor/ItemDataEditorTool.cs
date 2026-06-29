@@ -17,9 +17,11 @@ public class ItemDataEditorTool : EditorWindow
     private const string NAME_COLUMN = "Name";
     private const string INFO_TEXT_COLUMN = "InfoText";
     private const string IMAGE_PATH_COLUMN = "ItemImageAssetPath";
-    private const string CRAFTABLE_COLUMN = "Craftable";
+    private const string CREATEABLE_COLUMN = "Createable";
+    private const string COUNT_PER_CRAFT_COLUMN = "CountPerCraft";
     private const string CRAFT_COLUMN = "ItemsToCreate";
-    private const string CREATE_COUNT_COLUMN = "CreateCount";
+    private const string DECOMPOSABLE_COLUMN = "Decomposable";
+    private const string DECOMPOSE_COLUMN = "ItemsFromDecompose";
     private const string DEFAULT_CSV_PATH = "Assets/__PROJECT__/Prefabs/InventorySystem/ItemData.csv";
     private const string DEFAULT_SO_SAVE_PATH = "Assets/__PROJECT__/Prefabs/InventorySystem/Items";
     private const string DEFAULT_LIST_SO_PATH = "Assets/__PROJECT__/Prefabs/InventorySystem/ItemMetaDataList.asset";
@@ -59,7 +61,7 @@ public class ItemDataEditorTool : EditorWindow
 
         treatMissingSpriteAsError = EditorGUILayout.Toggle("이미지 누락을 오류 처리", treatMissingSpriteAsError);
 
-        EditorGUILayout.HelpBox("CSV 컬럼은 컬럼명<타입>(한글 설명) 형태로 출력됩니다. 제작 재료는 Type:Count;Type:Count 형식입니다. 임포트 파서가 없는 타입은 익스포트 전에 중단됩니다.", MessageType.Info);
+        EditorGUILayout.HelpBox("CSV 컬럼은 컬럼명<타입>(한글 설명) 형태로 출력됩니다. 제작 재료는 Type:Count;Type:Count, 분해 결과는 Type:Min~Max;Type:Min~Max 형식입니다. 임포트 파서가 없는 타입은 익스포트 전에 중단됩니다.", MessageType.Info);
 
         EditorGUILayout.BeginHorizontal();
         if (GUILayout.Button("CSV로 익스포트", GUILayout.Height(34)))
@@ -246,12 +248,14 @@ public class ItemDataEditorTool : EditorWindow
 
             itemSo.Type = row.Type;
             itemSo.Grade = row.Grade;
+            itemSo.Createable = row.Createable;
+            itemSo.CountPerCraft = row.CountPerCraft;
+            itemSo.ItemsToCreate = row.ItemsToCreate;
+            itemSo.Decomposable = row.Decomposable;
+            itemSo.ItemsFromDecompose = row.ItemsFromDecompose;
             itemSo.Name = row.Name;
             itemSo.InfoText = row.InfoText;
             itemSo.ItemImage = row.ItemImage;
-            itemSo.Craftable = row.Craftable;
-            itemSo.ItemsToCreate = row.ItemsToCreate;
-            itemSo.CreateCount = row.CreateCount;
             ApplyAdditionalFieldValues(itemSo, row.FieldValues, row.LineNumber);
             EditorUtility.SetDirty(itemSo);
             importedItems.Add(itemSo);
@@ -449,7 +453,7 @@ public class ItemDataEditorTool : EditorWindow
             }
         }
 
-        string[] requiredColumns = { TYPE_COLUMN, NAME_COLUMN, INFO_TEXT_COLUMN, IMAGE_PATH_COLUMN, CRAFTABLE_COLUMN, CRAFT_COLUMN, CREATE_COUNT_COLUMN };
+        string[] requiredColumns = { TYPE_COLUMN, GRADE_COLUMN, CREATEABLE_COLUMN, COUNT_PER_CRAFT_COLUMN, CRAFT_COLUMN, DECOMPOSABLE_COLUMN, DECOMPOSE_COLUMN, NAME_COLUMN, INFO_TEXT_COLUMN, IMAGE_PATH_COLUMN };
         for (int i = 0; i < requiredColumns.Length; i++)
         {
             if (!headerMap.ContainsKey(requiredColumns[i]))
@@ -480,7 +484,7 @@ public class ItemDataEditorTool : EditorWindow
 
         if (!isValid)
         {
-            AddMessage("지원 타입: string, int, float, bool, enum, Sprite, List<ItemMaterialData>");
+            AddMessage("지원 타입: string, int, float, bool, enum, Sprite, List<ItemCreatfData>, List<ItemDecomposeData>");
         }
 
         return isValid;
@@ -495,7 +499,8 @@ public class ItemDataEditorTool : EditorWindow
             || fieldType == typeof(bool)
             || fieldType.IsEnum
             || fieldType == typeof(Sprite)
-            || fieldType == typeof(List<ItemMaterialData>);
+            || fieldType == typeof(List<ItemCreatfData>)
+            || fieldType == typeof(List<ItemDecomposeData>);
     }
 
     // CSV 헤더 타입이 현재 ItemMetaDataSo 필드 타입과 일치하는지 확인한다
@@ -604,9 +609,14 @@ public class ItemDataEditorTool : EditorWindow
             return "SpriteAssetPath";
         }
 
-        if (fieldType == typeof(List<ItemMaterialData>))
+        if (fieldType == typeof(List<ItemCreatfData>))
         {
-            return "ItemMaterialDataList";
+            return "ItemCreatfDataList";
+        }
+
+        if (fieldType == typeof(List<ItemDecomposeData>))
+        {
+            return "ItemDecomposeDataList";
         }
 
         if (fieldType.IsEnum)
@@ -713,9 +723,14 @@ public class ItemDataEditorTool : EditorWindow
             return AssetDatabase.GetAssetPath((Sprite)value);
         }
 
-        if (definition.Field.FieldType == typeof(List<ItemMaterialData>))
+        if (definition.Field.FieldType == typeof(List<ItemCreatfData>))
         {
-            return FormatCraftItems((List<ItemMaterialData>)value);
+            return FormatCraftItems((List<ItemCreatfData>)value);
+        }
+
+        if (definition.Field.FieldType == typeof(List<ItemDecomposeData>))
+        {
+            return FormatDecomposeItems((List<ItemDecomposeData>)value);
         }
 
         if (definition.Field.FieldType.IsEnum)
@@ -962,9 +977,11 @@ public class ItemDataEditorTool : EditorWindow
         string itemName = GetField(fields, headerMap, NAME_COLUMN);
         string infoText = GetField(fields, headerMap, INFO_TEXT_COLUMN);
         string imagePath = GetField(fields, headerMap, IMAGE_PATH_COLUMN).Trim();
-        string craftableText = GetField(fields, headerMap, CRAFTABLE_COLUMN).Trim();
+        string createableText = GetField(fields, headerMap, CREATEABLE_COLUMN).Trim();
+        string countPerCraftText = GetField(fields, headerMap, COUNT_PER_CRAFT_COLUMN).Trim();
         string craftText = GetField(fields, headerMap, CRAFT_COLUMN).Trim();
-        string createCountText = GetField(fields, headerMap, CREATE_COUNT_COLUMN).Trim();
+        string decomposableText = GetField(fields, headerMap, DECOMPOSABLE_COLUMN).Trim();
+        string decomposeText = GetField(fields, headerMap, DECOMPOSE_COLUMN).Trim();
 
         if (string.IsNullOrEmpty(typeText))
         {
@@ -977,7 +994,7 @@ public class ItemDataEditorTool : EditorWindow
             return false;
         }
 
-        ItemGrade itemGrade = ItemGrade.Common;
+        ItemGrade itemGrade = default;
         object gradeValue = null;
         if (!string.IsNullOrEmpty(gradeText) && !TryParseEnumCell(gradeText, typeof(ItemGrade), lineNumber, GRADE_COLUMN, out gradeValue, errors, false))
         {
@@ -988,15 +1005,21 @@ public class ItemDataEditorTool : EditorWindow
             itemGrade = (ItemGrade)gradeValue;
         }
 
-        if (!bool.TryParse(craftableText, out bool craftable))
+        if (!bool.TryParse(createableText, out bool createable))
         {
-            errors.Add($"{lineNumber}행: Craftable 값이 유효하지 않습니다. 값: {craftableText}");
+            errors.Add($"{lineNumber}행: Createable 값이 유효하지 않습니다. 값: {createableText}");
             return false;
         }
 
-        if (!int.TryParse(createCountText, out int createCount) || createCount < 0)
+        if (!int.TryParse(countPerCraftText, out int countPerCraft) || countPerCraft < 0)
         {
-            errors.Add($"{lineNumber}행: CreateCount 값이 유효하지 않습니다. 값: {createCountText}");
+            errors.Add($"{lineNumber}행: CountPerCraft 값이 유효하지 않습니다. 값: {countPerCraftText}");
+            return false;
+        }
+
+        if (!bool.TryParse(decomposableText, out bool decomposable))
+        {
+            errors.Add($"{lineNumber}행: Decomposable 값이 유효하지 않습니다. 값: {decomposableText}");
             return false;
         }
 
@@ -1017,7 +1040,12 @@ public class ItemDataEditorTool : EditorWindow
             }
         }
 
-        if (!TryParseCraftItems(craftText, lineNumber, out List<ItemMaterialData> craftItems, errors))
+        if (!TryParseCraftItems(craftText, lineNumber, out List<ItemCreatfData> craftItems, errors))
+        {
+            return false;
+        }
+
+        if (!TryParseDecomposeItems(decomposeText, lineNumber, out List<ItemDecomposeData> decomposeItems, errors))
         {
             return false;
         }
@@ -1027,12 +1055,14 @@ public class ItemDataEditorTool : EditorWindow
             LineNumber = lineNumber,
             Type = itemType,
             Grade = itemGrade,
+            Createable = createable,
+            CountPerCraft = countPerCraft,
+            ItemsToCreate = craftItems,
+            Decomposable = decomposable,
+            ItemsFromDecompose = decomposeItems,
             Name = itemName,
             InfoText = infoText,
             ItemImage = sprite,
-            Craftable = craftable,
-            ItemsToCreate = craftItems,
-            CreateCount = createCount,
             FieldValues = BuildFieldValueMap(fields, headerMap)
         });
         return true;
@@ -1081,9 +1111,11 @@ public class ItemDataEditorTool : EditorWindow
             || string.Equals(columnName, NAME_COLUMN, StringComparison.OrdinalIgnoreCase)
             || string.Equals(columnName, INFO_TEXT_COLUMN, StringComparison.OrdinalIgnoreCase)
             || string.Equals(columnName, IMAGE_PATH_COLUMN, StringComparison.OrdinalIgnoreCase)
-            || string.Equals(columnName, CRAFTABLE_COLUMN, StringComparison.OrdinalIgnoreCase)
+            || string.Equals(columnName, CREATEABLE_COLUMN, StringComparison.OrdinalIgnoreCase)
+            || string.Equals(columnName, COUNT_PER_CRAFT_COLUMN, StringComparison.OrdinalIgnoreCase)
             || string.Equals(columnName, CRAFT_COLUMN, StringComparison.OrdinalIgnoreCase)
-            || string.Equals(columnName, CREATE_COUNT_COLUMN, StringComparison.OrdinalIgnoreCase);
+            || string.Equals(columnName, DECOMPOSABLE_COLUMN, StringComparison.OrdinalIgnoreCase)
+            || string.Equals(columnName, DECOMPOSE_COLUMN, StringComparison.OrdinalIgnoreCase);
     }
 
     // 지원 가능한 타입의 CSV 값을 필드에 설정한다
@@ -1161,10 +1193,10 @@ public class ItemDataEditorTool : EditorWindow
         return false;
     }
 
-    // 제작 재료 문자열을 ItemMaterialData 목록으로 변환한다
-    private bool TryParseCraftItems(string craftText, int lineNumber, out List<ItemMaterialData> craftItems, List<string> errors)
+    // 제작 재료 문자열을 ItemCreatfData 목록으로 변환한다
+    private bool TryParseCraftItems(string craftText, int lineNumber, out List<ItemCreatfData> craftItems, List<string> errors)
     {
-        craftItems = new List<ItemMaterialData>();
+        craftItems = new List<ItemCreatfData>();
         if (string.IsNullOrWhiteSpace(craftText))
         {
             return true;
@@ -1198,7 +1230,63 @@ public class ItemDataEditorTool : EditorWindow
                 return false;
             }
 
-            craftItems.Add(new ItemMaterialData { Type = materialType, Count = count });
+            craftItems.Add(new ItemCreatfData { Type = materialType, Count = count });
+        }
+
+        return true;
+    }
+
+    // 분해 결과 문자열을 ItemDecomposeData 목록으로 변환한다
+    private bool TryParseDecomposeItems(string decomposeText, int lineNumber, out List<ItemDecomposeData> decomposeItems, List<string> errors)
+    {
+        decomposeItems = new List<ItemDecomposeData>();
+        if (string.IsNullOrWhiteSpace(decomposeText))
+        {
+            return true;
+        }
+
+        string[] entries = decomposeText.Split(';');
+        for (int i = 0; i < entries.Length; i++)
+        {
+            string entry = entries[i].Trim();
+            if (string.IsNullOrEmpty(entry))
+            {
+                continue;
+            }
+
+            string[] parts = entry.Split(':');
+            if (parts.Length != 2)
+            {
+                errors.Add($"{lineNumber}행: 분해 결과 형식이 잘못되었습니다. 값: {entry}");
+                return false;
+            }
+
+            string typeText = parts[0].Trim();
+            if (!TryParseExistingDecomposeTypeCell(typeText, lineNumber, out RewardCurrencyType itemType, errors))
+            {
+                return false;
+            }
+
+            string[] rangeParts = parts[1].Trim().Split('~');
+            if (rangeParts.Length != 2)
+            {
+                errors.Add($"{lineNumber}행: 분해 결과 개수 범위 형식이 잘못되었습니다. 값: {parts[1]}");
+                return false;
+            }
+
+            if (!int.TryParse(rangeParts[0].Trim(), out int min) || min < 0)
+            {
+                errors.Add($"{lineNumber}행: 분해 결과 최소 개수가 유효하지 않습니다. 값: {rangeParts[0]}");
+                return false;
+            }
+
+            if (!int.TryParse(rangeParts[1].Trim(), out int max) || max < min)
+            {
+                errors.Add($"{lineNumber}행: 분해 결과 최대 개수가 유효하지 않습니다. 값: {rangeParts[1]}");
+                return false;
+            }
+
+            decomposeItems.Add(new ItemDecomposeData { Type = itemType, min = min, max = max });
         }
 
         return true;
@@ -1400,7 +1488,7 @@ public class ItemDataEditorTool : EditorWindow
     }
 
     // 제작 재료 목록을 CSV용 문자열로 변환한다
-    private static string FormatCraftItems(List<ItemMaterialData> craftItems)
+    private static string FormatCraftItems(List<ItemCreatfData> craftItems)
     {
         if (craftItems == null || craftItems.Count == 0)
         {
@@ -1415,10 +1503,39 @@ public class ItemDataEditorTool : EditorWindow
                 builder.Append(';');
             }
 
-            ItemMaterialData item = craftItems[i];
+            ItemCreatfData item = craftItems[i];
             builder.Append(FormatEnumValue(item.Type));
             builder.Append(':');
             builder.Append(Mathf.Max(0, item.Count));
+        }
+
+        return builder.ToString();
+    }
+
+    // 분해 결과 목록을 CSV용 문자열로 변환한다
+    private static string FormatDecomposeItems(List<ItemDecomposeData> decomposeItems)
+    {
+        if (decomposeItems == null || decomposeItems.Count == 0)
+        {
+            return string.Empty;
+        }
+
+        StringBuilder builder = new StringBuilder(64);
+        for (int i = 0; i < decomposeItems.Count; i++)
+        {
+            if (i > 0)
+            {
+                builder.Append(';');
+            }
+
+            ItemDecomposeData item = decomposeItems[i];
+            int min = Mathf.Max(0, item.min);
+            int max = Mathf.Max(min, item.max);
+            builder.Append(FormatEnumValue(item.Type));
+            builder.Append(':');
+            builder.Append(min);
+            builder.Append('~');
+            builder.Append(max);
         }
 
         return builder.ToString();
@@ -1441,6 +1558,47 @@ public class ItemDataEditorTool : EditorWindow
         }
 
         return false;
+    }
+
+    // 분해 결과에 이미 존재하는 RewardCurrencyType만 허용해 변환한다
+    private bool TryParseExistingDecomposeTypeCell(string text, int lineNumber, out RewardCurrencyType result, List<string> errors)
+    {
+        result = default;
+        string safeText = (text ?? string.Empty).Trim();
+        int equalsIndex = safeText.IndexOf('=');
+        string enumName = equalsIndex >= 0 ? safeText.Substring(0, equalsIndex).Trim() : safeText;
+        string enumIndexText = equalsIndex >= 0 ? safeText.Substring(equalsIndex + 1).Trim() : string.Empty;
+        if (!IsValidIdentifier(enumName))
+        {
+            errors.Add($"{lineNumber}행: ItemsFromDecompose에 잘못된 enum 이름이 들어 있습니다. 값: {text}");
+            return false;
+        }
+
+        if (!Enum.TryParse(enumName, out result))
+        {
+            errors.Add($"{lineNumber}행: ItemsFromDecompose에 RewardCurrencyType에 없는 enum이 들어 있습니다. 값: {text}");
+            return false;
+        }
+
+        if (string.IsNullOrEmpty(enumIndexText))
+        {
+            return true;
+        }
+
+        if (!long.TryParse(enumIndexText, out long csvEnumIndex))
+        {
+            errors.Add($"{lineNumber}행: ItemsFromDecompose enum 인덱스가 정수가 아닙니다. 값: {text}");
+            return false;
+        }
+
+        long currentEnumIndex = Convert.ToInt64(result);
+        if (csvEnumIndex != currentEnumIndex)
+        {
+            errors.Add($"{lineNumber}행: ItemsFromDecompose enum 인덱스가 현재 코드와 다릅니다. CSV: {text}, 현재: {enumName}={currentEnumIndex}");
+            return false;
+        }
+
+        return true;
     }
 
     // enum 셀을 이름 또는 이름=인덱스 형식으로 변환한다
@@ -1682,12 +1840,14 @@ public class ItemDataEditorTool : EditorWindow
         public int LineNumber;
         public RewardCurrencyType Type;
         public ItemGrade Grade;
+        public bool Createable;
+        public int CountPerCraft;
+        public List<ItemCreatfData> ItemsToCreate;
+        public bool Decomposable;
+        public List<ItemDecomposeData> ItemsFromDecompose;
         public string Name;
         public string InfoText;
         public Sprite ItemImage;
-        public bool Craftable;
-        public List<ItemMaterialData> ItemsToCreate;
-        public int CreateCount;
         public Dictionary<string, string> FieldValues;
     }
 

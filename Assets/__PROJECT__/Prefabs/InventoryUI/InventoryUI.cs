@@ -1,6 +1,8 @@
 using IncrementalLib;
+using System;
 using System.Collections.Generic;
 using TMPro;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -10,17 +12,32 @@ public class OwnItemCell
     public TextMeshProUGUI CountText;
 }
 
+public enum ContentType
+{
+    Inventory,
+    Craft,
+    Decompose
+}
+
+/// <summary>
+/// 패널 컨텐츠 데이터
+/// </summary>
+[Serializable]
+public struct ContentData
+{
+    public ContentType Type;
+    public GameObject Content;
+    public Button TabButton;
+}
+
 public class InventoryUI : MonoBehaviour
 {
     [Header("인벤토리 UI의 메인 조작부")] public GameObject mainController;
     [Header("인벤토리 UI의 스크롤 조작부")] public ScrollRect scrollRect;
-    [Header("인벤토리 컨텐츠 객체")] public GameObject inventoryContent;
-    [Header("크래프팅 컨텐츠 객체")] public GameObject craftContent;
+    [Header("패널 컨텐츠 객체 목록")] public List<ContentData> contentList;
     [Header("인벤토리 아이템 버튼 프리펩")] public GameObject inventoryCellPrefab;
     [Header("크래프트 아이템 버튼 프리펩")] public GameObject craftCellPrefab;
     [Header("크래프트 필요 아이템 표시기 프리펩")] public GameObject craftCellNeedInfoPrefab;
-    [Header("인벤토리 탭 버튼")] public Button invenTabButton;
-    [Header("크래프트 탭 버튼")] public Button craftTabButton;
     [Header("아이템 보유량 텍스트 객체")] public TextMeshProUGUI itemCountText;
     [Header("아이템 이름 텍스트 객체")] public TextMeshProUGUI itemNameText;
     [Header("아이템 정보 텍스트 객체")] public TextMeshProUGUI itemInfoText;
@@ -33,6 +50,9 @@ public class InventoryUI : MonoBehaviour
     [Header("선택된 셀 색상")] public Color selectedCellColor;
     [Header("절전 전환 버튼")] public GameObject powerSavingSwitchButton;
 
+    // 패널 컨텐츠 딕셔너리
+    private Dictionary<ContentType, ContentData> contentDict = new();
+
     // 현재 보유하고 있는 아이템 타입
     private Dictionary<RewardCurrencyType, OwnItemCell> ownTypes = new();
 
@@ -40,9 +60,9 @@ public class InventoryUI : MonoBehaviour
     // invenButtonList의 참조를 invenButtonDict에 저장
     // 나머지는 리스트를 통해 직접 참조
     private Dictionary<Button, RewardCurrencyType> invenButtonDict = new();
+    private List<TextMeshProUGUI> invenCountTextList = new();
     private List<Button> invenButtonList = new();
     private List<Image> invenImageList = new();
-    private List<TextMeshProUGUI> invenCountTextList = new();
 
     // 크래프트 버튼 데이터
     private Dictionary<Button, RewardCurrencyType> craftButtonDict = new();
@@ -87,11 +107,18 @@ public class InventoryUI : MonoBehaviour
     // 인벤토리를 닫은 상태로 시작
     void Awake()
     {
+        // 딕셔너리에 패널 컨텐츠 정보 저장
+        foreach (var c in contentList)
+        {
+            contentDict.Add(c.Type, c);
+        }
+
         // 아이템 타입 종류 만큼 인벤토리 셀을 생성한다.
         int typeCount = InventorySystem.Inst.Types.Length;
         for (int i = 0; i < typeCount; i++)
         {
-            var button = Instantiate(inventoryCellPrefab, inventoryContent.transform, false).GetComponent<Button>();
+            var content = GetContentObject(ContentType.Inventory);
+            var button = Instantiate(inventoryCellPrefab, content.transform, false).GetComponent<Button>();
             var imageComp = button.transform.Find("ItemImage").GetComponent<Image>();
             var textComp = button.transform.Find("ItemCount").GetComponent<TextMeshProUGUI>();
 
@@ -117,7 +144,8 @@ public class InventoryUI : MonoBehaviour
             var itemData = InventorySystem.Inst.GetMetaData(type);
             if (itemData.Createable)
             {
-                var button = Instantiate(craftCellPrefab, craftContent.transform, false).GetComponent<Button>();
+                var content = GetContentObject(ContentType.Craft);
+                var button = Instantiate(craftCellPrefab, content.transform, false).GetComponent<Button>();
                 var imageComp = button.transform.Find("ItemImage").GetComponent<Image>();
                 var textComp = button.transform.Find("ItemName").GetComponent<TextMeshProUGUI>();
             
@@ -139,6 +167,7 @@ public class InventoryUI : MonoBehaviour
         // 기본 셀 버튼 컬러 얻기
         originCellColor = inventoryCellPrefab.GetComponent<Button>().colors.normalColor;
 
+        // 인벤토리 UI 숨기기
         OnCloseInventory();
     }
 
@@ -282,7 +311,7 @@ public class InventoryUI : MonoBehaviour
     /// </summary>
     public void OnInventoryTabClick()
     {
-        if (!inventoryContent.activeInHierarchy)
+        if (!GetContentObject(ContentType.Inventory).activeInHierarchy)
         {
             SetToInventory();
         }
@@ -293,9 +322,17 @@ public class InventoryUI : MonoBehaviour
     /// </summary>
     public void OnCraftTabClick()
     {
-        if (!craftContent.activeInHierarchy)
+        if (!GetContentObject(ContentType.Craft).activeInHierarchy)
         {
             SetToCraft();
+        }
+    }
+
+    public void OnDecomposeTabClick()
+    {
+        if(!GetContentObject(ContentType.Decompose).activeInHierarchy)
+        {
+            SetToDecompose();
         }
     }
 
@@ -477,17 +514,7 @@ public class InventoryUI : MonoBehaviour
     /// </summary>
     private void SetToInventory()
     {
-        inventoryContent.SetActive(true);
-        craftContent.SetActive(false);
-        SetInfoText(null, null);
-        SetInfoImage(null, null);
-        SetButtonColor(invenTabButton, selectedTabColor);
-        SetButtonColor(craftTabButton, Color.black);
-        pannelTitletext.text = "창고";
-        ResetScroll(inventoryContent);
-        ResetCellSelectionAll();
-        ResetNeedItemViewer();
-        makeButton.gameObject.SetActive(false);
+        SelectContent(ContentType.Inventory, "창고");
     }
 
     /// <summary>
@@ -495,16 +522,48 @@ public class InventoryUI : MonoBehaviour
     /// </summary>
     private void SetToCraft()
     {
-        inventoryContent.SetActive(false);
-        craftContent.SetActive(true);
+        SelectContent(ContentType.Craft, "제작");
+    }
+    
+    /// <summary>
+    /// 분해 상태로 전환한다.
+    /// </summary>
+    private void SetToDecompose()
+    {
+        SelectContent(ContentType.Decompose, "분해");
+    }
+
+    /// <summary>
+    /// 메인 컨텐츠 객체를 설정한다.
+    /// </summary>
+    /// <param name="contentObject"></param>
+    private void SelectContent(ContentType type, string pannelTitle)
+    {
+        foreach (var c in contentList)
+        {
+            c.Content.SetActive(false);
+            SetButtonColor(c.TabButton, Color.black);
+        }
+        var selected = contentDict[type];
+        var selectedContent = selected.Content;
+
+        selectedContent.SetActive(true);
+        ResetScroll(selectedContent);
+        SetButtonColor(selected.TabButton, selectedTabColor);
+
         SetInfoText(null, null);
         SetInfoImage(null, null);
-        SetButtonColor(invenTabButton, Color.black);
-        SetButtonColor(craftTabButton, selectedTabColor);
-        pannelTitletext.text = "아이템 제작";
-        ResetScroll(craftContent);
+
         ResetCellSelectionAll();
         ResetNeedItemViewer();
+
+        pannelTitletext.text = pannelTitle;
+        makeButton.gameObject.SetActive(type == ContentType.Craft);
+    }
+
+    private GameObject GetContentObject(ContentType type)
+    {
+        return contentDict[type].Content;
     }
 
     // 인벤토리 셀을 새로고침 한다.

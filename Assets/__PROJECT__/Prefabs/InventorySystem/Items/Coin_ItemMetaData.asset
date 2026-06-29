@@ -16,12 +16,11 @@ MonoBehaviour:
   Grade: 4
   Createable: 0
   CountPerCraft: 0
-  ItemsToCreate: []
+  ItemsToCreate:
+  - Type: 0
+    Count: 0
   Decomposable: 0
-  ItemsFromDecompose:
-  - Item: {fileID: 0}
-    min: 0
-    max: 0
+  ItemsFromDecompose: []
   Name: "\uCF54\uC778"
   InfoText: "\uC880\uBE44 \uC0AC\uD0DC \uC774\uC804\uC5D0 \uC0AC\uC6A9\uB418\uB358
     \uD654\uD3D0."

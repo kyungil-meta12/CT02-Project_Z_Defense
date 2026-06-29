@@ -26,10 +26,6 @@ public class TurretTemporaryUpgradePopupUI : MonoBehaviour
     [SerializeField] private bool requireDoubleClickToOpenPopup = true;
     [SerializeField, Min(0.05f)] private float popupDoubleClickInterval = 1.0f;
 
-    [Header("업그레이드 팝업 V2")]
-    [SerializeField] private bool useUpgradePopupV2 = false;
-    [SerializeField] private TurretUpgradePopupPresenter upgradePopupPresenter;
-
     [Header("UI 참조")]
     [SerializeField] private RectTransform popupPanel;
     [SerializeField] private Button backgroundButton;
@@ -78,7 +74,6 @@ public class TurretTemporaryUpgradePopupUI : MonoBehaviour
     private void Reset()
     {
         placementController = FindFirstObjectByType<TurretPlacementController>();
-        upgradePopupPresenter = FindFirstObjectByType<TurretUpgradePopupPresenter>();
         BindChildReferences();
     }
 
@@ -88,11 +83,6 @@ public class TurretTemporaryUpgradePopupUI : MonoBehaviour
         if (placementController == null)
         {
             placementController = FindFirstObjectByType<TurretPlacementController>();
-        }
-
-        if (upgradePopupPresenter == null)
-        {
-            upgradePopupPresenter = FindFirstObjectByType<TurretUpgradePopupPresenter>();
         }
 
         BindChildReferences();
@@ -220,15 +210,6 @@ public class TurretTemporaryUpgradePopupUI : MonoBehaviour
     {
         selectedTurret = turret;
         selectedSlot = slot;
-
-        if (IsUpgradePopupV2Ready())
-        {
-            EndLevelHold();
-            HideLegacyPopupPanel();
-            RefreshSelectedRangeIndicator();
-            upgradePopupPresenter.Show(turret, slot);
-            return;
-        }
 
         RefreshUI();
         ShowPopup();
@@ -885,7 +866,7 @@ public class TurretTemporaryUpgradePopupUI : MonoBehaviour
     // 팝업 구성에 필요한 참조가 유효한지 확인한다
     private bool IsUIReady()
     {
-        return IsUpgradePopupV2Ready() || IsLegacyUIReady();
+        return IsLegacyUIReady();
     }
 
     // 기존 팝업 UI 구성에 필요한 참조가 유효한지 확인한다
@@ -902,12 +883,6 @@ public class TurretTemporaryUpgradePopupUI : MonoBehaviour
                levelUpButton != null &&
                levelUpButtonText != null &&
                evolutionButtonContainer != null;
-    }
-
-    // 새 업그레이드 팝업을 사용할 수 있는지 확인한다
-    private bool IsUpgradePopupV2Ready()
-    {
-        return useUpgradePopupV2 && upgradePopupPresenter != null;
     }
 
     // UI 참조 누락 경고를 한 번만 출력한다
@@ -1056,7 +1031,6 @@ public class TurretTemporaryUpgradePopupUI : MonoBehaviour
         ClearPendingTurretClick();
         RefreshEngineerSeatButtons();
         HideRangeIndicator();
-        HideUpgradePopupV2();
 
         HideLegacyPopupPanel();
     }
@@ -1065,7 +1039,6 @@ public class TurretTemporaryUpgradePopupUI : MonoBehaviour
     private void HidePopupPanelOnly()
     {
         HideLegacyPopupPanel();
-        HideUpgradePopupV2();
     }
 
     // 기존 팝업 패널만 숨긴다
@@ -1074,15 +1047,6 @@ public class TurretTemporaryUpgradePopupUI : MonoBehaviour
         if (popupPanel != null)
         {
             popupPanel.gameObject.SetActive(false);
-        }
-    }
-
-    // 새 업그레이드 팝업만 숨긴다
-    private void HideUpgradePopupV2()
-    {
-        if (upgradePopupPresenter != null)
-        {
-            upgradePopupPresenter.Hide();
         }
     }
 

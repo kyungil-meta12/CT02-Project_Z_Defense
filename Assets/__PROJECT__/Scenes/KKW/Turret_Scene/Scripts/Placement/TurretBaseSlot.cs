@@ -130,6 +130,7 @@ public class TurretBaseSlot : MonoBehaviour
 
         turretObject.transform.localPosition = Vector3.zero;
         turretObject.transform.localRotation = Quaternion.identity;
+        TurretSelectionLayerUtility.ApplyTo(turretObject, this);
 
         placedTurret = turretObject.GetComponent<TurretDefinitionRuntimeController>();
         currentTurretObject = turretObject;

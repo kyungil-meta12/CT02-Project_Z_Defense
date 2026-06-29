@@ -839,9 +839,10 @@ A complete path from Sentinel-01 tier level 1 to a second-generation `_3` tier l
 8. `TurretBaseSlot.TryPlace` spends `TurretShopEntrySO.PlacementCosts` through `ItemManager.TrySpend`.
 9. Successful placement instantiates the turret prefab as a child of `BuildPoint`.
 10. Installed turret local position and rotation should reset to zero/identity.
-11. `TurretBaseSlot` records the occupied turret controller or fallback GameObject.
-12. `TurretPlacementController` records successful placement count per placement entry.
-13. Placement entries can use `Placement Cost Tiers` to change the next placement cost by successful placement count.
+11. `TurretSelectionLayerUtility` normalizes the installed turret hierarchy to the TurretBase layer so camera touch raycasts can select it consistently.
+12. `TurretBaseSlot` records the occupied turret controller or fallback GameObject.
+13. `TurretPlacementController` records successful placement count per placement entry.
+14. Placement entries can use `Placement Cost Tiers` to change the next placement cost by successful placement count.
 
 Placement preview scale rules:
 
@@ -903,16 +904,6 @@ Engineer buff policy:
 - Particle-based range indicator prefabs can have their particle loops forced at runtime so short marker effects can stay visible while a turret remains selected.
 - The indicator uses the selected turret's current calculated runtime range, so level-up and evolution changes are reflected when the popup refreshes.
 - The indicator is hidden when selection is cleared or placement input is active.
-
-## Upgrade Popup UI V2
-
-- `TurretUpgradePopupPresenter` is the runtime owner for the new upgrade popup. It receives the selected `TurretDefinitionRuntimeController` and optional `TurretBaseSlot`, builds display data, and converts UI input into upgrade, evolution, and engineer dismount commands.
-- `TurretUpgradePopupView` is a pure UI view. It owns serialized references to root, labels, stat rows, action buttons, and engineer seat entries, then emits button events without reading turret gameplay state directly.
-- `TurretUpgradePopupViewModel`, `TurretUpgradeStatViewModel`, `TurretUpgradeActionViewModel`, and `TurretEngineerSeatViewModel` are read-only display models used to keep UI rendering separate from gameplay mutation.
-- `TurretUpgradeStatRowView`, `TurretUpgradeActionButtonView`, and `TurretEngineerSeatEntryView` are reusable row/button views. Prefer adding or reordering these components in the prefab over adding one-off logic to the presenter.
-- The V2 popup scaffold can be built in the scene while the current `TurretTemporaryUpgradePopupUI` remains active. Selection wiring should be switched in a later focused step after the UI prefab hierarchy is complete.
-- `TurretTemporaryUpgradePopupUI.useUpgradePopupV2` switches double-click popup opening to `TurretUpgradePopupPresenter.Show(turret, slot)`. Keep the old popup references as fallback until V2 play-mode validation is complete.
-- When V2 is enabled, the first turret click still hides any open popup and refreshes only the range indicator. The second click on the same turret within `popupDoubleClickInterval` opens V2.
 
 ## Pooling Rules
 

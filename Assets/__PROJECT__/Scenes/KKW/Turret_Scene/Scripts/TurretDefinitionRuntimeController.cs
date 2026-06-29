@@ -310,6 +310,7 @@ public class TurretDefinitionRuntimeController : MonoBehaviour
         evolvedTransform.localPosition = localPosition;
         evolvedTransform.localRotation = localRotation;
         evolvedTransform.localScale = localScale;
+        TurretSelectionLayerUtility.ApplyTo(evolvedObject, this);
 
         TurretDefinitionRuntimeController evolvedRuntimeController = evolvedObject.GetComponent<TurretDefinitionRuntimeController>();
         if (evolvedRuntimeController == null)

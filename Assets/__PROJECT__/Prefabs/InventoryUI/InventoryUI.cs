@@ -48,7 +48,7 @@ public class InventoryUI : MonoBehaviour
     private Dictionary<Button, RewardCurrencyType> craftButtonDict = new();
     
     // 현재 선택된 크래프트 아이템을 제작하는데에 필요한 아이템 관련 데이터 딕셔너리
-    private Dictionary<RewardCurrencyType, ItemMaterialData> needItemData = new();
+    private Dictionary<RewardCurrencyType, ItemCreatfData> needItemData = new();
     private Dictionary<RewardCurrencyType, TextMeshProUGUI> needItemText = new();
 
     // 마지막으로 선택된 크래프트 아이템 타입
@@ -115,7 +115,7 @@ public class InventoryUI : MonoBehaviour
         foreach (RewardCurrencyType type in InventorySystem.Inst.Types)
         {
             var itemData = InventorySystem.Inst.GetMetaData(type);
-            if (itemData.Craftable)
+            if (itemData.Createable)
             {
                 var button = Instantiate(craftCellPrefab, craftContent.transform, false).GetComponent<Button>();
                 var imageComp = button.transform.Find("ItemImage").GetComponent<Image>();

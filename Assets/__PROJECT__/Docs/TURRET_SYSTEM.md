@@ -839,9 +839,10 @@ A complete path from Sentinel-01 tier level 1 to a second-generation `_3` tier l
 8. `TurretBaseSlot.TryPlace` spends `TurretShopEntrySO.PlacementCosts` through `ItemManager.TrySpend`.
 9. Successful placement instantiates the turret prefab as a child of `BuildPoint`.
 10. Installed turret local position and rotation should reset to zero/identity.
-11. `TurretBaseSlot` records the occupied turret controller or fallback GameObject.
-12. `TurretPlacementController` records successful placement count per placement entry.
-13. Placement entries can use `Placement Cost Tiers` to change the next placement cost by successful placement count.
+11. `TurretSelectionLayerUtility` normalizes the installed turret hierarchy to the TurretBase layer so camera touch raycasts can select it consistently.
+12. `TurretBaseSlot` records the occupied turret controller or fallback GameObject.
+13. `TurretPlacementController` records successful placement count per placement entry.
+14. Placement entries can use `Placement Cost Tiers` to change the next placement cost by successful placement count.
 
 Placement preview scale rules:
 
@@ -896,7 +897,11 @@ Engineer buff policy:
 ## Runtime Range Indicator
 
 - `TurretTemporaryUpgradePopupUI` owns the selected-turret range display because it already owns turret click selection and selection clearing.
-- `TurretRangeIndicator` renders one reusable `LineRenderer` circle in world space for the currently selected turret.
+- `TurretTemporaryUpgradePopupUI` can require a second click on the same turret within `popupDoubleClickInterval` before opening the upgrade/evolution popup, so the first click can be used as a range-only selection.
+- `TurretRangeIndicator` renders one reusable world-space indicator for the currently selected turret.
+- `TurretRangeIndicator` can use a configured prefab such as `Marker circle simple cyan 1` for polished range presentation, while keeping the previous `LineRenderer` circle as a fallback when no prefab is assigned.
+- Prefab-based range indicators are instantiated once, reused, moved to the selected turret center, and scaled by `range / prefabRadiusAtScaleOne`.
+- Particle-based range indicator prefabs can have their particle loops forced at runtime so short marker effects can stay visible while a turret remains selected.
 - The indicator uses the selected turret's current calculated runtime range, so level-up and evolution changes are reflected when the popup refreshes.
 - The indicator is hidden when selection is cleared or placement input is active.
 

@@ -22,6 +22,10 @@ public class TurretTemporaryUpgradePopupUI : MonoBehaviour
     [SerializeField, Min(0.1f)] private float maxHoldLevelsPerSecond = 45.0f;
     [SerializeField, Min(0.1f)] private float accelerationDuration = 4.0f;
 
+    [Header("선택 입력")]
+    [SerializeField] private bool requireDoubleClickToOpenPopup = true;
+    [SerializeField, Min(0.05f)] private float popupDoubleClickInterval = 1.0f;
+
     [Header("UI 참조")]
     [SerializeField] private RectTransform popupPanel;
     [SerializeField] private Button backgroundButton;
@@ -43,6 +47,11 @@ public class TurretTemporaryUpgradePopupUI : MonoBehaviour
 
     [Header("사거리 표시")]
     [SerializeField] private bool showRangeIndicatorOnSelection = true;
+    [SerializeField] private GameObject rangeIndicatorPrefab;
+    [SerializeField, Min(0.001f)] private float rangeIndicatorPrefabRadiusAtScaleOne = 1.0f;
+    [SerializeField] private bool forceRangeIndicatorPrefabParticleLoop = true;
+    [SerializeField] private bool restartRangeIndicatorPrefabParticlesOnShow = true;
+    [SerializeField] private bool useLineRangeIndicatorFallback = true;
     [SerializeField, Min(12)] private int rangeIndicatorSegments = 96;
     [SerializeField, Min(0.001f)] private float rangeIndicatorLineWidth = 0.08f;
     [SerializeField] private float rangeIndicatorYOffset = 0.05f;
@@ -58,6 +67,8 @@ public class TurretTemporaryUpgradePopupUI : MonoBehaviour
     private bool hasSubscribedCameraTouch;
     private float holdElapsedTime;
     private float holdLevelAccumulator;
+    private TurretDefinitionRuntimeController lastClickedTurret;
+    private float lastTurretClickTime = -1.0f;
 
     // 컴포넌트 추가 시 기본 참조를 자동으로 찾는다
     private void Reset()
@@ -184,11 +195,22 @@ public class TurretTemporaryUpgradePopupUI : MonoBehaviour
         RefreshEngineerSeatButtons();
     }
 
+    // 선택된 터렛과 슬롯을 저장하고 사거리만 표시한다
+    private void SelectTurretRangeOnly(TurretDefinitionRuntimeController turret, TurretBaseSlot slot)
+    {
+        selectedTurret = turret;
+        selectedSlot = slot;
+        EndLevelHold();
+        HidePopupPanelOnly();
+        RefreshSelectedRangeIndicator();
+    }
+
     // 선택된 터렛과 슬롯을 저장하고 팝업을 표시한다
     private void SelectTurret(TurretDefinitionRuntimeController turret, TurretBaseSlot slot)
     {
         selectedTurret = turret;
         selectedSlot = slot;
+
         RefreshUI();
         ShowPopup();
     }
@@ -344,8 +366,39 @@ public class TurretTemporaryUpgradePopupUI : MonoBehaviour
 
         if (TryGetTurretSelectionFromHit(hit, out TurretDefinitionRuntimeController turret, out TurretBaseSlot slot))
         {
-            SelectTurret(turret, slot);
+            HandleTurretSelectionClick(turret, slot);
         }
+    }
+
+    // 터렛 클릭 횟수와 간격에 따라 사거리 표시 또는 팝업 표시를 처리한다
+    private void HandleTurretSelectionClick(TurretDefinitionRuntimeController turret, TurretBaseSlot slot)
+    {
+        if (turret == null)
+        {
+            HidePopup();
+            return;
+        }
+
+        if (!requireDoubleClickToOpenPopup)
+        {
+            ClearPendingTurretClick();
+            SelectTurret(turret, slot);
+            return;
+        }
+
+        float currentTime = Time.unscaledTime;
+        bool isSameTurret = lastClickedTurret == turret;
+        bool isWithinDoubleClickInterval = currentTime - lastTurretClickTime <= popupDoubleClickInterval;
+        if (isSameTurret && isWithinDoubleClickInterval)
+        {
+            ClearPendingTurretClick();
+            SelectTurret(turret, slot);
+            return;
+        }
+
+        lastClickedTurret = turret;
+        lastTurretClickTime = currentTime;
+        SelectTurretRangeOnly(turret, slot);
     }
 
     // 레이캐스트 히트에서 터렛 컨트롤러와 점유 슬롯을 추출한다
@@ -385,7 +438,7 @@ public class TurretTemporaryUpgradePopupUI : MonoBehaviour
             return;
         }
 
-        if (!IsUIReady())
+        if (!IsLegacyUIReady())
         {
             LogMissingUIOnce();
             HidePopup();
@@ -813,6 +866,12 @@ public class TurretTemporaryUpgradePopupUI : MonoBehaviour
     // 팝업 구성에 필요한 참조가 유효한지 확인한다
     private bool IsUIReady()
     {
+        return IsLegacyUIReady();
+    }
+
+    // 기존 팝업 UI 구성에 필요한 참조가 유효한지 확인한다
+    private bool IsLegacyUIReady()
+    {
         return popupPanel != null &&
                titleText != null &&
                levelText != null &&
@@ -969,13 +1028,46 @@ public class TurretTemporaryUpgradePopupUI : MonoBehaviour
         EndLevelHold();
         selectedTurret = null;
         selectedSlot = null;
+        ClearPendingTurretClick();
         RefreshEngineerSeatButtons();
         HideRangeIndicator();
 
+        HideLegacyPopupPanel();
+    }
+
+    // 선택과 사거리는 유지한 채 팝업 패널만 숨긴다
+    private void HidePopupPanelOnly()
+    {
+        HideLegacyPopupPanel();
+    }
+
+    // 기존 팝업 패널만 숨긴다
+    private void HideLegacyPopupPanel()
+    {
         if (popupPanel != null)
         {
             popupPanel.gameObject.SetActive(false);
         }
+    }
+
+    // 마지막 터렛 클릭 대기 상태를 초기화한다
+    private void ClearPendingTurretClick()
+    {
+        lastClickedTurret = null;
+        lastTurretClickTime = -1.0f;
+    }
+
+    // 선택된 터렛의 현재 스탯에서 사거리 표시만 갱신한다
+    private void RefreshSelectedRangeIndicator()
+    {
+        if (selectedTurret == null)
+        {
+            HideRangeIndicator();
+            return;
+        }
+
+        TurretRuntimeStat currentStat = CalculateStat(selectedTurret.CurrentTierLevel);
+        RefreshRangeIndicator(currentStat.range);
     }
 
     // 선택된 터렛의 현재 사거리 표시를 갱신한다
@@ -988,6 +1080,7 @@ public class TurretTemporaryUpgradePopupUI : MonoBehaviour
         }
 
         EnsureRangeIndicator();
+        ConfigureRangeIndicator();
         Vector3 center = GetSelectedTurretRangeCenter();
         rangeIndicator.Show(center, range, rangeIndicatorSegments, rangeIndicatorLineWidth, rangeIndicatorYOffset, rangeIndicatorColor);
     }
@@ -1002,6 +1095,22 @@ public class TurretTemporaryUpgradePopupUI : MonoBehaviour
 
         GameObject indicatorObject = new GameObject("Temporary_TurretRangeIndicator");
         rangeIndicator = indicatorObject.AddComponent<TurretRangeIndicator>();
+    }
+
+    // 사거리 표시 컴포넌트에 현재 인스펙터 설정을 전달한다
+    private void ConfigureRangeIndicator()
+    {
+        if (rangeIndicator == null)
+        {
+            return;
+        }
+
+        rangeIndicator.ConfigurePrefab(
+            rangeIndicatorPrefab,
+            rangeIndicatorPrefabRadiusAtScaleOne,
+            forceRangeIndicatorPrefabParticleLoop,
+            restartRangeIndicatorPrefabParticlesOnShow,
+            useLineRangeIndicatorFallback);
     }
 
     // 선택된 터렛 또는 슬롯 기준으로 사거리 표시 중심점을 반환한다

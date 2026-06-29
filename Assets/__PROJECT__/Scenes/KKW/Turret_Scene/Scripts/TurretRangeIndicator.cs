@@ -1,7 +1,7 @@
 using UnityEngine;
 
 /// <summary>
-/// 선택된 터렛의 현재 사거리를 Game 뷰에서 원형 라인으로 표시한다.
+/// 선택된 터렛의 현재 사거리를 Game 뷰에서 프리팹 또는 원형 라인으로 표시한다.
 /// </summary>
 [DisallowMultipleComponent]
 public class TurretRangeIndicator : MonoBehaviour
@@ -9,18 +9,28 @@ public class TurretRangeIndicator : MonoBehaviour
     private const int MIN_SEGMENTS = 12;
     private const float MIN_RADIUS = 0.01f;
 
+    [Header("프리팹 표시")]
+    [SerializeField] private GameObject indicatorPrefab;
+    [SerializeField, Min(0.001f)] private float prefabRadiusAtScaleOne = 1.0f;
+    [SerializeField] private bool forcePrefabParticleLoop = true;
+    [SerializeField] private bool restartPrefabParticlesOnShow = true;
+    [SerializeField] private bool useLineFallbackWhenPrefabMissing = true;
+
     private LineRenderer lineRenderer;
     private Material runtimeMaterial;
     private Vector3[] circlePoints;
+    private GameObject prefabInstance;
+    private Transform prefabTransform;
+    private ParticleSystem[] prefabParticles;
+    private GameObject cachedPrefab;
 
-    // 컴포넌트 생성 시 라인 렌더러를 준비한다
+    // 컴포넌트 생성 시 사거리 표시를 숨김 상태로 준비한다
     private void Awake()
     {
-        EnsureLineRenderer();
         Hide();
     }
 
-    // 파괴 시 런타임 머티리얼을 정리한다
+    // 파괴 시 런타임 머티리얼과 프리팹 인스턴스를 정리한다
     private void OnDestroy()
     {
         if (runtimeMaterial != null)
@@ -28,10 +38,80 @@ public class TurretRangeIndicator : MonoBehaviour
             Destroy(runtimeMaterial);
             runtimeMaterial = null;
         }
+
+        if (prefabInstance != null)
+        {
+            Destroy(prefabInstance);
+            prefabInstance = null;
+        }
+    }
+
+    // 외부 UI 설정으로 프리팹 기반 사거리 표시 값을 갱신한다
+    public void ConfigurePrefab(GameObject prefab, float radiusAtScaleOne, bool forceParticleLoop, bool restartParticles, bool useLineFallback)
+    {
+        indicatorPrefab = prefab;
+        prefabRadiusAtScaleOne = Mathf.Max(MIN_RADIUS, radiusAtScaleOne);
+        forcePrefabParticleLoop = forceParticleLoop;
+        restartPrefabParticlesOnShow = restartParticles;
+        useLineFallbackWhenPrefabMissing = useLineFallback;
+
+        if (cachedPrefab != indicatorPrefab)
+        {
+            DestroyPrefabInstance();
+        }
     }
 
     // 지정한 중심과 반경으로 사거리 원을 표시한다
     public void Show(Vector3 center, float radius, int segments, float lineWidth, float yOffset, Color color)
+    {
+        if (indicatorPrefab != null)
+        {
+            ShowPrefab(center, radius, yOffset);
+            HideLineRenderer();
+            return;
+        }
+
+        if (!useLineFallbackWhenPrefabMissing)
+        {
+            Hide();
+            return;
+        }
+
+        ShowLine(center, radius, segments, lineWidth, yOffset, color);
+    }
+
+    // 사거리 원 표시를 숨긴다
+    public void Hide()
+    {
+        HidePrefab();
+        HideLineRenderer();
+    }
+
+    // 프리팹 인스턴스를 현재 사거리 기준 위치와 스케일로 표시한다
+    private void ShowPrefab(Vector3 center, float radius, float yOffset)
+    {
+        EnsurePrefabInstance();
+        if (prefabInstance == null || prefabTransform == null)
+        {
+            return;
+        }
+
+        float safeRadius = Mathf.Max(MIN_RADIUS, radius);
+        float safePrefabRadius = Mathf.Max(MIN_RADIUS, prefabRadiusAtScaleOne);
+        float scale = safeRadius / safePrefabRadius;
+
+        prefabTransform.position = center + Vector3.up * yOffset;
+        prefabTransform.localScale = Vector3.one * scale;
+        prefabInstance.SetActive(true);
+
+        if (restartPrefabParticlesOnShow)
+        {
+            RestartPrefabParticles();
+        }
+    }
+
+    // 기존 라인 렌더러 방식으로 사거리 원을 표시한다
+    private void ShowLine(Vector3 center, float radius, int segments, float lineWidth, float yOffset, Color color)
     {
         EnsureLineRenderer();
 
@@ -59,11 +139,29 @@ public class TurretRangeIndicator : MonoBehaviour
         lineRenderer.enabled = true;
     }
 
-    // 사거리 원 표시를 숨긴다
-    public void Hide()
+    // 프리팹 인스턴스와 파티클 참조를 준비한다
+    private void EnsurePrefabInstance()
     {
-        EnsureLineRenderer();
-        lineRenderer.enabled = false;
+        if (prefabInstance != null && cachedPrefab == indicatorPrefab)
+        {
+            return;
+        }
+
+        DestroyPrefabInstance();
+        if (indicatorPrefab == null)
+        {
+            return;
+        }
+
+        prefabInstance = Instantiate(indicatorPrefab, transform);
+        prefabInstance.name = indicatorPrefab.name;
+        prefabTransform = prefabInstance.transform;
+        prefabTransform.localPosition = Vector3.zero;
+        prefabTransform.localRotation = Quaternion.identity;
+        prefabTransform.localScale = Vector3.one;
+        prefabParticles = prefabInstance.GetComponentsInChildren<ParticleSystem>(true);
+        cachedPrefab = indicatorPrefab;
+        ApplyPrefabParticleLoopSetting();
     }
 
     // 라인 렌더러와 기본 표시 설정을 준비한다
@@ -84,6 +182,80 @@ public class TurretRangeIndicator : MonoBehaviour
         lineRenderer.receiveShadows = false;
         lineRenderer.textureMode = LineTextureMode.Stretch;
         lineRenderer.alignment = LineAlignment.View;
+    }
+
+    // 프리팹 파티클 루프 설정을 런타임 표시 정책에 맞춘다
+    private void ApplyPrefabParticleLoopSetting()
+    {
+        if (!forcePrefabParticleLoop || prefabParticles == null)
+        {
+            return;
+        }
+
+        for (int i = 0; i < prefabParticles.Length; i++)
+        {
+            ParticleSystem particle = prefabParticles[i];
+            if (particle == null)
+            {
+                continue;
+            }
+
+            ParticleSystem.MainModule main = particle.main;
+            main.loop = true;
+        }
+    }
+
+    // 프리팹 파티클을 처음부터 다시 재생한다
+    private void RestartPrefabParticles()
+    {
+        if (prefabParticles == null)
+        {
+            return;
+        }
+
+        for (int i = 0; i < prefabParticles.Length; i++)
+        {
+            ParticleSystem particle = prefabParticles[i];
+            if (particle == null)
+            {
+                continue;
+            }
+
+            particle.Clear(true);
+            particle.Play(true);
+        }
+    }
+
+    // 프리팹 인스턴스를 비활성화한다
+    private void HidePrefab()
+    {
+        if (prefabInstance != null)
+        {
+            prefabInstance.SetActive(false);
+        }
+    }
+
+    // 라인 렌더러 표시를 비활성화한다
+    private void HideLineRenderer()
+    {
+        if (lineRenderer != null)
+        {
+            lineRenderer.enabled = false;
+        }
+    }
+
+    // 생성된 프리팹 인스턴스와 캐시를 제거한다
+    private void DestroyPrefabInstance()
+    {
+        if (prefabInstance != null)
+        {
+            Destroy(prefabInstance);
+        }
+
+        prefabInstance = null;
+        prefabTransform = null;
+        prefabParticles = null;
+        cachedPrefab = null;
     }
 
     // 원 좌표를 담을 버퍼 크기를 보장한다

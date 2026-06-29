@@ -39134,7 +39134,7 @@ GameObject:
   - component: {fileID: 7376520182279104026}
   - component: {fileID: 7993846003304566744}
   m_Layer: 15
-  m_Name: DropItemParticle_UnCommon
+  m_Name: DropItemParticle_C
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

@@ -49,7 +49,7 @@ MonoBehaviour:
   mashRenderer: {fileID: 635571244895453925}
   particleList:
   - Grade: 4
-    Particle: {fileID: -3234991610689355088, guid: efeb159427e5699449c4bad0eff05e96, type: 3}
+    Particle: {fileID: 1862666651079793161, guid: efeb159427e5699449c4bad0eff05e96, type: 3}
   - Grade: 3
     Particle: {fileID: 7993846003304566744, guid: 2906f93ca1240c5499645720555df9e7, type: 3}
   - Grade: 2

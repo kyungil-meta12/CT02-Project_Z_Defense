@@ -8,6 +8,7 @@ internal sealed class TurretBalanceReportWindow : EditorWindow
     private const string MENU_PATH = "Tools/터렛 웨이브 밸런스 시뮬레이션";
     private const double AUTO_REFRESH_INTERVAL_SECONDS = 2.0d;
     private const int GRAPH_TAB_INDEX = 3;
+    private const string EDITOR_PREFS_PREFIX = "ProjectZDefense.TurretBalanceReport.";
     private static readonly string[] TabLabels = { "웨이브 클리어", "터렛 시나리오 상세", "원천 데이터 점검", "시각화 그래프" };
 
     private readonly TurretBalanceReportInputCollector inputCollector = new TurretBalanceReportInputCollector();
@@ -28,6 +29,7 @@ internal sealed class TurretBalanceReportWindow : EditorWindow
     private double nextAutoRefreshTime;
     private string lastRefreshLabel;
     private float targetClearSeconds = 30.0f;
+    private TurretBalanceDpsSettings dpsSettings = CreateDefaultDpsSettings();
 
     // 터렛 웨이브 밸런스 시뮬레이션 창을 연다
     [MenuItem(MENU_PATH)]
@@ -55,6 +57,7 @@ internal sealed class TurretBalanceReportWindow : EditorWindow
     // 창이 활성화될 때 자동 갱신 루프를 연결하고 데이터를 계산한다
     private void OnEnable()
     {
+        LoadEditorPrefs();
         EditorApplication.update -= OnEditorUpdate;
         EditorApplication.update += OnEditorUpdate;
         RefreshReport(true);
@@ -63,6 +66,7 @@ internal sealed class TurretBalanceReportWindow : EditorWindow
     // 창이 비활성화될 때 자동 갱신 루프를 해제한다
     private void OnDisable()
     {
+        SaveEditorPrefs();
         EditorApplication.update -= OnEditorUpdate;
     }
 
@@ -94,6 +98,7 @@ internal sealed class TurretBalanceReportWindow : EditorWindow
     private void OnGUI()
     {
         DrawToolbar();
+        DrawDpsSettingsToolbar();
         EditorGUILayout.Space(6.0f);
 
         int nextSelectedTab = GUILayout.Toolbar(selectedTab, TabLabels);
@@ -140,12 +145,51 @@ internal sealed class TurretBalanceReportWindow : EditorWindow
 
         EditorGUILayout.LabelField("자동 갱신: 켜짐", EditorStyles.miniLabel, GUILayout.Width(100.0f));
         EditorGUILayout.LabelField("기준 클리어", EditorStyles.miniLabel, GUILayout.Width(58.0f));
-        targetClearSeconds = Mathf.Max(1.0f, EditorGUILayout.FloatField(targetClearSeconds, GUILayout.Width(46.0f)));
+        EditorGUI.BeginChangeCheck();
+        float nextTargetClearSeconds = Mathf.Max(1.0f, EditorGUILayout.FloatField(targetClearSeconds, GUILayout.Width(46.0f)));
+        if (EditorGUI.EndChangeCheck())
+        {
+            targetClearSeconds = nextTargetClearSeconds;
+            SaveEditorPrefs();
+        }
+
         EditorGUILayout.LabelField("초", EditorStyles.miniLabel, GUILayout.Width(18.0f));
 
         GUILayout.FlexibleSpace();
         EditorGUILayout.LabelField(lastRefreshLabel ?? "새로고침 전", EditorStyles.miniLabel, GUILayout.Width(280.0f));
         EditorGUILayout.EndHorizontal();
+    }
+
+    // 다수 대상 DPS 계산에 쓰는 기대 대상 수와 관통 효율 입력을 그린다
+    private void DrawDpsSettingsToolbar()
+    {
+        EditorGUILayout.BeginHorizontal(EditorStyles.toolbar);
+        EditorGUILayout.LabelField("DPS 기대 대상", EditorStyles.miniLabel, GUILayout.Width(78.0f));
+
+        EditorGUI.BeginChangeCheck();
+        dpsSettings.FrostExpectedTargetCount = DrawPositiveFloatToolbarField("Frost", dpsSettings.FrostExpectedTargetCount, 38.0f);
+        dpsSettings.PoisonExpectedTargetCount = DrawPositiveFloatToolbarField("Poison", dpsSettings.PoisonExpectedTargetCount, 42.0f);
+        dpsSettings.ElectroExpectedTargetCount = DrawPositiveFloatToolbarField("Electro", dpsSettings.ElectroExpectedTargetCount, 44.0f);
+        dpsSettings.IgnitionExpectedTargetCount = DrawPositiveFloatToolbarField("Ignition", dpsSettings.IgnitionExpectedTargetCount, 50.0f);
+        EditorGUILayout.LabelField("Overload", EditorStyles.miniLabel, GUILayout.Width(52.0f));
+        dpsSettings.ElectroOverloadTriggerExpectation = Mathf.Clamp01(EditorGUILayout.FloatField(dpsSettings.ElectroOverloadTriggerExpectation, GUILayout.Width(42.0f)));
+        EditorGUILayout.LabelField("관통 DPS/개", EditorStyles.miniLabel, GUILayout.Width(72.0f));
+        dpsSettings.PierceDpsMultiplierPerCount = Mathf.Max(0.0f, EditorGUILayout.FloatField(dpsSettings.PierceDpsMultiplierPerCount, GUILayout.Width(46.0f)));
+        if (EditorGUI.EndChangeCheck())
+        {
+            SaveEditorPrefs();
+            RefreshReport(true);
+        }
+
+        GUILayout.FlexibleSpace();
+        EditorGUILayout.EndHorizontal();
+    }
+
+    // 툴바에 양수 실수 입력 필드를 그린다
+    private static float DrawPositiveFloatToolbarField(string label, float value, float labelWidth)
+    {
+        EditorGUILayout.LabelField(label, EditorStyles.miniLabel, GUILayout.Width(labelWidth));
+        return Mathf.Max(1.0f, EditorGUILayout.FloatField(value, GUILayout.Width(42.0f)));
     }
 
     // 모든 리포트 데이터를 다시 계산한다
@@ -159,7 +203,7 @@ internal sealed class TurretBalanceReportWindow : EditorWindow
 
         lastDataSignature = dataSignature;
         TurretBalanceInputSnapshot snapshot = inputCollector.Collect();
-        TurretBalanceReportResult report = calculator.Build(snapshot);
+        TurretBalanceReportResult report = calculator.Build(snapshot, dpsSettings);
         lastReport = report;
         lastTables = tableBuilder.Build(report);
 
@@ -171,5 +215,58 @@ internal sealed class TurretBalanceReportWindow : EditorWindow
     private void RefreshReportIfDataChanged()
     {
         RefreshReport(false);
+    }
+
+    // 저장된 에디터 입력값을 불러온다
+    private void LoadEditorPrefs()
+    {
+        targetClearSeconds = EditorPrefs.GetFloat(EDITOR_PREFS_PREFIX + "TargetClearSeconds", 30.0f);
+        dpsSettings = CreateDefaultDpsSettings();
+        dpsSettings.FrostExpectedTargetCount = EditorPrefs.GetFloat(EDITOR_PREFS_PREFIX + "FrostExpectedTargetCount", dpsSettings.FrostExpectedTargetCount);
+        dpsSettings.PoisonExpectedTargetCount = EditorPrefs.GetFloat(EDITOR_PREFS_PREFIX + "PoisonExpectedTargetCount", dpsSettings.PoisonExpectedTargetCount);
+        dpsSettings.ElectroExpectedTargetCount = EditorPrefs.GetFloat(EDITOR_PREFS_PREFIX + "ElectroExpectedTargetCount", dpsSettings.ElectroExpectedTargetCount);
+        dpsSettings.IgnitionExpectedTargetCount = EditorPrefs.GetFloat(EDITOR_PREFS_PREFIX + "IgnitionExpectedTargetCount", dpsSettings.IgnitionExpectedTargetCount);
+        dpsSettings.ElectroOverloadTriggerExpectation = EditorPrefs.GetFloat(EDITOR_PREFS_PREFIX + "ElectroOverloadTriggerExpectation", dpsSettings.ElectroOverloadTriggerExpectation);
+        dpsSettings.PierceDpsMultiplierPerCount = EditorPrefs.GetFloat(EDITOR_PREFS_PREFIX + "PierceDpsMultiplierPerCount", dpsSettings.PierceDpsMultiplierPerCount);
+        SanitizeInputValues();
+    }
+
+    // 에디터 입력값을 저장한다
+    private void SaveEditorPrefs()
+    {
+        SanitizeInputValues();
+        EditorPrefs.SetFloat(EDITOR_PREFS_PREFIX + "TargetClearSeconds", targetClearSeconds);
+        EditorPrefs.SetFloat(EDITOR_PREFS_PREFIX + "FrostExpectedTargetCount", dpsSettings.FrostExpectedTargetCount);
+        EditorPrefs.SetFloat(EDITOR_PREFS_PREFIX + "PoisonExpectedTargetCount", dpsSettings.PoisonExpectedTargetCount);
+        EditorPrefs.SetFloat(EDITOR_PREFS_PREFIX + "ElectroExpectedTargetCount", dpsSettings.ElectroExpectedTargetCount);
+        EditorPrefs.SetFloat(EDITOR_PREFS_PREFIX + "IgnitionExpectedTargetCount", dpsSettings.IgnitionExpectedTargetCount);
+        EditorPrefs.SetFloat(EDITOR_PREFS_PREFIX + "ElectroOverloadTriggerExpectation", dpsSettings.ElectroOverloadTriggerExpectation);
+        EditorPrefs.SetFloat(EDITOR_PREFS_PREFIX + "PierceDpsMultiplierPerCount", dpsSettings.PierceDpsMultiplierPerCount);
+    }
+
+    // 입력값을 계산 가능한 범위로 보정한다
+    private void SanitizeInputValues()
+    {
+        targetClearSeconds = Mathf.Max(1.0f, targetClearSeconds);
+        dpsSettings.FrostExpectedTargetCount = Mathf.Max(1.0f, dpsSettings.FrostExpectedTargetCount);
+        dpsSettings.PoisonExpectedTargetCount = Mathf.Max(1.0f, dpsSettings.PoisonExpectedTargetCount);
+        dpsSettings.ElectroExpectedTargetCount = Mathf.Max(1.0f, dpsSettings.ElectroExpectedTargetCount);
+        dpsSettings.IgnitionExpectedTargetCount = Mathf.Max(1.0f, dpsSettings.IgnitionExpectedTargetCount);
+        dpsSettings.ElectroOverloadTriggerExpectation = Mathf.Clamp01(dpsSettings.ElectroOverloadTriggerExpectation);
+        dpsSettings.PierceDpsMultiplierPerCount = Mathf.Max(0.0f, dpsSettings.PierceDpsMultiplierPerCount);
+    }
+
+    // 리포트 DPS 계산 설정의 기본값을 만든다
+    private static TurretBalanceDpsSettings CreateDefaultDpsSettings()
+    {
+        return new TurretBalanceDpsSettings
+        {
+            FrostExpectedTargetCount = 1.0f,
+            PoisonExpectedTargetCount = 1.0f,
+            ElectroExpectedTargetCount = 5.0f,
+            IgnitionExpectedTargetCount = 3.0f,
+            ElectroOverloadTriggerExpectation = 0.0f,
+            PierceDpsMultiplierPerCount = 1.0f
+        };
     }
 }

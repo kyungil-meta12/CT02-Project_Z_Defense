@@ -7,7 +7,7 @@ internal sealed class TurretSpeciesDetailCalculator
     private readonly TurretEvolutionGraphBuilder graphBuilder = new TurretEvolutionGraphBuilder();
 
     // 입력 스냅샷과 웨이브 행으로 터렛 종류별 상세 행과 기준 레벨 목록을 만들고, 사용한 진화 그래프 노드 목록을 반환한다
-    public List<TurretEvolutionNode> BuildRows(TurretBalanceInputSnapshot snapshot, TurretBalanceReportResult result)
+    public List<TurretEvolutionNode> BuildRows(TurretBalanceInputSnapshot snapshot, TurretBalanceReportResult result, TurretBalanceDpsSettings dpsSettings)
     {
         List<TurretEvolutionNode> nodes = graphBuilder.Build(snapshot.ShopEntries, result.Warnings);
         if (nodes.Count == 0)
@@ -20,7 +20,7 @@ internal sealed class TurretSpeciesDetailCalculator
 
         for (int i = 0; i < nodes.Count; i++)
         {
-            result.SpeciesDetailRows.Add(CreateRow(nodes[i], result.WaveRows, result.ScenarioReferenceLevels));
+            result.SpeciesDetailRows.Add(CreateRow(nodes[i], result.WaveRows, result.ScenarioReferenceLevels, dpsSettings));
         }
 
         return nodes;
@@ -48,7 +48,7 @@ internal sealed class TurretSpeciesDetailCalculator
     }
 
     // 노드 하나가 다음 단계로 진화하는 시점/비용과 기준 레벨별 누적 비용·DPS·도달 웨이브를 계산한다
-    private static TurretSpeciesDetailRow CreateRow(TurretEvolutionNode node, List<WaveSummaryRow> waveRowsAscending, List<int> referenceLevels)
+    private static TurretSpeciesDetailRow CreateRow(TurretEvolutionNode node, List<WaveSummaryRow> waveRowsAscending, List<int> referenceLevels, TurretBalanceDpsSettings dpsSettings)
     {
         TurretSpeciesDetailRow row = new TurretSpeciesDetailRow
         {
@@ -70,7 +70,7 @@ internal sealed class TurretSpeciesDetailCalculator
         int cap = TurretEconomySimulationCalculator.ResolveMaxLevel(node.Definition);
         for (int i = 0; i < referenceLevels.Count; i++)
         {
-            row.LevelSamples.Add(CalculateLevelSample(node, referenceLevels[i], cap, waveRowsAscending));
+            row.LevelSamples.Add(CalculateLevelSample(node, referenceLevels[i], cap, waveRowsAscending, dpsSettings));
         }
 
         return row;
@@ -91,7 +91,7 @@ internal sealed class TurretSpeciesDetailCalculator
     }
 
     // 지정 레벨까지 단일 설치로 올리는 데 드는 재화별 누적 비용·DPS와 Coin 기준 도달 웨이브를 계산한다
-    private static TurretLevelCostSample CalculateLevelSample(TurretEvolutionNode node, int level, int cap, List<WaveSummaryRow> waveRowsAscending)
+    private static TurretLevelCostSample CalculateLevelSample(TurretEvolutionNode node, int level, int cap, List<WaveSummaryRow> waveRowsAscending, TurretBalanceDpsSettings dpsSettings)
     {
         TurretLevelCostSample sample = new TurretLevelCostSample { Level = level };
         if (level > cap)
@@ -107,9 +107,31 @@ internal sealed class TurretSpeciesDetailCalculator
 
         sample.LevelAvailable = true;
         sample.CumulativeCost = cumulativeCost;
-        sample.Dps = TurretEconomySimulationCalculator.CalculateDps(TurretStatCalculator.Calculate(node.Definition, level));
         sample.Wave = FindFirstAffordableWave(waveRowsAscending, TurretEconomySimulationCalculator.GetCoinAmount(cumulativeCost));
         sample.WaveReached = sample.Wave > 0;
+        sample.Dps = TurretSpecialAbilityDpsCalculator.CalculateDps(node.Definition, level, FindRepresentativeWaveRow(waveRowsAscending, sample.Wave), dpsSettings);
         return sample;
+    }
+
+    // 지정 웨이브 번호에 해당하는 계산 행을 찾고 없으면 마지막 웨이브를 대표값으로 사용한다
+    private static WaveSummaryRow FindRepresentativeWaveRow(List<WaveSummaryRow> waveRowsAscending, int wave)
+    {
+        if (waveRowsAscending == null || waveRowsAscending.Count == 0)
+        {
+            return default;
+        }
+
+        if (wave > 0)
+        {
+            for (int i = 0; i < waveRowsAscending.Count; i++)
+            {
+                if (waveRowsAscending[i].MinWave == wave)
+                {
+                    return waveRowsAscending[i];
+                }
+            }
+        }
+
+        return waveRowsAscending[waveRowsAscending.Count - 1];
     }
 }

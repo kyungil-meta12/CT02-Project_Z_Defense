@@ -89,6 +89,8 @@ internal sealed class TurretWaveRuntimeAnalyzer
             RewardMultiplier = rewardMultiplier,
             CandidateCount = candidateCount,
             AverageZombieHp = spawnCount <= 0 ? 0.0f : totalHp / spawnCount,
+            AverageNormalZombieHp = normalSummary.AverageHp,
+            AverageBossZombieHp = bossSummary.AverageHp,
             TotalWaveHp = totalHp,
             AverageRewardPerWave = averageRewardPerWave
         };

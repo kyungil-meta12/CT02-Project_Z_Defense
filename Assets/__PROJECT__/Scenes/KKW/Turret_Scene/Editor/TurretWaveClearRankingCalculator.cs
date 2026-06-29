@@ -8,23 +8,23 @@ internal sealed class TurretWaveClearRankingCalculator
     private const int MAX_TOTAL_TURRET_INSTALL_COUNT = 8;
 
     // 모든 웨이브에 대해 종류별 상세 데이터(터렛 시나리오 상세와 동일한 레벨 체크포인트의 DPS)를 참고해 상위 순위 목록을 만든다
-    public void BuildRanks(TurretBalanceReportResult result, List<TurretEvolutionNode> nodes)
+    public void BuildRanks(TurretBalanceReportResult result, List<TurretEvolutionNode> nodes, TurretBalanceDpsSettings dpsSettings)
     {
         for (int i = 0; i < result.WaveRows.Count; i++)
         {
-            result.WaveClearRows.Add(CreateWaveClearRow(result.WaveRows[i], nodes, result.SpeciesDetailRows));
+            result.WaveClearRows.Add(CreateWaveClearRow(result.WaveRows[i], nodes, result.SpeciesDetailRows, dpsSettings));
         }
     }
 
     // 웨이브 하나의 예산으로 상위 3개 종류를 뽑아 대표 행을 만든다
-    private static WaveClearSimulationRow CreateWaveClearRow(WaveSummaryRow wave, List<TurretEvolutionNode> nodes, List<TurretSpeciesDetailRow> speciesRows)
+    private static WaveClearSimulationRow CreateWaveClearRow(WaveSummaryRow wave, List<TurretEvolutionNode> nodes, List<TurretSpeciesDetailRow> speciesRows, TurretBalanceDpsSettings dpsSettings)
     {
         int budget = Mathf.FloorToInt(Mathf.Max(0.0f, wave.AvailableBudgetCoin));
         List<WaveClearRankEntry> candidates = new List<WaveClearRankEntry>(nodes.Count);
         int count = Mathf.Min(nodes.Count, speciesRows.Count);
         for (int i = 0; i < count; i++)
         {
-            WaveClearRankEntry? candidate = FindBestEntryForSpecies(nodes[i], speciesRows[i], budget);
+            WaveClearRankEntry? candidate = FindBestEntryForSpecies(nodes[i], speciesRows[i], budget, wave, dpsSettings);
             if (candidate.HasValue)
             {
                 candidates.Add(candidate.Value);
@@ -51,7 +51,7 @@ internal sealed class TurretWaveClearRankingCalculator
     }
 
     // 종류 하나에서, 레벨 체크포인트 중 총 DPS가 가장 높은 (레벨, 설치 수) 조합을 찾는다
-    private static WaveClearRankEntry? FindBestEntryForSpecies(TurretEvolutionNode node, TurretSpeciesDetailRow speciesRow, int budget)
+    private static WaveClearRankEntry? FindBestEntryForSpecies(TurretEvolutionNode node, TurretSpeciesDetailRow speciesRow, int budget, WaveSummaryRow wave, TurretBalanceDpsSettings dpsSettings)
     {
         WaveClearRankEntry? best = null;
         for (int i = 0; i < speciesRow.LevelSamples.Count; i++)
@@ -72,7 +72,8 @@ internal sealed class TurretWaveClearRankingCalculator
                 continue;
             }
 
-            float totalDps = installCount * sample.Dps;
+            float effectiveDps = TurretSpecialAbilityDpsCalculator.CalculateDps(node.Definition, sample.Level, wave, dpsSettings);
+            float totalDps = installCount * effectiveDps;
             if (!best.HasValue || totalDps > best.Value.TotalDps)
             {
                 best = new WaveClearRankEntry

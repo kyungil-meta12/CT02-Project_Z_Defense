@@ -56,6 +56,17 @@ internal sealed class TurretBalanceReportResult
     public readonly List<ReportWarning> Warnings = new List<ReportWarning>();
 }
 
+// 리포트 DPS 계산에서 다수 대상 기대값과 관통 효율을 공유하기 위한 설정값.
+internal struct TurretBalanceDpsSettings
+{
+    public float FrostExpectedTargetCount;
+    public float PoisonExpectedTargetCount;
+    public float ElectroExpectedTargetCount;
+    public float IgnitionExpectedTargetCount;
+    public float ElectroOverloadTriggerExpectation;
+    public float PierceDpsMultiplierPerCount;
+}
+
 // 원천 데이터 경고의 심각도. 계산 결과 신뢰도에 영향을 주면 Warning, 의도된 대체/생략 안내면 Info.
 internal enum ReportWarningSeverity
 {
@@ -132,6 +143,8 @@ internal struct WaveSummaryRow
     public float RewardMultiplier;
     public int CandidateCount;
     public float AverageZombieHp;
+    public float AverageNormalZombieHp;
+    public float AverageBossZombieHp;
     public float TotalWaveHp;
     public int InitialWalletCoin;
     public Dictionary<RewardCurrencyType, float> AverageRewardPerWave;

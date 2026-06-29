@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Reflection;
 using System.Text;
 using UnityEditor;
 using UnityEngine;
@@ -12,6 +13,7 @@ using UnityEngine;
 public class ItemDataEditorTool : EditorWindow
 {
     private const string TYPE_COLUMN = "Type";
+    private const string GRADE_COLUMN = "Grade";
     private const string NAME_COLUMN = "Name";
     private const string INFO_TEXT_COLUMN = "InfoText";
     private const string IMAGE_PATH_COLUMN = "ItemImageAssetPath";
@@ -75,6 +77,11 @@ public class ItemDataEditorTool : EditorWindow
         if (GUILayout.Button("검증만 실행", GUILayout.Height(34)))
         {
             ExecuteSafely(ValidateOnly);
+        }
+
+        if (GUILayout.Button("CSV 헤더 동기화", GUILayout.Height(34)))
+        {
+            ExecuteSafely(SyncCsvHeader);
         }
 
         if (GUILayout.Button("CSV 열기", GUILayout.Height(34)))
@@ -143,6 +150,47 @@ public class ItemDataEditorTool : EditorWindow
         FlushMessagesToConsole(true);
     }
 
+    // ItemMetaDataSo 필드 기준으로 CSV 헤더를 최신 상태로 맞춘다
+    private void SyncCsvHeader()
+    {
+        ClearRunState();
+        if (!File.Exists(DEFAULT_CSV_PATH))
+        {
+            StringBuilder builder = new StringBuilder(256);
+            AppendHeader(builder, BuildCsvColumnDefinitions());
+            WriteCsvText(builder.ToString());
+            AddMessage("CSV 파일이 없어 헤더만 포함한 파일을 생성했습니다: " + DEFAULT_CSV_PATH);
+            FlushMessagesToConsole(true);
+            return;
+        }
+
+        if (!TryReadCsvText(out string csvText))
+        {
+            FlushMessagesToConsole(false);
+            return;
+        }
+
+        List<List<string>> table = ParseCsv(csvText);
+        if (table.Count == 0)
+        {
+            table.Add(new List<string>());
+        }
+
+        CsvColumnDefinition[] columnDefinitions = BuildCsvColumnDefinitions();
+        int addedCount = AddMissingHeaderColumns(table, columnDefinitions);
+        if (addedCount <= 0)
+        {
+            AddMessage("CSV 헤더가 이미 최신 상태입니다.");
+            FlushMessagesToConsole(true);
+            return;
+        }
+
+        WriteCsvText(BuildCsvText(table));
+        AssetDatabase.Refresh();
+        AddMessage($"CSV 헤더 동기화 완료: 누락 컬럼 {addedCount}개를 추가했습니다.");
+        FlushMessagesToConsole(true);
+    }
+
     // CSV 데이터를 ScriptableObject로 임포트한다
     private void ImportFromCsv()
     {
@@ -181,12 +229,14 @@ public class ItemDataEditorTool : EditorWindow
             }
 
             itemSo.Type = row.Type;
+            itemSo.Grade = row.Grade;
             itemSo.Name = row.Name;
             itemSo.InfoText = row.InfoText;
             itemSo.ItemImage = row.ItemImage;
             itemSo.Craftable = row.Craftable;
             itemSo.ItemsToCreate = row.ItemsToCreate;
             itemSo.CreateCount = row.CreateCount;
+            ApplyAdditionalFieldValues(itemSo, row.FieldValues, row.LineNumber);
             EditorUtility.SetDirty(itemSo);
             importedItems.Add(itemSo);
         }
@@ -218,7 +268,8 @@ public class ItemDataEditorTool : EditorWindow
         }
 
         StringBuilder builder = new StringBuilder(1024);
-        builder.AppendLine($"{TYPE_COLUMN}(아이템 타입),{NAME_COLUMN}(표시 이름),{INFO_TEXT_COLUMN}(설명 텍스트),{IMAGE_PATH_COLUMN}(이미지 에셋 경로),{CRAFTABLE_COLUMN}(제작 가능 여부),{CRAFT_COLUMN}(제작 재료 목록),{CREATE_COUNT_COLUMN}(제작 수량)");
+        CsvColumnDefinition[] columnDefinitions = BuildCsvColumnDefinitions();
+        AppendHeader(builder, columnDefinitions);
         for (int i = 0; i < targetListSo.MetaDataList.Count; i++)
         {
             ItemMetaDataSo item = targetListSo.MetaDataList[i];
@@ -227,31 +278,10 @@ public class ItemDataEditorTool : EditorWindow
                 continue;
             }
 
-            string imagePath = item.ItemImage == null ? string.Empty : AssetDatabase.GetAssetPath(item.ItemImage);
-            string craftText = FormatCraftItems(item.ItemsToCreate);
-            builder.Append(EscapeCsvField(item.Type.ToString()));
-            builder.Append(',');
-            builder.Append(EscapeCsvField(item.Name));
-            builder.Append(',');
-            builder.Append(EscapeCsvField(item.InfoText));
-            builder.Append(',');
-            builder.Append(EscapeCsvField(imagePath));
-            builder.Append(',');
-            builder.Append(EscapeCsvField(item.Craftable.ToString()));
-            builder.Append(',');
-            builder.Append(EscapeCsvField(craftText));
-            builder.Append(',');
-            builder.Append(EscapeCsvField(item.CreateCount.ToString()));
-            builder.AppendLine();
+            AppendItemRow(builder, columnDefinitions, item);
         }
 
-        string directoryPath = Path.GetDirectoryName(DEFAULT_CSV_PATH);
-        if (!string.IsNullOrEmpty(directoryPath))
-        {
-            Directory.CreateDirectory(directoryPath);
-        }
-
-        File.WriteAllText(DEFAULT_CSV_PATH, builder.ToString(), new UTF8Encoding(true));
+        WriteCsvText(builder.ToString());
         AssetDatabase.Refresh();
         AddMessage("익스포트 완료: " + DEFAULT_CSV_PATH);
         FlushMessagesToConsole(true);
@@ -402,6 +432,181 @@ public class ItemDataEditorTool : EditorWindow
         return descriptionIndex >= 0 ? normalizedHeader.Substring(0, descriptionIndex).Trim() : normalizedHeader;
     }
 
+    // ItemMetaDataSo 필드 목록을 CSV 컬럼 정의로 변환한다
+    private static CsvColumnDefinition[] BuildCsvColumnDefinitions()
+    {
+        FieldInfo[] fields = typeof(ItemMetaDataSo).GetFields(BindingFlags.Instance | BindingFlags.Public);
+        Array.Sort(fields, CompareFieldDeclarationOrder);
+
+        CsvColumnDefinition[] definitions = new CsvColumnDefinition[fields.Length];
+        for (int i = 0; i < fields.Length; i++)
+        {
+            FieldInfo field = fields[i];
+            definitions[i] = new CsvColumnDefinition
+            {
+                Field = field,
+                ColumnName = GetCsvColumnName(field),
+                Description = GetCsvColumnDescription(field)
+            };
+        }
+
+        return definitions;
+    }
+
+    // 필드 선언 순서에 가깝게 정렬한다
+    private static int CompareFieldDeclarationOrder(FieldInfo left, FieldInfo right)
+    {
+        return left.MetadataToken.CompareTo(right.MetadataToken);
+    }
+
+    // 필드에 대응되는 CSV 컬럼명을 반환한다
+    private static string GetCsvColumnName(FieldInfo field)
+    {
+        if (field.FieldType == typeof(Sprite))
+        {
+            return field.Name + "AssetPath";
+        }
+
+        return field.Name;
+    }
+
+    // 필드의 HeaderAttribute 설명을 CSV 설명으로 반환한다
+    private static string GetCsvColumnDescription(FieldInfo field)
+    {
+        HeaderAttribute headerAttribute = Attribute.GetCustomAttribute(field, typeof(HeaderAttribute)) as HeaderAttribute;
+        if (headerAttribute != null && !string.IsNullOrWhiteSpace(headerAttribute.header))
+        {
+            return headerAttribute.header;
+        }
+
+        return ObjectNames.NicifyVariableName(field.Name);
+    }
+
+    // CSV 헤더 행을 추가한다
+    private static void AppendHeader(StringBuilder builder, CsvColumnDefinition[] columnDefinitions)
+    {
+        for (int i = 0; i < columnDefinitions.Length; i++)
+        {
+            if (i > 0)
+            {
+                builder.Append(',');
+            }
+
+            CsvColumnDefinition definition = columnDefinitions[i];
+            builder.Append(EscapeCsvField($"{definition.ColumnName}({definition.Description})"));
+        }
+
+        builder.AppendLine();
+    }
+
+    // 아이템 데이터를 CSV 행으로 추가한다
+    private static void AppendItemRow(StringBuilder builder, CsvColumnDefinition[] columnDefinitions, ItemMetaDataSo item)
+    {
+        for (int i = 0; i < columnDefinitions.Length; i++)
+        {
+            if (i > 0)
+            {
+                builder.Append(',');
+            }
+
+            builder.Append(EscapeCsvField(FormatFieldValue(columnDefinitions[i], item)));
+        }
+
+        builder.AppendLine();
+    }
+
+    // 필드 값을 CSV 셀 문자열로 변환한다
+    private static string FormatFieldValue(CsvColumnDefinition definition, ItemMetaDataSo item)
+    {
+        object value = definition.Field.GetValue(item);
+        if (value == null)
+        {
+            return string.Empty;
+        }
+
+        if (definition.Field.FieldType == typeof(Sprite))
+        {
+            return AssetDatabase.GetAssetPath((Sprite)value);
+        }
+
+        if (definition.Field.FieldType == typeof(List<ItemMaterialData>))
+        {
+            return FormatCraftItems((List<ItemMaterialData>)value);
+        }
+
+        return value.ToString();
+    }
+
+    // CSV 파일을 UTF-8 BOM 포함 텍스트로 저장한다
+    private static void WriteCsvText(string csvText)
+    {
+        string directoryPath = Path.GetDirectoryName(DEFAULT_CSV_PATH);
+        if (!string.IsNullOrEmpty(directoryPath))
+        {
+            Directory.CreateDirectory(directoryPath);
+        }
+
+        File.WriteAllText(DEFAULT_CSV_PATH, csvText, new UTF8Encoding(true));
+    }
+
+    // CSV 테이블에 누락된 헤더 컬럼을 추가한다
+    private static int AddMissingHeaderColumns(List<List<string>> table, CsvColumnDefinition[] columnDefinitions)
+    {
+        Dictionary<string, int> headerMap = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+        List<string> headers = table[0];
+        for (int i = 0; i < headers.Count; i++)
+        {
+            string header = NormalizeHeaderName(headers[i]);
+            if (!string.IsNullOrEmpty(header) && !headerMap.ContainsKey(header))
+            {
+                headerMap.Add(header, i);
+            }
+        }
+
+        int addedCount = 0;
+        for (int i = 0; i < columnDefinitions.Length; i++)
+        {
+            CsvColumnDefinition definition = columnDefinitions[i];
+            if (headerMap.ContainsKey(definition.ColumnName))
+            {
+                continue;
+            }
+
+            headers.Add($"{definition.ColumnName}({definition.Description})");
+            for (int rowIndex = 1; rowIndex < table.Count; rowIndex++)
+            {
+                table[rowIndex].Add(string.Empty);
+            }
+
+            addedCount++;
+        }
+
+        return addedCount;
+    }
+
+    // CSV 테이블을 텍스트로 재조립한다
+    private static string BuildCsvText(List<List<string>> table)
+    {
+        StringBuilder builder = new StringBuilder(1024);
+        for (int rowIndex = 0; rowIndex < table.Count; rowIndex++)
+        {
+            List<string> row = table[rowIndex];
+            for (int columnIndex = 0; columnIndex < row.Count; columnIndex++)
+            {
+                if (columnIndex > 0)
+                {
+                    builder.Append(',');
+                }
+
+                builder.Append(EscapeCsvField(row[columnIndex]));
+            }
+
+            builder.AppendLine();
+        }
+
+        return builder.ToString();
+    }
+
     // CSV 파일을 UTF-8, UTF-16, CP949 순서로 읽는다
     private bool TryReadCsvText(out string csvText)
     {
@@ -548,6 +753,7 @@ public class ItemDataEditorTool : EditorWindow
     private bool TryParseRow(List<string> fields, Dictionary<string, int> headerMap, int lineNumber, List<ItemCsvRow> rows, List<string> errors)
     {
         string typeText = GetField(fields, headerMap, TYPE_COLUMN).Trim();
+        string gradeText = GetOptionalField(fields, headerMap, GRADE_COLUMN).Trim();
         string itemName = GetField(fields, headerMap, NAME_COLUMN);
         string infoText = GetField(fields, headerMap, INFO_TEXT_COLUMN);
         string imagePath = GetField(fields, headerMap, IMAGE_PATH_COLUMN).Trim();
@@ -570,6 +776,13 @@ public class ItemDataEditorTool : EditorWindow
         if (!Enum.TryParse(typeText, out RewardCurrencyType itemType))
         {
             AddMissingEnumName(typeText);
+            return false;
+        }
+
+        ItemGrade itemGrade = ItemGrade.Common;
+        if (!string.IsNullOrEmpty(gradeText) && !Enum.TryParse(gradeText, out itemGrade))
+        {
+            errors.Add($"{lineNumber}행: Grade 값이 유효하지 않습니다. 값: {gradeText}");
             return false;
         }
 
@@ -609,15 +822,144 @@ public class ItemDataEditorTool : EditorWindow
 
         rows.Add(new ItemCsvRow
         {
+            LineNumber = lineNumber,
             Type = itemType,
+            Grade = itemGrade,
             Name = itemName,
             InfoText = infoText,
             ItemImage = sprite,
             Craftable = craftable,
             ItemsToCreate = craftItems,
-            CreateCount = createCount
+            CreateCount = createCount,
+            FieldValues = BuildFieldValueMap(fields, headerMap)
         });
         return true;
+    }
+
+    // CSV 행의 전체 필드 값을 컬럼명 기준으로 보관한다
+    private static Dictionary<string, string> BuildFieldValueMap(List<string> fields, Dictionary<string, int> headerMap)
+    {
+        Dictionary<string, string> fieldValues = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        foreach (KeyValuePair<string, int> pair in headerMap)
+        {
+            int index = pair.Value;
+            string value = index >= 0 && index < fields.Count ? fields[index] ?? string.Empty : string.Empty;
+            fieldValues[pair.Key] = value;
+        }
+
+        return fieldValues;
+    }
+
+    // 고정 매핑 외의 지원 가능한 CSV 값을 ScriptableObject 필드에 반영한다
+    private void ApplyAdditionalFieldValues(ItemMetaDataSo itemSo, Dictionary<string, string> fieldValues, int lineNumber)
+    {
+        if (fieldValues == null)
+        {
+            return;
+        }
+
+        CsvColumnDefinition[] columnDefinitions = BuildCsvColumnDefinitions();
+        for (int i = 0; i < columnDefinitions.Length; i++)
+        {
+            CsvColumnDefinition definition = columnDefinitions[i];
+            if (IsManuallyAssignedColumn(definition.ColumnName) || !fieldValues.TryGetValue(definition.ColumnName, out string value))
+            {
+                continue;
+            }
+
+            TrySetFieldValue(itemSo, definition, value, lineNumber);
+        }
+    }
+
+    // 수동으로 검증과 할당을 마친 컬럼인지 확인한다
+    private static bool IsManuallyAssignedColumn(string columnName)
+    {
+        return string.Equals(columnName, TYPE_COLUMN, StringComparison.OrdinalIgnoreCase)
+            || string.Equals(columnName, GRADE_COLUMN, StringComparison.OrdinalIgnoreCase)
+            || string.Equals(columnName, NAME_COLUMN, StringComparison.OrdinalIgnoreCase)
+            || string.Equals(columnName, INFO_TEXT_COLUMN, StringComparison.OrdinalIgnoreCase)
+            || string.Equals(columnName, IMAGE_PATH_COLUMN, StringComparison.OrdinalIgnoreCase)
+            || string.Equals(columnName, CRAFTABLE_COLUMN, StringComparison.OrdinalIgnoreCase)
+            || string.Equals(columnName, CRAFT_COLUMN, StringComparison.OrdinalIgnoreCase)
+            || string.Equals(columnName, CREATE_COUNT_COLUMN, StringComparison.OrdinalIgnoreCase);
+    }
+
+    // 지원 가능한 타입의 CSV 값을 필드에 설정한다
+    private bool TrySetFieldValue(ItemMetaDataSo itemSo, CsvColumnDefinition definition, string value, int lineNumber)
+    {
+        Type fieldType = definition.Field.FieldType;
+        string trimmedValue = value == null ? string.Empty : value.Trim();
+        if (fieldType == typeof(string))
+        {
+            definition.Field.SetValue(itemSo, value ?? string.Empty);
+            return true;
+        }
+
+        if (fieldType == typeof(int))
+        {
+            if (int.TryParse(trimmedValue, out int result))
+            {
+                definition.Field.SetValue(itemSo, result);
+                return true;
+            }
+
+            AddMessage($"{lineNumber}행: {definition.ColumnName} 정수 값이 유효하지 않아 기존 값을 유지합니다. 값: {value}");
+            return false;
+        }
+
+        if (fieldType == typeof(float))
+        {
+            if (float.TryParse(trimmedValue, out float result))
+            {
+                definition.Field.SetValue(itemSo, result);
+                return true;
+            }
+
+            AddMessage($"{lineNumber}행: {definition.ColumnName} 실수 값이 유효하지 않아 기존 값을 유지합니다. 값: {value}");
+            return false;
+        }
+
+        if (fieldType == typeof(bool))
+        {
+            if (bool.TryParse(trimmedValue, out bool result))
+            {
+                definition.Field.SetValue(itemSo, result);
+                return true;
+            }
+
+            AddMessage($"{lineNumber}행: {definition.ColumnName} bool 값이 유효하지 않아 기존 값을 유지합니다. 값: {value}");
+            return false;
+        }
+
+        if (fieldType.IsEnum)
+        {
+            try
+            {
+                object enumValue = Enum.Parse(fieldType, trimmedValue);
+                definition.Field.SetValue(itemSo, enumValue);
+                return true;
+            }
+            catch (ArgumentException)
+            {
+                AddMessage($"{lineNumber}행: {definition.ColumnName} enum 값이 유효하지 않아 기존 값을 유지합니다. 값: {value}");
+                return false;
+            }
+        }
+
+        if (fieldType == typeof(Sprite))
+        {
+            Sprite sprite = string.IsNullOrEmpty(trimmedValue) ? null : AssetDatabase.LoadAssetAtPath<Sprite>(trimmedValue);
+            if (sprite == null && !string.IsNullOrEmpty(trimmedValue))
+            {
+                AddMessage($"{lineNumber}행: {definition.ColumnName} Sprite를 찾을 수 없어 기존 값을 유지합니다. 경로: {trimmedValue}");
+                return false;
+            }
+
+            definition.Field.SetValue(itemSo, sprite);
+            return true;
+        }
+
+        return false;
     }
 
     // 제작 재료 문자열을 ItemMaterialData 목록으로 변환한다
@@ -827,6 +1169,17 @@ public class ItemDataEditorTool : EditorWindow
         return index >= 0 && index < fields.Count ? fields[index] ?? string.Empty : string.Empty;
     }
 
+    // 선택 CSV 필드 값을 안전하게 반환한다
+    private static string GetOptionalField(List<string> fields, Dictionary<string, int> headerMap, string columnName)
+    {
+        if (!headerMap.TryGetValue(columnName, out int index))
+        {
+            return string.Empty;
+        }
+
+        return index >= 0 && index < fields.Count ? fields[index] ?? string.Empty : string.Empty;
+    }
+
     // CSV 행이 비어 있는지 확인한다
     private static bool IsEmptyCsvRow(List<string> fields)
     {
@@ -1015,13 +1368,23 @@ public class ItemDataEditorTool : EditorWindow
 
     private struct ItemCsvRow
     {
+        public int LineNumber;
         public RewardCurrencyType Type;
+        public ItemGrade Grade;
         public string Name;
         public string InfoText;
         public Sprite ItemImage;
         public bool Craftable;
         public List<ItemMaterialData> ItemsToCreate;
         public int CreateCount;
+        public Dictionary<string, string> FieldValues;
+    }
+
+    private struct CsvColumnDefinition
+    {
+        public FieldInfo Field;
+        public string ColumnName;
+        public string Description;
     }
 }
 #endif

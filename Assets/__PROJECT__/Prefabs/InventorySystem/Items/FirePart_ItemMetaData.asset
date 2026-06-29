@@ -15,12 +15,15 @@ MonoBehaviour:
   Type: 1
   Grade: 1
   Createable: 1
-  CountPerCraft: 10
+  CountPerCraft: 100
   ItemsToCreate:
-  - Item: {fileID: 11400000, guid: ba4ccfa3b497238489e3ac657fc40689, type: 2}
+  - Type: 0
     Count: 20
   Decomposable: 0
-  ItemsFromDecompose: []
+  ItemsFromDecompose:
+  - Type: 0
+    min: 1
+    max: 20
   Name: "\uC77C\uBC18 \uAE30\uACC4 \uBD80\uD488"
   InfoText: "\uD754\uD558\uAC8C \uBCFC \uC218 \uC788\uB294 \uAE30\uACC4 \uBD80\uD488.
     \uADF8 \uB9CC\uD07C \uBC94\uC6A9\uC131\uC774 \uC88B\uB2E4."

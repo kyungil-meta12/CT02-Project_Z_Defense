@@ -6,7 +6,7 @@ using UnityEngine;
 /// 제작에 필요한 아이템 정보
 /// </summary>
 [Serializable]
-public struct ItemCreatfData
+public struct ItemCraftData
 {
     [Header("필요 아이템 타입")] public RewardCurrencyType Type;
     [Header("필요 개수")] public int Count;
@@ -43,7 +43,7 @@ public class ItemMetaDataSo : ScriptableObject
     [Header("아이템 등급")] public ItemGrade Grade;
     [Header("제작 가능 여부")] public bool Createable;
     [Header("한 번 제작할 때 만들어지는 개수")] public int CountPerCraft;
-    [Header("제작에 필요한 아이템 목록")] public List<ItemCreatfData> ItemsToCreate;
+    [Header("제작에 필요한 아이템 목록")] public List<ItemCraftData> ItemsToCreate;
     [Header("분해 가능 여부")] public bool Decomposable;
     [Header("분해 시 나오는 아이템들")] public List<ItemDecomposeData> ItemsFromDecompose;
     [Header("표시할 아이템 이름 텍스트")] public string Name;

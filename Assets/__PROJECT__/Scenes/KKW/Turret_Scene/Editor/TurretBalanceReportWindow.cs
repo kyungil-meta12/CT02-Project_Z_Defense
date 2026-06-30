@@ -1,15 +1,16 @@
 using System;
+using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 
 // 터렛 웨이브 밸런스 시뮬레이션 리포트 창의 생명주기와 사용자 입력을 관리한다.
 internal sealed class TurretBalanceReportWindow : EditorWindow
 {
-    private const string MENU_PATH = "Tools/터렛 웨이브 밸런스 시뮬레이션";
+    private const string MENU_PATH = "Tools/밸런스 리포트";
     private const double AUTO_REFRESH_INTERVAL_SECONDS = 2.0d;
-    private const int GRAPH_TAB_INDEX = 3;
+    private const int GRAPH_TAB_INDEX = 0;
     private const string EDITOR_PREFS_PREFIX = "ProjectZDefense.TurretBalanceReport.";
-    private static readonly string[] TabLabels = { "웨이브 클리어", "터렛 시나리오 상세", "원천 데이터 점검", "시각화 그래프" };
+    private static readonly string[] TabLabels = { "그래프", "장애물 밸런스", "터렛 밸런스", "터렛 밸런스 상세", "데이터 경고" };
 
     private readonly TurretBalanceReportInputCollector inputCollector = new TurretBalanceReportInputCollector();
     private readonly TurretBalanceReportCalculator calculator = new TurretBalanceReportCalculator();
@@ -18,6 +19,7 @@ internal sealed class TurretBalanceReportWindow : EditorWindow
 
     private ReportTableModel[] lastTables =
     {
+        new ReportTableModel(),
         new ReportTableModel(),
         new ReportTableModel(),
         new ReportTableModel()
@@ -29,13 +31,16 @@ internal sealed class TurretBalanceReportWindow : EditorWindow
     private double nextAutoRefreshTime;
     private string lastRefreshLabel;
     private float targetClearSeconds = 30.0f;
+    private float targetClearSecondsIncrement = 0.0f;
+    private float obstacleTargetTimeMultiplier = 1.2f;
+    private List<ObstacleWaveRow> lastObstacleRows = new List<ObstacleWaveRow>();
     private TurretBalanceDpsSettings dpsSettings = CreateDefaultDpsSettings();
 
     // 터렛 웨이브 밸런스 시뮬레이션 창을 연다
     [MenuItem(MENU_PATH)]
     private static void OpenWindow()
     {
-        TurretBalanceReportWindow window = GetWindow<TurretBalanceReportWindow>("터렛 웨이브 밸런스");
+        TurretBalanceReportWindow window = GetWindow<TurretBalanceReportWindow>("밸런스 리포트");
         window.minSize = new Vector2(1240.0f, 560.0f);
         window.RefreshReport();
         window.Show();
@@ -111,22 +116,23 @@ internal sealed class TurretBalanceReportWindow : EditorWindow
         EditorGUILayout.Space(6.0f);
         if (selectedTab == GRAPH_TAB_INDEX)
         {
-            TurretBalanceReportGraphRenderer.Draw(lastReport, graphState, targetClearSeconds);
+            TurretBalanceReportGraphRenderer.Draw(lastReport, graphState, targetClearSeconds, targetClearSecondsIncrement, obstacleTargetTimeMultiplier, lastObstacleRows);
             return;
         }
 
         scrollPosition = TurretBalanceReportTableRenderer.Draw(GetReportTable(selectedTab), scrollPosition);
     }
 
-    // 선택한 탭의 캐시된 표 데이터를 반환한다
+    // 선택한 탭의 캐시된 표 데이터를 반환한다. 탭 0은 그래프(배열 없음), 탭 1~4 → lastTables[0~3].
     private ReportTableModel GetReportTable(int tabIndex)
     {
-        if (tabIndex < 0 || tabIndex >= lastTables.Length)
+        int tableIndex = tabIndex - 1;
+        if (tableIndex < 0 || tableIndex >= lastTables.Length)
         {
             return lastTables[0];
         }
 
-        return lastTables[tabIndex];
+        return lastTables[tableIndex];
     }
 
     // 상단 도구 버튼과 갱신 상태를 그린다
@@ -147,13 +153,20 @@ internal sealed class TurretBalanceReportWindow : EditorWindow
         EditorGUILayout.LabelField("기준 클리어", EditorStyles.miniLabel, GUILayout.Width(58.0f));
         EditorGUI.BeginChangeCheck();
         float nextTargetClearSeconds = Mathf.Max(1.0f, EditorGUILayout.FloatField(targetClearSeconds, GUILayout.Width(46.0f)));
+        EditorGUILayout.LabelField("초 +웨이브당", EditorStyles.miniLabel, GUILayout.Width(70.0f));
+        float nextIncrement = Mathf.Max(0.0f, EditorGUILayout.FloatField(targetClearSecondsIncrement, GUILayout.Width(40.0f)));
+        EditorGUILayout.LabelField("초", EditorStyles.miniLabel, GUILayout.Width(18.0f));
+        EditorGUILayout.LabelField("장애물 기준", EditorStyles.miniLabel, GUILayout.Width(62.0f));
+        float nextObstacleTargetTimeMultiplier = Mathf.Max(0.1f, EditorGUILayout.FloatField(obstacleTargetTimeMultiplier, GUILayout.Width(40.0f)));
+        EditorGUILayout.LabelField("배", EditorStyles.miniLabel, GUILayout.Width(18.0f));
         if (EditorGUI.EndChangeCheck())
         {
             targetClearSeconds = nextTargetClearSeconds;
+            targetClearSecondsIncrement = nextIncrement;
+            obstacleTargetTimeMultiplier = nextObstacleTargetTimeMultiplier;
             SaveEditorPrefs();
+            RefreshReport(true);
         }
-
-        EditorGUILayout.LabelField("초", EditorStyles.miniLabel, GUILayout.Width(18.0f));
 
         GUILayout.FlexibleSpace();
         EditorGUILayout.LabelField(lastRefreshLabel ?? "새로고침 전", EditorStyles.miniLabel, GUILayout.Width(280.0f));
@@ -205,7 +218,17 @@ internal sealed class TurretBalanceReportWindow : EditorWindow
         TurretBalanceInputSnapshot snapshot = inputCollector.Collect();
         TurretBalanceReportResult report = calculator.Build(snapshot, dpsSettings);
         lastReport = report;
-        lastTables = tableBuilder.Build(report);
+        ReportTableModel[] turretTables = tableBuilder.Build(report, targetClearSeconds, targetClearSecondsIncrement);
+        List<ObstacleEntrySpec> obstacleEntries = ObstacleBalanceCalculator.CollectEntries(report.Warnings);
+        List<ObstacleWaveRow> obstacleRows = ObstacleBalanceCalculator.BuildRows(report.WaveRows, obstacleEntries, report.WaveClearRows);
+        lastObstacleRows = obstacleRows;
+        lastTables = new ReportTableModel[]
+        {
+            ObstacleBalanceTableBuilder.Build(obstacleRows, obstacleEntries, targetClearSeconds, targetClearSecondsIncrement, obstacleTargetTimeMultiplier),  // tab 1: 장애물 밸런스
+            turretTables[0],  // tab 2: 웨이브 클리어
+            turretTables[1],  // tab 3: 터렛 상세
+            turretTables[2],  // tab 4: 데이터 경고
+        };
 
         lastRefreshLabel = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture);
         Repaint();
@@ -221,6 +244,8 @@ internal sealed class TurretBalanceReportWindow : EditorWindow
     private void LoadEditorPrefs()
     {
         targetClearSeconds = EditorPrefs.GetFloat(EDITOR_PREFS_PREFIX + "TargetClearSeconds", 30.0f);
+        targetClearSecondsIncrement = EditorPrefs.GetFloat(EDITOR_PREFS_PREFIX + "TargetClearSecondsIncrement", 0.0f);
+        obstacleTargetTimeMultiplier = EditorPrefs.GetFloat(EDITOR_PREFS_PREFIX + "ObstacleTargetTimeMultiplier", 1.2f);
         dpsSettings = CreateDefaultDpsSettings();
         dpsSettings.FrostExpectedTargetCount = EditorPrefs.GetFloat(EDITOR_PREFS_PREFIX + "FrostExpectedTargetCount", dpsSettings.FrostExpectedTargetCount);
         dpsSettings.PoisonExpectedTargetCount = EditorPrefs.GetFloat(EDITOR_PREFS_PREFIX + "PoisonExpectedTargetCount", dpsSettings.PoisonExpectedTargetCount);
@@ -236,6 +261,8 @@ internal sealed class TurretBalanceReportWindow : EditorWindow
     {
         SanitizeInputValues();
         EditorPrefs.SetFloat(EDITOR_PREFS_PREFIX + "TargetClearSeconds", targetClearSeconds);
+        EditorPrefs.SetFloat(EDITOR_PREFS_PREFIX + "TargetClearSecondsIncrement", targetClearSecondsIncrement);
+        EditorPrefs.SetFloat(EDITOR_PREFS_PREFIX + "ObstacleTargetTimeMultiplier", obstacleTargetTimeMultiplier);
         EditorPrefs.SetFloat(EDITOR_PREFS_PREFIX + "FrostExpectedTargetCount", dpsSettings.FrostExpectedTargetCount);
         EditorPrefs.SetFloat(EDITOR_PREFS_PREFIX + "PoisonExpectedTargetCount", dpsSettings.PoisonExpectedTargetCount);
         EditorPrefs.SetFloat(EDITOR_PREFS_PREFIX + "ElectroExpectedTargetCount", dpsSettings.ElectroExpectedTargetCount);
@@ -248,6 +275,8 @@ internal sealed class TurretBalanceReportWindow : EditorWindow
     private void SanitizeInputValues()
     {
         targetClearSeconds = Mathf.Max(1.0f, targetClearSeconds);
+        targetClearSecondsIncrement = Mathf.Max(0.0f, targetClearSecondsIncrement);
+        obstacleTargetTimeMultiplier = Mathf.Max(0.1f, obstacleTargetTimeMultiplier);
         dpsSettings.FrostExpectedTargetCount = Mathf.Max(1.0f, dpsSettings.FrostExpectedTargetCount);
         dpsSettings.PoisonExpectedTargetCount = Mathf.Max(1.0f, dpsSettings.PoisonExpectedTargetCount);
         dpsSettings.ElectroExpectedTargetCount = Mathf.Max(1.0f, dpsSettings.ElectroExpectedTargetCount);

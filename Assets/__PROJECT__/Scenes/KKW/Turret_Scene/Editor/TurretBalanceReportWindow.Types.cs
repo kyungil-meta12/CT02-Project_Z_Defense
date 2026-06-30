@@ -26,6 +26,8 @@ internal sealed class WaveStageInput
     public int SpawnCount;
     public bool SpawnBossAsLastEnemy;
     public float HpMultiplier;
+    public float AttackDamageMultiplier;
+    public float MoveAttackSpeedMultiplier;
     public float RewardMultiplier;
     public readonly List<SpawnEntryInput> NormalEntries = new List<SpawnEntryInput>();
     public readonly List<SpawnEntryInput> BossEntries = new List<SpawnEntryInput>();
@@ -150,6 +152,7 @@ internal struct WaveSummaryRow
     public Dictionary<RewardCurrencyType, float> AverageRewardPerWave;
     public Dictionary<RewardCurrencyType, float> CumulativeReward;
     public float AvailableBudgetCoin;
+    public float AverageNormalZombieDps;
 }
 
 // 웨이브 클리어 시뮬레이션 표 한 순위 항목의 터렛/설치 수/레벨/총 DPS.

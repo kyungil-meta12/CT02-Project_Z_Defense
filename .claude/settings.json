@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git -C \"d:/Git/CT02-Project_Z_Defense\" log --oneline --diff-filter=A -- \"Assets/__PROJECT__/Scripts/DamagePopupPolicy.cs\" \"Assets/__PROJECT__/Scripts/DamagePopupPolicyProfileSO.cs\" \"Assets/__PROJECT__/Scripts/DamagePopupPolicyResolver.cs\" \"Assets/__PROJECT__/Scripts/DamagePopupTargetType.cs\" \"Assets/__PROJECT__/Scripts/DamagePopupType.cs\" \"Assets/__PROJECT__/Scripts/DnpDamagePopupBackend.cs\" \"Assets/__PROJECT__/Scripts/IDamagePopupRenderBackend.cs\")",
+      "mcp__codebase-memory-mcp__index_repository",
+      "Bash(git -C \"d:/Git/CT02-Project_Z_Defense\" log --oneline -3 -- \"Assets/__PROJECT__/Scripts/DamagePopupPolicyProfileSO.cs\" \"Assets/__PROJECT__/Scripts/DnpDamagePopupBackend.cs\")",
+      "Bash(git -C \"d:/Git/CT02-Project_Z_Defense\" status --short \"Assets/__PROJECT__/Scripts/DamagePopupPolicy.cs\" \"Assets/__PROJECT__/Scripts/DamagePopupPolicyProfileSO.cs\" \"Assets/__PROJECT__/Scripts/DamagePopupPolicyResolver.cs\" \"Assets/__PROJECT__/Scripts/DamagePopupType.cs\" \"Assets/__PROJECT__/Scripts/DamagePopupTargetType.cs\" \"Assets/__PROJECT__/Scripts/DnpDamagePopupBackend.cs\" \"Assets/__PROJECT__/Scripts/IDamagePopupRenderBackend.cs\")",
+      "Bash(git -C \"d:/Git/CT02-Project_Z_Defense\" show HEAD:Assets/__PROJECT__/Scripts/DamagePopupType.cs)",
+      "mcp__codebase-memory-mcp__delete_project",
+      "Bash(python -c ' *)",
+      "mcp__codebase-memory-mcp__get_code_snippet"
+    ]
+  }
+}

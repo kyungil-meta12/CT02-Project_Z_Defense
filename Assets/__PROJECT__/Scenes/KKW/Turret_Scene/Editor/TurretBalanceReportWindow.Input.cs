@@ -40,6 +40,9 @@ internal sealed class TurretBalanceReportInputCollector
         AppendAssetSignatures(builder, "t:TurretUpgradeCostProfileSO");
         AppendAssetSignatures(builder, "t:ZombieWaveSpawnProfileSO");
         AppendAssetSignatures(builder, "t:ZombieRewardProfileSO");
+        AppendAssetSignatures(builder, "t:ObstacleBuildEntrySO");
+        AppendAssetSignatures(builder, "t:ObstacleDefinitionSO");
+        AppendAssetSignatures(builder, "t:ObstacleUpgradeCostProfileSO");
         AppendSceneInventorySignature(builder);
         AppendSceneGameManagerSignature(builder);
         return builder.ToString();
@@ -398,6 +401,8 @@ internal sealed class TurretBalanceReportInputCollector
             SpawnCount = Mathf.Max(0, GetRelativeInt(stage, "spawnCount", 0)),
             SpawnBossAsLastEnemy = GetRelativeBool(stage, "spawnBossAsLastEnemy", false),
             HpMultiplier = SanitizeRuntimeMultiplier(GetRelativeFloat(stage, "hpMultiplier", 1.0f)),
+            AttackDamageMultiplier = SanitizeRuntimeMultiplier(GetRelativeFloat(stage, "attackDamageMultiplier", 1.0f)),
+            MoveAttackSpeedMultiplier = SanitizeRuntimeMultiplier(GetRelativeFloat(stage, "moveAttackSpeedMultiplier", 1.0f)),
             RewardMultiplier = SanitizeRuntimeMultiplier(GetRelativeFloat(stage, "rewardMultiplier", 1.0f))
         };
 

@@ -12,19 +12,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5f9efc74f895b2d48bb9a9671cba3cd2, type: 3}
   m_Name: FirePart_ItemMetaData
   m_EditorClassIdentifier: Assembly-CSharp::ItemMetaDataSo
-  Type: 1
-  Grade: 1
-  Createable: 1
-  CountPerCraft: 100
-  ItemsToCreate:
-  - Type: 0
-    Count: 20
+  Type: 25
+  Grade: 2
+  Createable: 0
+  CountPerCraft: 0
+  ItemsToCreate: []
   Decomposable: 0
-  ItemsFromDecompose:
-  - Type: 0
-    min: 1
-    max: 20
+  ItemsFromDecompose: []
   Name: "\uC77C\uBC18 \uAE30\uACC4 \uBD80\uD488"
-  InfoText: "\uD754\uD558\uAC8C \uBCFC \uC218 \uC788\uB294 \uAE30\uACC4 \uBD80\uD488.
-    \uADF8 \uB9CC\uD07C \uBC94\uC6A9\uC131\uC774 \uC88B\uB2E4."
+  InfoText: "\uB300\uBD80\uBD84\uC758 \uAE30\uACC4\uC5D0\uC11C \uD754\uD558\uAC8C
+    \uC0AC\uC6A9\uB418\uB294 \uBD80\uD488."
   ItemImage: {fileID: 21300000, guid: d9c957f5130c900469de423d735db331, type: 3}

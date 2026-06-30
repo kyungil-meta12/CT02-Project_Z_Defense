@@ -1,4 +1,29 @@
-﻿Type<RewardCurrencyType>(아이템 타입),Grade<ItemGrade>(아이템 등급),Createable<Boolean>(제작 가능 여부),CountPerCraft<Int32>(한 번 제작할 때 만들어지는 개수),ItemsToCreate<ItemCreatfDataList>(제작에 필요한 아이템 목록),Decomposable<Boolean>(분해 가능 여부),ItemsFromDecompose<ItemDecomposeDataList>(분해 시 나오는 아이템들),Name<String>(표시할 아이템 이름 텍스트),InfoText<String>(표시할 아이템 설명 텍스트),ItemImageAssetPath<SpriteAssetPath>(표시할 아이템 이미지)
-Coin=0,D=4,False,0,,False,Coin=0:0~0;FirePart=1:0~0,코인,좀비 사태 이전에 사용되던 화폐.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Coins/Icon_Coin_Dollar_Gold_LP.png
-FirePart=1,A=1,True,10,Coin=0:20,False,,일반 기계 부품,흔하게 볼 수 있는 기계 부품. 그 만큼 범용성이 좋다.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Resources Items/Icon_Gear_Wheel_LP.png
-SpecialPart=2,B=2,False,0,Coin=0:50;FirePart=1:5,False,,정밀 기계 부품,비싸고 정밀해서 전문가가 조심히 다루어야 하는 부품이다.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Common/Icon_Gear_Wheels_Group_LP.png
+﻿Type<RewardCurrencyType>(아이템 타입),Grade<ItemGrade>(아이템 등급),Createable<Boolean>(제작 가능 여부),CountPerCraft<Int32>(한 번 제작할 때 만들어지는 개수),ItemsToCreate<ItemCraftDataList>(제작에 필요한 아이템 목록),Decomposable<Boolean>(분해 가능 여부),ItemsFromDecompose<ItemDecomposeDataList>(분해 시 나오는 아이템들),Name<String>(표시할 아이템 이름 텍스트),InfoText<String>(표시할 아이템 설명 텍스트),ItemImageAssetPath<SpriteAssetPath>(표시할 아이템 이미지)
+Coin=0,D=4,False,0,,False,,코인,좀비 사태 이전에 사용되던 화폐.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Coins/Icon_Coin_Dollar_Gold_LP.png
+Stone=1,D=4,False,0,,False,,돌,길가에 흔히 굴러다니는 돌.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Resources Nature/Icon_Stone_LP.png
+Bone=2,D=4,False,0,,False,,뼈,누군가의 뼈.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Fantasy/Icon_Bone_LP.png
+Wood=3,D=4,False,0,,False,,나무 막대기,공원에서 흔히 볼 수 있는 나무 막대기.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Resources Nature/Icon_Stick_Wood_LP.png
+VodkaBottle=4,D=4,False,0,,False,,보트카,도수가 높은 러시아산 보드카.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Drinks/Icon_Vodka_Bottle_LP.png
+WineBottle=5,D=4,False,0,,False,,와인,프랑스산 적포도주.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Drinks/Icon_Wine_Bottle_Red_LP.png
+Molotov=6,D=4,False,0,,False,,화염병,과격 시위 현장에서 볼법한 화염병.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Weapons/Icon_Molotov_Cocktail_LP.png
+Lighter=7,D=4,False,0,,False,,라이터,불을 붙일 때 사용하는 라이터.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Tools/Icon_Lighter_Plastic_LP.png
+Carbon=8,D=4,False,0,,False,,석탄,무엇으로 이루어졌는지 알 수 없는 석탄.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Resources Nature/Icon_Resource_Carbon_LP.png
+CameraNoLens=9,D=4,False,0,,False,,렌즈 없는 카메라,렌즈가 없어 사용할 수 없는 디지털 카메라.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Electronics/Icon_Camera_Dslr_Body_LP.png
+Lead=10,D=4,False,0,,False,,납,전자기판 남땜에 사용되는 실납.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Resources Items/Icon_Conductive_Wire_LP.png
+Silver=11,D=4,False,0,,False,,은,반짝이는 금속.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Resources Items/Icon_Bars_Silver_LP.png
+Iron=12,D=4,False,0,,False,,철,가장 많이 사용되는 금속.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Resources Items/Icon_Bars_Iron_LP.png
+IronPiece=13,D=4,False,0,,False,,철 조각,어딘가에서 떨어져 나온 철 조각.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Resources Nature/Icon_Resource_Iron_LP.png
+Aluminium=14,D=4,False,0,,False,,알루미늄,가볍고 튼튼한 금속.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Resources Nature/Icon_Resource_Aluminium_LP.png
+Cement=15,D=4,False,0,,False,,시멘트,공사 현장에서 사용되는 시멘트.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Farm/Icon_Bag_Farm_LP.png
+GunPowder=16,D=4,False,0,,False,,화약,폭탄이나 탄약을 제조할 때 사용되는 화약.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Resources Nature/Icon_Gunpowder_LP.png
+Grenade=17,D=4,False,0,,False,,유탄,유탄 발사기에서 사용되는 탄약.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Weapons/Icon_Ammo_Grenade_HE_LP.png
+FlareGrenade=18,D=4,False,0,,False,,화염 유탄,폭발하면 주변에 불을 붙이는 유탄.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Weapons/Icon_Ammo_Grenade_Flare_LP.png
+PistolBullet=19,D=4,False,0,,False,,권총 탄약,소구경 권총 탄약.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Weapons/Icon_Pistol_Bullets_LP.png
+BigPistolBullet=20,D=4,False,0,,False,,대구경 권총 탄약,대구경 권총 탄약.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Weapons/Icon_Pistol_Bullets_Special_LP.png
+Matches=21,D=4,False,0,,False,,성냥,"불을 붙일 때 사용한다. 
+놀랍게도 라이터보다 늦게 발명되었다.",Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Survival/Icon_Matches_Box_LP.png
+Banana=22,D=4,False,0,,False,,바나나,달콤한 열대과일.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Fruits/Icon_Banana_LP.png
+Drink=23,D=4,False,0,,False,,음료수 컵,누군가 먹다 남긴 음료수 컵.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Food/Icon_Cup_Drink_LP.png
+Cookie=24,D=4,False,0,,False,,쿠키,누군가 베어 문 흔적이 있는 쿠키.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Coffee/Icon_Cookie_Bite_LP.png
+FirePart=25,B=2,False,0,,False,,일반 기계 부품,대부분의 기계에서 흔하게 사용되는 부품.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Resources Items/Icon_Gear_Wheel_LP.png
+SpecialPart=26,B=2,False,0,,False,,정밀 기계 부품,비싸고 정밀해서 전문가가 조심히 다루어야 하는 부품.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Common/Icon_Gear_Wheels_Group_LP.png

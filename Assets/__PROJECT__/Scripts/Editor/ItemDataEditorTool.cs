@@ -30,7 +30,8 @@ public class ItemDataEditorTool : EditorWindow
     private bool treatMissingSpriteAsError;
     private Vector2 scrollPosition;
     private readonly List<string> lastMessages = new List<string>(32);
-    private readonly List<string> missingEnumNames = new List<string>(16);
+    // 누락되었거나 값이 일치하지 않는 enum의 동기화 요청을 저장합니다.
+    private readonly Dictionary<string, long?> enumSyncRequests = new Dictionary<string, long?>(16);
 
     [MenuItem("Tools/아이템 데이터 관리 도구")]
     // 아이템 데이터 관리 창을 연다
@@ -91,32 +92,33 @@ public class ItemDataEditorTool : EditorWindow
             ExecuteSafely(OpenItemCsv);
         }
 
-        using (new EditorGUI.DisabledScope(missingEnumNames.Count == 0))
+        using (new EditorGUI.DisabledScope(enumSyncRequests.Count == 0))
         {
-            if (GUILayout.Button("누락 enum 재생성", GUILayout.Height(34)))
+            if (GUILayout.Button("enum 동기화 및 재생성", GUILayout.Height(34)))
             {
-                ExecuteSafely(RegenerateRewardCurrencyEnumFromMissingNames);
+                ExecuteSafely(RegenerateRewardCurrencyEnum);
             }
         }
         EditorGUILayout.EndHorizontal();
 
-        DrawMissingEnums();
+        DrawEnumSyncWarnings();
         DrawMessages();
     }
 
-    // 누락된 enum 목록을 UI에 표시한다
-    private void DrawMissingEnums()
+    // 누락 및 값 불일치 enum 목록을 UI에 표시한다
+    private void DrawEnumSyncWarnings()
     {
-        if (missingEnumNames.Count == 0)
+        if (enumSyncRequests.Count == 0)
         {
             return;
         }
 
         EditorGUILayout.Space();
-        EditorGUILayout.HelpBox("CSV에 RewardCurrencyType에 없는 타입이 있습니다. 아래 목록을 확인한 뒤 enum 재생성을 실행하고 컴파일 후 다시 임포트하세요.", MessageType.Warning);
-        for (int i = 0; i < missingEnumNames.Count; i++)
+        EditorGUILayout.HelpBox("CSV와 RewardCurrencyType의 항목 또는 값이 다릅니다. 아래 목록을 확인한 뒤 동기화 재생성을 실행하고, 컴파일 후 다시 임포트하세요.", MessageType.Warning);
+        foreach (var kvp in enumSyncRequests)
         {
-            EditorGUILayout.LabelField("- " + missingEnumNames[i]);
+            string valueText = kvp.Value.HasValue ? kvp.Value.Value.ToString() : "자동 할당";
+            EditorGUILayout.LabelField($"- {kvp.Key} (CSV 값: {valueText})");
         }
     }
 
@@ -296,15 +298,28 @@ public class ItemDataEditorTool : EditorWindow
         }
 
         AppendHeader(builder, columnDefinitions);
+
+        // 익스포트할 아이템들을 복사한 뒤, Type(enum 값) 기준으로 오름차순 정렬합니다.
+        List<ItemMetaDataSo> itemsToExport = new List<ItemMetaDataSo>(targetListSo.MetaDataList.Count);
         for (int i = 0; i < targetListSo.MetaDataList.Count; i++)
         {
-            ItemMetaDataSo item = targetListSo.MetaDataList[i];
-            if (item == null)
+            if (targetListSo.MetaDataList[i] != null)
             {
-                continue;
+                itemsToExport.Add(targetListSo.MetaDataList[i]);
             }
+        }
 
-            AppendItemRow(builder, columnDefinitions, item);
+        itemsToExport.Sort((a, b) =>
+        {
+            long valA = Convert.ToInt64(a.Type);
+            long valB = Convert.ToInt64(b.Type);
+            return valA.CompareTo(valB);
+        });
+
+        // 정렬된 리스트를 순회하며 CSV 행을 작성합니다.
+        for (int i = 0; i < itemsToExport.Count; i++)
+        {
+            AppendItemRow(builder, columnDefinitions, itemsToExport[i]);
         }
 
         if (!WriteCsvText(builder.ToString()))
@@ -326,10 +341,10 @@ public class ItemDataEditorTool : EditorWindow
         FlushMessagesToConsole(isSuccess);
     }
 
-    // 누락된 enum 이름을 포함해 RewardCurrencyType 파일을 재생성한다
-    private void RegenerateRewardCurrencyEnumFromMissingNames()
+    // 누락 및 값이 다른 enum을 CSV 기준으로 동기화하여 재생성한다
+    private void RegenerateRewardCurrencyEnum()
     {
-        if (missingEnumNames.Count == 0)
+        if (enumSyncRequests.Count == 0)
         {
             return;
         }
@@ -343,27 +358,47 @@ public class ItemDataEditorTool : EditorWindow
         }
 
         List<RewardCurrencyEnumEntry> enumEntries = GetCurrentRewardCurrencyEntries();
-        for (int i = 0; i < missingEnumNames.Count; i++)
+
+        // 동기화 요청(누락 추가 및 기존 값 갱신) 적용
+        foreach (var kvp in enumSyncRequests)
         {
-            string enumName = missingEnumNames[i];
-            if (!ContainsRewardCurrencyEntry(enumEntries, enumName))
+            string syncName = kvp.Key;
+            long? syncValue = kvp.Value;
+
+            int existingIndex = enumEntries.FindIndex(e => string.Equals(e.Name, syncName, StringComparison.Ordinal));
+            if (existingIndex >= 0)
             {
+                // 이미 존재하는 enum의 경우 값만 갱신
+                if (syncValue.HasValue)
+                {
+                    var entry = enumEntries[existingIndex];
+                    entry.Value = syncValue.Value;
+                    enumEntries[existingIndex] = entry;
+                }
+            }
+            else
+            {
+                // 새로 추가되는 enum의 경우
+                long newValue = syncValue.HasValue ? syncValue.Value : GetNextRewardCurrencyValue(enumEntries);
                 enumEntries.Add(new RewardCurrencyEnumEntry
                 {
-                    Name = enumName,
-                    Value = GetNextRewardCurrencyValue(enumEntries)
+                    Name = syncName,
+                    Value = newValue
                 });
             }
         }
 
-        if (!EditorUtility.DisplayDialog("RewardCurrencyType 재생성", $"다음 enum 파일을 재생성합니다.\n{enumPath}\n\nUnity 컴파일 후 다시 Import를 실행하세요.", "재생성", "취소"))
+        // 값(인덱스)을 기준으로 오름차순 정렬
+        enumEntries.Sort((a, b) => a.Value.CompareTo(b.Value));
+
+        if (!EditorUtility.DisplayDialog("RewardCurrencyType 동기화 재생성", $"CSV 값을 기준으로 다음 enum 파일을 재생성합니다.\n{enumPath}\n\nUnity 컴파일 후 다시 Import를 실행하세요.", "재생성", "취소"))
         {
             return;
         }
 
         File.WriteAllText(enumPath, BuildRewardCurrencyTypeSource(enumEntries), new UTF8Encoding(false));
         AssetDatabase.Refresh();
-        AddMessage("RewardCurrencyType.cs를 재생성했습니다. 컴파일 완료 후 CSV 임포트를 다시 실행하세요.");
+        AddMessage("RewardCurrencyType.cs를 동기화했습니다. 스크립트 컴파일이 완료된 후 CSV 임포트를 다시 실행하세요.");
         FlushMessagesToConsole(true);
     }
 
@@ -414,9 +449,9 @@ public class ItemDataEditorTool : EditorWindow
             }
         }
 
-        if (missingEnumNames.Count > 0)
+        if (enumSyncRequests.Count > 0)
         {
-            AddMessage("누락된 RewardCurrencyType이 있어 임포트를 중단합니다. enum 재생성 후 다시 실행하세요.");
+            AddMessage("CSV와 값이 일치하지 않거나 누락된 RewardCurrencyType이 있어 임포트를 중단합니다. enum 동기화 후 다시 실행하세요.");
             return false;
         }
 
@@ -965,7 +1000,7 @@ public class ItemDataEditorTool : EditorWindow
     {
         if (ContainsReplacementCharacter(text))
         {
-            AddMessage("경고: CSV 텍스트에 깨진 대체 문자(�)가 포함되어 있습니다. 이미 깨진 상태로 저장된 파일일 수 있습니다.");
+            AddMessage("경고: CSV 텍스트에 깨진 대체 문자()가 포함되어 있습니다. 이미 깨진 상태로 저장된 파일일 수 있습니다.");
         }
     }
 
@@ -1547,6 +1582,19 @@ public class ItemDataEditorTool : EditorWindow
         return enumValue + "=" + Convert.ToInt64(enumValue);
     }
 
+    // 동기화 요청을 기록하는 도우미 메서드
+    private void AddEnumSyncRequest(string enumName, long? value)
+    {
+        if (!enumSyncRequests.ContainsKey(enumName))
+        {
+            enumSyncRequests.Add(enumName, value);
+        }
+        else if (value.HasValue)
+        {
+            enumSyncRequests[enumName] = value;
+        }
+    }
+
     // RewardCurrencyType 셀을 enum 이름과 인덱스로 검증해 변환한다
     private bool TryParseRewardCurrencyTypeCell(string text, int lineNumber, string columnName, out RewardCurrencyType result, List<string> errors, bool collectMissingEnum)
     {
@@ -1594,7 +1642,8 @@ public class ItemDataEditorTool : EditorWindow
         long currentEnumIndex = Convert.ToInt64(result);
         if (csvEnumIndex != currentEnumIndex)
         {
-            errors.Add($"{lineNumber}행: ItemsFromDecompose enum 인덱스가 현재 코드와 다릅니다. CSV: {text}, 현재: {enumName}={currentEnumIndex}");
+            // 에러를 내는 대신 동기화 요청 목록에 추가하고 파싱을 실패 처리합니다.
+            AddEnumSyncRequest(enumName, csvEnumIndex);
             return false;
         }
 
@@ -1623,7 +1672,12 @@ public class ItemDataEditorTool : EditorWindow
         {
             if (collectMissingRewardCurrency && enumType == typeof(RewardCurrencyType))
             {
-                AddMissingEnumName(enumName);
+                long? csvVal = null;
+                if (!string.IsNullOrEmpty(enumIndexText) && long.TryParse(enumIndexText, out long parsedVal))
+                {
+                    csvVal = parsedVal;
+                }
+                AddEnumSyncRequest(enumName, csvVal);
             }
             else
             {
@@ -1647,7 +1701,15 @@ public class ItemDataEditorTool : EditorWindow
         long currentEnumIndex = Convert.ToInt64(enumValue);
         if (csvEnumIndex != currentEnumIndex)
         {
-            AddEnumParseError(errors, $"{lineNumber}행: {columnName} enum 인덱스가 현재 코드와 다릅니다. CSV: {text}, 현재: {enumName}={currentEnumIndex}");
+            if (collectMissingRewardCurrency && enumType == typeof(RewardCurrencyType))
+            {
+                // 값이 다르면 동기화 요청에 추가
+                AddEnumSyncRequest(enumName, csvEnumIndex);
+            }
+            else
+            {
+                AddEnumParseError(errors, $"{lineNumber}행: {columnName} enum 인덱스가 현재 코드와 다릅니다. CSV: {text}, 현재: {enumName}={currentEnumIndex}");
+            }
             return false;
         }
 
@@ -1666,15 +1728,6 @@ public class ItemDataEditorTool : EditorWindow
         AddMessage(message);
     }
 
-    // 누락된 enum 이름을 중복 없이 기록한다
-    private void AddMissingEnumName(string enumName)
-    {
-        if (!missingEnumNames.Contains(enumName))
-        {
-            missingEnumNames.Add(enumName);
-        }
-    }
-
     // 현재 RewardCurrencyType enum 이름과 값을 반환한다
     private static List<RewardCurrencyEnumEntry> GetCurrentRewardCurrencyEntries()
     {
@@ -1691,20 +1744,6 @@ public class ItemDataEditorTool : EditorWindow
         }
 
         return entries;
-    }
-
-    // RewardCurrencyType 엔트리에 같은 이름이 있는지 확인한다
-    private static bool ContainsRewardCurrencyEntry(List<RewardCurrencyEnumEntry> enumEntries, string enumName)
-    {
-        for (int i = 0; i < enumEntries.Count; i++)
-        {
-            if (string.Equals(enumEntries[i].Name, enumName, StringComparison.Ordinal))
-            {
-                return true;
-            }
-        }
-
-        return false;
     }
 
     // 새 RewardCurrencyType에 부여할 다음 명시값을 계산한다
@@ -1792,7 +1831,7 @@ public class ItemDataEditorTool : EditorWindow
     private void ClearRunState()
     {
         lastMessages.Clear();
-        missingEnumNames.Clear();
+        enumSyncRequests.Clear();
     }
 
     // 실행 메시지를 추가한다

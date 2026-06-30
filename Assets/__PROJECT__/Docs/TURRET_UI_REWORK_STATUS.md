@@ -24,6 +24,41 @@
 - `TurretSkillPopupUI`는 아직 실제 기능 없이 준비 중 상태를 담당한다.
 - 모든 하위 팝업의 `BackButton`은 선택 팝업으로 돌아가는 방향으로 정리 중이다.
 
+## 2026-06-30 Placement Input Regression
+
+### Symptom
+
+- 머지 이후 `BottomBar`의 터렛 아이콘을 드래그해도 `TurretBase`에 터렛이 설치되지 않았다.
+- 같은 시점에 화면 클릭 유지 후 마우스 이동으로 카메라를 움직이는 기능도 동작하지 않았다.
+- `EventSystemDebugger`의 `RaycastAll` 진단 로그는 `TurretPlacementSlot_Button`, `BottomBar`, `CameraControlCanvas/Panel`을 정상 감지했다.
+- 하지만 `TurretPlacementSlotUI.OnPointerDown/OnBeginDrag`와 `CameraTouchHandler.OnPointerDown/OnDrag` 로그는 전혀 찍히지 않았다.
+
+### Cause
+
+- UI 그래픽 레이캐스트 자체는 정상이었지만, `EventSystem`의 포인터 이벤트 콜백 전달 경로가 끊겨 있었다.
+- `InputSystemUIInputModule` 참조가 머지 과정에서 현재 프로젝트의 `Assets/InputSystem_Actions.inputactions` GUID와 맞지 않는 상태가 되었고, 이후 GUID를 복구해도 런타임 포인터 콜백은 계속 들어오지 않았다.
+- 결과적으로 `IBeginDragHandler`, `IDragHandler`, `IEndDragHandler`, `IPointerDownHandler` 기반 코드가 모두 실행되지 않아 터렛 배치와 카메라 드래그가 동시에 멈췄다.
+
+### Fix
+
+- `Assets/__PROJECT__/Scenes/PJY/EventSystemDebugger.cs`에 `Input.GetMouseButton*`와 `Input.touchCount` 기반의 `Legacy Pointer Bridge`를 추가했다.
+- 브릿지는 기존 `EventSystem.current.RaycastAll` 결과의 최상단 UI 오브젝트를 기준으로 `PointerDown`, `BeginDrag`, `Drag`, `EndDrag`, `PointerUp`, `Click` 이벤트를 `ExecuteEvents`로 직접 전달한다.
+- 이 브릿지 적용 후 `BottomBar` 터렛 드래그 배치와 카메라 드래그 이동이 다시 동작하는 것을 플레이 모드에서 확인했다.
+
+### Diagnostic Keywords
+
+- `[UI 레이캐스트 진단]`
+- `[UI 입력 브릿지]`
+- `[터렛 배치 슬롯 UI]`
+- `[터렛 배치]`
+- `[CameraTouchHandler]`
+
+### Follow-Up
+
+- `Legacy Pointer Bridge`는 현재 입력 복구용 호환 레이어다.
+- 장기적으로는 `InputSystemUIInputModule`이 포인터 콜백을 보내지 못하는 정확한 에디터/액션 에셋 설정 원인을 다시 확인하고, 브릿지를 유지할지 제거할지 결정해야 한다.
+- 브릿지를 유지하는 동안에는 `EventSystemDebugger`가 Main 씬에서 활성화되어 있어야 한다.
+
 ## Known Weak Points
 
 - 일부 버튼과 TMP/Image 참조는 에디터 계층 이름에 의존하는 자동 연결 상태다.
@@ -33,6 +68,7 @@
 - `SkillPopup`은 아직 기능 없음 상태이며, 버튼 비활성/준비 중 문구 정책을 나중에 확정해야 한다.
 - 기존 옛날 터렛 UI 프리팹/오브젝트가 남아 있으면 더블클릭 또는 업그레이드 입력과 충돌할 수 있다.
 - 터렛 업그레이드 후 사거리 표시 갱신, 선택 팝업 값 갱신, 하위 팝업 값 갱신이 모두 같은 타이밍에 맞는지 검증이 필요하다.
+- `Legacy Pointer Bridge`와 `InputSystemUIInputModule` 기본 포인터 이벤트가 동시에 살아날 경우 같은 입력이 중복 전달될 수 있으므로, 추후 Input System 경로 복구 시 중복 입력 여부를 먼저 확인해야 한다.
 
 ## Next Work Plan
 

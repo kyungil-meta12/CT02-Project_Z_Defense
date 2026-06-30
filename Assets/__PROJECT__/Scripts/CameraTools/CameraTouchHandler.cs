@@ -87,7 +87,6 @@ public class CameraTouchHandler : MonoBehaviour, IPointerDownHandler, IPointerUp
     {
         if (isDragging)
         {
-            //LogTouchDiagnostic("드래그 입력으로 판단되어 월드 터치를 처리하지 않습니다.");
             return;
         }
 

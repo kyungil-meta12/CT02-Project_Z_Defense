@@ -857,6 +857,13 @@ Placement preview scale rules:
 
 `TurretPlacementUI` still has a legacy rebuild helper, but `rebuildOnStart` should stay disabled for production scenes. The legacy `Project Z Defense/UI/Create Turret Placement UI` creator menu is disabled by default; place editable scene buttons manually and assign the desired `TurretShopEntrySO` assets.
 
+Placement input note:
+
+- As of 2026-06-30, Main scene placement input is supported by `EventSystemDebugger`'s legacy pointer bridge.
+- The regression symptom was that `EventSystem.current.RaycastAll` detected `TurretPlacementSlot_Button` and `CameraControlCanvas/Panel`, but `TurretPlacementSlotUI` and `CameraTouchHandler` pointer/drag callbacks were not invoked.
+- The bridge uses old `Input.GetMouseButton*`/touch polling, then forwards `PointerDown`, `BeginDrag`, `Drag`, `EndDrag`, `PointerUp`, and `Click` through `ExecuteEvents` to the top UI raycast result.
+- Keep `EventSystemDebugger` active in Main while this bridge is required. If `InputSystemUIInputModule` is fixed later, first check for duplicate pointer events before removing or disabling the bridge.
+
 ## Turret Upgrade UI Setup
 
 The turret upgrade/evolution popup is manually maintained in the scene. The legacy `Project Z Defense/UI/Create Turret Upgrade Popup UI` creator menu is disabled by default.

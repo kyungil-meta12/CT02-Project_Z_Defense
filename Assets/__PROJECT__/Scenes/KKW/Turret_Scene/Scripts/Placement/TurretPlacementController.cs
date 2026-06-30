@@ -43,6 +43,7 @@ public class TurretPlacementController : MonoBehaviour
     private Material runtimeValidPreviewMaterial;
     private Material runtimeInvalidPreviewMaterial;
     private Vector3 invalidPreviewReferenceScale = Vector3.one;
+    private readonly RaycastHit[] slotRaycastHits = new RaycastHit[32];
 
     public event Action<TurretShopEntrySO> OnPlacementCountChanged;
 
@@ -106,6 +107,7 @@ public class TurretPlacementController : MonoBehaviour
     {
         if (shopEntry == null || shopEntry.TurretPrefab == null)
         {
+            Debug.LogWarning("[TurretPlacementController] 상점 엔트리 또는 터렛 프리팹이 없어 배치를 시작할 수 없습니다.", this);
             CancelPlacement();
             return;
         }
@@ -171,7 +173,14 @@ public class TurretPlacementController : MonoBehaviour
         TurretShopEntrySO shopEntry = activeShopEntry;
         ResourceCost[] placementCosts = GetCurrentPlacementCosts(shopEntry);
         TurretBaseSlot targetSlot = FindSlot(screenPosition, out _);
-        bool placed = targetSlot != null && targetSlot.TryPlace(shopEntry, placementCosts, out _);
+        if (targetSlot == null)
+        {
+            Debug.LogWarning("[TurretPlacementController] 드롭 위치에서 터렛 베이스 슬롯을 찾지 못해 배치를 취소했습니다.", this);
+            CancelPlacement();
+            return false;
+        }
+
+        bool placed = targetSlot.TryPlace(shopEntry, placementCosts, out _);
         if (placed)
         {
             RegisterPlacement(shopEntry);
@@ -339,18 +348,35 @@ public class TurretPlacementController : MonoBehaviour
         }
 
         Ray ray = targetCamera.ScreenPointToRay(screenPosition);
-        if (!Physics.Raycast(ray, out hit, maxRayDistance, turretBaseLayerMask, QueryTriggerInteraction.Collide))
+        int hitCount = Physics.RaycastNonAlloc(ray, slotRaycastHits, maxRayDistance, turretBaseLayerMask, QueryTriggerInteraction.Collide);
+
+        if (hitCount <= 0)
         {
             return null;
         }
 
-        TurretBaseSlot slot = hit.collider.GetComponentInParent<TurretBaseSlot>();
-        if (slot != null)
+        TurretBaseSlot closestSlot = null;
+        float closestDistance = float.MaxValue;
+        for (int i = 0; i < hitCount; i++)
         {
-            return slot;
+            RaycastHit candidateHit = slotRaycastHits[i];
+            if (candidateHit.collider == null || candidateHit.distance >= closestDistance)
+            {
+                continue;
+            }
+
+            TurretBaseSlot candidateSlot = candidateHit.collider.GetComponentInParent<TurretBaseSlot>();
+            if (candidateSlot == null)
+            {
+                continue;
+            }
+
+            hit = candidateHit;
+            closestSlot = candidateSlot;
+            closestDistance = candidateHit.distance;
         }
 
-        return null;
+        return closestSlot;
     }
 
     // 배치 베이스가 없을 때 월드 프리뷰 위치를 계산한다

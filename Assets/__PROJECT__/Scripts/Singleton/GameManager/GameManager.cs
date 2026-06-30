@@ -600,7 +600,8 @@ public class GameManager : MonoBehaviour
             }
 
             defenseLine.isBreached = !IsDefenseLineFullyBuilt(i);
-            ApplyDefenseLineTurretBaseState(i, !defenseLine.isBreached);
+            // 시작 시 비어 있는 방어선은 플레이어가 건설할 수 있어야 하므로 터렛 베이스는 활성 상태로 유지한다
+            ApplyDefenseLineTurretBaseState(i, true);
             if (defenseLine.isBreached)
             {
                 CommandSurvivorsToRetreat(i, defenseLine.retreatPoint, IsGateDefenseLine(defenseLine));

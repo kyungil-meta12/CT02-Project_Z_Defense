@@ -158,6 +158,18 @@
  * - TurretEvolutionPopupUI를 추가했고, UpgradePopup의 Evolution 버튼에서 여는 구조를
  *   준비했다.
  * - TurretDetailPopupUI와 TurretSkillPopupUI는 1차 표시/준비 중 상태까지 연결했다.
+ * - 머지 이후 BottomBar 터렛 드래그 배치와 카메라 드래그 이동이 함께 멈춘 문제를
+ *   진단했다.
+ * - UI RaycastAll은 TurretPlacementSlot_Button과 CameraControlCanvas/Panel을 정상 감지했지만,
+ *   TurretPlacementSlotUI와 CameraTouchHandler의 Pointer/Drag 콜백은 호출되지 않았다.
+ * - InputSystemUIInputModule의 액션 에셋 참조가 현재 프로젝트의 InputSystem_Actions GUID와
+ *   어긋난 정황을 확인했고, GUID를 현재 에셋으로 복구했다.
+ * - GUID 복구 후에도 런타임 포인터 콜백이 들어오지 않아, EventSystemDebugger에
+ *   구식 Input 기반 Legacy Pointer Bridge를 추가했다.
+ * - Legacy Pointer Bridge는 RaycastAll 최상단 UI 오브젝트에 PointerDown, BeginDrag, Drag,
+ *   EndDrag, PointerUp, Click 이벤트를 ExecuteEvents로 직접 전달한다.
+ * - 브릿지 적용 후 BottomBar 터렛 드래그 설치와 카메라 드래그 이동이 다시 동작함을
+ *   플레이 모드에서 확인했다.
  *
  * 남은 리스크
  * ------------------------------------------------------------------------------------------
@@ -167,6 +179,9 @@
  * - 기존 옛날 터렛 UI가 남아 있으면 더블클릭 또는 버튼 입력과 충돌할 수 있다.
  * - EvolutionPopup의 이미지, 재화 슬롯, 버튼 활성 조건은 플레이 모드 검증이 더 필요하다.
  * - 모든 팝업의 Back/X/바깥 클릭 닫힘 정책을 같은 기준으로 정리해야 한다.
+ * - Legacy Pointer Bridge는 현재 입력 복구용 호환 레이어다. 추후 InputSystemUIInputModule
+ *   기본 콜백 경로가 정상화되면 같은 입력이 중복 전달되지 않는지 먼저 확인해야 한다.
+ * - EventSystemDebugger가 Main 씬에서 비활성화되면 현재 브릿지 입력도 같이 꺼진다.
  *
  * 상세 진행 상태 문서
  * ------------------------------------------------------------------------------------------

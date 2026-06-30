@@ -85,6 +85,7 @@ Rules:
 - Existing scene obstacles should be moved under the correct `BuildPoint` or assigned through the slot's runtime reference.
 - `GameManager` should reference all seven slots through defense-line `obstacleSlots`.
 - `GameManager` should reference each line's matching turret bases through defense-line `turretBaseSlots`; disabling a base root also disables any installed turret under its `BuildPoint`.
+- Startup defense-line initialization keeps turret bases enabled so players can place turrets before rebuilding or completing obstacle lines; explicit breach/restore events still toggle linked turret bases.
 
 ## Obstacle Placement UI Setup
 

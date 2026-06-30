@@ -1,9 +1,7 @@
 using IncrementalLib;
 using System;
 using System.Collections.Generic;
-using System.Reflection;
 using TMPro;
-using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -38,9 +36,81 @@ public class CellDictionary
     public Dictionary<Button, CellData> Cell = new();
 }
 
+/// <summary>
+/// 버튼을 길게 누르고 있으면 자동으로 일정 간격마다 콜벡을 호출하는 클래스
+/// </summary>
+public class ButtonAutoExecute
+{
+    private bool PressState = false;
+
+    private float AutoEnterTime = 0f;
+    private float ExecuteInterval = 0f;
+    private Action ExecuteAction;
+
+    private bool AutoExecuteState = false;
+    private float AutoEnterAccumTime = 0f;
+    private float AutoExecuteAccumTime = 0f;
+
+    public void SetExecuteEnterTime(float sec)
+    {
+        AutoEnterTime = sec;
+    }
+
+    public void SetExecuteInterval(float sec)
+    {
+        ExecuteInterval = sec;
+    }
+
+    public void RegisterAction(Action action)
+    {
+        ExecuteAction = action;
+    }
+
+    public void SetPressState(bool Flag)
+    {
+        PressState = Flag;
+    }
+
+    public bool GetAutoExecuteState()
+    {
+        return AutoExecuteState;
+    }
+
+    public void Update()
+    {
+        if(PressState)
+        {
+            AutoEnterAccumTime += Time.deltaTime;
+            if(AutoEnterAccumTime >= AutoEnterTime)
+            {
+                if(!AutoExecuteState)
+                {
+                    AutoExecuteState = true;
+                    AutoExecuteAccumTime = ExecuteInterval;
+                }
+            }
+            if(AutoExecuteState)
+            {
+                AutoExecuteAccumTime += Time.deltaTime;
+                if(AutoExecuteAccumTime >= ExecuteInterval)
+                {
+                    AutoExecuteAccumTime -= ExecuteInterval;
+                    ExecuteAction?.Invoke();
+                }
+            }
+        }
+        else
+        {
+            AutoEnterAccumTime = 0f;
+            AutoExecuteAccumTime = 0f;
+            AutoExecuteState = false;
+        }
+    }
+}
+
 public class InventoryUI : MonoBehaviour
 {
-    const float NO_ITEM_BRIGHTNESS = 0.2f;
+    const float NO_ITEM_BRIGHTNESS = 0.4f;
     const float HAS_ITEM_BRIGHTNESS = 1f;
 
     [Header("배경 객체")] public Image background;
@@ -68,8 +138,8 @@ public class InventoryUI : MonoBehaviour
 
     [Header("절전 전환 버튼")] public GameObject powerSavingSwitchButton;
 
-    [Header("자동 제작 진입 시간")] public float autoMakeEnterTime;
-    [Header("자동 제작 간격")] public float autoMakeInterval;
+    [Header("자동 실행 진입 시간")] public float autoExecuteEnterTime;
+    [Header("자동 실행 간격")] public float autoExecuteInterval;
 
     // 현재 패널 콘텐츠
     private ContentType currentContent;
@@ -98,22 +168,20 @@ public class InventoryUI : MonoBehaviour
     // 열려있는가?
     private bool openState = false;
 
-    // 제작 버튼을 누르고 있는 상태
-    private bool makeButtonPressState = false;
-
-    // 제작 버튼을 오래 눌러 자동 제작되는 상태
-    private bool autoMakeState = false;
-
-    // 제작 버튼을 누르고 있을 떄 누적되는 시간 -> 자동 제작 진입
-    private float autoMakeEnterAccumTime = 0f;
-
-    // 제작 버튼을 누르고 있을 때 누적되는 시간 -> 자동 제작 실행
-    private float autoMakeAccumTime = 0f;
-
+    ButtonAutoExecute makeAutoExecute = new();
+    ButtonAutoExecute decompAutoExecute = new();
 
     // 인벤토리를 닫은 상태로 시작
     void Awake()
     {
+        makeAutoExecute.SetExecuteEnterTime(autoExecuteEnterTime);
+        makeAutoExecute.SetExecuteInterval(autoExecuteInterval);
+        makeAutoExecute.RegisterAction(MakeItem);
+
+        decompAutoExecute.SetExecuteEnterTime(autoExecuteEnterTime);
+        decompAutoExecute.SetExecuteInterval(autoExecuteInterval);
+        decompAutoExecute.RegisterAction(DecomposeItem);
+
         // 딕셔너리에 패널 컨텐츠 정보 저장
         foreach (var c in contentList)
         {
@@ -232,24 +300,8 @@ public class InventoryUI : MonoBehaviour
 
     void Update()
     {
-        // 제작 버튼을 꾹 누르고 있으면 자동으로 제작이 된다.
-        if(makeButtonPressState)
-        {
-            autoMakeEnterAccumTime += Time.deltaTime;
-            if(autoMakeEnterAccumTime >= autoMakeEnterTime - autoMakeInterval)
-            {
-                autoMakeState = true;
-            }
-            if(autoMakeState)
-            {
-                autoMakeAccumTime += Time.deltaTime;
-                if (autoMakeAccumTime >= autoMakeInterval)
-                {
-                    autoMakeAccumTime -= autoMakeInterval;
-                    MakeItem();
-                }
-            }
-        }
+        makeAutoExecute.Update();
+        decompAutoExecute.Update();
     }
 
     // 아이템 개수가 변경 될 때마다 아이템에 해당하는 인덱스의 정보를 업데이트 한다.
@@ -417,27 +469,63 @@ public class InventoryUI : MonoBehaviour
 
     public void OnMakeButtonDown()
     {
-        makeButtonPressState = true;
+        makeAutoExecute.SetPressState(true);
     }
 
     public void OnMakeButtonUp()
     {
-        makeButtonPressState = false;
-
-        if(autoMakeState) // 자동 제작 상태였다면 그냥 리턴
+        if(!makeAutoExecute.GetAutoExecuteState())
         {
-            autoMakeState = false; // 자동 제작 상태 초기화
-            autoMakeEnterAccumTime = 0f;
-            autoMakeAccumTime = 0f;
-            return;
+            MakeItem();
         }
-
-        MakeItem();
+        makeAutoExecute.SetPressState(false);
     }
 
     public void OnDecomposeButtonDown()
     {
+        decompAutoExecute.SetPressState(true);
+    }
 
+    public void OnDecomposeButtonUP()
+    {
+        if(!decompAutoExecute.GetAutoExecuteState())
+        {
+            DecomposeItem();
+        }
+        decompAutoExecute.SetPressState(false);
+    }
+
+    /// <summary>
+    /// 아이템을 분해한다.
+    /// </summary>
+    public void DecomposeItem()
+    {
+        if(!selectedCell)
+        {
+            Debug.LogWarning("[InventoryUI] 아이템이 선택되지 않음");
+            WarningPopupManager.ShowWarningForDuration("선택된 아이템이 없습니다.", 1f);
+            return;
+        }
+        if (InventorySystem.Inst.GetCount(selectedType) == 0)
+        {
+            Debug.LogWarning("[InventoryUI] 아이템이 부족함");
+            WarningPopupManager.ShowWarningForDuration("아이템 보유량이 부족합니다.", 1f);
+            return;
+        }
+
+        var metaData = InventorySystem.Inst.GetMetaData(selectedType);
+        var decompItems = metaData.ItemsFromDecompose;
+
+        // 분해 시 각 아이템마다 랜덤 개수를 인벤토리에 추가하고, 분해 대상 아이템을 1 소모한다.
+        foreach(var item in decompItems)
+        {
+            var randomCount = UnityEngine.Random.Range(item.Min, item.Max + 1);
+            InventorySystem.Inst.AddItem(item.Type, randomCount);
+        }
+
+        InventorySystem.Inst.UseItem(selectedType, 1);
+
+        print("[InventoryUI] 아이템 분해 완료");
     }
 
     /// <summary>
@@ -505,7 +593,11 @@ public class InventoryUI : MonoBehaviour
         if(needItemData.ContainsKey(type))
         {
             var needData = needItemData[type];
+            bool hadItemEnough = InventorySystem.Inst.GetCount(type) > needData.Count;
             needItemText[type].text = needData.Count.ToString() + "/" + InventorySystem.Inst.GetCountString(type);
+
+            // 개수가 부족하면 빨간색으로 표시한다.
+            needItemText[type].color = hadItemEnough ? Color.white : Color.softRed;
         }
     }
 
@@ -522,7 +614,8 @@ public class InventoryUI : MonoBehaviour
         if (decomposeItemData.ContainsKey(type))
         {
             var decomposeData = decomposeItemData[type];
-            decomposeItemText[type].text = "+" + decomposeData.min.ToString() + "~" + decomposeData.max.ToString();
+            decomposeItemText[type].text = "+" + decomposeData.Min.ToString() + "~" + decomposeData.Max.ToString();
+            decomposeItemText[type].color = Color.white;
         }
     }
 
@@ -631,7 +724,12 @@ public class InventoryUI : MonoBehaviour
             itemCountText.text = "";
             return;
         }
+        var count = InventorySystem.Inst.GetCount(type);
+        bool hasItem = count > 0;
         itemCountText.text = "보유량: " + InventorySystem.Inst.GetCountString(type);
+
+        // 보유하지 않으면 빨간색으로 표시한다.
+        itemCountText.color = hasItem ? Color.white : Color.softRed;
     }
 
     /// <summary>
@@ -715,6 +813,7 @@ public class InventoryUI : MonoBehaviour
         }
 
         // 보유하고 있지 않은 아이템은 어둡게 처리한다.
+        // 보유하고 있지 않은 아이템은 보유량 텍스트를 빨강색으로 표시한다.
         // 보유량 텍스트를 업데이트 한다.
         var cellData = cellDict[currentContent].Cell;
         foreach (var cell in cellData)
@@ -722,6 +821,7 @@ public class InventoryUI : MonoBehaviour
             bool hasItem = InventorySystem.Inst.HasItem(cell.Value.Type);
             SetImageBrightness(cell.Value.CellImage, hasItem ? HAS_ITEM_BRIGHTNESS : NO_ITEM_BRIGHTNESS);
             cell.Value.CellCountText.text = InventorySystem.Inst.GetCountString(cell.Value.Type);
+            cell.Value.CellCountText.color = hasItem ? Color.white : Color.softRed;
         }
     }
 }

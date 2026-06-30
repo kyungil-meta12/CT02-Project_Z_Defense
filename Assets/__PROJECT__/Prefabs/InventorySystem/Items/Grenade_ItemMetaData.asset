@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5f9efc74f895b2d48bb9a9671cba3cd2, type: 3}
+  m_Name: Grenade_ItemMetaData
+  m_EditorClassIdentifier: Assembly-CSharp::ItemMetaDataSo
+  Type: 17
+  Grade: 4
+  Createable: 0
+  CountPerCraft: 0
+  ItemsToCreate: []
+  Decomposable: 0
+  ItemsFromDecompose: []
+  Name: "\uC720\uD0C4"
+  InfoText: "\uC720\uD0C4 \uBC1C\uC0AC\uAE30\uC5D0\uC11C \uC0AC\uC6A9\uB418\uB294
+    \uD0C4\uC57D."
+  ItemImage: {fileID: 21300000, guid: 44a1642017df99c44ad7357cda93cf71, type: 3}

@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5f9efc74f895b2d48bb9a9671cba3cd2, type: 3}
+  m_Name: Book_ItemMetaData
+  m_EditorClassIdentifier: Assembly-CSharp::ItemMetaDataSo
+  Type: 37
+  Grade: 3
+  Createable: 0
+  CountPerCraft: 0
+  ItemsToCreate: []
+  Decomposable: 0
+  ItemsFromDecompose: []
+  Name: "\uCC45"
+  InfoText: "\uCCA0 \uC9C0\uB09C \uB0B4\uC6A9\uC744 \uB2F4\uACE0 \uC788\uB294 \uC804\uACF5
+    \uC11C\uC801."
+  ItemImage: {fileID: 21300000, guid: adac0f19069d1de4d87d4c4304283920, type: 3}

@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5f9efc74f895b2d48bb9a9671cba3cd2, type: 3}
+  m_Name: WireCutter_ItemMetaData
+  m_EditorClassIdentifier: Assembly-CSharp::ItemMetaDataSo
+  Type: 44
+  Grade: 3
+  Createable: 0
+  CountPerCraft: 0
+  ItemsToCreate: []
+  Decomposable: 0
+  ItemsFromDecompose: []
+  Name: "\uC640\uC774\uC5B4 \uCEE4\uD130"
+  InfoText: "\uAE08\uC18D \uC640\uC774\uC5B4\uB97C \uC790\uB97C \uB54C \uC0AC\uC6A9\uD558\uB294
+    \uACF5\uAD6C."
+  ItemImage: {fileID: 21300000, guid: 73cdb86930a9c4841b02fdda8dd6753f, type: 3}

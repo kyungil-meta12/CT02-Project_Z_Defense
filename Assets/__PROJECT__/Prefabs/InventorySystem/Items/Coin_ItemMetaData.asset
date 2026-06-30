@@ -16,9 +16,7 @@ MonoBehaviour:
   Grade: 4
   Createable: 0
   CountPerCraft: 0
-  ItemsToCreate:
-  - Type: 0
-    Count: 0
+  ItemsToCreate: []
   Decomposable: 0
   ItemsFromDecompose: []
   Name: "\uCF54\uC778"

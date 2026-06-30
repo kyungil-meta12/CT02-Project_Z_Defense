@@ -10,23 +10,16 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 5f9efc74f895b2d48bb9a9671cba3cd2, type: 3}
-  m_Name: SpecialPart_ItemMetaData
+  m_Name: MachinePart_ItemMetaData
   m_EditorClassIdentifier: Assembly-CSharp::ItemMetaDataSo
-  Type: 2
-  Grade: 2
+  Type: 41
+  Grade: 3
   Createable: 0
   CountPerCraft: 0
-  ItemsToCreate:
-  - Type: 0
-    Count: 50
-  - Type: 1
-    Count: 5
-  Decomposable: 1
-  ItemsFromDecompose:
-  - Type: 1
-    min: 10
-    max: 50
-  Name: "\uC815\uBC00 \uAE30\uACC4 \uBD80\uD488"
-  InfoText: "\uBE44\uC2F8\uACE0 \uC815\uBC00\uD574\uC11C \uC804\uBB38\uAC00\uAC00
-    \uC870\uC2EC\uD788 \uB2E4\uB8E8\uC5B4\uC57C \uD558\uB294 \uBD80\uD488\uC774\uB2E4."
+  ItemsToCreate: []
+  Decomposable: 0
+  ItemsFromDecompose: []
+  Name: "\uAE30\uACC4 \uBD80\uD488"
+  InfoText: "\uD06C\uAE30\uB9CC \uB9DE\uB294\uB2E4\uBA74 \uC5EC\uB7EC \uACF3\uC5D0
+    \uC4F8 \uC218 \uC788\uB2E4."
   ItemImage: {fileID: 21300000, guid: a1e1b5b5ef4aee94c9f2e0ae8ec11119, type: 3}

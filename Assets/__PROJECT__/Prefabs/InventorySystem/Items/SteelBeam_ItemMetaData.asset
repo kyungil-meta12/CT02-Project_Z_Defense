@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5f9efc74f895b2d48bb9a9671cba3cd2, type: 3}
+  m_Name: SteelBeam_ItemMetaData
+  m_EditorClassIdentifier: Assembly-CSharp::ItemMetaDataSo
+  Type: 39
+  Grade: 3
+  Createable: 0
+  CountPerCraft: 0
+  ItemsToCreate: []
+  Decomposable: 0
+  ItemsFromDecompose: []
+  Name: "H\uBE54"
+  InfoText: "\uAC74\uBB3C\uC744 \uC9C0\uC744 \uB54C \uC0AC\uC6A9\uB418\uB294 H \uBAA8\uC591\uC758
+    \uCCA0\uADFC."
+  ItemImage: {fileID: 21300000, guid: b4f8cc5fd81959b469a62bcc4c7a8cb8, type: 3}

@@ -985,10 +985,6 @@ public class TurretTemporaryUpgradePopupUI : MonoBehaviour
         {
             case RewardCurrencyType.Coin:
                 return "Coin";
-            case RewardCurrencyType.FirePart:
-                return "Fire";
-            case RewardCurrencyType.SpecialPart:
-                return "Special";
             default:
                 return currencyType.ToString();
         }

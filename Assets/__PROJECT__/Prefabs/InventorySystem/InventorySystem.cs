@@ -2,7 +2,9 @@ using IncrementalLib;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEditorInternal.Profiling.Memory.Experimental;
 using UnityEngine;
+using UnityEngine.Rendering;
 using UnityEngine.UI;
 
 /// <summary>
@@ -318,7 +320,9 @@ public class InventorySystem : MonoBehaviour
                 InfoText = metaData.InfoText,
                 Count = amount
             };
-            newItem.CountString = newItem.Count.ToString();
+
+            var newCountStr = RemoveDemicalPoint(newItem.Count.ToString(), newItem.Count);
+            newItem.CountString = newCountStr;
             itemDict.Add(itemType, newItem);
             InvokeEvent(newItem);
 
@@ -328,7 +332,7 @@ public class InventorySystem : MonoBehaviour
         {
             var item = itemDict[itemType];
             item.Count += amount;
-            item.CountString = item.Count.ToString();
+            item.CountString = RemoveDemicalPoint(item.Count.ToString(), item.Count);
             InvokeEvent(item);
             //print($"[InventorySystem] 아이템 획득함 | 타입: {itemType} | 현재 개수: {item.Count}");
         }
@@ -383,7 +387,7 @@ public class InventorySystem : MonoBehaviour
             else
             {
                 item.Count -= amount;
-                item.CountString = item.Count.ToString();
+                item.CountString = RemoveDemicalPoint(item.Count.ToString(), item.Count);
                 InvokeEvent(item);
                 print($"[InventorySystem] 아이템 사용됨 | 사용 타입: {itemType} | 사용 개수: {amount} | 현재 개수: {item.Count}");
                 return true;
@@ -425,6 +429,7 @@ public class InventorySystem : MonoBehaviour
                 var copyValue = new Incremental(item.Count);
                 amountUsed = copyValue;
                 item.Count = 0;
+                item.CountString = "0";
                 InvokeEvent(item);
                 print($"[InventorySystem] 아이템 개수가 부족하여 남아있는 아이템을 모두 사용함 | 사용 타입: {itemType} | 실제 사용 개수: {item.Count} | 사용 시도 개수: {amount}");
                 return true;
@@ -432,7 +437,7 @@ public class InventorySystem : MonoBehaviour
             else
             {
                 item.Count -= amount;
-                item.CountString = item.Count.ToString();
+                item.CountString = RemoveDemicalPoint(item.Count.ToString(), item.Count);
                 InvokeEvent(item);
                 amountUsed = amount;
                 print($"[InventorySystem] 아이템 사용됨 | 사용 타입: {itemType} | 사용 개수: {amount} | 남은 개수: {item.Count}");
@@ -601,5 +606,20 @@ public class InventorySystem : MonoBehaviour
                 itemCostDict[costData.currencyType] += costData.amount;
             }
         }
+    }
+
+    private string RemoveDemicalPoint(string str, Incremental incrementalInst)
+    {
+        if(incrementalInst >= 1000)
+        {
+            return str;
+        }
+        int index = str.IndexOf('.');
+        if (index != -1)
+        {
+            string result = str.Substring(0, index);
+            return result;
+        }
+        return str;
     }
 }

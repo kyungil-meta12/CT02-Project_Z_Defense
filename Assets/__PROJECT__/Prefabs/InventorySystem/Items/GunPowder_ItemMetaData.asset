@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5f9efc74f895b2d48bb9a9671cba3cd2, type: 3}
+  m_Name: GunPowder_ItemMetaData
+  m_EditorClassIdentifier: Assembly-CSharp::ItemMetaDataSo
+  Type: 16
+  Grade: 4
+  Createable: 0
+  CountPerCraft: 0
+  ItemsToCreate: []
+  Decomposable: 0
+  ItemsFromDecompose: []
+  Name: "\uD654\uC57D"
+  InfoText: "\uD3ED\uD0C4\uC774\uB098 \uD0C4\uC57D\uC744 \uC81C\uC870\uD560 \uB54C
+    \uC0AC\uC6A9\uB418\uB294 \uD654\uC57D."
+  ItemImage: {fileID: 21300000, guid: c654cba8b1e8d25428069ff1036444a4, type: 3}

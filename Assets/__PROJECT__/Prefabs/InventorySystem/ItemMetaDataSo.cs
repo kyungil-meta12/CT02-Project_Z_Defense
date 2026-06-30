@@ -20,8 +20,8 @@ public struct ItemDecomposeData
 {
     [Header("나오는 아이템 타입")] public RewardCurrencyType Type;
     [Header("분해 시 나오는 개수 범위")]
-    public int min;
-    public int max;
+    public int Min;
+    public int Max;
 }
 
 /// <summary>

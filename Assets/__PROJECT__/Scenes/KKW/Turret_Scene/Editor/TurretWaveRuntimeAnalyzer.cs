@@ -5,6 +5,10 @@ using UnityEngine;
 // 좀비 스폰 프로필 입력을 런타임 스폰 의미에 맞춰 웨이브별 기대값으로 변환한다.
 internal sealed class TurretWaveRuntimeAnalyzer
 {
+    // 일반 좀비 공격 클립 평균 길이와 루프당 OnAttack 이벤트 수 (Zombie_Atk_Arm_1=1.6s, Atk_Arms_3=1.7s 평균; Atk_Arms_4는 이벤트 미설정으로 제외)
+    private const float NZ_ATTACK_EVENTS_PER_CLIP = 2.0f;
+    private const float NZ_AVERAGE_CLIP_SECONDS = 1.65f;
+
     private readonly ZombieRewardExpectationCalculator rewardCalculator = new ZombieRewardExpectationCalculator();
 
     // 모든 웨이브 스폰 프로필을 개별 웨이브 행으로 분석한다
@@ -71,6 +75,7 @@ internal sealed class TurretWaveRuntimeAnalyzer
         AddMissingCandidateWarning(path, stageIndex, wave, bossSpawnCount, bossSummary.CandidateCount, "보스", warnings);
 
         float totalHp = normalSummary.AverageHp * normalSpawnCount + bossSummary.AverageHp * bossSpawnCount;
+        float averageNormalZombieDps = normalSummary.AverageDps;
         Dictionary<RewardCurrencyType, float> averageRewardPerWave = new Dictionary<RewardCurrencyType, float>();
         AddScaledRewards(averageRewardPerWave, normalSummary.AverageRewardPerKill, normalSpawnCount);
         AddScaledRewards(averageRewardPerWave, bossSummary.AverageRewardPerKill, bossSpawnCount);
@@ -92,7 +97,8 @@ internal sealed class TurretWaveRuntimeAnalyzer
             AverageNormalZombieHp = normalSummary.AverageHp,
             AverageBossZombieHp = bossSummary.AverageHp,
             TotalWaveHp = totalHp,
-            AverageRewardPerWave = averageRewardPerWave
+            AverageRewardPerWave = averageRewardPerWave,
+            AverageNormalZombieDps = averageNormalZombieDps
         };
     }
 
@@ -122,6 +128,7 @@ internal sealed class TurretWaveRuntimeAnalyzer
 
         int totalWeight = 0;
         float weightedHp = 0.0f;
+        float weightedDps = 0.0f;
         Dictionary<RewardCurrencyType, float> weightedRewards = new Dictionary<RewardCurrencyType, float>();
         for (int i = 0; i < entries.Count; i++)
         {
@@ -148,6 +155,7 @@ internal sealed class TurretWaveRuntimeAnalyzer
             totalWeight += weight;
             summary.CandidateCount++;
             weightedHp += zombieData.AverageHp * hpMultiplier * weight;
+            weightedDps += zombieData.AverageDps * weight;
             AddScaledRewards(weightedRewards, zombieData.ExpectedRewards, weight);
         }
 
@@ -157,6 +165,7 @@ internal sealed class TurretWaveRuntimeAnalyzer
         }
 
         summary.AverageHp = weightedHp / totalWeight;
+        summary.AverageDps = weightedDps / totalWeight;
         AddScaledRewards(summary.AverageRewardPerKill, weightedRewards, 1.0f / totalWeight);
         return summary;
     }
@@ -187,6 +196,7 @@ internal sealed class TurretWaveRuntimeAnalyzer
         if (normalZombie != null)
         {
             data.AverageHp = GetAverageNormalZombieHp(normalZombie);
+            data.AverageDps = GetAverageNormalZombieDps(normalZombie);
             data.ExpectedRewards = rewardCalculator.CalculateExpectedRewards(entry.RewardProfileOverride, normalZombie.spec, wave, false, rewardMultiplier);
             return data.AverageHp > 0.0f;
         }
@@ -213,6 +223,21 @@ internal sealed class TurretWaveRuntimeAnalyzer
         float minMultiplier = zombie.spec.MinHp > 0.0f ? zombie.spec.MinHp : 1.0f;
         float maxMultiplier = zombie.spec.MaxHp > 0.0f ? zombie.spec.MaxHp : minMultiplier;
         return Mathf.Max(0.0f, zombie.spec.Hp * ((minMultiplier + maxMultiplier) * 0.5f));
+    }
+
+    // 일반 좀비 스펙의 평균 DPS를 계산한다 (클립 평균 길이 1.65초, 루프당 2회 OnAttack 기준)
+    private static float GetAverageNormalZombieDps(NormalZombie zombie)
+    {
+        if (zombie == null || zombie.spec == null)
+        {
+            return 0.0f;
+        }
+
+        NormalZombieSpec spec = zombie.spec;
+        float avgDamage = (spec.MinAttackDamage + spec.MaxAttackDamage) * 0.5f;
+        float avgSpeedMult = (spec.MinMoveAttackSpeed + spec.MaxMoveAttackSpeed) * 0.5f;
+        float attacksPerSec = spec.AttackSpeed * avgSpeedMult * (NZ_ATTACK_EVENTS_PER_CLIP / NZ_AVERAGE_CLIP_SECONDS);
+        return Mathf.Max(0.0f, avgDamage * attacksPerSec);
     }
 
     // 보스 좀비 스펙의 평균 HP를 계산한다
@@ -281,6 +306,7 @@ internal sealed class TurretWaveRuntimeAnalyzer
     private struct ZombieBalanceData
     {
         public float AverageHp;
+        public float AverageDps;
         public Dictionary<RewardCurrencyType, float> ExpectedRewards;
     }
 
@@ -289,6 +315,7 @@ internal sealed class TurretWaveRuntimeAnalyzer
     {
         public int CandidateCount;
         public float AverageHp;
+        public float AverageDps;
         public Dictionary<RewardCurrencyType, float> AverageRewardPerKill;
     }
 }

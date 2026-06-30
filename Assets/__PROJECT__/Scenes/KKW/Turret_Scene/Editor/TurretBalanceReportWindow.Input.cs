@@ -40,6 +40,9 @@ internal sealed class TurretBalanceReportInputCollector
         AppendAssetSignatures(builder, "t:TurretUpgradeCostProfileSO");
         AppendAssetSignatures(builder, "t:ZombieWaveSpawnProfileSO");
         AppendAssetSignatures(builder, "t:ZombieRewardProfileSO");
+        AppendAssetSignatures(builder, "t:ObstacleBuildEntrySO");
+        AppendAssetSignatures(builder, "t:ObstacleDefinitionSO");
+        AppendAssetSignatures(builder, "t:ObstacleUpgradeCostProfileSO");
         AppendSceneInventorySignature(builder);
         AppendSceneGameManagerSignature(builder);
         return builder.ToString();

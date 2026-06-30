@@ -11,6 +11,7 @@ internal sealed class TurretBalanceReportGraphState
     public bool ShowTopRankDps;
     public bool ShowAllTurretDps;
     public bool ShowClearTimeRatio;
+    public bool ShowObstacleDestructionRatio;
     public float HpAxisScaleMultiplier = 1.0f;
     public readonly Dictionary<RewardCurrencyType, bool> CurrencyVisibility = new Dictionary<RewardCurrencyType, bool>();
 
@@ -63,7 +64,7 @@ internal static class TurretBalanceReportGraphRenderer
     private static readonly Color EvolutionEndColor = new Color(0.68f, 0.34f, 0.92f);
 
     // 그래프 탭 전체 UI를 그린다
-    public static void Draw(TurretBalanceReportResult report, TurretBalanceReportGraphState state, float targetClearSeconds)
+    public static void Draw(TurretBalanceReportResult report, TurretBalanceReportGraphState state, float targetClearSeconds, float targetClearSecondsIncrement, List<ObstacleWaveRow> obstacleRows)
     {
         if (state == null)
         {
@@ -81,7 +82,7 @@ internal static class TurretBalanceReportGraphRenderer
         DrawSeriesToggles(state, currencyTypes);
 
         Rect graphRect = GUILayoutUtility.GetRect(0.0f, GRAPH_MIN_HEIGHT, GUILayout.ExpandWidth(true), GUILayout.ExpandHeight(true));
-        DrawGraph(report, state, currencyTypes, graphRect, Mathf.Max(1.0f, targetClearSeconds));
+        DrawGraph(report, state, currencyTypes, graphRect, Mathf.Max(1.0f, targetClearSeconds), Mathf.Max(0.0f, targetClearSecondsIncrement), obstacleRows);
     }
 
     // 리포트에 등장한 누적 재화 종류 목록을 정렬해서 만든다
@@ -133,6 +134,7 @@ internal static class TurretBalanceReportGraphRenderer
 
         state.ShowAllTurretDps = nextShowAllTurretDps;
         state.ShowClearTimeRatio = EditorGUILayout.ToggleLeft("클리어 시간 배율", state.ShowClearTimeRatio, GUILayout.Width(140.0f));
+        state.ShowObstacleDestructionRatio = EditorGUILayout.ToggleLeft("장애물 파괴시간 배율", state.ShowObstacleDestructionRatio, GUILayout.Width(160.0f));
         state.ShowCumulativeCurrency = EditorGUILayout.ToggleLeft("누적 재화", state.ShowCumulativeCurrency, GUILayout.Width(100.0f));
         GUILayout.FlexibleSpace();
         EditorGUILayout.LabelField($"HP 축 {state.HpAxisScaleMultiplier:0.##}x", EditorStyles.miniLabel, GUILayout.Width(76.0f));
@@ -161,14 +163,14 @@ internal static class TurretBalanceReportGraphRenderer
     }
 
     // 그래프 영역 안에 배경, 축, 선, 툴팁을 그린다
-    private static void DrawGraph(TurretBalanceReportResult report, TurretBalanceReportGraphState state, List<RewardCurrencyType> currencyTypes, Rect graphRect, float targetClearSeconds)
+    private static void DrawGraph(TurretBalanceReportResult report, TurretBalanceReportGraphState state, List<RewardCurrencyType> currencyTypes, Rect graphRect, float targetClearSeconds, float targetClearSecondsIncrement, List<ObstacleWaveRow> obstacleRows)
     {
         if (graphRect.width <= GRAPH_LEFT_PADDING + GRAPH_RIGHT_PADDING || graphRect.height <= GRAPH_TOP_PADDING + GRAPH_BOTTOM_PADDING)
         {
             return;
         }
 
-        List<GraphSeries> seriesList = BuildSeriesList(report, state, currencyTypes, targetClearSeconds);
+        List<GraphSeries> seriesList = BuildSeriesList(report, state, currencyTypes, targetClearSeconds, targetClearSecondsIncrement, obstacleRows);
         GUI.Box(graphRect, GUIContent.none, EditorStyles.helpBox);
 
         Rect plotRect = new Rect(
@@ -179,9 +181,10 @@ internal static class TurretBalanceReportGraphRenderer
 
         HandleHpAxisWheelZoom(plotRect, state);
         DrawGrid(plotRect, report);
-        if (state.ShowClearTimeRatio)
+        if (state.ShowClearTimeRatio || state.ShowObstacleDestructionRatio)
         {
-            DrawRatioBaseline(plotRect, CalculateClearTimeRatioAxisMax(report, targetClearSeconds));
+            List<ObstacleWaveRow> obstacleRowsForAxis = state.ShowObstacleDestructionRatio ? obstacleRows : null;
+            DrawRatioBaseline(plotRect, CalculateRatioAxisMax(report, obstacleRowsForAxis, targetClearSeconds, targetClearSecondsIncrement));
         }
 
         DrawSeriesList(plotRect, seriesList, report.WaveRows.Count, out GraphHoverInfo hoverInfo);
@@ -190,11 +193,11 @@ internal static class TurretBalanceReportGraphRenderer
     }
 
     // 현재 표시 상태에 맞는 그래프 선 목록을 만든다
-    private static List<GraphSeries> BuildSeriesList(TurretBalanceReportResult report, TurretBalanceReportGraphState state, List<RewardCurrencyType> currencyTypes, float targetClearSeconds)
+    private static List<GraphSeries> BuildSeriesList(TurretBalanceReportResult report, TurretBalanceReportGraphState state, List<RewardCurrencyType> currencyTypes, float targetClearSeconds, float targetClearSecondsIncrement, List<ObstacleWaveRow> obstacleRows)
     {
         List<GraphSeries> seriesList = new List<GraphSeries>(8);
         int colorIndex = 0;
-        float hpAxisMax = CalculateHpAxisMax(report, targetClearSeconds) * Mathf.Clamp(state.HpAxisScaleMultiplier, HP_AXIS_MIN_SCALE, HP_AXIS_MAX_SCALE);
+        float hpAxisMax = CalculateHpAxisMax(report, targetClearSeconds, targetClearSecondsIncrement) * Mathf.Clamp(state.HpAxisScaleMultiplier, HP_AXIS_MIN_SCALE, HP_AXIS_MAX_SCALE);
         if (state.ShowTotalWaveHp)
         {
             GraphSeries series = CreateSeries("좀비 총 HP", "HP", SeriesColors[colorIndex++ % SeriesColors.Length], report.WaveRows.Count);
@@ -215,24 +218,53 @@ internal static class TurretBalanceReportGraphRenderer
 
         if (state.ShowTopRankDps)
         {
-            seriesList.Add(CreateTopRankDpsSeries(report, SeriesColors[colorIndex++ % SeriesColors.Length], hpAxisMax, targetClearSeconds));
+            seriesList.Add(CreateTopRankDpsSeries(report, SeriesColors[colorIndex++ % SeriesColors.Length], hpAxisMax, targetClearSeconds, targetClearSecondsIncrement));
         }
 
         if (state.ShowAllTurretDps)
         {
-            AddAllTurretDpsSeries(report, seriesList, ref colorIndex, hpAxisMax, targetClearSeconds);
+            AddAllTurretDpsSeries(report, seriesList, ref colorIndex, hpAxisMax, targetClearSeconds, targetClearSecondsIncrement);
         }
 
+        bool showAnyRatio = state.ShowClearTimeRatio || state.ShowObstacleDestructionRatio;
+        List<ObstacleWaveRow> obstacleRowsForAxis = state.ShowObstacleDestructionRatio ? obstacleRows : null;
+        float ratioAxisMax = showAnyRatio ? CalculateRatioAxisMax(report, obstacleRowsForAxis, targetClearSeconds, targetClearSecondsIncrement) : 1.0f;
         if (state.ShowClearTimeRatio)
         {
             GraphSeries series = CreateSeries("클리어 시간 / 기준 시간", "배", SeriesColors[colorIndex++ % SeriesColors.Length], report.WaveRows.Count);
-            SetFixedScale(series, 0.0f, CalculateClearTimeRatioAxisMax(report, targetClearSeconds));
+            SetFixedScale(series, 0.0f, ratioAxisMax);
             for (int i = 0; i < report.WaveRows.Count; i++)
             {
+                float waveTarget = targetClearSeconds + i * targetClearSecondsIncrement;
                 float clearSeconds = i < report.WaveClearRows.Count ? Mathf.Max(0.0f, report.WaveClearRows[i].BestClearSeconds) : 0.0f;
-                float value = targetClearSeconds <= 0.0f ? 0.0f : clearSeconds / targetClearSeconds;
+                float value = waveTarget <= 0.0f ? 0.0f : clearSeconds / waveTarget;
                 series.Values.Add(value);
-                series.PointNotes.Add($"{FormatFloat(clearSeconds)}초 / 기준 {FormatFloat(targetClearSeconds)}초");
+                series.PointNotes.Add($"{FormatFloat(clearSeconds)}초 / 기준 {FormatFloat(waveTarget)}초");
+            }
+
+            seriesList.Add(series);
+        }
+
+        if (state.ShowObstacleDestructionRatio)
+        {
+            GraphSeries series = CreateSeries("장애물 파괴시간 / 기준 시간", "배", SeriesColors[colorIndex++ % SeriesColors.Length], report.WaveRows.Count);
+            SetFixedScale(series, 0.0f, ratioAxisMax);
+            for (int i = 0; i < report.WaveRows.Count; i++)
+            {
+                float waveTarget = targetClearSeconds + i * targetClearSecondsIncrement;
+                bool hasData = obstacleRows != null && i < obstacleRows.Count
+                    && obstacleRows[i].Optimal.HasValue && obstacleRows[i].DestructionTime > 0f && waveTarget > 0f;
+                if (hasData)
+                {
+                    float ratio = obstacleRows[i].DestructionTime / waveTarget;
+                    series.Values.Add(ratio);
+                    series.PointNotes.Add($"파괴시간 {FormatFloat(obstacleRows[i].DestructionTime)}초 / 기준 {FormatFloat(waveTarget)}초");
+                }
+                else
+                {
+                    series.Values.Add(float.NaN);
+                    series.PointNotes.Add("데이터 없음");
+                }
             }
 
             seriesList.Add(series);
@@ -241,18 +273,33 @@ internal static class TurretBalanceReportGraphRenderer
         return seriesList;
     }
 
-    // 클리어 시간 배율 축 최대값을 계산한다
-    private static float CalculateClearTimeRatioAxisMax(TurretBalanceReportResult report, float targetClearSeconds)
+    // 클리어 시간 배율과 장애물 파괴시간 배율을 합산한 축 최대값을 계산한다
+    private static float CalculateRatioAxisMax(TurretBalanceReportResult report, List<ObstacleWaveRow> obstacleRows, float targetClearSeconds, float targetClearSecondsIncrement)
     {
         float maxValue = 1.0f;
-        if (targetClearSeconds <= 0.0f)
-        {
-            return maxValue;
-        }
-
         for (int i = 0; i < report.WaveClearRows.Count; i++)
         {
-            maxValue = Mathf.Max(maxValue, report.WaveClearRows[i].BestClearSeconds / targetClearSeconds);
+            float waveTarget = targetClearSeconds + i * targetClearSecondsIncrement;
+            if (waveTarget <= 0.0f)
+            {
+                continue;
+            }
+
+            maxValue = Mathf.Max(maxValue, report.WaveClearRows[i].BestClearSeconds / waveTarget);
+        }
+
+        if (obstacleRows != null)
+        {
+            for (int i = 0; i < obstacleRows.Count; i++)
+            {
+                float waveTarget = targetClearSeconds + i * targetClearSecondsIncrement;
+                if (waveTarget <= 0.0f || !obstacleRows[i].Optimal.HasValue || obstacleRows[i].DestructionTime <= 0f)
+                {
+                    continue;
+                }
+
+                maxValue = Mathf.Max(maxValue, obstacleRows[i].DestructionTime / waveTarget);
+            }
         }
 
         return Mathf.Max(1.0f, maxValue);
@@ -273,7 +320,7 @@ internal static class TurretBalanceReportGraphRenderer
     }
 
     // 좀비 총 HP와 기준 시간 처리 가능 HP를 포함한 공통 HP 축 최대값을 계산한다
-    private static float CalculateHpAxisMax(TurretBalanceReportResult report, float targetClearSeconds)
+    private static float CalculateHpAxisMax(TurretBalanceReportResult report, float targetClearSeconds, float targetClearSecondsIncrement)
     {
         float maxValue = 0.0f;
         for (int i = 0; i < report.WaveRows.Count; i++)
@@ -286,7 +333,8 @@ internal static class TurretBalanceReportGraphRenderer
             List<WaveClearRankEntry> topRanks = report.WaveClearRows[i].TopRanks;
             if (topRanks != null && topRanks.Count > 0)
             {
-                maxValue = Mathf.Max(maxValue, topRanks[0].TotalDps * targetClearSeconds);
+                float waveTarget = targetClearSeconds + i * targetClearSecondsIncrement;
+                maxValue = Mathf.Max(maxValue, topRanks[0].TotalDps * waveTarget);
             }
         }
 
@@ -294,7 +342,7 @@ internal static class TurretBalanceReportGraphRenderer
     }
 
     // 모든 터렛 종류의 웨이브별 최적 총 DPS 그래프 선을 추가한다
-    private static void AddAllTurretDpsSeries(TurretBalanceReportResult report, List<GraphSeries> seriesList, ref int colorIndex, float hpAxisMax, float targetClearSeconds)
+    private static void AddAllTurretDpsSeries(TurretBalanceReportResult report, List<GraphSeries> seriesList, ref int colorIndex, float hpAxisMax, float targetClearSeconds, float targetClearSecondsIncrement)
     {
         List<TurretGraphEntry> turretEntries = BuildTurretGraphEntries(report);
         int maxTier = GetMaxTurretTier(turretEntries);
@@ -307,7 +355,8 @@ internal static class TurretBalanceReportGraphRenderer
             {
                 if (TryFindSpeciesEntry(report, waveIndex, turretEntry.TurretName, out WaveClearRankEntry entry))
                 {
-                    float processableHp = Mathf.Max(0.0f, entry.TotalDps * targetClearSeconds);
+                    float waveTarget = targetClearSeconds + waveIndex * targetClearSecondsIncrement;
+                    float processableHp = Mathf.Max(0.0f, entry.TotalDps * waveTarget);
                     series.Values.Add(processableHp);
                     series.PointNotes.Add($"{FormatFloat(entry.TotalDps)} DPS / {entry.InstallCount}대 / Lv{entry.Level}");
                     continue;
@@ -449,7 +498,7 @@ internal static class TurretBalanceReportGraphRenderer
     }
 
     // 1순위 터렛 처리 가능 HP 그래프 선을 만든다
-    private static GraphSeries CreateTopRankDpsSeries(TurretBalanceReportResult report, Color color, float hpAxisMax, float targetClearSeconds)
+    private static GraphSeries CreateTopRankDpsSeries(TurretBalanceReportResult report, Color color, float hpAxisMax, float targetClearSeconds, float targetClearSecondsIncrement)
     {
         GraphSeries series = CreateSeries("1순위 처리 가능 HP", "HP", color, report.WaveRows.Count);
         SetFixedScale(series, 0.0f, hpAxisMax);
@@ -458,7 +507,8 @@ internal static class TurretBalanceReportGraphRenderer
             if (i < report.WaveClearRows.Count && report.WaveClearRows[i].TopRanks != null && report.WaveClearRows[i].TopRanks.Count > 0)
             {
                 WaveClearRankEntry entry = report.WaveClearRows[i].TopRanks[0];
-                float processableHp = Mathf.Max(0.0f, entry.TotalDps * targetClearSeconds);
+                float waveTarget = targetClearSeconds + i * targetClearSecondsIncrement;
+                float processableHp = Mathf.Max(0.0f, entry.TotalDps * waveTarget);
                 series.Values.Add(processableHp);
                 series.PointNotes.Add($"{entry.TurretName} / {FormatFloat(entry.TotalDps)} DPS / {entry.InstallCount}대 / Lv{entry.Level}");
                 continue;

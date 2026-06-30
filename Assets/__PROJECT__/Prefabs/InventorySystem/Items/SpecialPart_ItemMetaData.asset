@@ -16,16 +16,15 @@ MonoBehaviour:
   Grade: 2
   Createable: 0
   CountPerCraft: 0
-  ItemsToCreate:
-  - Type: 0
-    Count: 50
-  - Type: 1
-    Count: 5
+  ItemsToCreate: []
   Decomposable: 1
   ItemsFromDecompose:
   - Type: 1
-    min: 10
-    max: 50
+    Min: 10
+    Max: 20
+  - Type: 0
+    Min: 10
+    Max: 20
   Name: "\uC815\uBC00 \uAE30\uACC4 \uBD80\uD488"
   InfoText: "\uBE44\uC2F8\uACE0 \uC815\uBC00\uD574\uC11C \uC804\uBB38\uAC00\uAC00
     \uC870\uC2EC\uD788 \uB2E4\uB8E8\uC5B4\uC57C \uD558\uB294 \uBD80\uD488\uC774\uB2E4."

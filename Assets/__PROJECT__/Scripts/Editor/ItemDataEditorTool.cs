@@ -1286,7 +1286,7 @@ public class ItemDataEditorTool : EditorWindow
                 return false;
             }
 
-            decomposeItems.Add(new ItemDecomposeData { Type = itemType, min = min, max = max });
+            decomposeItems.Add(new ItemDecomposeData { Type = itemType, Min = min, Max = max });
         }
 
         return true;
@@ -1529,8 +1529,8 @@ public class ItemDataEditorTool : EditorWindow
             }
 
             ItemDecomposeData item = decomposeItems[i];
-            int min = Mathf.Max(0, item.min);
-            int max = Mathf.Max(min, item.max);
+            int min = Mathf.Max(0, item.Min);
+            int max = Mathf.Max(min, item.Max);
             builder.Append(FormatEnumValue(item.Type));
             builder.Append(':');
             builder.Append(min);

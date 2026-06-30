@@ -1,4 +1,4 @@
-﻿using System.Text;
+using System.Text;
 using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -259,10 +259,6 @@ public class TurretPlacementSlotUI : MonoBehaviour, IBeginDragHandler, IDragHand
         {
             case RewardCurrencyType.Coin:
                 return "Coin";
-            case RewardCurrencyType.FirePart:
-                return "Fire";
-            case RewardCurrencyType.SpecialPart:
-                return "Special";
             default:
                 return currencyType.ToString();
         }

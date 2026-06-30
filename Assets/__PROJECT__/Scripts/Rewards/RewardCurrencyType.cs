@@ -62,6 +62,4 @@ public enum RewardCurrencyType
     WalkieTalkie = 55,
     FlashLight = 56,
     Keyboard = 57,
-    FirePart = 200,
-    SpecialPart = 201
 }

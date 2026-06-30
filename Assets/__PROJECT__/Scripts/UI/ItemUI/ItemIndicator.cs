@@ -1,7 +1,6 @@
 using TMPro;
 using UnityEngine;
 using IncrementalLib;
-using Unity.VisualScripting;
 
 public class ItemIndicator : MonoBehaviour
 {
@@ -45,7 +44,7 @@ public class ItemIndicator : MonoBehaviour
     {
         if(data.Type == RewardCurrencyType.Coin)
         {
-             coinText.text = data.CountString;
+            coinText.text = data.CountString;
             coinTextScale = originCoinTextScale * animValue.OnValueChangeScale;
         }
     }

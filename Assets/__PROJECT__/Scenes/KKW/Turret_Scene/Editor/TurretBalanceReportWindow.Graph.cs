@@ -792,10 +792,6 @@ internal static class TurretBalanceReportGraphRenderer
         {
             case RewardCurrencyType.Coin:
                 return "코인";
-            case RewardCurrencyType.FirePart:
-                return "파이어 파츠";
-            case RewardCurrencyType.SpecialPart:
-                return "스페셜 파츠";
             default:
                 return currencyType.ToString();
         }

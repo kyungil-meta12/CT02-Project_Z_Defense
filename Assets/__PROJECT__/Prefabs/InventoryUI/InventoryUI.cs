@@ -110,7 +110,7 @@ public class ButtonAutoExecute
 
 public class InventoryUI : MonoBehaviour
 {
-    const float NO_ITEM_BRIGHTNESS = 0.2f;
+    const float NO_ITEM_BRIGHTNESS = 0.4f;
     const float HAS_ITEM_BRIGHTNESS = 1f;
 
     [Header("배경 객체")] public Image background;
@@ -593,7 +593,11 @@ public class InventoryUI : MonoBehaviour
         if(needItemData.ContainsKey(type))
         {
             var needData = needItemData[type];
+            bool hadItemEnough = InventorySystem.Inst.GetCount(type) > needData.Count;
             needItemText[type].text = needData.Count.ToString() + "/" + InventorySystem.Inst.GetCountString(type);
+
+            // 개수가 부족하면 빨간색으로 표시한다.
+            needItemText[type].color = hadItemEnough ? Color.white : Color.softRed;
         }
     }
 
@@ -611,6 +615,7 @@ public class InventoryUI : MonoBehaviour
         {
             var decomposeData = decomposeItemData[type];
             decomposeItemText[type].text = "+" + decomposeData.Min.ToString() + "~" + decomposeData.Max.ToString();
+            decomposeItemText[type].color = Color.white;
         }
     }
 
@@ -719,7 +724,12 @@ public class InventoryUI : MonoBehaviour
             itemCountText.text = "";
             return;
         }
+        var count = InventorySystem.Inst.GetCount(type);
+        bool hasItem = count > 0;
         itemCountText.text = "보유량: " + InventorySystem.Inst.GetCountString(type);
+
+        // 보유하지 않으면 빨간색으로 표시한다.
+        itemCountText.color = hasItem ? Color.white : Color.softRed;
     }
 
     /// <summary>
@@ -803,6 +813,7 @@ public class InventoryUI : MonoBehaviour
         }
 
         // 보유하고 있지 않은 아이템은 어둡게 처리한다.
+        // 보유하고 있지 않은 아이템은 보유량 텍스트를 빨강색으로 표시한다.
         // 보유량 텍스트를 업데이트 한다.
         var cellData = cellDict[currentContent].Cell;
         foreach (var cell in cellData)
@@ -810,6 +821,7 @@ public class InventoryUI : MonoBehaviour
             bool hasItem = InventorySystem.Inst.HasItem(cell.Value.Type);
             SetImageBrightness(cell.Value.CellImage, hasItem ? HAS_ITEM_BRIGHTNESS : NO_ITEM_BRIGHTNESS);
             cell.Value.CellCountText.text = InventorySystem.Inst.GetCountString(cell.Value.Type);
+            cell.Value.CellCountText.color = hasItem ? Color.white : Color.softRed;
         }
     }
 }

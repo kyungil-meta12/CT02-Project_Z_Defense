@@ -58,5 +58,3 @@ Water=54,C=3,False,0,,False,,물,인체의 70%를 차지하는 중요한 물질.
 WalkieTalkie=55,C=3,False,0,,False,,무전기,단거리에서 통신할 수 있는 무전기.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Survival/Icon_Walkie_Talkie_LP.png
 FlashLight=56,C=3,False,0,,False,,손전등,어두운 곳을 비출 수 있는 손전등.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Tools/Icon_Flashlight_LP.png
 Keyboard=57,C=3,False,0,,False,,키보드,아마 마지막까지 디버깅을 하다가 죽었을것이다... 개발자의 운명이다.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Electronics/Icon_Computer_Keyboard_LP.png
-FirePart=200,B=2,False,0,,False,,일반 기계 부품,대부분의 기계에서 흔하게 사용되는 부품.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Resources Items/Icon_Gear_Wheel_LP.png
-SpecialPart=201,B=2,False,0,,False,,정밀 기계 부품,비싸고 정밀해서 전문가가 조심히 다루어야 하는 부품.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/UI/Icon_Ui_Gear_Wheels_LP.png

@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5f9efc74f895b2d48bb9a9671cba3cd2, type: 3}
+  m_Name: Clover_ItemMetaData
+  m_EditorClassIdentifier: Assembly-CSharp::ItemMetaDataSo
+  Type: 80
+  Grade: 1
+  Createable: 0
+  CountPerCraft: 0
+  ItemsToCreate: []
+  Decomposable: 0
+  ItemsFromDecompose: []
+  Name: "\uD074\uB85C\uBC84"
+  InfoText: "\uC78E\uC774 \uB124\uAC1C \uB2EC\uB9B0 \uB124\uC78E \uD074\uB85C\uBC84."
+  ItemImage: {fileID: 0}

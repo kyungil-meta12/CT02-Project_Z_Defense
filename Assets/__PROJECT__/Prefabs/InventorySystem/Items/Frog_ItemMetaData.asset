@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5f9efc74f895b2d48bb9a9671cba3cd2, type: 3}
+  m_Name: Frog_ItemMetaData
+  m_EditorClassIdentifier: Assembly-CSharp::ItemMetaDataSo
+  Type: 60
+  Grade: 2
+  Createable: 0
+  CountPerCraft: 0
+  ItemsToCreate: []
+  Decomposable: 0
+  ItemsFromDecompose: []
+  Name: "\uB3C5\uAC1C\uAD6C\uB9AC"
+  InfoText: "\uB3C5\uD654\uC0B4\uCD09\uC744 \uB9CC\uB4DC\uB294\uB370 \uC4F0\uC600\uB358
+    \uAC1C\uAD6C\uB9AC."
+  ItemImage: {fileID: 0}

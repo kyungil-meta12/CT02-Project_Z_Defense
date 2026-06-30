@@ -32,6 +32,7 @@ internal sealed class TurretBalanceReportWindow : EditorWindow
     private string lastRefreshLabel;
     private float targetClearSeconds = 30.0f;
     private float targetClearSecondsIncrement = 0.0f;
+    private float obstacleTargetTimeMultiplier = 1.2f;
     private List<ObstacleWaveRow> lastObstacleRows = new List<ObstacleWaveRow>();
     private TurretBalanceDpsSettings dpsSettings = CreateDefaultDpsSettings();
 
@@ -115,7 +116,7 @@ internal sealed class TurretBalanceReportWindow : EditorWindow
         EditorGUILayout.Space(6.0f);
         if (selectedTab == GRAPH_TAB_INDEX)
         {
-            TurretBalanceReportGraphRenderer.Draw(lastReport, graphState, targetClearSeconds, targetClearSecondsIncrement, lastObstacleRows);
+            TurretBalanceReportGraphRenderer.Draw(lastReport, graphState, targetClearSeconds, targetClearSecondsIncrement, obstacleTargetTimeMultiplier, lastObstacleRows);
             return;
         }
 
@@ -155,11 +156,16 @@ internal sealed class TurretBalanceReportWindow : EditorWindow
         EditorGUILayout.LabelField("초 +웨이브당", EditorStyles.miniLabel, GUILayout.Width(70.0f));
         float nextIncrement = Mathf.Max(0.0f, EditorGUILayout.FloatField(targetClearSecondsIncrement, GUILayout.Width(40.0f)));
         EditorGUILayout.LabelField("초", EditorStyles.miniLabel, GUILayout.Width(18.0f));
+        EditorGUILayout.LabelField("장애물 기준", EditorStyles.miniLabel, GUILayout.Width(62.0f));
+        float nextObstacleTargetTimeMultiplier = Mathf.Max(0.1f, EditorGUILayout.FloatField(obstacleTargetTimeMultiplier, GUILayout.Width(40.0f)));
+        EditorGUILayout.LabelField("배", EditorStyles.miniLabel, GUILayout.Width(18.0f));
         if (EditorGUI.EndChangeCheck())
         {
             targetClearSeconds = nextTargetClearSeconds;
             targetClearSecondsIncrement = nextIncrement;
+            obstacleTargetTimeMultiplier = nextObstacleTargetTimeMultiplier;
             SaveEditorPrefs();
+            RefreshReport(true);
         }
 
         GUILayout.FlexibleSpace();
@@ -218,7 +224,7 @@ internal sealed class TurretBalanceReportWindow : EditorWindow
         lastObstacleRows = obstacleRows;
         lastTables = new ReportTableModel[]
         {
-            ObstacleBalanceTableBuilder.Build(obstacleRows, obstacleEntries),  // tab 1: 장애물 밸런스
+            ObstacleBalanceTableBuilder.Build(obstacleRows, obstacleEntries, targetClearSeconds, targetClearSecondsIncrement, obstacleTargetTimeMultiplier),  // tab 1: 장애물 밸런스
             turretTables[0],  // tab 2: 웨이브 클리어
             turretTables[1],  // tab 3: 터렛 상세
             turretTables[2],  // tab 4: 데이터 경고
@@ -239,6 +245,7 @@ internal sealed class TurretBalanceReportWindow : EditorWindow
     {
         targetClearSeconds = EditorPrefs.GetFloat(EDITOR_PREFS_PREFIX + "TargetClearSeconds", 30.0f);
         targetClearSecondsIncrement = EditorPrefs.GetFloat(EDITOR_PREFS_PREFIX + "TargetClearSecondsIncrement", 0.0f);
+        obstacleTargetTimeMultiplier = EditorPrefs.GetFloat(EDITOR_PREFS_PREFIX + "ObstacleTargetTimeMultiplier", 1.2f);
         dpsSettings = CreateDefaultDpsSettings();
         dpsSettings.FrostExpectedTargetCount = EditorPrefs.GetFloat(EDITOR_PREFS_PREFIX + "FrostExpectedTargetCount", dpsSettings.FrostExpectedTargetCount);
         dpsSettings.PoisonExpectedTargetCount = EditorPrefs.GetFloat(EDITOR_PREFS_PREFIX + "PoisonExpectedTargetCount", dpsSettings.PoisonExpectedTargetCount);
@@ -255,6 +262,7 @@ internal sealed class TurretBalanceReportWindow : EditorWindow
         SanitizeInputValues();
         EditorPrefs.SetFloat(EDITOR_PREFS_PREFIX + "TargetClearSeconds", targetClearSeconds);
         EditorPrefs.SetFloat(EDITOR_PREFS_PREFIX + "TargetClearSecondsIncrement", targetClearSecondsIncrement);
+        EditorPrefs.SetFloat(EDITOR_PREFS_PREFIX + "ObstacleTargetTimeMultiplier", obstacleTargetTimeMultiplier);
         EditorPrefs.SetFloat(EDITOR_PREFS_PREFIX + "FrostExpectedTargetCount", dpsSettings.FrostExpectedTargetCount);
         EditorPrefs.SetFloat(EDITOR_PREFS_PREFIX + "PoisonExpectedTargetCount", dpsSettings.PoisonExpectedTargetCount);
         EditorPrefs.SetFloat(EDITOR_PREFS_PREFIX + "ElectroExpectedTargetCount", dpsSettings.ElectroExpectedTargetCount);
@@ -268,6 +276,7 @@ internal sealed class TurretBalanceReportWindow : EditorWindow
     {
         targetClearSeconds = Mathf.Max(1.0f, targetClearSeconds);
         targetClearSecondsIncrement = Mathf.Max(0.0f, targetClearSecondsIncrement);
+        obstacleTargetTimeMultiplier = Mathf.Max(0.1f, obstacleTargetTimeMultiplier);
         dpsSettings.FrostExpectedTargetCount = Mathf.Max(1.0f, dpsSettings.FrostExpectedTargetCount);
         dpsSettings.PoisonExpectedTargetCount = Mathf.Max(1.0f, dpsSettings.PoisonExpectedTargetCount);
         dpsSettings.ElectroExpectedTargetCount = Mathf.Max(1.0f, dpsSettings.ElectroExpectedTargetCount);

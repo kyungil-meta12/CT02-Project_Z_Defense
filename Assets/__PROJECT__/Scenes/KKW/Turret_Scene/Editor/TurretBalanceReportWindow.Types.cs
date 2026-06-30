@@ -26,6 +26,8 @@ internal sealed class WaveStageInput
     public int SpawnCount;
     public bool SpawnBossAsLastEnemy;
     public float HpMultiplier;
+    public float AttackDamageMultiplier;
+    public float MoveAttackSpeedMultiplier;
     public float RewardMultiplier;
     public readonly List<SpawnEntryInput> NormalEntries = new List<SpawnEntryInput>();
     public readonly List<SpawnEntryInput> BossEntries = new List<SpawnEntryInput>();

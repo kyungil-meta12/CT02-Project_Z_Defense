@@ -144,6 +144,13 @@ Obstacle progression is slot-centered rather than instance-centered:
 9. Rebuilding the same `ObstacleDefinitionSO` in that slot inherits the stored level and immediately uses the prefab for that level.
 10. Rebuilding a different definition starts at level 1. Obstacle and gate definitions do not inherit progress from each other.
 
+HP policy:
+
+- `ObstacleSpec.Hp` is the base max HP.
+- `ObstacleSpec.levelWeight` is the fixed max-HP increase per level.
+- Runtime max HP is `Hp + max(1, level) * levelWeight`.
+- Obstacle HP does not use percentage HP weight or random min/max HP ranges.
+
 Upgrade policy:
 
 - Destroyed or fractured obstacles cannot be upgraded; they must be rebuilt through placement.

@@ -64,7 +64,7 @@ internal static class TurretBalanceReportGraphRenderer
     private static readonly Color EvolutionEndColor = new Color(0.68f, 0.34f, 0.92f);
 
     // 그래프 탭 전체 UI를 그린다
-    public static void Draw(TurretBalanceReportResult report, TurretBalanceReportGraphState state, float targetClearSeconds, float targetClearSecondsIncrement, List<ObstacleWaveRow> obstacleRows)
+    public static void Draw(TurretBalanceReportResult report, TurretBalanceReportGraphState state, float targetClearSeconds, float targetClearSecondsIncrement, float obstacleTargetTimeMultiplier, List<ObstacleWaveRow> obstacleRows)
     {
         if (state == null)
         {
@@ -82,7 +82,7 @@ internal static class TurretBalanceReportGraphRenderer
         DrawSeriesToggles(state, currencyTypes);
 
         Rect graphRect = GUILayoutUtility.GetRect(0.0f, GRAPH_MIN_HEIGHT, GUILayout.ExpandWidth(true), GUILayout.ExpandHeight(true));
-        DrawGraph(report, state, currencyTypes, graphRect, Mathf.Max(1.0f, targetClearSeconds), Mathf.Max(0.0f, targetClearSecondsIncrement), obstacleRows);
+        DrawGraph(report, state, currencyTypes, graphRect, Mathf.Max(1.0f, targetClearSeconds), Mathf.Max(0.0f, targetClearSecondsIncrement), Mathf.Max(0.1f, obstacleTargetTimeMultiplier), obstacleRows);
     }
 
     // 리포트에 등장한 누적 재화 종류 목록을 정렬해서 만든다
@@ -163,14 +163,14 @@ internal static class TurretBalanceReportGraphRenderer
     }
 
     // 그래프 영역 안에 배경, 축, 선, 툴팁을 그린다
-    private static void DrawGraph(TurretBalanceReportResult report, TurretBalanceReportGraphState state, List<RewardCurrencyType> currencyTypes, Rect graphRect, float targetClearSeconds, float targetClearSecondsIncrement, List<ObstacleWaveRow> obstacleRows)
+    private static void DrawGraph(TurretBalanceReportResult report, TurretBalanceReportGraphState state, List<RewardCurrencyType> currencyTypes, Rect graphRect, float targetClearSeconds, float targetClearSecondsIncrement, float obstacleTargetTimeMultiplier, List<ObstacleWaveRow> obstacleRows)
     {
         if (graphRect.width <= GRAPH_LEFT_PADDING + GRAPH_RIGHT_PADDING || graphRect.height <= GRAPH_TOP_PADDING + GRAPH_BOTTOM_PADDING)
         {
             return;
         }
 
-        List<GraphSeries> seriesList = BuildSeriesList(report, state, currencyTypes, targetClearSeconds, targetClearSecondsIncrement, obstacleRows);
+        List<GraphSeries> seriesList = BuildSeriesList(report, state, currencyTypes, targetClearSeconds, targetClearSecondsIncrement, obstacleTargetTimeMultiplier, obstacleRows);
         GUI.Box(graphRect, GUIContent.none, EditorStyles.helpBox);
 
         Rect plotRect = new Rect(
@@ -184,7 +184,12 @@ internal static class TurretBalanceReportGraphRenderer
         if (state.ShowClearTimeRatio || state.ShowObstacleDestructionRatio)
         {
             List<ObstacleWaveRow> obstacleRowsForAxis = state.ShowObstacleDestructionRatio ? obstacleRows : null;
-            DrawRatioBaseline(plotRect, CalculateRatioAxisMax(report, obstacleRowsForAxis, targetClearSeconds, targetClearSecondsIncrement));
+            DrawRatioBaselines(
+                plotRect,
+                CalculateRatioAxisMax(report, obstacleRowsForAxis, targetClearSeconds, targetClearSecondsIncrement, obstacleTargetTimeMultiplier),
+                state.ShowClearTimeRatio,
+                state.ShowObstacleDestructionRatio,
+                obstacleTargetTimeMultiplier);
         }
 
         DrawSeriesList(plotRect, seriesList, report.WaveRows.Count, out GraphHoverInfo hoverInfo);
@@ -193,7 +198,7 @@ internal static class TurretBalanceReportGraphRenderer
     }
 
     // 현재 표시 상태에 맞는 그래프 선 목록을 만든다
-    private static List<GraphSeries> BuildSeriesList(TurretBalanceReportResult report, TurretBalanceReportGraphState state, List<RewardCurrencyType> currencyTypes, float targetClearSeconds, float targetClearSecondsIncrement, List<ObstacleWaveRow> obstacleRows)
+    private static List<GraphSeries> BuildSeriesList(TurretBalanceReportResult report, TurretBalanceReportGraphState state, List<RewardCurrencyType> currencyTypes, float targetClearSeconds, float targetClearSecondsIncrement, float obstacleTargetTimeMultiplier, List<ObstacleWaveRow> obstacleRows)
     {
         List<GraphSeries> seriesList = new List<GraphSeries>(8);
         int colorIndex = 0;
@@ -228,7 +233,7 @@ internal static class TurretBalanceReportGraphRenderer
 
         bool showAnyRatio = state.ShowClearTimeRatio || state.ShowObstacleDestructionRatio;
         List<ObstacleWaveRow> obstacleRowsForAxis = state.ShowObstacleDestructionRatio ? obstacleRows : null;
-        float ratioAxisMax = showAnyRatio ? CalculateRatioAxisMax(report, obstacleRowsForAxis, targetClearSeconds, targetClearSecondsIncrement) : 1.0f;
+        float ratioAxisMax = showAnyRatio ? CalculateRatioAxisMax(report, obstacleRowsForAxis, targetClearSeconds, targetClearSecondsIncrement, obstacleTargetTimeMultiplier) : 1.0f;
         if (state.ShowClearTimeRatio)
         {
             GraphSeries series = CreateSeries("클리어 시간 / 기준 시간", "배", SeriesColors[colorIndex++ % SeriesColors.Length], report.WaveRows.Count);
@@ -256,9 +261,10 @@ internal static class TurretBalanceReportGraphRenderer
                     && obstacleRows[i].Optimal.HasValue && obstacleRows[i].DestructionTime > 0f && waveTarget > 0f;
                 if (hasData)
                 {
+                    float obstacleTarget = waveTarget * obstacleTargetTimeMultiplier;
                     float ratio = obstacleRows[i].DestructionTime / waveTarget;
                     series.Values.Add(ratio);
-                    series.PointNotes.Add($"파괴시간 {FormatFloat(obstacleRows[i].DestructionTime)}초 / 기준 {FormatFloat(waveTarget)}초");
+                    series.PointNotes.Add($"파괴시간 {FormatFloat(obstacleRows[i].DestructionTime)}초 / 기준 {FormatFloat(waveTarget)}초 / 목표 {FormatFloat(obstacleTarget)}초");
                 }
                 else
                 {
@@ -274,7 +280,7 @@ internal static class TurretBalanceReportGraphRenderer
     }
 
     // 클리어 시간 배율과 장애물 파괴시간 배율을 합산한 축 최대값을 계산한다
-    private static float CalculateRatioAxisMax(TurretBalanceReportResult report, List<ObstacleWaveRow> obstacleRows, float targetClearSeconds, float targetClearSecondsIncrement)
+    private static float CalculateRatioAxisMax(TurretBalanceReportResult report, List<ObstacleWaveRow> obstacleRows, float targetClearSeconds, float targetClearSecondsIncrement, float obstacleTargetTimeMultiplier)
     {
         float maxValue = 1.0f;
         for (int i = 0; i < report.WaveClearRows.Count; i++)
@@ -290,6 +296,7 @@ internal static class TurretBalanceReportGraphRenderer
 
         if (obstacleRows != null)
         {
+            maxValue = Mathf.Max(maxValue, obstacleTargetTimeMultiplier);
             for (int i = 0; i < obstacleRows.Count; i++)
             {
                 float waveTarget = targetClearSeconds + i * targetClearSecondsIncrement;
@@ -573,16 +580,36 @@ internal static class TurretBalanceReportGraphRenderer
         GUI.Label(new Rect(plotRect.xMax - 160.0f, plotRect.yMax + 6.0f, 160.0f, 20.0f), GetWaveLabel(report, report.WaveRows.Count - 1), EditorStyles.miniLabel);
     }
 
-    // 클리어 시간 배율의 기준선인 1.0x 라인을 그린다
-    private static void DrawRatioBaseline(Rect plotRect, float ratioAxisMax)
+    // 표시 중인 배율 그래프의 기준선을 그린다
+    private static void DrawRatioBaselines(Rect plotRect, float ratioAxisMax, bool showClearBaseline, bool showObstacleBaseline, float obstacleTargetTimeMultiplier)
     {
-        float yRatio = Mathf.Approximately(ratioAxisMax, 0.0f) ? 1.0f : Mathf.Clamp01(1.0f / ratioAxisMax);
+        if (showClearBaseline)
+        {
+            DrawRatioBaseline(plotRect, ratioAxisMax, 1.0f, "기준 1.0x");
+        }
+
+        if (showObstacleBaseline)
+        {
+            float obstacleBaseline = Mathf.Max(0.1f, obstacleTargetTimeMultiplier);
+            DrawRatioBaseline(plotRect, ratioAxisMax, obstacleBaseline, $"장애물 기준 {FormatFloat(obstacleBaseline)}x");
+        }
+    }
+
+    // 지정 배율 위치에 기준선을 그린다
+    private static void DrawRatioBaseline(Rect plotRect, float ratioAxisMax, float baselineRatio, string label)
+    {
+        if (baselineRatio <= 0.0f)
+        {
+            return;
+        }
+
+        float yRatio = Mathf.Approximately(ratioAxisMax, 0.0f) ? 1.0f : Mathf.Clamp01(baselineRatio / ratioAxisMax);
         float y = Mathf.Lerp(plotRect.yMax, plotRect.yMin, yRatio);
         Handles.BeginGUI();
         Handles.color = new Color(1.0f, 1.0f, 1.0f, 0.45f);
         Handles.DrawLine(new Vector3(plotRect.xMin, y), new Vector3(plotRect.xMax, y));
         Handles.EndGUI();
-        GUI.Label(new Rect(plotRect.xMin + 4.0f, y - 18.0f, 110.0f, 18.0f), "기준 1.0x", EditorStyles.miniLabel);
+        GUI.Label(new Rect(plotRect.xMin + 4.0f, y - 18.0f, 140.0f, 18.0f), label, EditorStyles.miniLabel);
     }
 
     // 모든 그래프 선을 그리고 마우스 hover 정보를 찾는다

@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
+using UnityEngine;
 
 // 장애물 밸런스 계산 결과를 화면/CSV 공유 표 모델로 변환한다.
 internal static class ObstacleBalanceTableBuilder
@@ -9,7 +10,7 @@ internal static class ObstacleBalanceTableBuilder
     private const float WARN_RATIO_HIGH = 1.2f;
 
     // 장애물 밸런스 결과로 표 모델을 만든다
-    public static ReportTableModel Build(List<ObstacleWaveRow> rows, List<ObstacleEntrySpec> entries)
+    public static ReportTableModel Build(List<ObstacleWaveRow> rows, List<ObstacleEntrySpec> entries, float targetClearSeconds, float targetClearSecondsIncrement, float obstacleTargetTimeMultiplier)
     {
         ReportTableModel table = new ReportTableModel();
 
@@ -22,16 +23,18 @@ internal static class ObstacleBalanceTableBuilder
 
         string[] headers = BuildHeaders(entries);
         string info = "웨이브 시작 전 누적 재화 예산 기준(Coin은 초기 지갑 포함). "
-                    + "좀비 DPS는 일반 좀비만 포함 (클립 평균 1.65초, 루프당 OnAttack 2회 기준). "
+                    + "총 좀비 DPS는 보스 제외 일반 좀비 전체 수 기준이며, 웨이브 공격력/이동·공격 속도 배율을 반영합니다 (클립 평균 1.65초, 루프당 OnAttack 2회 기준). "
                     + "단일: 1개 설치 후 예산 전액으로 최대 업그레이드. "
                     + "최대 설치(Obstacle 전용): 1~9개 중 총 HP 최대 조합, 예산 전액 기준. "
                     + "최적 조합: 게이트+장애물 간 재화 효율(HP/재화) 기준 탐욕 배분, 합산 HP로 파괴시간 계산. "
-                    + "비고: 파괴시간 < 클리어시간×80% → 조기 파괴 위험. 파괴시간 > 클리어시간×120% → 장애물 HP 업그레이드 수치 과잉.";
+                    + $"비고: 기준 파괴시간은 기준 클리어 시간×{FormatFloat(obstacleTargetTimeMultiplier)}배. 파괴시간이 기준 파괴시간 대비 ±20%를 벗어나면 경고.";
         table.Reset("obstacle_balance.csv", info, headers);
 
         for (int i = 0; i < rows.Count; i++)
         {
-            table.AddRow(BuildRow(rows[i], entries));
+            float waveTargetSeconds = Mathf.Max(1.0f, targetClearSeconds) + i * Mathf.Max(0.0f, targetClearSecondsIncrement);
+            float obstacleTargetSeconds = waveTargetSeconds * Mathf.Max(0.1f, obstacleTargetTimeMultiplier);
+            table.AddRow(BuildRow(rows[i], entries, obstacleTargetSeconds));
         }
 
         TurretBalanceReportTableRenderer.RecalculateColumnWidths(table);
@@ -44,7 +47,7 @@ internal static class ObstacleBalanceTableBuilder
         List<string> headers = new List<string>();
         headers.Add("웨이브");
         headers.Add("예산");
-        headers.Add("좀비 DPS\n(일반)");
+        headers.Add("총 좀비 DPS\n(보스 제외)");
 
         for (int i = 0; i < entries.Count; i++)
         {
@@ -63,7 +66,7 @@ internal static class ObstacleBalanceTableBuilder
     }
 
     // 웨이브 결과 행 하나를 문자열 배열로 변환한다
-    private static string[] BuildRow(ObstacleWaveRow row, List<ObstacleEntrySpec> entries)
+    private static string[] BuildRow(ObstacleWaveRow row, List<ObstacleEntrySpec> entries, float obstacleTargetSeconds)
     {
         List<string> cols = new List<string>();
         cols.Add(row.WaveLabel);
@@ -91,28 +94,28 @@ internal static class ObstacleBalanceTableBuilder
         bool hasDestructionTime = row.Optimal.HasValue && row.ZombieDps > 0f && row.DestructionTime > 0f;
         cols.Add(hasDestructionTime ? FormatFloat(row.DestructionTime) : "-");
 
-        cols.Add(BuildNote(row));
+        cols.Add(BuildNote(row, obstacleTargetSeconds));
 
         return cols.ToArray();
     }
 
-    // 파괴시간과 웨이브 클리어 예상시간을 비교해 비고 메세지를 만든다
-    private static string BuildNote(ObstacleWaveRow row)
+    // 파괴시간과 장애물 기준 파괴시간을 비교해 비고 메세지를 만든다
+    private static string BuildNote(ObstacleWaveRow row, float obstacleTargetSeconds)
     {
-        if (!row.Optimal.HasValue || row.DestructionTime <= 0f || row.BestClearSeconds <= 0f)
+        if (!row.Optimal.HasValue || row.DestructionTime <= 0f || obstacleTargetSeconds <= 0f)
         {
             return "-";
         }
 
-        float ratio = row.DestructionTime / row.BestClearSeconds;
+        float ratio = row.DestructionTime / obstacleTargetSeconds;
         if (ratio < WARN_RATIO_LOW)
         {
-            return $"조기 파괴 위험\n파괴시간({FormatFloat(row.DestructionTime)}s) < 클리어({FormatFloat(row.BestClearSeconds)}s)×80%";
+            return $"조기 파괴 위험\n파괴시간({FormatFloat(row.DestructionTime)}s) < 기준({FormatFloat(obstacleTargetSeconds)}s)×80%";
         }
 
         if (ratio > WARN_RATIO_HIGH)
         {
-            return $"장애물 HP 과잉 — 업그레이드 수치 재검토 권장\n파괴시간({FormatFloat(row.DestructionTime)}s) > 클리어({FormatFloat(row.BestClearSeconds)}s)×120%";
+            return $"장애물 HP 과잉 — 업그레이드 수치 재검토 권장\n파괴시간({FormatFloat(row.DestructionTime)}s) > 기준({FormatFloat(obstacleTargetSeconds)}s)×120%";
         }
 
         return string.Empty;

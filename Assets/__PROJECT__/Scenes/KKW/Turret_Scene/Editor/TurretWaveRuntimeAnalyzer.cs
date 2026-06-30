@@ -65,12 +65,14 @@ internal sealed class TurretWaveRuntimeAnalyzer
         int spawnCount = Mathf.Max(0, stage.SpawnCount);
         bool spawnBossAsLastEnemy = stage.SpawnBossAsLastEnemy;
         float hpMultiplier = stage.HpMultiplier;
+        float attackDamageMultiplier = stage.AttackDamageMultiplier;
+        float moveAttackSpeedMultiplier = stage.MoveAttackSpeedMultiplier;
         float rewardMultiplier = stage.RewardMultiplier;
         int bossSpawnCount = spawnBossAsLastEnemy && spawnCount > 0 ? 1 : 0;
         int normalSpawnCount = Mathf.Max(0, spawnCount - bossSpawnCount);
 
-        WeightedZombieSummary normalSummary = CalculateWeightedZombieSummary(stage.NormalEntries, wave, hpMultiplier, rewardMultiplier, path, stageIndex, "일반", false, warnings);
-        WeightedZombieSummary bossSummary = CalculateWeightedZombieSummary(stage.BossEntries, wave, hpMultiplier, rewardMultiplier, path, stageIndex, "보스", true, warnings);
+        WeightedZombieSummary normalSummary = CalculateWeightedZombieSummary(stage.NormalEntries, wave, hpMultiplier, attackDamageMultiplier, moveAttackSpeedMultiplier, rewardMultiplier, path, stageIndex, "일반", false, warnings);
+        WeightedZombieSummary bossSummary = CalculateWeightedZombieSummary(stage.BossEntries, wave, hpMultiplier, attackDamageMultiplier, moveAttackSpeedMultiplier, rewardMultiplier, path, stageIndex, "보스", true, warnings);
         AddMissingCandidateWarning(path, stageIndex, wave, normalSpawnCount, normalSummary.CandidateCount, "일반", warnings);
         AddMissingCandidateWarning(path, stageIndex, wave, bossSpawnCount, bossSummary.CandidateCount, "보스", warnings);
 
@@ -114,7 +116,7 @@ internal sealed class TurretWaveRuntimeAnalyzer
     }
 
     // 스폰 후보 가중치를 반영해 평균 HP와 재화별 평균 보상을 계산한다
-    private WeightedZombieSummary CalculateWeightedZombieSummary(List<SpawnEntryInput> entries, int wave, float hpMultiplier, float rewardMultiplier, string profilePath, int stageIndex, string groupLabel, bool isBoss, List<ReportWarning> warnings)
+    private WeightedZombieSummary CalculateWeightedZombieSummary(List<SpawnEntryInput> entries, int wave, float hpMultiplier, float attackDamageMultiplier, float moveAttackSpeedMultiplier, float rewardMultiplier, string profilePath, int stageIndex, string groupLabel, bool isBoss, List<ReportWarning> warnings)
     {
         WeightedZombieSummary summary = new WeightedZombieSummary
         {
@@ -155,7 +157,7 @@ internal sealed class TurretWaveRuntimeAnalyzer
             totalWeight += weight;
             summary.CandidateCount++;
             weightedHp += zombieData.AverageHp * hpMultiplier * weight;
-            weightedDps += zombieData.AverageDps * weight;
+            weightedDps += zombieData.AverageDps * attackDamageMultiplier * moveAttackSpeedMultiplier * weight;
             AddScaledRewards(weightedRewards, zombieData.ExpectedRewards, weight);
         }
 

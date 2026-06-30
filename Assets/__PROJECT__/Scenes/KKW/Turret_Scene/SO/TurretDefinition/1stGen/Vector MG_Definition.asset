@@ -14,6 +14,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::TurretDefinitionSO
   turretId: vector mg
   displayName: Vector MG
+  shortDescription: "<nobr>\uB300\uAD6C\uACBD</nobr> <nobr>\uC911\uAE30\uAD00\uCD1D\uC744</nobr>
+    <nobr>\uC7A5\uCC29\uD574</nobr> <nobr>\uD654\uB825\uC744</nobr> <nobr>\uB192\uC778</nobr>
+    <nobr>\uD3EC\uD0D1\uC785\uB2C8\uB2E4.</nobr> <nobr>\uBC1C\uC0AC</nobr> <nobr>\uC18D\uB3C4\uB294</nobr>
+    <nobr>\uB290\uB9AC\uC9C0\uB9CC,</nobr> <nobr>\uBB35\uC9C1\uD55C</nobr> <nobr>\uD55C</nobr>
+    <nobr>\uBC29\uC73C\uB85C</nobr> <nobr>\uB2E8\uB2E8\uD55C</nobr> <nobr>\uC801\uC5D0\uAC8C</nobr>
+    <nobr>\uD6A8\uACFC\uC801\uC785\uB2C8\uB2E4.</nobr>"
   basePrefab: {fileID: 7226280265010825651, guid: 22fa6bb3a6084d340be63ebc26db9639, type: 3}
   baseStatProfile: {fileID: 11400000, guid: a3717d00d5b2c434690db24692ad8bb3, type: 2}
   maxLevel: 0

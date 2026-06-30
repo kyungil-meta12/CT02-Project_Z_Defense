@@ -14,6 +14,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::TurretDefinitionSO
   turretId: vulcan_node
   displayName: Vulcan Node
+  shortDescription: "<nobr>\uD55C\uBC1C\uD55C\uBC1C\uC758</nobr> <nobr>\uD30C\uAD34\uB825\uC744</nobr>
+    <nobr>\uADF9\uD55C\uC73C\uB85C</nobr> <nobr>\uB04C\uC5B4\uC62C\uB9B0</nobr> <nobr>\uC911\uD654\uAE30</nobr>
+    <nobr>\uD3EC\uD0D1\uC785\uB2C8\uB2E4.</nobr> <nobr>\uAC15\uB825\uD55C</nobr>
+    <nobr>\uCDA9\uACA9\uB825\uC744</nobr> <nobr>\uAC00\uC9C4</nobr> <nobr>\uD0C4\uD658\uC73C\uB85C</nobr>
+    <nobr>\uC804\uC120\uC758</nobr> <nobr>\uD575\uC2EC</nobr> <nobr>\uD654\uB825\uC744</nobr>
+    <nobr>\uB2F4\uB2F9\uD569\uB2C8\uB2E4.</nobr>"
   basePrefab: {fileID: 3667444341041917125, guid: 23e84a9ce65b8744193e1494d2d29144, type: 3}
   baseStatProfile: {fileID: 11400000, guid: af3765c74b112ba49b5cc100f0bac4c8, type: 2}
   maxLevel: 0

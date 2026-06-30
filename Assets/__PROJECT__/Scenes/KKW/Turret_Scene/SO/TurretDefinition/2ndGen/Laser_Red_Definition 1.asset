@@ -14,6 +14,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::TurretDefinitionSO
   turretId: laser_red_1
   displayName: Laser_Red_1
+  shortDescription: "<nobr>\uBC1C\uC0AC</nobr> <nobr>\uC18D\uB3C4\uB97C</nobr> <nobr>\uC870\uC808\uD558\uB294</nobr>
+    <nobr>\uB300\uC2E0</nobr> <nobr>\uAC15\uB825\uD55C</nobr> <nobr>\uB2E8\uBC1C</nobr>
+    <nobr>\uD53C\uD574\uB97C</nobr> <nobr>\uD0D1\uC7AC\uD55C</nobr> <nobr>\uC801\uC0C9</nobr>
+    <nobr>\uB808\uC774\uC800</nobr> <nobr>\uD3EC\uD0D1\uC785\uB2C8\uB2E4.</nobr>
+    <nobr>\uC751\uCD95\uB41C</nobr> <nobr>\uC5D0\uB108\uC9C0\uB97C</nobr> <nobr>\uBC1C\uC0AC\uD574</nobr>
+    <nobr>\uB2E8\uB2E8\uD55C</nobr> <nobr>\uC801\uC5D0\uAC8C</nobr> <nobr>\uCE58\uBA85\uD0C0\uB97C</nobr>
+    <nobr>\uC90D\uB2C8\uB2E4.</nobr>"
   basePrefab: {fileID: 6742232223660785589, guid: 40e131c3e8da7a143983e2535cfd498a, type: 3}
   baseStatProfile: {fileID: 11400000, guid: 2d97c4b5633644a4fbe9eb0bf38d4365, type: 2}
   maxLevel: 0

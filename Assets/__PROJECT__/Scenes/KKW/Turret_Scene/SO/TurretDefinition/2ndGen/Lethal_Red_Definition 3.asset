@@ -14,6 +14,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::TurretDefinitionSO
   turretId: lethal_red_3
   displayName: Lethal_Red_3
+  shortDescription: "<nobr>\uD589\uC131</nobr> <nobr>\uAC1C\uCC99\uC6A9</nobr> <nobr>\uD14C\uB974\uBBF8\uD2B8</nobr>
+    <nobr>\uACF5\uC815\uC744</nobr> <nobr>\uBB34\uAE30\uC5D0</nobr> <nobr>\uC811\uBAA9\uD55C</nobr>
+    <nobr>\uD654\uB825</nobr> <nobr>\uC885\uACB0\uD615</nobr> <nobr>\uD3EC\uD0D1\uC785\uB2C8\uB2E4.</nobr>
+    <nobr>\uB2FF\uB294</nobr> <nobr>\uC21C\uAC04</nobr> <nobr>\uD130\uC9C0\uB294</nobr>
+    <nobr>\uCD08\uACE0\uC628</nobr> <nobr>\uD50C\uB798\uC2DC</nobr> <nobr>\uD3ED\uBC1C\uB85C</nobr>
+    <nobr>\uC801\uC758</nobr> <nobr>\uC9C4\uD615\uC744</nobr> <nobr>\uC0B0\uC0B0\uC870\uAC01</nobr>
+    <nobr>\uB0B4\uBC84\uB9BD\uB2C8\uB2E4.</nobr>"
   basePrefab: {fileID: 5008107673987914933, guid: 14b07a3822fd121428ca77d62a594246, type: 3}
   baseStatProfile: {fileID: 11400000, guid: 92903add90649934993be2a1b7981aec, type: 2}
   maxLevel: 0

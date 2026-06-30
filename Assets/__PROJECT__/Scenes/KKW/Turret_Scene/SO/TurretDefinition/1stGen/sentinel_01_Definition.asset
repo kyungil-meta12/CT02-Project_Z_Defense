@@ -14,6 +14,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::TurretDefinitionSO
   turretId: sentinel_01
   displayName: Sentinel-01
+  shortDescription: "<nobr>\uAC00\uC7A5</nobr> <nobr>\uB110\uB9AC</nobr> <nobr>\uC4F0\uC774\uB294</nobr>
+    <nobr>\uD45C\uC900</nobr> <nobr>\uC790\uB3D9</nobr> <nobr>\uBC29\uC5B4</nobr>
+    <nobr>\uD3EC\uD0D1\uC785\uB2C8\uB2E4.</nobr> <nobr>\uAE30\uBCF8</nobr> <nobr>\uD654\uB825\uC740</nobr>
+    <nobr>\uC57D\uD558\uC9C0\uB9CC,</nobr> <nobr>\uC720\uC9C0\uBCF4\uC218\uAC00</nobr>
+    <nobr>\uC27D\uACE0</nobr> <nobr>\uC2E0\uB8B0\uB3C4\uAC00</nobr> <nobr>\uB192\uC2B5\uB2C8\uB2E4.</nobr>"
   basePrefab: {fileID: 4672393858745932496, guid: e413d47f110c2694fbfb33e7712ccd89, type: 3}
   baseStatProfile: {fileID: 11400000, guid: 9bbe5828d5cd65f4ebb42f2add75f289, type: 2}
   maxLevel: 0

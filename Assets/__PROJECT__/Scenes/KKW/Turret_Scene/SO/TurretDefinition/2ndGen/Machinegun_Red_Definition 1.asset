@@ -14,6 +14,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::TurretDefinitionSO
   turretId: machinegun_red_1
   displayName: Machinegun_Red_1
+  shortDescription: "<nobr>\uBD88\uAF43\uCC98\uB7FC</nobr> <nobr>\uBD89\uC740</nobr>
+    <nobr>\uB300\uAD6C\uACBD</nobr> <nobr>\uD0C4\uD658\uC744</nobr> <nobr>\uBC1C\uC0AC\uD558\uB294</nobr>
+    <nobr>\uC911\uD654\uAE30</nobr> <nobr>\uAE30\uAD00\uCD1D</nobr> <nobr>\uD3EC\uD0D1\uC785\uB2C8\uB2E4.</nobr>
+    <nobr>\uBB35\uC9C1\uD55C</nobr> <nobr>\uC77C\uACA9\uC73C\uB85C</nobr> <nobr>\uC801\uC758</nobr>
+    <nobr>\uC7A5\uAC11\uC744</nobr> <nobr>\uBD80\uC218\uBA70</nobr> <nobr>\uCD5C\uB300</nobr>
+    <nobr>1\uBA85\uAE4C\uC9C0</nobr> <nobr>\uCD94\uAC00</nobr> <nobr>\uAD00\uD1B5\uD569\uB2C8\uB2E4.</nobr>"
   basePrefab: {fileID: 8413327387432124273, guid: cbf3a487818838148823535dc62045a0, type: 3}
   baseStatProfile: {fileID: 11400000, guid: 02f4e240899fc974e8ac8840355cfb4a, type: 2}
   maxLevel: 0

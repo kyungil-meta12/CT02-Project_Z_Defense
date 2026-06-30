@@ -9,6 +9,8 @@ public class TurretDefinitionSO : ScriptableObject
     [Header("정체성")]
     public string turretId;
     public string displayName;
+    [TextArea(2, 5)]
+    public string shortDescription;
 
     [Header("기본값")]
     public GameObject basePrefab;

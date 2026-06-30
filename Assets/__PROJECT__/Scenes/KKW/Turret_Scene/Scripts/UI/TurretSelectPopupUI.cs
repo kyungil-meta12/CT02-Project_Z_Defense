@@ -28,7 +28,10 @@ public class TurretSelectPopupUI : MonoBehaviour
 
     [Header("스킬 상태")]
     [SerializeField] private bool disableSkillButtonUntilImplemented = true;
-    [SerializeField] private string skillReadyMessage = "스킬 기능 준비 중";
+
+    private string levelTextTemplate;
+    private string damageTextTemplate;
+    private string fireRateTextTemplate;
 
     public event UnityAction UpgradeRequested;
     public event UnityAction DetailRequested;
@@ -45,6 +48,7 @@ public class TurretSelectPopupUI : MonoBehaviour
     private void Awake()
     {
         BindChildReferences();
+        CacheTextTemplates();
         BindButtonListeners();
     }
 
@@ -57,6 +61,7 @@ public class TurretSelectPopupUI : MonoBehaviour
     // 선택된 터렛 컨텍스트로 선택 허브 팝업을 표시한다
     public void Show(TurretSelectionContext context)
     {
+        CacheTextTemplates();
         RefreshTexts(context);
         RefreshSkillState();
 
@@ -131,23 +136,42 @@ public class TurretSelectPopupUI : MonoBehaviour
 
         if (levelText != null)
         {
-            levelText.text = context.GetLevelText();
+            levelText.text = ApplyTemplate(levelTextTemplate, context.GetLevelText());
         }
 
         TurretRuntimeStat stat = context.CalculateCurrentStat();
         if (damageText != null)
         {
-            damageText.text = $"DPS {CalculateDamagePerSecond(stat):0.##}";
+            damageText.text = ApplyTemplate(damageTextTemplate, $"{CalculateDamagePerSecond(stat):0.##}");
         }
 
         if (fireRateText != null)
         {
-            fireRateText.text = $"발사간격 {stat.fireInterval:0.###}";
+            fireRateText.text = ApplyTemplate(fireRateTextTemplate, $"{stat.fireInterval:0.###}");
         }
 
         if (noteText != null)
         {
-            noteText.text = string.Empty;
+            noteText.text = context.GetShortDescription();
+        }
+    }
+
+    // TMP 원문 템플릿을 최초 한 번 보관한다
+    private void CacheTextTemplates()
+    {
+        if (levelText != null && string.IsNullOrEmpty(levelTextTemplate))
+        {
+            levelTextTemplate = levelText.text;
+        }
+
+        if (damageText != null && string.IsNullOrEmpty(damageTextTemplate))
+        {
+            damageTextTemplate = damageText.text;
+        }
+
+        if (fireRateText != null && string.IsNullOrEmpty(fireRateTextTemplate))
+        {
+            fireRateTextTemplate = fireRateText.text;
         }
     }
 
@@ -159,10 +183,6 @@ public class TurretSelectPopupUI : MonoBehaviour
             skillButton.interactable = !disableSkillButtonUntilImplemented;
         }
 
-        if (disableSkillButtonUntilImplemented && noteText != null)
-        {
-            noteText.text = skillReadyMessage;
-        }
     }
 
     // 현재 스탯 기준 초당 피해량을 계산한다
@@ -171,6 +191,24 @@ public class TurretSelectPopupUI : MonoBehaviour
         float safeFireInterval = Mathf.Max(0.01f, stat.fireInterval);
         int safeProjectileCount = Mathf.Max(1, stat.projectileCount);
         return Mathf.Max(0.0f, stat.damage) * safeProjectileCount / safeFireInterval;
+    }
+
+    // 템플릿의 중괄호 자리만 값으로 교체한다
+    private static string ApplyTemplate(string template, string value)
+    {
+        if (string.IsNullOrEmpty(template))
+        {
+            return value;
+        }
+
+        int openIndex = template.IndexOf('{');
+        int closeIndex = template.IndexOf('}', openIndex + 1);
+        if (openIndex < 0 || closeIndex < 0 || closeIndex <= openIndex)
+        {
+            return value;
+        }
+
+        return template.Substring(0, openIndex) + value + template.Substring(closeIndex + 1);
     }
 
     // 버튼 클릭 이벤트를 등록한다

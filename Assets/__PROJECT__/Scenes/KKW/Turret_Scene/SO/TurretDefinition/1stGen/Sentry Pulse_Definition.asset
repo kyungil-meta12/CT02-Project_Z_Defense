@@ -14,6 +14,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::TurretDefinitionSO
   turretId: sentry pulse
   displayName: Sentry Pulse
+  shortDescription: "<nobr>\uC5D0\uB108\uC9C0\uB97C</nobr> <nobr>\uC555\uCD95\uD574</nobr>
+    <nobr>\uBE60\uB974\uAC8C</nobr> <nobr>\uC5F0\uC0AC\uD558\uB294</nobr> <nobr>\uAC1C\uB7C9\uD615</nobr>
+    <nobr>\uD3EC\uD0D1\uC785\uB2C8\uB2E4.</nobr> <nobr>\uB2E8\uBC1C</nobr> <nobr>\uD53C\uD574\uB294</nobr>
+    <nobr>\uB0AE\uC9C0\uB9CC,</nobr> <nobr>\uB04A\uC784\uC5C6\uB294</nobr> <nobr>\uACF5\uACA9\uC73C\uB85C</nobr>
+    <nobr>\uC801\uC744</nobr> <nobr>\uC555\uB3C4\uD569\uB2C8\uB2E4.</nobr>"
   basePrefab: {fileID: 5304553910520936683, guid: f574943089594464fb73719d3c491d3d, type: 3}
   baseStatProfile: {fileID: 11400000, guid: 260cf9b038e0ee74dad52648c40b8168, type: 2}
   maxLevel: 0

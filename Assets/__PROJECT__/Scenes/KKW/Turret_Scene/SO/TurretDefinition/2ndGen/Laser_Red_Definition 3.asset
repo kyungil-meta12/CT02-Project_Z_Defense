@@ -14,6 +14,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::TurretDefinitionSO
   turretId: laser_red_3
   displayName: Laser_Red_3
+  shortDescription: "<nobr>\uACE0\uBC00\uB3C4</nobr> <nobr>\uC785\uC790</nobr> <nobr>\uCDA9\uC804\uC744</nobr>
+    <nobr>\uD1B5\uD574</nobr> <nobr>\uD30C\uAD34\uC801\uC778</nobr> <nobr>\uC77C\uACA9\uC744</nobr>
+    <nobr>\uB0A0\uB9AC\uB294</nobr> <nobr>\uC885\uACB0\uD615</nobr> <nobr>\uD3EC\uD0D1\uC785\uB2C8\uB2E4.</nobr>
+    <nobr>\uC804\uC120\uC744</nobr> <nobr>\uC555\uBC15\uD558\uB294</nobr> <nobr>\uAC70\uB300\uD55C</nobr>
+    <nobr>\uC704\uD611\uC744</nobr> <nobr>\uB2E8\uC228\uC5D0</nobr> <nobr>\uBD84\uC1C4\uD569\uB2C8\uB2E4.</nobr>"
   basePrefab: {fileID: 3656959181159089104, guid: bbc40eb95a4873244b6b5d46a87f58ca, type: 3}
   baseStatProfile: {fileID: 11400000, guid: 87d2adf6a02e1b4438e4380ee2c3a92e, type: 2}
   maxLevel: 0

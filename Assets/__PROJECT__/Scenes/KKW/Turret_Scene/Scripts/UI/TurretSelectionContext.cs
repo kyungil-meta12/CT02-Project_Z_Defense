@@ -75,6 +75,13 @@ public struct TurretSelectionContext
         return $"Tier Lv. {Turret.CurrentTierLevel} / Total Lv. {Turret.CurrentTotalLevel}";
     }
 
+    // 터렛 정의에 입력된 선택 팝업용 짧은 설명을 반환한다
+    public string GetShortDescription()
+    {
+        TurretDefinitionSO definition = Definition;
+        return definition == null ? string.Empty : definition.shortDescription;
+    }
+
     // 현재 터렛 정의와 티어 레벨로 런타임 스탯을 계산한다
     public TurretRuntimeStat CalculateCurrentStat()
     {

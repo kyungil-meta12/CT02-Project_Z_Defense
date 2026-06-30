@@ -14,6 +14,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::TurretDefinitionSO
   turretId: plasma_blue_2
   displayName: Plasma_Blue_2
+  shortDescription: "<nobr>\uC21C\uD658</nobr> <nobr>\uACF5\uAE09</nobr> <nobr>\uC7A5\uCE58\uB97C</nobr>
+    <nobr>\uCD94\uAC00\uD558\uC5EC</nobr> <nobr>\uD50C\uB77C\uC988\uB9C8</nobr> <nobr>\uD0C4\uD658\uC758</nobr>
+    <nobr>\uD68C\uC804\uC728\uC744</nobr> <nobr>\uB192\uC778</nobr> <nobr>\uD3EC\uD0D1\uC785\uB2C8\uB2E4.</nobr>
+    <nobr>\uACF5\uBC31</nobr> <nobr>\uC5C6\uB294</nobr> <nobr>\uD654\uB825</nobr>
+    <nobr>\uD22C\uC0AC\uB85C</nobr> <nobr>\uBB3C\uBC00\uC9C0\uB4EF</nobr> <nobr>\uBC00\uB824\uC624\uB294</nobr>
+    <nobr>\uC801\uC758</nobr> <nobr>\uACF5\uACA9\uC744</nobr> <nobr>\uD6A8\uACFC\uC801\uC73C\uB85C</nobr>
+    <nobr>\uCC28\uB2E8\uD569\uB2C8\uB2E4.</nobr>"
   basePrefab: {fileID: 4157471123310495977, guid: d141286c10718dc499b2807e41a25a9e, type: 3}
   baseStatProfile: {fileID: 11400000, guid: 3c47bbdebf2781546a99f587f3ccb19c, type: 2}
   maxLevel: 0

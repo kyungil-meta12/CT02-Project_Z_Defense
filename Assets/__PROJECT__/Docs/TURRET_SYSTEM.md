@@ -899,6 +899,7 @@ Engineer buff policy:
 - New turret UI work should use `TurretSelectionUIController` for turret click selection, range display, and popup routing.
 - `TurretSelectionUIController` can require a second click on the same turret within `secondClickInterval` before opening `TurretSelectPopup`, so the first click can be used as a range-only selection.
 - `TurretSelectPopupUI` is a lightweight action hub only. It routes Upgrade to `TurretUpgradePopupUI`, Detail to `TurretDetailPopupUI`, and Skill to `TurretSkillPopupUI`.
+- `TurretSelectPopupUI` displays `TurretDefinitionSO.shortDescription` in its Note text. This text may include TMP rich text tags such as `<nobr>` to prevent Korean word breaks.
 - `TurretUpgradePopupUI`, `TurretDetailPopupUI`, `TurretSkillPopupUI`, and `TurretEvolutionPopupUI` are inspector-wired popup pages. Child popup `BackButton` controls should return to `TurretSelectPopup`.
 - `TurretUpgradePopupUI` should route its `LowPanel/Evolution` button to `TurretEvolutionPopupUI` instead of performing evolution directly.
 - Upgrade and evolution cost slots should follow `ResourceCost` data from turret ScriptableObjects, and resource name/image display should use `InventorySystem` metadata when available.

@@ -15,6 +15,9 @@ public class ObstacleUpgradeCostCsvEditorTool : EditorWindow
     private const string CSV_PATH = "Assets/__PROJECT__/Prefabs/Damageable/Obstacle/SO/ObstacleUpgradeCosts.csv";
     private const string BASE_COSTS_PROPERTY = "baseCostsPerLevel";
     private const string ADDITIONAL_COST_PERCENT_PROPERTY = "additionalCostPercentPerLevel";
+    private const string OBSTACLE_SPEC_PATH_COLUMN = "ObstacleSpecPath";
+    private const string BASE_HP_COLUMN = "BaseHp";
+    private const string LEVEL_WEIGHT_COLUMN = "LevelWeight";
 
     private Vector2 scrollPosition;
     private readonly List<string> lastMessages = new List<string>(32);
@@ -32,7 +35,7 @@ public class ObstacleUpgradeCostCsvEditorTool : EditorWindow
         EditorGUILayout.LabelField("장애물 업그레이드 비용 CSV 관리 도구", EditorStyles.boldLabel);
         EditorGUILayout.Space();
         EditorGUILayout.LabelField("CSV 파일 경로", CSV_PATH);
-        EditorGUILayout.HelpBox("CSV 컬럼은 컬럼명(한글 설명) 형태로 출력됩니다. BaseCosts는 Coin:100|FirePart:2 형식으로 입력합니다. 임포트는 UpgradeCostProfilePath의 비용 프로필만 수정하고 Definition 표시 정보는 참고용으로 둡니다.", MessageType.Info);
+        EditorGUILayout.HelpBox("CSV 컬럼은 컬럼명(한글 설명) 형태로 출력됩니다. BaseCosts는 Coin:100|FirePart:2 형식으로 입력합니다. 임포트는 UpgradeCostProfilePath의 비용 프로필과 ObstacleSpecPath의 BaseHp, LevelWeight를 수정하고 Definition 표시 정보는 참고용으로 둡니다.", MessageType.Info);
 
         EditorGUILayout.BeginHorizontal();
         if (GUILayout.Button("CSV로 익스포트", GUILayout.Height(34)))
@@ -154,6 +157,9 @@ public class ObstacleUpgradeCostCsvEditorTool : EditorWindow
             "DisplayName(표시 이름)",
             "SlotType(슬롯 타입)",
             "MaxLevel(최대 레벨)",
+            "ObstacleSpecPath(장애물 체력 스펙 SO 경로)",
+            "BaseHp(기초 HP)",
+            "LevelWeight(레벨 가중치)",
             "UpgradeCostProfilePath(업그레이드 비용 SO 경로)",
             "BaseCosts(기본 비용 목록)",
             "AdditionalCostPercentPerLevel(레벨당 추가 비용 비율)");
@@ -162,6 +168,7 @@ public class ObstacleUpgradeCostCsvEditorTool : EditorWindow
     // 장애물 Definition 한 개를 CSV 행으로 추가한다
     private static void AppendDefinitionRow(StringBuilder builder, ObstacleDefinitionSO definition)
     {
+        ObstacleSpec spec = definition.ObstacleSpec;
         ObstacleUpgradeCostProfileSO profile = definition.UpgradeCostProfile;
         ReadCostProfile(profile, out ResourceCost[] baseCosts, out float additionalPercent);
         AppendCsvLine(
@@ -171,6 +178,9 @@ public class ObstacleUpgradeCostCsvEditorTool : EditorWindow
             definition.DisplayName,
             definition.SlotType,
             definition.MaxLevel,
+            AssetDatabase.GetAssetPath(spec),
+            spec == null ? 0.0f : Mathf.Max(0.0f, spec.Hp),
+            spec == null ? 0.0f : Mathf.Max(0.0f, spec.levelWeight),
             AssetDatabase.GetAssetPath(profile),
             FormatCosts(baseCosts),
             additionalPercent);
@@ -195,7 +205,82 @@ public class ObstacleUpgradeCostCsvEditorTool : EditorWindow
         float additionalPercent = ReadFloat(row, headerMap, "AdditionalCostPercentPerLevel", lineNumber, 0.0f);
         ApplyCostProfile(profile, baseCosts, additionalPercent);
         EditorUtility.SetDirty(profile);
+        TryApplyObstacleSpecValues(row, headerMap, lineNumber);
         return true;
+    }
+
+    // CSV 행의 장애물 체력 스펙 값을 반영한다
+    private bool TryApplyObstacleSpecValues(List<string> row, Dictionary<string, int> headerMap, int lineNumber)
+    {
+        bool hasSpecColumn = headerMap.ContainsKey(BASE_HP_COLUMN)
+            || headerMap.ContainsKey(LEVEL_WEIGHT_COLUMN);
+        if (!hasSpecColumn)
+        {
+            return false;
+        }
+
+        ObstacleSpec spec = LoadObstacleSpecForRow(row, headerMap);
+        if (spec == null)
+        {
+            AddMessage($"{lineNumber}행: 체력 스펙 값을 적용할 ObstacleSpec을 찾을 수 없어 건너뜁니다.");
+            return false;
+        }
+
+        bool isChanged = false;
+        float baseHp = spec.Hp;
+        float levelWeight = spec.levelWeight;
+        isChanged |= TryReadOptionalNonNegativeFloat(row, headerMap, BASE_HP_COLUMN, lineNumber, spec.Hp, out baseHp);
+        isChanged |= TryReadOptionalNonNegativeFloat(row, headerMap, LEVEL_WEIGHT_COLUMN, lineNumber, spec.levelWeight, out levelWeight);
+        if (!isChanged)
+        {
+            return false;
+        }
+
+        Undo.RecordObject(spec, "장애물 체력 스펙 CSV 적용");
+        spec.Hp = baseHp;
+        spec.levelWeight = levelWeight;
+        EditorUtility.SetDirty(spec);
+        return true;
+    }
+
+    // CSV 행에서 선택 입력된 0 이상 실수 값을 읽는다
+    private bool TryReadOptionalNonNegativeFloat(List<string> row, Dictionary<string, int> headerMap, string columnName, int lineNumber, float currentValue, out float value)
+    {
+        value = currentValue;
+        if (!headerMap.ContainsKey(columnName))
+        {
+            return false;
+        }
+
+        string text = ReadString(row, headerMap, columnName);
+        if (string.IsNullOrWhiteSpace(text))
+        {
+            return false;
+        }
+
+        if (!float.TryParse(text, NumberStyles.Float, CultureInfo.InvariantCulture, out float parsedValue))
+        {
+            AddMessage($"{lineNumber}행: {columnName} 실수 값이 유효하지 않아 건너뜁니다. 값: {text}");
+            return false;
+        }
+
+        value = Mathf.Max(0.0f, parsedValue);
+        return !Mathf.Approximately(currentValue, value);
+    }
+
+    // CSV 행에서 장애물 체력 스펙을 로드한다
+    private static ObstacleSpec LoadObstacleSpecForRow(List<string> row, Dictionary<string, int> headerMap)
+    {
+        string specPath = ReadString(row, headerMap, OBSTACLE_SPEC_PATH_COLUMN);
+        ObstacleSpec spec = AssetDatabase.LoadAssetAtPath<ObstacleSpec>(specPath);
+        if (spec != null)
+        {
+            return spec;
+        }
+
+        string definitionPath = ReadString(row, headerMap, "DefinitionPath");
+        ObstacleDefinitionSO definition = AssetDatabase.LoadAssetAtPath<ObstacleDefinitionSO>(definitionPath);
+        return definition == null ? null : definition.ObstacleSpec;
     }
 
     // 비용 프로필에 CSV 비용 값을 직렬화 필드로 반영한다

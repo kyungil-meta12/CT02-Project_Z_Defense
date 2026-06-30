@@ -14,11 +14,4 @@ public class ObstacleSpec : ScriptableObject
     
     [Header("기본 체력 - 레벨 보정 전 장애물 최대 체력")]
     public float Hp;
-
-    [Header("체력 가중치 - 기존 밸런스 호환용 보정 값")]
-    public float HpWeight;
-
-    [Header("체력 랜덤 범위 - 기존 생성 로직 호환용 최소/최대 배율")]
-    public float MinHp;
-    public float MaxHp;
 }

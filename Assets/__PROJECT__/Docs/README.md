@@ -17,7 +17,7 @@ Read `PROJECT_OVERVIEW.md` when ownership, design intent, or shared API boundari
 | General code change | `TEAM_CODING_CONVENTION.md`, `PROJECT_STRUCTURE.md` |
 | Architecture or responsibility boundary | `PROJECT_OVERVIEW.md`, `PROJECT_STRUCTURE.md` |
 | Survivor, obstacle, defense line, zombie spawn | `GAMEPLAY_RUNTIME_FLOW.md`, `SCENE_SETUP.md` |
-| Turret, projectile, placement, turret UI, turret skill | `TURRET_SYSTEM.md`, `COMMON_SYSTEMS.md` |
+| Turret, projectile, placement, turret UI, turret skill | `TURRET_SYSTEM.md`, `TURRET_UI_REWORK_STATUS.md`, `COMMON_SYSTEMS.md` |
 | Reward, currency, zombie drops, upgrade/evolution costs | `REWARD_SYSTEM.md`, `COMMON_SYSTEMS.md`, relevant feature document |
 | Damage popup, pooling, shared damage API | `COMMON_SYSTEMS.md`, `DAMAGE_POPUP_DNP_MIGRATION.md`, relevant feature document |
 | Main scene, prefab wiring, NavMesh, layer, Resources | `SCENE_SETUP.md` |
@@ -32,6 +32,7 @@ Read `PROJECT_OVERVIEW.md` when ownership, design intent, or shared API boundari
 | `PROJECT_STRUCTURE.md` | Folder map, runtime areas, where new work belongs. |
 | `GAMEPLAY_RUNTIME_FLOW.md` | Wave, spawn, damage, obstacle fracture, defense-line, survivor repair/retreat flow. |
 | `TURRET_SYSTEM.md` | Turret data, level/evolution, placement, projectile, VFX, pooling setup. |
+| `TURRET_UI_REWORK_STATUS.md` | Current turret UI rework status, known weak points, next test/fix checklist. |
 | `REWARD_SYSTEM.md` | Reward/currency model, zombie kill rewards, costs, and economy migration plan. |
 | `SCENE_SETUP.md` | Main scene and prefab setup checklist. |
 | `COMMON_SYSTEMS.md` | `IDamageable`, `MemoryPool`, `PoolObject`, damage popup, Resources, logging, performance. |

@@ -896,6 +896,7 @@ Engineer buff policy:
 
 ## Runtime Range Indicator
 
+- See `TURRET_UI_REWORK_STATUS.md` for the current turret UI rework checklist, known weak points, and next button/reference verification order.
 - New turret UI work should use `TurretSelectionUIController` for turret click selection, range display, and popup routing.
 - `TurretSelectionUIController` can require a second click on the same turret within `secondClickInterval` before opening `TurretSelectPopup`, so the first click can be used as a range-only selection.
 - `TurretSelectPopupUI` is a lightweight action hub only. It routes Upgrade to `TurretUpgradePopupUI`, Detail to `TurretDetailPopupUI`, and Skill to `TurretSkillPopupUI`.

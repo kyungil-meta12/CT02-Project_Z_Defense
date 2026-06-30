@@ -25,5 +25,38 @@ Matches=21,D=4,False,0,,False,,성냥,"불을 붙일 때 사용한다.
 Banana=22,D=4,False,0,,False,,바나나,달콤한 열대과일.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Fruits/Icon_Banana_LP.png
 Drink=23,D=4,False,0,,False,,음료수 컵,누군가 먹다 남긴 음료수 컵.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Food/Icon_Cup_Drink_LP.png
 Cookie=24,D=4,False,0,,False,,쿠키,누군가 베어 문 흔적이 있는 쿠키.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Coffee/Icon_Cookie_Bite_LP.png
-FirePart=25,B=2,False,0,,False,,일반 기계 부품,대부분의 기계에서 흔하게 사용되는 부품.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Resources Items/Icon_Gear_Wheel_LP.png
-SpecialPart=26,B=2,False,0,,False,,정밀 기계 부품,비싸고 정밀해서 전문가가 조심히 다루어야 하는 부품.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Common/Icon_Gear_Wheels_Group_LP.png
+SuitCase=25,C=3,False,0,,False,,서류가방,무엇이 들어있는지 모르는 서류 가방.,
+Backpack=26,C=3,False,0,,False,,가방,무엇이 들어있는지 모르는 배낭.,
+OpnedCan=27,C=3,False,0,,False,,빈 캔,길가에 굴러다디는 캔 쓰레기.,
+Trumpet=28,C=3,False,0,,False,,트럼펫,악기를 연주하는 것은 좀비들을 불러 모으는 것이나 마찬가지다.,
+Canabis=29,C=3,False,0,,False,,대마초,"불법일 수도, 합법일 수도 있는 풀.",
+TableTennisBat=30,C=3,False,0,,False,,탁구채,탁구공을 쳐내는 채.,
+TennisBall=31,C=3,False,0,,False,,테니스공,형광색의 탄성있는 공.,
+Medkit=32,C=3,False,0,,False,,응급상자,여러 상황에서 유용한 의료 약품과 도구들이 들어있다.,
+RecordLP=33,C=3,False,0,,False,,레코드 판,음악을 기록하는 판.,
+GasCan=34,C=3,False,0,,False,,연료통,"보통 자동차 연료로 사용하지만, 화염 무기로도 사용될 수 있다.",
+MetalLighter=35,C=3,False,0,,False,,금속 라이터,열고 닫을 때 청량한 소리를 내는 금속 라이터.,
+Cigar=36,C=3,False,0,,False,,담배,심적으로 힘들 때 좋은 친구가 되어준다.,
+Book=37,C=3,False,0,,False,,책,철 지난 내용을 담고 있는 전공 서적.,
+CarbonFiber=38,C=3,False,0,,False,,카본파이버,가볍고 튼튼한 탄소 섬유.,
+SteelBeam=39,C=3,False,0,,False,,H빔,건물을 지을 때 사용되는 H 모양의 철근.,
+SteelRod=40,C=3,False,0,,False,,철근,건물의 기둥을 만들 때 넣는 철근.,
+MachinePart=41,C=3,False,0,,False,,기계 부품,크기만 맞는다면 여러 곳에 쓸 수 있다.,
+Bolt=42,C=3,False,0,,False,,나사,스크류 드라이버로 조이는 나사.,
+Nail=43,C=3,False,0,,False,,못,망치로 박거나 네일건으로 고정시키는 못.,
+WireCutter=44,C=3,False,0,,False,,와이어 커터,금속 와이어를 자를 때 사용하는 공구.,
+Hammer=45,C=3,False,0,,False,,망치,못을 박을 때 사용하는 공구.,
+Wrench=46,C=3,False,0,,False,,렌치,너트를 조일 때 사용하는 공구.,
+Hydrogen=47,C=3,False,0,,False,,수소,원소 주기율표에서 가장 앞에 있는 기체.,
+Oxygen=48,C=3,False,0,,False,,산소,대기 중에 많이 존재하는 기체.,
+SilverKey=49,C=3,False,0,,False,,은 열쇠,은으로 만들어진 열쇠. 어디에 쓰이는 열쇠인지는 모른다.,
+Scandium=50,C=3,False,0,,False,,스칸듐,합금으로 사용되면 큰 효과를 내는 금속.,
+Chlorine=51,C=3,False,0,,False,,염소,각종 화약 제품을 생산할 때 사용되는 물질.,
+Silicon=52,C=3,False,0,,False,,실리콘,웨이퍼를 생산할 때 사용되는 물질.,
+ToolBox=53,C=3,False,0,,False,,공구 상자,여러가지 공구가 든 상자.,
+Water=54,C=3,False,0,,False,,물,인체의 70%를 차지하는 중요한 물질.,
+WalkieTalkie=55,C=3,False,0,,False,,무전기,단거리에서 통신할 수 있는 무전기.,
+FlashLight=56,C=3,False,0,,False,,손전등,어두운 곳을 비출 수 있는 손전등.,
+Keyboard=57,C=3,False,0,,False,,키보드,아마 마지막까지 디버깅을 하다가 죽었을것이다... 개발자의 운명이다.,
+FirePart=200,B=2,False,0,,False,,일반 기계 부품,대부분의 기계에서 흔하게 사용되는 부품.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Resources Items/Icon_Gear_Wheel_LP.png
+SpecialPart=201,B=2,False,0,,False,,정밀 기계 부품,비싸고 정밀해서 전문가가 조심히 다루어야 하는 부품.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Common/Icon_Gear_Wheels_Group_LP.png

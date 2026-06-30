@@ -10,16 +10,15 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 5f9efc74f895b2d48bb9a9671cba3cd2, type: 3}
-  m_Name: FirePart_ItemMetaData
+  m_Name: RecordLP_ItemMetaData
   m_EditorClassIdentifier: Assembly-CSharp::ItemMetaDataSo
-  Type: 200
-  Grade: 2
+  Type: 33
+  Grade: 3
   Createable: 0
   CountPerCraft: 0
   ItemsToCreate: []
   Decomposable: 0
   ItemsFromDecompose: []
-  Name: "\uC77C\uBC18 \uAE30\uACC4 \uBD80\uD488"
-  InfoText: "\uB300\uBD80\uBD84\uC758 \uAE30\uACC4\uC5D0\uC11C \uD754\uD558\uAC8C
-    \uC0AC\uC6A9\uB418\uB294 \uBD80\uD488."
-  ItemImage: {fileID: 21300000, guid: d9c957f5130c900469de423d735db331, type: 3}
+  Name: "\uB808\uCF54\uB4DC \uD310"
+  InfoText: "\uC74C\uC545\uC744 \uAE30\uB85D\uD558\uB294 \uD310."
+  ItemImage: {fileID: 0}

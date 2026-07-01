@@ -188,9 +188,9 @@ public class ZombieBalanceCsvEditorTool : EditorWindow
         builder.Append(',');
         builder.Append(GetRelativeFloat(stage, "rewardMultiplier"));
         builder.Append(',');
-        builder.Append(EscapeCsvField(FormatPrefabEntries(stage.FindPropertyRelative("normalZombieEntries"))));
+        builder.Append(EscapeCsvField(FormatNormalZombieEntries(stage.FindPropertyRelative("normalZombieEntries"))));
         builder.Append(',');
-        builder.Append(EscapeCsvField(FormatPrefabEntries(stage.FindPropertyRelative("bossZombieEntries"))));
+        builder.Append(EscapeCsvField(FormatBossZombieEntries(stage.FindPropertyRelative("bossZombieEntries"))));
         builder.AppendLine();
     }
 
@@ -255,37 +255,106 @@ public class ZombieBalanceCsvEditorTool : EditorWindow
         stage.FindPropertyRelative("attackDamageMultiplier").floatValue = ReadFloat(row, headerMap, "AttackDamageMultiplier", lineNumber, 1.0f);
         stage.FindPropertyRelative("moveAttackSpeedMultiplier").floatValue = ReadFloat(row, headerMap, "MoveAttackSpeedMultiplier", lineNumber, 1.0f);
         stage.FindPropertyRelative("rewardMultiplier").floatValue = ReadFloat(row, headerMap, "RewardMultiplier", lineNumber, 1.0f);
-        SetPrefabEntries(stage.FindPropertyRelative("normalZombieEntries"), ReadString(row, headerMap, "NormalZombieEntries"), lineNumber);
-        SetPrefabEntries(stage.FindPropertyRelative("bossZombieEntries"), ReadString(row, headerMap, "BossZombieEntries"), lineNumber);
+        SetNormalZombieEntries(stage.FindPropertyRelative("normalZombieEntries"), ReadString(row, headerMap, "NormalZombieEntries"), lineNumber);
+        SetBossZombieEntries(stage.FindPropertyRelative("bossZombieEntries"), ReadString(row, headerMap, "BossZombieEntries"), lineNumber);
     }
 
     // 좀비 보상 프로필들을 CSV로 내보낸다
     private void ExportRewardProfiles()
     {
         ClearRunState();
-        List<ZombieRewardProfileSO> profiles = LoadRewardProfiles();
-        StringBuilder builder = new StringBuilder(4096);
-        builder.AppendLine("ProfilePath(보상 프로필 경로),CurrencyType(재화 타입),Amount(기본 수량),DropChance(드롭 확률),MinAmountMultiplier(최소 수량 배율),MaxAmountMultiplier(최대 수량 배율)");
-        for (int i = 0; i < profiles.Count; i++)
+        ZombieWaveSpawnProfileSO waveProfile = AssetDatabase.LoadAssetAtPath<ZombieWaveSpawnProfileSO>(WAVE_PROFILE_PATH);
+        if (waveProfile == null)
         {
-            AppendRewardProfileCsvLines(builder, profiles[i]);
+            AddMessage("웨이브 스폰 프로필을 찾을 수 없습니다: " + WAVE_PROFILE_PATH);
+            FlushMessagesToConsole(false);
+            return;
         }
 
+        StringBuilder builder = new StringBuilder(4096);
+        builder.AppendLine("ZombieType(좀비 타입),CurrencyType(재화 타입),Amount(기본 수량),DropChance(드롭 확률),MinAmountMultiplier(최소 수량 배율),MaxAmountMultiplier(최대 수량 배율)");
+
+        int exportedCount = 0;
+        exportedCount += AppendPrefabMapRewardCsvLines(builder, waveProfile, true);
+        exportedCount += AppendPrefabMapRewardCsvLines(builder, waveProfile, false);
+
         WriteUtf8Csv(REWARD_CSV_PATH, builder.ToString());
-        AddMessage($"보상 CSV 익스포트 완료: {profiles.Count}개 프로필");
+        AddMessage($"보상 CSV 익스포트 완료: {exportedCount}개 프로필");
         FlushMessagesToConsole(true);
     }
 
-    // 보상 프로필 하나의 기본 보상 목록을 CSV 줄로 추가한다
-    private static void AppendRewardProfileCsvLines(StringBuilder builder, ZombieRewardProfileSO profile)
+    // 프리팹 맵을 순회하며 각 좀비 프리팹의 rewardProfileOverride를 읽어 CSV 줄로 추가한다
+    private int AppendPrefabMapRewardCsvLines(StringBuilder builder, ZombieWaveSpawnProfileSO waveProfile, bool isNormal)
     {
-        string profilePath = AssetDatabase.GetAssetPath(profile);
+        int count = 0;
+        if (isNormal)
+        {
+            foreach (NormalZombieType type in Enum.GetValues(typeof(NormalZombieType)))
+            {
+                if (!waveProfile.TryGetNormalPrefabForType(type, out PoolObject poolObj))
+                {
+                    continue;
+                }
+
+                ZombieRewardProfileSO rewardProfile = GetRewardProfileFromPrefab(poolObj, true);
+                if (rewardProfile == null)
+                {
+                    AddMessage($"보상 프로필 없음 (rewardProfileOverride 미할당): {type}");
+                    continue;
+                }
+
+                AppendRewardProfileCsvLines(builder, type.ToString(), rewardProfile);
+                count++;
+            }
+        }
+        else
+        {
+            foreach (BossZombieType type in Enum.GetValues(typeof(BossZombieType)))
+            {
+                if (!waveProfile.TryGetBossPrefabForType(type, out PoolObject poolObj))
+                {
+                    continue;
+                }
+
+                ZombieRewardProfileSO rewardProfile = GetRewardProfileFromPrefab(poolObj, false);
+                if (rewardProfile == null)
+                {
+                    AddMessage($"보상 프로필 없음 (rewardProfileOverride 미할당): {type}");
+                    continue;
+                }
+
+                AppendRewardProfileCsvLines(builder, type.ToString(), rewardProfile);
+                count++;
+            }
+        }
+
+        return count;
+    }
+
+    // PoolObject 프리팹 컴포넌트의 rewardProfileOverride 필드 값을 반환한다
+    private static ZombieRewardProfileSO GetRewardProfileFromPrefab(PoolObject poolObj, bool isNormal)
+    {
+        Component zombie = isNormal
+            ? (Component)poolObj.GetComponent<NormalZombie>()
+            : (Component)poolObj.GetComponent<BossZombie>();
+        if (zombie == null)
+        {
+            return null;
+        }
+
+        SerializedObject serializedZombie = new SerializedObject(zombie);
+        return serializedZombie.FindProperty("rewardProfileOverride")?.objectReferenceValue as ZombieRewardProfileSO;
+    }
+
+    // 보상 프로필 하나의 기본 보상 목록을 CSV 줄로 추가한다
+    private static void AppendRewardProfileCsvLines(StringBuilder builder, string zombieTypeName, ZombieRewardProfileSO profile)
+    {
         SerializedObject serializedObject = new SerializedObject(profile);
         SerializedProperty rewards = serializedObject.FindProperty("rewards");
         for (int i = 0; i < rewards.arraySize; i++)
         {
             SerializedProperty reward = rewards.GetArrayElementAtIndex(i);
-            builder.Append(EscapeCsvField(profilePath));
+            builder.Append(EscapeCsvField(zombieTypeName));
             builder.Append(',');
             builder.Append(EscapeCsvField(GetRewardCurrencyName(reward.FindPropertyRelative("currencyType").enumValueIndex)));
             builder.Append(',');
@@ -304,6 +373,14 @@ public class ZombieBalanceCsvEditorTool : EditorWindow
     private void ImportRewardProfiles()
     {
         ClearRunState();
+        ZombieWaveSpawnProfileSO waveProfile = AssetDatabase.LoadAssetAtPath<ZombieWaveSpawnProfileSO>(WAVE_PROFILE_PATH);
+        if (waveProfile == null)
+        {
+            AddMessage("웨이브 스폰 프로필을 찾을 수 없습니다: " + WAVE_PROFILE_PATH);
+            FlushMessagesToConsole(false);
+            return;
+        }
+
         if (!TryReadCsv(REWARD_CSV_PATH, out List<List<string>> table))
         {
             FlushMessagesToConsole(false);
@@ -316,7 +393,7 @@ public class ZombieBalanceCsvEditorTool : EditorWindow
             return;
         }
 
-        Dictionary<string, List<RewardCsvRow>> rowsByProfile = new Dictionary<string, List<RewardCsvRow>>(StringComparer.OrdinalIgnoreCase);
+        Dictionary<string, List<RewardCsvRow>> rowsByZombieType = new Dictionary<string, List<RewardCsvRow>>(StringComparer.OrdinalIgnoreCase);
         for (int i = 1; i < table.Count; i++)
         {
             List<string> row = table[i];
@@ -326,22 +403,22 @@ public class ZombieBalanceCsvEditorTool : EditorWindow
             }
 
             RewardCsvRow rewardRow = ParseRewardCsvRow(row, headerMap, i + 1);
-            if (!rowsByProfile.TryGetValue(rewardRow.ProfilePath, out List<RewardCsvRow> rewards))
+            if (!rowsByZombieType.TryGetValue(rewardRow.ZombieTypeName, out List<RewardCsvRow> rewards))
             {
                 rewards = new List<RewardCsvRow>();
-                rowsByProfile.Add(rewardRow.ProfilePath, rewards);
+                rowsByZombieType.Add(rewardRow.ZombieTypeName, rewards);
             }
 
             rewards.Add(rewardRow);
         }
 
         int updatedCount = 0;
-        foreach (KeyValuePair<string, List<RewardCsvRow>> pair in rowsByProfile)
+        foreach (KeyValuePair<string, List<RewardCsvRow>> pair in rowsByZombieType)
         {
-            ZombieRewardProfileSO profile = AssetDatabase.LoadAssetAtPath<ZombieRewardProfileSO>(pair.Key);
+            ZombieRewardProfileSO profile = ResolveRewardProfile(waveProfile, pair.Key);
             if (profile == null)
             {
-                AddMessage("보상 프로필을 찾을 수 없어 건너뜁니다: " + pair.Key);
+                AddMessage($"보상 프로필을 찾을 수 없어 건너뜁니다: {pair.Key}");
                 continue;
             }
 
@@ -355,12 +432,34 @@ public class ZombieBalanceCsvEditorTool : EditorWindow
         FlushMessagesToConsole(true);
     }
 
+    // 좀비 타입 이름으로 보상 프로필 SO를 찾는다 (프리팹의 rewardProfileOverride 경유)
+    private static ZombieRewardProfileSO ResolveRewardProfile(ZombieWaveSpawnProfileSO waveProfile, string zombieTypeName)
+    {
+        if (Enum.TryParse(zombieTypeName, out NormalZombieType normalType))
+        {
+            if (waveProfile.TryGetNormalPrefabForType(normalType, out PoolObject poolObj))
+            {
+                return GetRewardProfileFromPrefab(poolObj, true);
+            }
+        }
+
+        if (Enum.TryParse(zombieTypeName, out BossZombieType bossType))
+        {
+            if (waveProfile.TryGetBossPrefabForType(bossType, out PoolObject poolObj))
+            {
+                return GetRewardProfileFromPrefab(poolObj, false);
+            }
+        }
+
+        return null;
+    }
+
     // 보상 CSV 행을 데이터 구조로 변환한다
     private RewardCsvRow ParseRewardCsvRow(List<string> row, Dictionary<string, int> headerMap, int lineNumber)
     {
         RewardCsvRow result = new RewardCsvRow
         {
-            ProfilePath = ReadString(row, headerMap, "ProfilePath"),
+            ZombieTypeName = ReadString(row, headerMap, "ZombieType"),
             CurrencyType = ReadRewardCurrencyType(row, headerMap, "CurrencyType", lineNumber),
             Amount = ReadInt(row, headerMap, "Amount", lineNumber, 0),
             DropChance = ReadFloat(row, headerMap, "DropChance", lineNumber, 1.0f),
@@ -495,8 +594,8 @@ public class ZombieBalanceCsvEditorTool : EditorWindow
         FlushMessagesToConsole(true);
     }
 
-    // 프리팹 엔트리 배열을 CSV 필드 문자열로 변환한다
-    private static string FormatPrefabEntries(SerializedProperty entries)
+    // 일반 좀비 엔트리 배열을 CSV 필드 문자열로 변환한다
+    private static string FormatNormalZombieEntries(SerializedProperty entries)
     {
         if (entries == null || !entries.isArray || entries.arraySize == 0)
         {
@@ -512,8 +611,8 @@ public class ZombieBalanceCsvEditorTool : EditorWindow
             }
 
             SerializedProperty entry = entries.GetArrayElementAtIndex(i);
-            UnityEngine.Object prefab = entry.FindPropertyRelative("prefab").objectReferenceValue;
-            builder.Append(AssetDatabase.GetAssetPath(prefab));
+            NormalZombieType zombieType = (NormalZombieType)entry.FindPropertyRelative("zombieType").enumValueIndex;
+            builder.Append(zombieType.ToString());
             builder.Append('|');
             builder.Append(GetRelativeInt(entry, "weight"));
             builder.Append('|');
@@ -525,8 +624,38 @@ public class ZombieBalanceCsvEditorTool : EditorWindow
         return builder.ToString();
     }
 
-    // CSV 필드 문자열을 프리팹 엔트리 배열에 반영한다
-    private void SetPrefabEntries(SerializedProperty entries, string entryText, int lineNumber)
+    // 보스 좀비 엔트리 배열을 CSV 필드 문자열로 변환한다
+    private static string FormatBossZombieEntries(SerializedProperty entries)
+    {
+        if (entries == null || !entries.isArray || entries.arraySize == 0)
+        {
+            return string.Empty;
+        }
+
+        StringBuilder builder = new StringBuilder(128);
+        for (int i = 0; i < entries.arraySize; i++)
+        {
+            if (i > 0)
+            {
+                builder.Append(';');
+            }
+
+            SerializedProperty entry = entries.GetArrayElementAtIndex(i);
+            BossZombieType bossType = (BossZombieType)entry.FindPropertyRelative("bossType").enumValueIndex;
+            builder.Append(bossType.ToString());
+            builder.Append('|');
+            builder.Append(GetRelativeInt(entry, "weight"));
+            builder.Append('|');
+            builder.Append(GetRelativeInt(entry, "minWave"));
+            builder.Append('|');
+            builder.Append(GetRelativeInt(entry, "maxWave"));
+        }
+
+        return builder.ToString();
+    }
+
+    // CSV 필드 문자열을 일반 좀비 엔트리 배열에 반영한다
+    private void SetNormalZombieEntries(SerializedProperty entries, string entryText, int lineNumber)
     {
         if (string.IsNullOrWhiteSpace(entryText))
         {
@@ -542,47 +671,55 @@ public class ZombieBalanceCsvEditorTool : EditorWindow
             SerializedProperty entry = entries.GetArrayElementAtIndex(i);
             if (parts.Length != 4)
             {
-                AddMessage($"{lineNumber}행: 프리팹 엔트리 형식이 잘못되었습니다. 값: {tokens[i]}");
+                AddMessage($"{lineNumber}행: 일반 좀비 엔트리 형식이 잘못되었습니다. 값: {tokens[i]}");
                 continue;
             }
 
-            PoolObject prefab = LoadPoolObjectAtPath(parts[0].Trim());
-            if (prefab == null)
+            string typeName = parts[0].Trim();
+            if (!System.Enum.TryParse(typeName, out NormalZombieType zombieType))
             {
-                AddMessage($"{lineNumber}행: 프리팹을 찾을 수 없습니다. 경로: {parts[0]}");
+                AddMessage($"{lineNumber}행: 알 수 없는 NormalZombieType: {typeName}");
             }
 
-            entry.FindPropertyRelative("prefab").objectReferenceValue = prefab;
+            entry.FindPropertyRelative("zombieType").enumValueIndex = (int)zombieType;
             entry.FindPropertyRelative("weight").intValue = ParseInt(parts[1], 0);
             entry.FindPropertyRelative("minWave").intValue = ParseInt(parts[2], 1);
             entry.FindPropertyRelative("maxWave").intValue = ParseInt(parts[3], 0);
         }
     }
 
-    // 보상 프로필 에셋을 모두 로드한다
-    private static List<ZombieRewardProfileSO> LoadRewardProfiles()
+    // CSV 필드 문자열을 보스 좀비 엔트리 배열에 반영한다
+    private void SetBossZombieEntries(SerializedProperty entries, string entryText, int lineNumber)
     {
-        string[] guids = AssetDatabase.FindAssets("t:ZombieRewardProfileSO", new[] { REWARD_ROOT_PATH });
-        List<ZombieRewardProfileSO> profiles = new List<ZombieRewardProfileSO>(guids.Length);
-        for (int i = 0; i < guids.Length; i++)
+        if (string.IsNullOrWhiteSpace(entryText))
         {
-            string path = AssetDatabase.GUIDToAssetPath(guids[i]);
-            ZombieRewardProfileSO profile = AssetDatabase.LoadAssetAtPath<ZombieRewardProfileSO>(path);
-            if (profile != null)
-            {
-                profiles.Add(profile);
-            }
+            entries.arraySize = 0;
+            return;
         }
 
-        profiles.Sort((a, b) => string.CompareOrdinal(AssetDatabase.GetAssetPath(a), AssetDatabase.GetAssetPath(b)));
-        return profiles;
-    }
+        string[] tokens = entryText.Split(';');
+        entries.arraySize = tokens.Length;
+        for (int i = 0; i < tokens.Length; i++)
+        {
+            string[] parts = tokens[i].Split('|');
+            SerializedProperty entry = entries.GetArrayElementAtIndex(i);
+            if (parts.Length != 4)
+            {
+                AddMessage($"{lineNumber}행: 보스 좀비 엔트리 형식이 잘못되었습니다. 값: {tokens[i]}");
+                continue;
+            }
 
-    // 프리팹 경로에서 PoolObject 컴포넌트를 로드한다
-    private static PoolObject LoadPoolObjectAtPath(string prefabPath)
-    {
-        GameObject prefabObject = AssetDatabase.LoadAssetAtPath<GameObject>(prefabPath);
-        return prefabObject == null ? null : prefabObject.GetComponent<PoolObject>();
+            string typeName = parts[0].Trim();
+            if (!System.Enum.TryParse(typeName, out BossZombieType bossType))
+            {
+                AddMessage($"{lineNumber}행: 알 수 없는 BossZombieType: {typeName}");
+            }
+
+            entry.FindPropertyRelative("bossType").enumValueIndex = (int)bossType;
+            entry.FindPropertyRelative("weight").intValue = ParseInt(parts[1], 0);
+            entry.FindPropertyRelative("minWave").intValue = ParseInt(parts[2], 1);
+            entry.FindPropertyRelative("maxWave").intValue = ParseInt(parts[3], 0);
+        }
     }
 
     // CSV를 읽고 테이블로 파싱한다
@@ -1054,7 +1191,7 @@ public class ZombieBalanceCsvEditorTool : EditorWindow
     {
         return new[]
         {
-            "ProfilePath",
+            "ZombieType",
             "CurrencyType",
             "Amount",
             "DropChance",
@@ -1121,7 +1258,7 @@ public class ZombieBalanceCsvEditorTool : EditorWindow
 
     private struct RewardCsvRow
     {
-        public string ProfilePath;
+        public string ZombieTypeName;
         public RewardCurrencyType CurrencyType;
         public int Amount;
         public float DropChance;

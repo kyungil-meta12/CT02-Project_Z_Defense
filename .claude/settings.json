@@ -8,7 +8,8 @@
       "Bash(git -C \"d:/Git/CT02-Project_Z_Defense\" show HEAD:Assets/__PROJECT__/Scripts/DamagePopupType.cs)",
       "mcp__codebase-memory-mcp__delete_project",
       "Bash(python -c ' *)",
-      "mcp__codebase-memory-mcp__get_code_snippet"
+      "mcp__codebase-memory-mcp__get_code_snippet",
+      "mcp__codebase-memory-mcp__search_code"
     ]
   }
 }

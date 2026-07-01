@@ -7,6 +7,10 @@ using UnityEngine;
 [CreateAssetMenu(fileName = "ZombieWaveSpawnProfile", menuName = "Project Z Defense/Zombie/Zombie Wave Spawn Profile")]
 public class ZombieWaveSpawnProfileSO : ScriptableObject
 {
+    [Header("Prefab Map")]
+    [SerializeField] private NormalZombiePrefabBinding[] normalZombiePrefabMap;
+    [SerializeField] private BossZombiePrefabBinding[] bossZombiePrefabMap;
+
     [SerializeField] private ZombieWaveSpawnStage[] stages;
 
     // 현재 웨이브에 해당하는 스테이지 설정을 반환한다
@@ -45,26 +49,70 @@ public class ZombieWaveSpawnProfileSO : ScriptableObject
     public bool TryGetNormalZombiePrefab(int wave, out PoolObject prefab)
     {
         ZombieWaveSpawnStage stage = GetStageForWave(wave);
-        if (stage == null)
+        if (stage == null || !stage.TrySelectNormalZombieType(wave, out NormalZombieType type))
         {
             prefab = null;
             return false;
         }
 
-        return stage.TryGetNormalZombiePrefab(wave, out prefab);
+        return TryGetNormalPrefabForType(type, out prefab);
     }
 
     // 현재 웨이브의 보스 좀비 프리팹을 가중치 기반으로 선택한다
     public bool TryGetBossZombiePrefab(int wave, out PoolObject prefab)
     {
         ZombieWaveSpawnStage stage = GetStageForWave(wave);
-        if (stage == null)
+        if (stage == null || !stage.TrySelectBossZombieType(wave, out BossZombieType type))
         {
             prefab = null;
             return false;
         }
 
-        return stage.TryGetBossZombiePrefab(wave, out prefab);
+        return TryGetBossPrefabForType(type, out prefab);
+    }
+
+    // enum 타입으로 일반 좀비 프리팹을 조회한다
+    public bool TryGetNormalPrefabForType(NormalZombieType type, out PoolObject prefab)
+    {
+        prefab = null;
+        if (normalZombiePrefabMap == null)
+        {
+            return false;
+        }
+
+        for (int i = 0; i < normalZombiePrefabMap.Length; i++)
+        {
+            NormalZombiePrefabBinding binding = normalZombiePrefabMap[i];
+            if (binding != null && binding.ZombieType == type && binding.Prefab != null)
+            {
+                prefab = binding.Prefab;
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    // enum 타입으로 보스 좀비 프리팹을 조회한다
+    public bool TryGetBossPrefabForType(BossZombieType type, out PoolObject prefab)
+    {
+        prefab = null;
+        if (bossZombiePrefabMap == null)
+        {
+            return false;
+        }
+
+        for (int i = 0; i < bossZombiePrefabMap.Length; i++)
+        {
+            BossZombiePrefabBinding binding = bossZombiePrefabMap[i];
+            if (binding != null && binding.BossType == type && binding.Prefab != null)
+            {
+                prefab = binding.Prefab;
+                return true;
+            }
+        }
+
+        return false;
     }
 
     // 현재 웨이브의 스폰 간격을 반환한다
@@ -124,6 +172,32 @@ public class ZombieWaveSpawnProfileSO : ScriptableObject
 }
 
 /// <summary>
+/// NormalZombieType과 스폰할 PoolObject 프리팹을 연결한다.
+/// </summary>
+[Serializable]
+public class NormalZombiePrefabBinding
+{
+    [SerializeField] private NormalZombieType zombieType;
+    [SerializeField] private PoolObject prefab;
+
+    public NormalZombieType ZombieType => zombieType;
+    public PoolObject Prefab => prefab;
+}
+
+/// <summary>
+/// BossZombieType과 스폰할 PoolObject 프리팹을 연결한다.
+/// </summary>
+[Serializable]
+public class BossZombiePrefabBinding
+{
+    [SerializeField] private BossZombieType bossType;
+    [SerializeField] private PoolObject prefab;
+
+    public BossZombieType BossType => bossType;
+    public PoolObject Prefab => prefab;
+}
+
+/// <summary>
 /// 특정 웨이브 구간에서 사용할 스폰 수치와 좀비 후보 목록을 정의한다.
 /// </summary>
 [Serializable]
@@ -139,10 +213,10 @@ public class ZombieWaveSpawnStage
     [SerializeField] private bool spawnBossAsLastEnemy = true;
 
     [Header("Normal Zombies")]
-    [SerializeField] private ZombieSpawnPrefabEntry[] normalZombieEntries;
+    [SerializeField] private NormalZombieSpawnEntry[] normalZombieEntries;
 
     [Header("Boss Zombies")]
-    [SerializeField] private ZombieSpawnPrefabEntry[] bossZombieEntries;
+    [SerializeField] private BossZombieSpawnEntry[] bossZombieEntries;
 
     [Header("Runtime Multipliers")]
     [SerializeField, Min(0.0f)] private float hpMultiplier = 1.0f;
@@ -150,37 +224,12 @@ public class ZombieWaveSpawnStage
     [SerializeField, Min(0.0f)] private float moveAttackSpeedMultiplier = 1.0f;
     [SerializeField, Min(0.0f)] private float rewardMultiplier = 1.0f;
 
-    public int MinWave
-    {
-        get
-        {
-            return minWave;
-        }
-    }
-
-    public float SpawnInterval
-    {
-        get
-        {
-            return spawnInterval;
-        }
-    }
-
-    public int SpawnCount
-    {
-        get
-        {
-            return spawnCount;
-        }
-    }
-
-    public bool SpawnBossAsLastEnemy
-    {
-        get
-        {
-            return spawnBossAsLastEnemy;
-        }
-    }
+    public int MinWave => minWave;
+    public float SpawnInterval => spawnInterval;
+    public int SpawnCount => spawnCount;
+    public bool SpawnBossAsLastEnemy => spawnBossAsLastEnemy;
+    public NormalZombieSpawnEntry[] NormalZombieEntries => normalZombieEntries;
+    public BossZombieSpawnEntry[] BossZombieEntries => bossZombieEntries;
 
     // 지정한 웨이브가 이 스테이지 범위에 포함되는지 확인한다
     public bool IsWaveMatch(int wave)
@@ -189,16 +238,94 @@ public class ZombieWaveSpawnStage
         return safeWave >= minWave && (maxWave <= 0 || safeWave <= maxWave);
     }
 
-    // 현재 웨이브에 맞는 일반 좀비 프리팹을 선택한다
-    public bool TryGetNormalZombiePrefab(int wave, out PoolObject prefab)
+    // 가중치 기반으로 일반 좀비 타입을 선택한다
+    public bool TrySelectNormalZombieType(int wave, out NormalZombieType type)
     {
-        return TrySelectPrefab(normalZombieEntries, wave, out prefab);
+        type = default;
+        if (normalZombieEntries == null || normalZombieEntries.Length == 0)
+        {
+            return false;
+        }
+
+        int totalWeight = 0;
+        for (int i = 0; i < normalZombieEntries.Length; i++)
+        {
+            NormalZombieSpawnEntry entry = normalZombieEntries[i];
+            if (entry != null && entry.IsAvailable(wave))
+            {
+                totalWeight += entry.Weight;
+            }
+        }
+
+        if (totalWeight <= 0)
+        {
+            return false;
+        }
+
+        int selectedWeight = UnityEngine.Random.Range(0, totalWeight);
+        int accumulated = 0;
+        for (int i = 0; i < normalZombieEntries.Length; i++)
+        {
+            NormalZombieSpawnEntry entry = normalZombieEntries[i];
+            if (entry == null || !entry.IsAvailable(wave))
+            {
+                continue;
+            }
+
+            accumulated += entry.Weight;
+            if (selectedWeight < accumulated)
+            {
+                type = entry.ZombieType;
+                return true;
+            }
+        }
+
+        return false;
     }
 
-    // 현재 웨이브에 맞는 보스 좀비 프리팹을 선택한다
-    public bool TryGetBossZombiePrefab(int wave, out PoolObject prefab)
+    // 가중치 기반으로 보스 좀비 타입을 선택한다
+    public bool TrySelectBossZombieType(int wave, out BossZombieType type)
     {
-        return TrySelectPrefab(bossZombieEntries, wave, out prefab);
+        type = default;
+        if (bossZombieEntries == null || bossZombieEntries.Length == 0)
+        {
+            return false;
+        }
+
+        int totalWeight = 0;
+        for (int i = 0; i < bossZombieEntries.Length; i++)
+        {
+            BossZombieSpawnEntry entry = bossZombieEntries[i];
+            if (entry != null && entry.IsAvailable(wave))
+            {
+                totalWeight += entry.Weight;
+            }
+        }
+
+        if (totalWeight <= 0)
+        {
+            return false;
+        }
+
+        int selectedWeight = UnityEngine.Random.Range(0, totalWeight);
+        int accumulated = 0;
+        for (int i = 0; i < bossZombieEntries.Length; i++)
+        {
+            BossZombieSpawnEntry entry = bossZombieEntries[i];
+            if (entry == null || !entry.IsAvailable(wave))
+            {
+                continue;
+            }
+
+            accumulated += entry.Weight;
+            if (selectedWeight < accumulated)
+            {
+                type = entry.BossType;
+                return true;
+            }
+        }
+
+        return false;
     }
 
     // 이 스테이지의 런타임 배율을 반환한다
@@ -226,53 +353,23 @@ public class ZombieWaveSpawnStage
         ValidateEntries(bossZombieEntries);
     }
 
-    // 후보 목록에서 현재 웨이브에 맞는 프리팹을 가중치 기반으로 선택한다
-    private static bool TrySelectPrefab(ZombieSpawnPrefabEntry[] entries, int wave, out PoolObject prefab)
+    private static void ValidateEntries(NormalZombieSpawnEntry[] entries)
     {
-        prefab = null;
-        if (entries == null || entries.Length == 0)
+        if (entries == null)
         {
-            return false;
+            return;
         }
 
-        int totalWeight = 0;
         for (int i = 0; i < entries.Length; i++)
         {
-            ZombieSpawnPrefabEntry entry = entries[i];
-            if (entry != null && entry.IsAvailable(wave))
+            if (entries[i] != null)
             {
-                totalWeight += entry.Weight;
+                entries[i].Validate();
             }
         }
-
-        if (totalWeight <= 0)
-        {
-            return false;
-        }
-
-        int selectedWeight = UnityEngine.Random.Range(0, totalWeight);
-        int accumulatedWeight = 0;
-        for (int i = 0; i < entries.Length; i++)
-        {
-            ZombieSpawnPrefabEntry entry = entries[i];
-            if (entry == null || !entry.IsAvailable(wave))
-            {
-                continue;
-            }
-
-            accumulatedWeight += entry.Weight;
-            if (selectedWeight < accumulatedWeight)
-            {
-                prefab = entry.Prefab;
-                return prefab != null;
-            }
-        }
-
-        return false;
     }
 
-    // 후보 목록의 입력값을 보정한다
-    private static void ValidateEntries(ZombieSpawnPrefabEntry[] entries)
+    private static void ValidateEntries(BossZombieSpawnEntry[] entries)
     {
         if (entries == null)
         {
@@ -290,38 +387,58 @@ public class ZombieWaveSpawnStage
 }
 
 /// <summary>
-/// 스폰 후보 프리팹의 가중치와 웨이브 사용 범위를 정의한다.
+/// 일반 좀비 스폰 후보의 타입, 가중치, 웨이브 사용 범위를 정의한다.
 /// </summary>
 [Serializable]
-public class ZombieSpawnPrefabEntry
+public class NormalZombieSpawnEntry
 {
-    [SerializeField] private PoolObject prefab;
+    [SerializeField] private NormalZombieType zombieType;
     [SerializeField, Min(0)] private int weight = 1;
     [SerializeField, Min(1)] private int minWave = 1;
     [SerializeField, Min(0)] private int maxWave;
 
-    public PoolObject Prefab
-    {
-        get
-        {
-            return prefab;
-        }
-    }
+    public NormalZombieType ZombieType => zombieType;
 
-    public int Weight
-    {
-        get
-        {
-            return Mathf.Max(0, weight);
-        }
-    }
+    public int Weight => Mathf.Max(0, weight);
 
     // 지정한 웨이브에서 이 후보를 사용할 수 있는지 확인한다
     public bool IsAvailable(int wave)
     {
         int safeWave = Mathf.Max(1, wave);
-        return prefab != null &&
-               Weight > 0 &&
+        return Weight > 0 &&
+               safeWave >= minWave &&
+               (maxWave <= 0 || safeWave <= maxWave);
+    }
+
+    // 인스펙터 입력값을 유효한 범위로 보정한다
+    public void Validate()
+    {
+        weight = Mathf.Max(0, weight);
+        minWave = Mathf.Max(1, minWave);
+        maxWave = Mathf.Max(0, maxWave);
+    }
+}
+
+/// <summary>
+/// 보스 좀비 스폰 후보의 타입, 가중치, 웨이브 사용 범위를 정의한다.
+/// </summary>
+[Serializable]
+public class BossZombieSpawnEntry
+{
+    [SerializeField] private BossZombieType bossType;
+    [SerializeField, Min(0)] private int weight = 1;
+    [SerializeField, Min(1)] private int minWave = 1;
+    [SerializeField, Min(0)] private int maxWave;
+
+    public BossZombieType BossType => bossType;
+
+    public int Weight => Mathf.Max(0, weight);
+
+    // 지정한 웨이브에서 이 후보를 사용할 수 있는지 확인한다
+    public bool IsAvailable(int wave)
+    {
+        int safeWave = Mathf.Max(1, wave);
+        return Weight > 0 &&
                safeWave >= minWave &&
                (maxWave <= 0 || safeWave <= maxWave);
     }

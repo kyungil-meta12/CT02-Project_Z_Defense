@@ -10,7 +10,6 @@ internal sealed class TurretBalanceReportInputCollector
     private const string STAGES_PROPERTY = "stages";
     private const string NORMAL_ZOMBIE_ENTRIES_PROPERTY = "normalZombieEntries";
     private const string BOSS_ZOMBIE_ENTRIES_PROPERTY = "bossZombieEntries";
-    private const string PREFAB_PROPERTY = "prefab";
     private const string WEIGHT_PROPERTY = "weight";
     private const string REWARD_PROFILE_OVERRIDE_PROPERTY = "rewardProfileOverride";
     private const string APPLY_INITIAL_WALLET_PROPERTY = "applyInitialWalletOnAwake";
@@ -385,14 +384,14 @@ internal sealed class TurretBalanceReportInputCollector
                 continue;
             }
 
-            input.Stages.Add(CreateStageInput(stage));
+            input.Stages.Add(CreateStageInput(stage, profile));
         }
 
         return input;
     }
 
     // 직렬화된 스테이지 값을 계산 입력 DTO로 변환한다
-    private static WaveStageInput CreateStageInput(SerializedProperty stage)
+    private static WaveStageInput CreateStageInput(SerializedProperty stage, ZombieWaveSpawnProfileSO profile)
     {
         WaveStageInput input = new WaveStageInput
         {
@@ -406,13 +405,13 @@ internal sealed class TurretBalanceReportInputCollector
             RewardMultiplier = SanitizeRuntimeMultiplier(GetRelativeFloat(stage, "rewardMultiplier", 1.0f))
         };
 
-        AddSpawnEntries(stage.FindPropertyRelative(NORMAL_ZOMBIE_ENTRIES_PROPERTY), input.NormalEntries);
-        AddSpawnEntries(stage.FindPropertyRelative(BOSS_ZOMBIE_ENTRIES_PROPERTY), input.BossEntries);
+        AddNormalSpawnEntries(stage.FindPropertyRelative(NORMAL_ZOMBIE_ENTRIES_PROPERTY), input.NormalEntries, profile);
+        AddBossSpawnEntries(stage.FindPropertyRelative(BOSS_ZOMBIE_ENTRIES_PROPERTY), input.BossEntries, profile);
         return input;
     }
 
-    // 직렬화된 스폰 후보 배열을 계산 입력 DTO로 변환한다
-    private static void AddSpawnEntries(SerializedProperty entries, List<SpawnEntryInput> target)
+    // 직렬화된 일반 좀비 엔트리 배열을 계산 입력 DTO로 변환한다
+    private static void AddNormalSpawnEntries(SerializedProperty entries, List<SpawnEntryInput> target, ZombieWaveSpawnProfileSO profile)
     {
         if (entries == null || !entries.isArray)
         {
@@ -427,15 +426,38 @@ internal sealed class TurretBalanceReportInputCollector
                 continue;
             }
 
-            UnityEngine.Object prefabReference = GetObjectReference<UnityEngine.Object>(entry, PREFAB_PROPERTY);
-            target.Add(CreateSpawnEntryInput(entry, prefabReference));
+            NormalZombieType zombieType = (NormalZombieType)entry.FindPropertyRelative("zombieType").enumValueIndex;
+            profile.TryGetNormalPrefabForType(zombieType, out PoolObject prefab);
+            target.Add(CreateSpawnEntryInput(entry, prefab));
+        }
+    }
+
+    // 직렬화된 보스 좀비 엔트리 배열을 계산 입력 DTO로 변환한다
+    private static void AddBossSpawnEntries(SerializedProperty entries, List<SpawnEntryInput> target, ZombieWaveSpawnProfileSO profile)
+    {
+        if (entries == null || !entries.isArray)
+        {
+            return;
+        }
+
+        for (int i = 0; i < entries.arraySize; i++)
+        {
+            SerializedProperty entry = entries.GetArrayElementAtIndex(i);
+            if (entry == null)
+            {
+                continue;
+            }
+
+            BossZombieType bossType = (BossZombieType)entry.FindPropertyRelative("bossType").enumValueIndex;
+            profile.TryGetBossPrefabForType(bossType, out PoolObject prefab);
+            target.Add(CreateSpawnEntryInput(entry, prefab));
         }
     }
 
     // 직렬화된 스폰 후보 하나를 계산 입력 DTO로 변환한다
-    private static SpawnEntryInput CreateSpawnEntryInput(SerializedProperty entry, UnityEngine.Object prefabReference)
+    private static SpawnEntryInput CreateSpawnEntryInput(SerializedProperty entry, PoolObject poolObject)
     {
-        GameObject prefab = GetPrefabGameObject(prefabReference);
+        GameObject prefab = poolObject != null ? poolObject.gameObject : null;
         NormalZombie normalZombie = prefab == null ? null : prefab.GetComponent<NormalZombie>();
         BossZombie bossZombie = prefab == null ? null : prefab.GetComponent<BossZombie>();
         UnityEngine.Object zombieComponent = normalZombie != null ? normalZombie : (UnityEngine.Object)bossZombie;
@@ -447,7 +469,7 @@ internal sealed class TurretBalanceReportInputCollector
 
         return new SpawnEntryInput
         {
-            PrefabReference = prefabReference,
+            PrefabReference = poolObject,
             Weight = Mathf.Max(0, GetRelativeInt(entry, WEIGHT_PROPERTY, 0)),
             MinWave = Mathf.Max(1, GetRelativeInt(entry, "minWave", 1)),
             MaxWave = GetRelativeInt(entry, "maxWave", 0),
@@ -457,24 +479,6 @@ internal sealed class TurretBalanceReportInputCollector
             SourceSpec = normalZombie != null ? normalZombie.spec : bossZombie == null ? null : bossZombie.spec,
             RewardProfileOverride = rewardProfileOverride
         };
-    }
-
-    // 스폰 엔트리의 프리팹 참조를 GameObject로 변환한다
-    private static GameObject GetPrefabGameObject(UnityEngine.Object prefabReference)
-    {
-        if (prefabReference == null)
-        {
-            return null;
-        }
-
-        GameObject gameObject = prefabReference as GameObject;
-        if (gameObject != null)
-        {
-            return gameObject;
-        }
-
-        Component component = prefabReference as Component;
-        return component == null ? null : component.gameObject;
     }
 
     // 좀비 컴포넌트의 rewardProfileOverride 직렬화 값을 읽는다

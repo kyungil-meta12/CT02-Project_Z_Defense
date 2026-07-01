@@ -1,3 +1,3 @@
-﻿DefinitionPath(장애물 정의 SO 경로),ObstacleId(장애물 ID),DisplayName(표시 이름),SlotType(슬롯 타입),MaxLevel(최대 레벨),UpgradeCostProfilePath(업그레이드 비용 SO 경로),BaseCosts(기본 비용 목록),AdditionalCostPercentPerLevel(레벨당 추가 비용 비율)
-Assets/__PROJECT__/Prefabs/Damageable/Obstacle/SO/ObstacleDefinition.asset,10,Obstacle,Obstacle,500,Assets/__PROJECT__/Prefabs/Damageable/Obstacle/SO/ObstacleUpgradeCostProfile.asset,Coin:100,10
-Assets/__PROJECT__/Prefabs/Damageable/Obstacle/SO/GateDefinition.asset,00,Gate,Gate,500,Assets/__PROJECT__/Prefabs/Damageable/Obstacle/SO/GateUpgradeCostProfile.asset,Coin:100,10
+﻿DefinitionPath(장애물 정의 SO 경로),ObstacleId(장애물 ID),DisplayName(표시 이름),SlotType(슬롯 타입),MaxLevel(최대 레벨),ObstacleSpecPath(장애물 체력 스펙 SO 경로),BaseHp(기초 HP),LevelWeight(레벨 가중치),UpgradeCostProfilePath(업그레이드 비용 SO 경로),BaseCosts(기본 비용 목록),AdditionalCostPercentPerLevel(레벨당 추가 비용 비율)
+Assets/__PROJECT__/Prefabs/Damageable/Obstacle/SO/ObstacleDefinition.asset,10,Obstacle,Obstacle,500,Assets/__PROJECT__/Prefabs/Damageable/Obstacle/SO/ObstacleSpec.asset,1000,50,Assets/__PROJECT__/Prefabs/Damageable/Obstacle/SO/ObstacleUpgradeCostProfile.asset,Coin:100,10
+Assets/__PROJECT__/Prefabs/Damageable/Obstacle/SO/GateDefinition.asset,00,Gate,Gate,500,Assets/__PROJECT__/Prefabs/Damageable/Obstacle/SO/GateSpec.asset,2000,100,Assets/__PROJECT__/Prefabs/Damageable/Obstacle/SO/GateUpgradeCostProfile.asset,Coin:1000,10

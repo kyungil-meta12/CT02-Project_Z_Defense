@@ -84,7 +84,7 @@ MonoBehaviour:
       weight: 1
       minWave: 1
       maxWave: 0
-    hpMultiplier: 6
+    hpMultiplier: 1
     attackDamageMultiplier: 0
     moveAttackSpeedMultiplier: 0
     rewardMultiplier: 0
@@ -135,7 +135,7 @@ MonoBehaviour:
       weight: 1
       minWave: 1
       maxWave: 0
-    hpMultiplier: 7
+    hpMultiplier: 3
     attackDamageMultiplier: 2.5
     moveAttackSpeedMultiplier: 0
     rewardMultiplier: 1.2
@@ -190,7 +190,7 @@ MonoBehaviour:
       weight: 1
       minWave: 1
       maxWave: 0
-    hpMultiplier: 9
+    hpMultiplier: 6
     attackDamageMultiplier: 3
     moveAttackSpeedMultiplier: 1.02
     rewardMultiplier: 1.5
@@ -300,7 +300,7 @@ MonoBehaviour:
       weight: 1
       minWave: 1
       maxWave: 0
-    hpMultiplier: 16
+    hpMultiplier: 18
     attackDamageMultiplier: 5.5
     moveAttackSpeedMultiplier: 1.06
     rewardMultiplier: 2.5
@@ -489,7 +489,7 @@ MonoBehaviour:
       weight: 1
       minWave: 1
       maxWave: 0
-    hpMultiplier: 31
+    hpMultiplier: 40
     attackDamageMultiplier: 12
     moveAttackSpeedMultiplier: 1.12
     rewardMultiplier: 6
@@ -540,7 +540,7 @@ MonoBehaviour:
       weight: 1
       minWave: 1
       maxWave: 0
-    hpMultiplier: 40
+    hpMultiplier: 65
     attackDamageMultiplier: 16
     moveAttackSpeedMultiplier: 1.14
     rewardMultiplier: 8
@@ -599,7 +599,7 @@ MonoBehaviour:
       weight: 1
       minWave: 1
       maxWave: 0
-    hpMultiplier: 51
+    hpMultiplier: 100
     attackDamageMultiplier: 20
     moveAttackSpeedMultiplier: 1.16
     rewardMultiplier: 10.5
@@ -654,7 +654,7 @@ MonoBehaviour:
       weight: 1
       minWave: 1
       maxWave: 0
-    hpMultiplier: 67
+    hpMultiplier: 150
     attackDamageMultiplier: 26
     moveAttackSpeedMultiplier: 1.18
     rewardMultiplier: 14
@@ -709,7 +709,7 @@ MonoBehaviour:
       weight: 1
       minWave: 1
       maxWave: 0
-    hpMultiplier: 86
+    hpMultiplier: 210
     attackDamageMultiplier: 33
     moveAttackSpeedMultiplier: 1.2
     rewardMultiplier: 18.5
@@ -764,7 +764,7 @@ MonoBehaviour:
       weight: 1
       minWave: 1
       maxWave: 0
-    hpMultiplier: 119
+    hpMultiplier: 300
     attackDamageMultiplier: 37
     moveAttackSpeedMultiplier: 1.22
     rewardMultiplier: 24
@@ -772,7 +772,7 @@ MonoBehaviour:
     maxWave: 450
     spawnInterval: 1.03
     spawnCount: 90
-    spawnBossAsLastEnemy: 0
+    spawnBossAsLastEnemy: 1
     normalZombieEntries:
     - zombieType: 13
       weight: 35
@@ -807,7 +807,7 @@ MonoBehaviour:
       weight: 1
       minWave: 1
       maxWave: 0
-    hpMultiplier: 170
+    hpMultiplier: 400
     attackDamageMultiplier: 35
     moveAttackSpeedMultiplier: 1.24
     rewardMultiplier: 31
@@ -850,7 +850,7 @@ MonoBehaviour:
       weight: 1
       minWave: 1
       maxWave: 0
-    hpMultiplier: 280
+    hpMultiplier: 500
     attackDamageMultiplier: 40
     moveAttackSpeedMultiplier: 1.26
     rewardMultiplier: 40

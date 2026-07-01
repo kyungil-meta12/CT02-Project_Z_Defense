@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 64086bcb185c80947a81b76bc4479622, type: 3}
   m_Name: Plasma_Yellow_1
   m_EditorClassIdentifier: Assembly-CSharp::TurretStatProfileSO
-  damage: 8125
+  damage: 2708.3333
   range: 49
   fireInterval: 5
   projectileSpeed: 25

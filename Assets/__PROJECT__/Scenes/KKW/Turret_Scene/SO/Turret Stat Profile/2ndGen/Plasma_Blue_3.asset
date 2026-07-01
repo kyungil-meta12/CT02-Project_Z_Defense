@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 64086bcb185c80947a81b76bc4479622, type: 3}
   m_Name: Plasma_Blue_3
   m_EditorClassIdentifier: Assembly-CSharp::TurretStatProfileSO
-  damage: 7407
+  damage: 2469
   range: 59
   fireInterval: 0.7407
   projectileSpeed: 50

@@ -27,6 +27,12 @@ public class ObstacleBuildEntrySO : ScriptableObject
     [Header("배치 비용 - 설치 시 소비할 재화 목록")]
     [SerializeField] private ResourceCost[] buildCosts;
 
+    [Header("배치 비용 증가 - 슬롯 최초 점유 1회당 기본 비용 대비 증가율 (%)")]
+    [SerializeField, Min(0f)] private float additionalCostPercentPerPlacement;
+
+    [Header("재건 할인율 - 파괴 후 동일 슬롯 재설치 시 비용 할인 비율 (0=할인없음, 1=무료)")]
+    [SerializeField, Range(0f, 1f)] private float rebuildCostDiscount = 0.5f;
+
     public string DisplayName
     {
         get
@@ -98,6 +104,8 @@ public class ObstacleBuildEntrySO : ScriptableObject
         }
     }
 
+    public float AdditionalCostPercentPerPlacement => additionalCostPercentPerPlacement;
+
     public ResourceCost[] BuildCosts
     {
         get
@@ -105,6 +113,36 @@ public class ObstacleBuildEntrySO : ScriptableObject
             // 장애물 배치 비용은 터렛 배치/업그레이드/진화와 같은 다중 재화 파이프라인을 타야 하므로 legacy int Cost fallback을 두지 않는다.
             return buildCosts;
         }
+    }
+
+    // 현재 최초 점유 슬롯 수와 재건 여부를 반영한 실효 배치 비용을 반환한다
+    public ResourceCost[] GetPlacementCosts(int firstPlacementCount, bool isRebuild)
+    {
+        if (buildCosts == null)
+        {
+            return System.Array.Empty<ResourceCost>();
+        }
+
+        float multiplier = 1.0f + Mathf.Max(0, firstPlacementCount) * additionalCostPercentPerPlacement * 0.01f;
+        if (isRebuild)
+        {
+            multiplier *= 1.0f - Mathf.Clamp01(rebuildCostDiscount);
+        }
+
+        ResourceCost[] result = new ResourceCost[buildCosts.Length];
+        for (int i = 0; i < buildCosts.Length; i++)
+        {
+            ResourceCost src = buildCosts[i];
+            if (src == null || src.amount <= 0)
+            {
+                result[i] = new ResourceCost();
+                continue;
+            }
+
+            result[i] = new ResourceCost(src.currencyType, Mathf.Max(0, Mathf.CeilToInt(src.amount * multiplier)));
+        }
+
+        return result;
     }
 
     // 지정 레벨에 맞는 설치 프리팹을 반환한다

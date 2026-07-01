@@ -13,6 +13,7 @@ internal struct ObstacleEntrySpec
     public ObstacleBuildSlotType SlotType;
     public Dictionary<RewardCurrencyType, int> BuildCosts;
     public ObstacleDefinitionSO Definition;
+    public float AdditionalCostPercentPerPlacement;
 }
 
 // 단일 설치 또는 최대 설치 시나리오의 결과.
@@ -82,7 +83,8 @@ internal static class ObstacleBalanceCalculator
                 DisplayName = so.DisplayName,
                 SlotType = so.SlotType,
                 BuildCosts = ExtractCosts(so.BuildCosts),
-                Definition = def
+                Definition = def,
+                AdditionalCostPercentPerPlacement = Mathf.Max(0f, so.AdditionalCostPercentPerPlacement)
             });
         }
 
@@ -324,7 +326,7 @@ internal static class ObstacleBalanceCalculator
 
         for (int count = 1; count <= MAX_OBSTACLE_COUNT; count++)
         {
-            Dictionary<RewardCurrencyType, int> totalInstallCost = ScaleCosts(entry.BuildCosts, count);
+            Dictionary<RewardCurrencyType, int> totalInstallCost = CalcCumulativeInstallCost(entry, count);
             if (!CanAfford(totalInstallCost, budget))
             {
                 break;
@@ -343,6 +345,40 @@ internal static class ObstacleBalanceCalculator
         }
 
         return best;
+    }
+
+    // N번째(0-indexed) 설치 비용을 반환한다
+    private static Dictionary<RewardCurrencyType, int> CalcNthInstallCost(ObstacleEntrySpec entry, int n)
+    {
+        float multiplier = 1.0f + Mathf.Max(0, n) * entry.AdditionalCostPercentPerPlacement * 0.01f;
+        Dictionary<RewardCurrencyType, int> result = new Dictionary<RewardCurrencyType, int>();
+        foreach (KeyValuePair<RewardCurrencyType, int> pair in entry.BuildCosts)
+        {
+            int amount = Mathf.CeilToInt(pair.Value * multiplier);
+            if (amount > 0)
+            {
+                result[pair.Key] = amount;
+            }
+        }
+
+        return result;
+    }
+
+    // count개 설치에 필요한 누적 비용을 반환한다 (0번째~(count-1)번째 비용 합산)
+    private static Dictionary<RewardCurrencyType, int> CalcCumulativeInstallCost(ObstacleEntrySpec entry, int count)
+    {
+        Dictionary<RewardCurrencyType, int> total = new Dictionary<RewardCurrencyType, int>();
+        for (int n = 0; n < count; n++)
+        {
+            Dictionary<RewardCurrencyType, int> nth = CalcNthInstallCost(entry, n);
+            foreach (KeyValuePair<RewardCurrencyType, int> pair in nth)
+            {
+                total.TryGetValue(pair.Key, out int existing);
+                total[pair.Key] = existing + pair.Value;
+            }
+        }
+
+        return total;
     }
 
     // 주어진 예산으로 달성 가능한 최대 업그레이드 레벨을 이진 탐색으로 찾는다
@@ -378,16 +414,17 @@ internal static class ObstacleBalanceCalculator
         return lo;
     }
 
-    // 추가 설치 1개 비용 = 설치비 + 기존 유닛 레벨까지의 업그레이드 누적 비용
+    // 추가 설치 1개 비용 = N번째 설치비 + 기존 유닛 레벨까지의 업그레이드 누적 비용
     private static Dictionary<RewardCurrencyType, int> BuildInstallAndCatchupCost(
         ObstacleEntrySpec entry, ObstacleDefinitionSO def, int currentLevel, int currentCount)
     {
-        if (currentCount == 0 || currentLevel <= 1)
+        Dictionary<RewardCurrencyType, int> nthCost = CalcNthInstallCost(entry, currentCount);
+        if (currentLevel <= 1)
         {
-            return new Dictionary<RewardCurrencyType, int>(entry.BuildCosts);
+            return nthCost;
         }
 
-        return AddCosts(entry.BuildCosts, ExtractCosts(def.GetUpgradeCosts(1, currentLevel)));
+        return AddCosts(nthCost, ExtractCosts(def.GetUpgradeCosts(1, currentLevel)));
     }
 
     // 업그레이드당 HP 증가 / 소모 재화 총량. 재화 종류에 관계없이 단위당 HP 효율로 비교한다.
@@ -415,7 +452,7 @@ internal static class ObstacleBalanceCalculator
             return 0f;
         }
 
-        return spec.Hp + Mathf.Max(1, level) * spec.levelWeight;
+        return spec.Hp * (1.0f + Mathf.Max(1, level) * spec.levelHpPercentPerLevel * 0.01f);
     }
 
     // ResourceCost 배열을 재화 종류별 합산 Dictionary로 변환한다

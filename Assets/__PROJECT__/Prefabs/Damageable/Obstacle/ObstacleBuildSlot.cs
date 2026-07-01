@@ -81,6 +81,13 @@ public class ObstacleBuildSlot : MonoBehaviour
         }
     }
 
+    public ObstacleBuildEntrySO StoredBuildEntry => storedBuildEntry;
+
+    public bool HasStoredProgressForEntry(ObstacleBuildEntrySO entry)
+    {
+        return hasStoredProgress && storedBuildEntry == entry;
+    }
+
     public bool HasAliveObstacle
     {
         get
@@ -189,7 +196,9 @@ public class ObstacleBuildSlot : MonoBehaviour
             return false;
         }
 
-        ResourceCost[] buildCosts = buildEntry.BuildCosts;
+        bool isRebuild = HasStoredProgressForEntry(buildEntry);
+        int firstPlacementCount = GameManager.Inst != null ? GameManager.Inst.GetFirstPlacementCount(buildEntry) : 0;
+        ResourceCost[] buildCosts = buildEntry.GetPlacementCosts(firstPlacementCount, isRebuild);
         // 장애물 배치도 터렛 경제와 같은 ResourceCost[] 파이프라인을 사용한다. Coin 전용 fallback은 검증 혼선을 만들기 때문에 사용하지 않는다.
         if (!InventorySystem.Inst.TrySpend(buildCosts))
         {
@@ -260,7 +269,9 @@ public class ObstacleBuildSlot : MonoBehaviour
             return "ItemManager가 없어 재화 보유량을 확인할 수 없습니다.";
         }
 
-        ResourceCost[] buildCosts = buildEntry.BuildCosts;
+        bool isRebuildCheck = HasStoredProgressForEntry(buildEntry);
+        int placementCountCheck = GameManager.Inst != null ? GameManager.Inst.GetFirstPlacementCount(buildEntry) : 0;
+        ResourceCost[] buildCosts = buildEntry.GetPlacementCosts(placementCountCheck, isRebuildCheck);
         if (!InventorySystem.Inst.CanAfford(buildCosts))
         {
             return $"재화가 부족합니다. 필요 비용: {FormatCosts(buildCosts)}, 보유 재화: {FormatWallet()}";
@@ -293,7 +304,9 @@ public class ObstacleBuildSlot : MonoBehaviour
             return false;
         }
 
-        return InventorySystem.Inst.CanAfford(buildEntry.BuildCosts);
+        bool isRebuild = HasStoredProgressForEntry(buildEntry);
+        int count = GameManager.Inst != null ? GameManager.Inst.GetFirstPlacementCount(buildEntry) : 0;
+        return InventorySystem.Inst.CanAfford(buildEntry.GetPlacementCosts(count, isRebuild));
     }
 
     // 장애물 배치 실패 사유를 콘솔에 출력한다

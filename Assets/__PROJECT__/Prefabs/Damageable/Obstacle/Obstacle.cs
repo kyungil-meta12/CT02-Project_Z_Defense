@@ -297,6 +297,6 @@ public class Obstacle : MonoBehaviour, IDamageable
             return 0.0f;
         }
 
-        return spec_.Hp + Mathf.Max(1, level) * spec_.levelWeight;
+        return spec_.Hp * (1.0f + Mathf.Max(1, level) * spec_.levelHpPercentPerLevel * 0.01f);
     }
 }

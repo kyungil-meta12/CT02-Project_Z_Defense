@@ -281,6 +281,36 @@ public class GameManager : MonoBehaviour
         slot.RefreshCurrentObstacleReference();
     }
 
+    // 지정 배치 항목으로 최초 점유된 슬롯 수를 반환한다
+    public int GetFirstPlacementCount(ObstacleBuildEntrySO entry)
+    {
+        if (entry == null || defenseLines == null)
+        {
+            return 0;
+        }
+
+        int count = 0;
+        for (int i = 0; i < defenseLines.Count; i++)
+        {
+            DefenseLineEntry defenseLine = defenseLines[i];
+            if (defenseLine == null || defenseLine.obstacleSlots == null)
+            {
+                continue;
+            }
+
+            for (int j = 0; j < defenseLine.obstacleSlots.Count; j++)
+            {
+                ObstacleBuildSlot slot = defenseLine.obstacleSlots[j];
+                if (slot != null && slot.HasStoredProgressForEntry(entry))
+                {
+                    count++;
+                }
+            }
+        }
+
+        return count;
+    }
+
     // 방어선 설치 슬롯 등록을 해제한다
     public void UnregisterDefenseLineSlot(ObstacleBuildSlot slot)
     {

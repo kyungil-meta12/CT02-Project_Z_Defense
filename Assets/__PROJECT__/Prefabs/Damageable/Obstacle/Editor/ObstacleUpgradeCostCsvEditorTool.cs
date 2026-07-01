@@ -17,7 +17,7 @@ public class ObstacleUpgradeCostCsvEditorTool : EditorWindow
     private const string ADDITIONAL_COST_PERCENT_PROPERTY = "additionalCostPercentPerLevel";
     private const string OBSTACLE_SPEC_PATH_COLUMN = "ObstacleSpecPath";
     private const string BASE_HP_COLUMN = "BaseHp";
-    private const string LEVEL_WEIGHT_COLUMN = "LevelWeight";
+    private const string LEVEL_WEIGHT_COLUMN = "LevelHpPercent";
 
     private Vector2 scrollPosition;
     private readonly List<string> lastMessages = new List<string>(32);
@@ -35,7 +35,7 @@ public class ObstacleUpgradeCostCsvEditorTool : EditorWindow
         EditorGUILayout.LabelField("장애물 업그레이드 비용 CSV 관리 도구", EditorStyles.boldLabel);
         EditorGUILayout.Space();
         EditorGUILayout.LabelField("CSV 파일 경로", CSV_PATH);
-        EditorGUILayout.HelpBox("CSV 컬럼은 컬럼명(한글 설명) 형태로 출력됩니다. BaseCosts는 Coin:100|FirePart:2 형식으로 입력합니다. 임포트는 UpgradeCostProfilePath의 비용 프로필과 ObstacleSpecPath의 BaseHp, LevelWeight를 수정하고 Definition 표시 정보는 참고용으로 둡니다.", MessageType.Info);
+        EditorGUILayout.HelpBox("CSV 컬럼은 컬럼명(한글 설명) 형태로 출력됩니다. BaseCosts는 Coin:100|FirePart:2 형식으로 입력합니다. 임포트는 UpgradeCostProfilePath의 비용 프로필과 ObstacleSpecPath의 BaseHp, LevelHpPercent(레벨당 기본 체력 대비 증가율 %)를 수정하고 Definition 표시 정보는 참고용으로 둡니다.", MessageType.Info);
 
         EditorGUILayout.BeginHorizontal();
         if (GUILayout.Button("CSV로 익스포트", GUILayout.Height(34)))
@@ -159,7 +159,7 @@ public class ObstacleUpgradeCostCsvEditorTool : EditorWindow
             "MaxLevel(최대 레벨)",
             "ObstacleSpecPath(장애물 체력 스펙 SO 경로)",
             "BaseHp(기초 HP)",
-            "LevelWeight(레벨 가중치)",
+            "LevelHpPercent(레벨당 HP 증가율 %)",
             "UpgradeCostProfilePath(업그레이드 비용 SO 경로)",
             "BaseCosts(기본 비용 목록)",
             "AdditionalCostPercentPerLevel(레벨당 추가 비용 비율)");
@@ -180,7 +180,7 @@ public class ObstacleUpgradeCostCsvEditorTool : EditorWindow
             definition.MaxLevel,
             AssetDatabase.GetAssetPath(spec),
             spec == null ? 0.0f : Mathf.Max(0.0f, spec.Hp),
-            spec == null ? 0.0f : Mathf.Max(0.0f, spec.levelWeight),
+            spec == null ? 0.0f : Mathf.Max(0.0f, spec.levelHpPercentPerLevel),
             AssetDatabase.GetAssetPath(profile),
             FormatCosts(baseCosts),
             additionalPercent);
@@ -206,6 +206,7 @@ public class ObstacleUpgradeCostCsvEditorTool : EditorWindow
         ApplyCostProfile(profile, baseCosts, additionalPercent);
         EditorUtility.SetDirty(profile);
         TryApplyObstacleSpecValues(row, headerMap, lineNumber);
+        TryApplyDefinitionValues(row, headerMap, lineNumber);
         return true;
     }
 
@@ -228,9 +229,9 @@ public class ObstacleUpgradeCostCsvEditorTool : EditorWindow
 
         bool isChanged = false;
         float baseHp = spec.Hp;
-        float levelWeight = spec.levelWeight;
+        float levelHpPercent = spec.levelHpPercentPerLevel;
         isChanged |= TryReadOptionalNonNegativeFloat(row, headerMap, BASE_HP_COLUMN, lineNumber, spec.Hp, out baseHp);
-        isChanged |= TryReadOptionalNonNegativeFloat(row, headerMap, LEVEL_WEIGHT_COLUMN, lineNumber, spec.levelWeight, out levelWeight);
+        isChanged |= TryReadOptionalNonNegativeFloat(row, headerMap, LEVEL_WEIGHT_COLUMN, lineNumber, spec.levelHpPercentPerLevel, out levelHpPercent);
         if (!isChanged)
         {
             return false;
@@ -238,8 +239,44 @@ public class ObstacleUpgradeCostCsvEditorTool : EditorWindow
 
         Undo.RecordObject(spec, "장애물 체력 스펙 CSV 적용");
         spec.Hp = baseHp;
-        spec.levelWeight = levelWeight;
+        spec.levelHpPercentPerLevel = levelHpPercent;
         EditorUtility.SetDirty(spec);
+        return true;
+    }
+
+    // CSV 행의 MaxLevel 값을 ObstacleDefinitionSO에 반영한다
+    private bool TryApplyDefinitionValues(List<string> row, Dictionary<string, int> headerMap, int lineNumber)
+    {
+        if (!headerMap.ContainsKey("MaxLevel"))
+        {
+            return false;
+        }
+
+        string definitionPath = ReadString(row, headerMap, "DefinitionPath");
+        ObstacleDefinitionSO definition = AssetDatabase.LoadAssetAtPath<ObstacleDefinitionSO>(definitionPath);
+        if (definition == null)
+        {
+            AddMessage($"{lineNumber}행: ObstacleDefinition을 찾을 수 없어 MaxLevel을 건너뜁니다. 경로: {definitionPath}");
+            return false;
+        }
+
+        string text = ReadString(row, headerMap, "MaxLevel");
+        if (string.IsNullOrWhiteSpace(text) || !int.TryParse(text, NumberStyles.Integer, CultureInfo.InvariantCulture, out int maxLevel))
+        {
+            return false;
+        }
+
+        maxLevel = Mathf.Max(0, maxLevel);
+        SerializedObject serializedDefinition = new SerializedObject(definition);
+        SerializedProperty maxLevelProperty = serializedDefinition.FindProperty("maxLevel");
+        if (maxLevelProperty == null || maxLevelProperty.intValue == maxLevel)
+        {
+            return false;
+        }
+
+        maxLevelProperty.intValue = maxLevel;
+        serializedDefinition.ApplyModifiedProperties();
+        EditorUtility.SetDirty(definition);
         return true;
     }
 
@@ -450,7 +487,22 @@ public class ObstacleUpgradeCostCsvEditorTool : EditorWindow
             return false;
         }
 
-        string text = File.ReadAllText(path, Encoding.UTF8);
+        string text;
+        try
+        {
+            using (FileStream stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+            using (StreamReader reader = new StreamReader(stream, Encoding.UTF8, true))
+            {
+                text = reader.ReadToEnd();
+            }
+        }
+        catch (IOException exception)
+        {
+            AddMessage("CSV 파일을 읽을 수 없습니다. Excel에서 저장 중이거나 파일을 독점 잠금 중일 수 있습니다.");
+            AddMessage(exception.Message);
+            return false;
+        }
+
         char delimiter = DetectDelimiter(text);
         table = ParseCsv(text, delimiter);
         if (table.Count <= 0)

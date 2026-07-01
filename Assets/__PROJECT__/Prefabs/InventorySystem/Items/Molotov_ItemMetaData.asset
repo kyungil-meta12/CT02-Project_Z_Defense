@@ -19,10 +19,10 @@ MonoBehaviour:
   ItemsToCreate: []
   Decomposable: 1
   ItemsFromDecompose:
-  - Type: 55
+  - Type: 57
     Min: 1
     Max: 4
-  - Type: 35
+  - Type: 37
     Min: 1
     Max: 4
   Name: "\uD654\uC5FC\uBCD1"

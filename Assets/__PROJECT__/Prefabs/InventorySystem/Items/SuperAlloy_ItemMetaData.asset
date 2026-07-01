@@ -10,15 +10,15 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 5f9efc74f895b2d48bb9a9671cba3cd2, type: 3}
-  m_Name: OpnedCan_ItemMetaData
+  m_Name: SuperAlloy_ItemMetaData
   m_EditorClassIdentifier: Assembly-CSharp::ItemMetaDataSo
-  Type: 28
+  Type: 26
   Grade: 3
   Createable: 0
   CountPerCraft: 0
   ItemsToCreate: []
   Decomposable: 0
   ItemsFromDecompose: []
-  Name: "\uBE48 \uCE94"
-  InfoText: "\uAE38\uAC00\uC5D0 \uAD74\uB7EC\uB2E4\uB514\uB294 \uCE94 \uC4F0\uB808\uAE30."
-  ItemImage: {fileID: 21300000, guid: c2d3842efa0d72a4782e1499285266cf, type: 3}
+  Name: "\uD569\uC131 \uC54C\uB8E8\uBBF8\uB284"
+  InfoText: "\uAC15\uD654\uB41C \uC54C\uB8E8\uBBF8\uB284."
+  ItemImage: {fileID: 21300000, guid: e2af96b47cccbad49b9fbe8b11236334, type: 3}

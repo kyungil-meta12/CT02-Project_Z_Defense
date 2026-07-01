@@ -22,4 +22,4 @@ MonoBehaviour:
   Name: "\uBCF5\uD569 \uB3C5"
   InfoText: "\uC5EC\uB7EC \uB3C5\uC124 \uBB3C\uC9C8\uC744 \uC870\uD569\uD574 \uAC15\uB825\uD55C
     \uB3C5\uC131\uC744 \uC790\uB791\uD558\uB294 \uB3C5."
-  ItemImage: {fileID: 0}
+  ItemImage: {fileID: 21300000, guid: 154e7e310b89e8248a02e6d72e3d6f9b, type: 3}

@@ -21,4 +21,4 @@ MonoBehaviour:
   ItemsFromDecompose: []
   Name: "\uC6B0\uB77C\uB284 \uC6D0\uC11D"
   InfoText: "\uC815\uC81C\uB418\uC9C0 \uC54A\uC740 \uC6B0\uB77C\uB284 \uC6D0\uC11D."
-  ItemImage: {fileID: 0}
+  ItemImage: {fileID: 21300000, guid: 21bc17530cc8fce449a7bcc880d723da, type: 3}

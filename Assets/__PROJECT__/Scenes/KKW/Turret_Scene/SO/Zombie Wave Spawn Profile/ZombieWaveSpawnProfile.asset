@@ -56,7 +56,7 @@ MonoBehaviour:
   - minWave: 1
     maxWave: 10
     spawnInterval: 1.6
-    spawnCount: 8
+    spawnCount: 30
     spawnBossAsLastEnemy: 0
     normalZombieEntries:
     - zombieType: 0
@@ -91,7 +91,7 @@ MonoBehaviour:
   - minWave: 11
     maxWave: 25
     spawnInterval: 1.45
-    spawnCount: 12
+    spawnCount: 40
     spawnBossAsLastEnemy: 1
     normalZombieEntries:
     - zombieType: 0
@@ -142,7 +142,7 @@ MonoBehaviour:
   - minWave: 26
     maxWave: 50
     spawnInterval: 1.3
-    spawnCount: 16
+    spawnCount: 53
     spawnBossAsLastEnemy: 1
     normalZombieEntries:
     - zombieType: 0
@@ -197,7 +197,7 @@ MonoBehaviour:
   - minWave: 51
     maxWave: 75
     spawnInterval: 1.18
-    spawnCount: 20
+    spawnCount: 69
     spawnBossAsLastEnemy: 1
     normalZombieEntries:
     - zombieType: 0
@@ -252,7 +252,7 @@ MonoBehaviour:
   - minWave: 76
     maxWave: 100
     spawnInterval: 1.08
-    spawnCount: 24
+    spawnCount: 88
     spawnBossAsLastEnemy: 1
     normalZombieEntries:
     - zombieType: 3
@@ -307,7 +307,7 @@ MonoBehaviour:
   - minWave: 101
     maxWave: 130
     spawnInterval: 1
-    spawnCount: 28
+    spawnCount: 110
     spawnBossAsLastEnemy: 1
     normalZombieEntries:
     - zombieType: 3
@@ -362,7 +362,7 @@ MonoBehaviour:
   - minWave: 131
     maxWave: 160
     spawnInterval: 0.94
-    spawnCount: 32
+    spawnCount: 135
     spawnBossAsLastEnemy: 1
     normalZombieEntries:
     - zombieType: 3
@@ -429,7 +429,7 @@ MonoBehaviour:
   - minWave: 161
     maxWave: 200
     spawnInterval: 0.88
-    spawnCount: 36
+    spawnCount: 163
     spawnBossAsLastEnemy: 1
     normalZombieEntries:
     - zombieType: 3
@@ -496,7 +496,7 @@ MonoBehaviour:
   - minWave: 201
     maxWave: 240
     spawnInterval: 0.82
-    spawnCount: 40
+    spawnCount: 194
     spawnBossAsLastEnemy: 1
     normalZombieEntries:
     - zombieType: 7
@@ -547,7 +547,7 @@ MonoBehaviour:
   - minWave: 241
     maxWave: 280
     spawnInterval: 0.76
-    spawnCount: 44
+    spawnCount: 228
     spawnBossAsLastEnemy: 1
     normalZombieEntries:
     - zombieType: 7
@@ -606,7 +606,7 @@ MonoBehaviour:
   - minWave: 281
     maxWave: 320
     spawnInterval: 0.7
-    spawnCount: 48
+    spawnCount: 265
     spawnBossAsLastEnemy: 1
     normalZombieEntries:
     - zombieType: 15
@@ -661,7 +661,7 @@ MonoBehaviour:
   - minWave: 321
     maxWave: 360
     spawnInterval: 0.66
-    spawnCount: 52
+    spawnCount: 305
     spawnBossAsLastEnemy: 1
     normalZombieEntries:
     - zombieType: 15
@@ -716,7 +716,7 @@ MonoBehaviour:
   - minWave: 361
     maxWave: 400
     spawnInterval: 0.62
-    spawnCount: 56
+    spawnCount: 348
     spawnBossAsLastEnemy: 1
     normalZombieEntries:
     - zombieType: 15
@@ -771,7 +771,7 @@ MonoBehaviour:
   - minWave: 401
     maxWave: 450
     spawnInterval: 0.58
-    spawnCount: 60
+    spawnCount: 394
     spawnBossAsLastEnemy: 0
     normalZombieEntries:
     - zombieType: 13
@@ -814,7 +814,7 @@ MonoBehaviour:
   - minWave: 451
     maxWave: 500
     spawnInterval: 0.54
-    spawnCount: 66
+    spawnCount: 443
     spawnBossAsLastEnemy: 1
     normalZombieEntries:
     - zombieType: 13

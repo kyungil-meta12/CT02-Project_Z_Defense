@@ -1,5 +1,6 @@
 using TMPro;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using UnityEngine.Events;
 
@@ -9,6 +10,10 @@ using UnityEngine.Events;
 public class TurretUpgradePopupUI : TurretPopupPageUI
 {
     private const int LEVEL_UP_AMOUNT = 1;
+    private const float HOLD_UPGRADE_START_DELAY = 0.5f;
+    private const float HOLD_UPGRADE_RAMP_DURATION = 1.0f;
+    private const float HOLD_UPGRADE_START_RATE = 4.0f;
+    private const float HOLD_UPGRADE_MAX_RATE = 60.0f;
     private const string POSITIVE_DELTA_PLUS_TEXT = "<color=#FF4040>+</color>";
     private const string INSUFFICIENT_COST_COLOR = "#FF4040";
     private const string UPGRADE_BACKGROUND_PATH = "TurretUpgradePopupBackground";
@@ -66,6 +71,16 @@ public class TurretUpgradePopupUI : TurretPopupPageUI
     private string fireRateDeltaTextTemplate;
     private string rangeDeltaTextTemplate;
     private string pierceDeltaTextTemplate;
+    private EventTrigger upgradeButtonEventTrigger;
+    private EventTrigger.Entry upgradePointerDownEntry;
+    private EventTrigger.Entry upgradePointerUpEntry;
+    private EventTrigger.Entry upgradePointerExitEntry;
+    private EventTrigger.Entry upgradeCancelEntry;
+    private bool isUpgradeHolding;
+    private bool hasUpgradeHoldRepeatStarted;
+    private float upgradeHoldElapsedTime;
+    private float upgradeHoldRepeatElapsedTime;
+    private float upgradeHoldAccumulator;
 
     public event UnityAction EvolutionPopupRequested;
 
@@ -89,6 +104,55 @@ public class TurretUpgradePopupUI : TurretPopupPageUI
     {
         UnbindButtonListeners();
         base.OnDestroy();
+    }
+
+    // 비활성화 시 누르고 있는 업그레이드 입력을 중단한다
+    private void OnDisable()
+    {
+        StopUpgradeHold();
+    }
+
+    // 누르고 있는 동안 업그레이드 반복 속도를 점진적으로 증가시킨다
+    private void Update()
+    {
+        if (!isUpgradeHolding)
+        {
+            return;
+        }
+
+        if (!CanProcessUpgradeInput())
+        {
+            StopUpgradeHold();
+            return;
+        }
+
+        upgradeHoldElapsedTime += Time.unscaledDeltaTime;
+        if (!hasUpgradeHoldRepeatStarted)
+        {
+            if (upgradeHoldElapsedTime < HOLD_UPGRADE_START_DELAY)
+            {
+                return;
+            }
+
+            hasUpgradeHoldRepeatStarted = true;
+            upgradeHoldRepeatElapsedTime = 0.0f;
+            upgradeHoldAccumulator = 0.0f;
+        }
+
+        upgradeHoldRepeatElapsedTime += Time.unscaledDeltaTime;
+        float upgradeRate = Mathf.Lerp(HOLD_UPGRADE_START_RATE, HOLD_UPGRADE_MAX_RATE, Mathf.Clamp01(upgradeHoldRepeatElapsedTime / HOLD_UPGRADE_RAMP_DURATION));
+        float upgradeInterval = 1.0f / upgradeRate;
+        upgradeHoldAccumulator += Time.unscaledDeltaTime;
+
+        while (upgradeHoldAccumulator >= upgradeInterval)
+        {
+            upgradeHoldAccumulator -= upgradeInterval;
+            if (!TryUpgradeOnce())
+            {
+                StopUpgradeHold();
+                return;
+            }
+        }
     }
 
     // 선택된 터렛의 업그레이드 팝업 기본 안내를 표시한다
@@ -132,15 +196,7 @@ public class TurretUpgradePopupUI : TurretPopupPageUI
     // 업그레이드 버튼 입력으로 현재 터렛을 1레벨 업그레이드한다
     public void OnUpgradeButtonClicked()
     {
-        if (!CurrentContext.IsValid)
-        {
-            return;
-        }
-
-        if (CurrentContext.Turret.TryUpgrade(LEVEL_UP_AMOUNT))
-        {
-            RefreshUpgradeTexts();
-        }
+        TryUpgradeOnce();
     }
 
     // 진화 버튼 입력으로 첫 번째 진화 후보를 실행한다
@@ -392,7 +448,7 @@ public class TurretUpgradePopupUI : TurretPopupPageUI
 
         if (upgradeButton != null)
         {
-            upgradeButton.onClick.AddListener(OnUpgradeButtonClicked);
+            BindUpgradeHoldListeners();
         }
 
         if (evolutionButton != null)
@@ -416,13 +472,149 @@ public class TurretUpgradePopupUI : TurretPopupPageUI
 
         if (upgradeButton != null)
         {
-            upgradeButton.onClick.RemoveListener(OnUpgradeButtonClicked);
+            UnbindUpgradeHoldListeners();
         }
 
         if (evolutionButton != null)
         {
             evolutionButton.onClick.RemoveListener(OnEvolutionButtonClicked);
         }
+    }
+
+    // 업그레이드 버튼의 길게 누르기 포인터 이벤트를 등록한다
+    private void BindUpgradeHoldListeners()
+    {
+        if (upgradeButton == null)
+        {
+            return;
+        }
+
+        UnbindUpgradeHoldListeners();
+        upgradeButtonEventTrigger = upgradeButton.GetComponent<EventTrigger>();
+        if (upgradeButtonEventTrigger == null)
+        {
+            upgradeButtonEventTrigger = upgradeButton.gameObject.AddComponent<EventTrigger>();
+        }
+
+        upgradePointerDownEntry = CreateUpgradeHoldEntry(EventTriggerType.PointerDown, OnUpgradeHoldPointerDown);
+        upgradePointerUpEntry = CreateUpgradeHoldEntry(EventTriggerType.PointerUp, OnUpgradeHoldPointerUp);
+        upgradePointerExitEntry = CreateUpgradeHoldEntry(EventTriggerType.PointerExit, OnUpgradeHoldPointerExit);
+        upgradeCancelEntry = CreateUpgradeHoldEntry(EventTriggerType.Cancel, OnUpgradeHoldCancel);
+        upgradeButtonEventTrigger.triggers.Add(upgradePointerDownEntry);
+        upgradeButtonEventTrigger.triggers.Add(upgradePointerUpEntry);
+        upgradeButtonEventTrigger.triggers.Add(upgradePointerExitEntry);
+        upgradeButtonEventTrigger.triggers.Add(upgradeCancelEntry);
+    }
+
+    // 업그레이드 버튼의 길게 누르기 포인터 이벤트를 해제한다
+    private void UnbindUpgradeHoldListeners()
+    {
+        StopUpgradeHold();
+        if (upgradeButtonEventTrigger == null)
+        {
+            return;
+        }
+
+        RemoveUpgradeHoldEntry(upgradePointerDownEntry);
+        RemoveUpgradeHoldEntry(upgradePointerUpEntry);
+        RemoveUpgradeHoldEntry(upgradePointerExitEntry);
+        RemoveUpgradeHoldEntry(upgradeCancelEntry);
+        upgradePointerDownEntry = null;
+        upgradePointerUpEntry = null;
+        upgradePointerExitEntry = null;
+        upgradeCancelEntry = null;
+    }
+
+    // 업그레이드 버튼 EventTrigger 항목을 생성한다
+    private static EventTrigger.Entry CreateUpgradeHoldEntry(EventTriggerType eventType, UnityAction<BaseEventData> callback)
+    {
+        EventTrigger.Entry entry = new EventTrigger.Entry
+        {
+            eventID = eventType
+        };
+        entry.callback.AddListener(callback);
+        return entry;
+    }
+
+    // 등록된 업그레이드 버튼 EventTrigger 항목을 제거한다
+    private void RemoveUpgradeHoldEntry(EventTrigger.Entry entry)
+    {
+        if (upgradeButtonEventTrigger != null && entry != null)
+        {
+            upgradeButtonEventTrigger.triggers.Remove(entry);
+        }
+    }
+
+    // 업그레이드 버튼을 누르는 순간 1회 업그레이드하고 반복 입력을 시작한다
+    private void OnUpgradeHoldPointerDown(BaseEventData eventData)
+    {
+        if (!CanProcessUpgradeInput())
+        {
+            StopUpgradeHold();
+            return;
+        }
+
+        isUpgradeHolding = true;
+        hasUpgradeHoldRepeatStarted = false;
+        upgradeHoldElapsedTime = 0.0f;
+        upgradeHoldRepeatElapsedTime = 0.0f;
+        upgradeHoldAccumulator = 0.0f;
+        if (!TryUpgradeOnce())
+        {
+            StopUpgradeHold();
+        }
+    }
+
+    // 업그레이드 버튼에서 손을 뗄 때 반복 입력을 중단한다
+    private void OnUpgradeHoldPointerUp(BaseEventData eventData)
+    {
+        StopUpgradeHold();
+    }
+
+    // 업그레이드 버튼 밖으로 포인터가 나가면 반복 입력을 중단한다
+    private void OnUpgradeHoldPointerExit(BaseEventData eventData)
+    {
+        StopUpgradeHold();
+    }
+
+    // 업그레이드 입력이 취소되면 반복 입력을 중단한다
+    private void OnUpgradeHoldCancel(BaseEventData eventData)
+    {
+        StopUpgradeHold();
+    }
+
+    // 업그레이드 입력을 처리할 수 있는 상태인지 확인한다
+    private bool CanProcessUpgradeInput()
+    {
+        return CurrentContext.IsValid && upgradeButton != null && upgradeButton.interactable;
+    }
+
+    // 현재 터렛을 1회 업그레이드하고 UI를 갱신한다
+    private bool TryUpgradeOnce()
+    {
+        if (!CurrentContext.IsValid)
+        {
+            return false;
+        }
+
+        if (!CurrentContext.Turret.TryUpgrade(LEVEL_UP_AMOUNT))
+        {
+            RefreshUpgradeTexts();
+            return false;
+        }
+
+        RefreshUpgradeTexts();
+        return true;
+    }
+
+    // 누르고 있는 업그레이드 입력 상태를 초기화한다
+    private void StopUpgradeHold()
+    {
+        isUpgradeHolding = false;
+        hasUpgradeHoldRepeatStarted = false;
+        upgradeHoldElapsedTime = 0.0f;
+        upgradeHoldRepeatElapsedTime = 0.0f;
+        upgradeHoldAccumulator = 0.0f;
     }
 
     // 개별 재화 이름, 수량, 이미지 배열을 하위 이름 패턴으로 구성한다

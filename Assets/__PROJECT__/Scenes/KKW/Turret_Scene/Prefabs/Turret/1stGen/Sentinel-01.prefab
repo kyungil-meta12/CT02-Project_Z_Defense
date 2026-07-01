@@ -57,19 +57,19 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5939366483768426405, guid: 9d32345b9deefea468578454fed45729, type: 3}
       propertyPath: m_LocalRotation.w
-      value: 0.91789365
+      value: 0.97526014
       objectReference: {fileID: 0}
     - target: {fileID: 5939366483768426405, guid: 9d32345b9deefea468578454fed45729, type: 3}
       propertyPath: m_LocalRotation.x
-      value: 0.39005297
+      value: 0.13332433
       objectReference: {fileID: 0}
     - target: {fileID: 5939366483768426405, guid: 9d32345b9deefea468578454fed45729, type: 3}
       propertyPath: m_LocalRotation.y
-      value: 0.05846785
+      value: 0.17209227
       objectReference: {fileID: 0}
     - target: {fileID: 5939366483768426405, guid: 9d32345b9deefea468578454fed45729, type: 3}
       propertyPath: m_LocalRotation.z
-      value: 0.043720014
+      value: -0.0384265
       objectReference: {fileID: 0}
     - target: {fileID: 5939366483768426405, guid: 9d32345b9deefea468578454fed45729, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
@@ -86,6 +86,10 @@ PrefabInstance:
     - target: {fileID: 6162691470817193601, guid: 9d32345b9deefea468578454fed45729, type: 3}
       propertyPath: m_Name
       value: RankDisplayRoot
+      objectReference: {fileID: 0}
+    - target: {fileID: 6162691470817193601, guid: 9d32345b9deefea468578454fed45729, type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

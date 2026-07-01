@@ -28,8 +28,11 @@ public class TurretPopupPageUI : MonoBehaviour
         popupRoot = gameObject;
     }
 
+    protected Button CloseButton => closeButton;
+    protected Button BackButton => backButton;
+
     // 시작 전에 버튼 이벤트를 연결한다
-    private void Awake()
+    protected virtual void Awake()
     {
         if (popupRoot == null)
         {
@@ -40,7 +43,7 @@ public class TurretPopupPageUI : MonoBehaviour
     }
 
     // 파괴 시 버튼 이벤트를 해제한다
-    private void OnDestroy()
+    protected virtual void OnDestroy()
     {
         UnbindButtonListeners();
     }

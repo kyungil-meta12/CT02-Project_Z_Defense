@@ -29,7 +29,6 @@ public class TurretEvolutionPopupUI : TurretPopupPageUI
     [SerializeField] private Button evolutionCloseButton;
     [SerializeField] private Button evolutionBackButton;
     [SerializeField] private Button evolutionButton;
-    [SerializeField] private TMP_Text evolutionButtonText;
 
     // 컴포넌트 추가 시 현재 팝업 하위 참조를 자동으로 찾는다
     private void Reset()
@@ -38,16 +37,18 @@ public class TurretEvolutionPopupUI : TurretPopupPageUI
     }
 
     // 활성화 준비 시 하위 참조와 버튼 이벤트를 준비한다
-    private void Awake()
+    protected override void Awake()
     {
+        base.Awake();
         BindChildReferences();
         BindButtonListeners();
     }
 
     // 파괴 시 버튼 이벤트를 해제한다
-    private void OnDestroy()
+    protected override void OnDestroy()
     {
         UnbindButtonListeners();
+        base.OnDestroy();
     }
 
     // 선택된 터렛의 진화 정보를 표시한다
@@ -64,8 +65,9 @@ public class TurretEvolutionPopupUI : TurretPopupPageUI
         Transform searchRoot = transform;
         evolutionCloseButton = evolutionCloseButton != null ? evolutionCloseButton : FindChildComponent<Button>(searchRoot, "TurretSelectPopupBackground/HighPanel/ExitFrame/Button");
         evolutionBackButton = evolutionBackButton != null ? evolutionBackButton : FindChildComponent<Button>(searchRoot, "TurretSelectPopupBackground/LowPanel/BackButtonFrame/BackButton");
+        evolutionCloseButton = evolutionCloseButton != null ? evolutionCloseButton : CloseButton;
+        evolutionBackButton = evolutionBackButton != null ? evolutionBackButton : BackButton;
         evolutionButton = evolutionButton != null ? evolutionButton : FindChildComponent<Button>(searchRoot, "TurretSelectPopupBackground/LowPanel/EvolutionFrame/EvolutionTextFrame");
-        evolutionButtonText = evolutionButtonText != null ? evolutionButtonText : evolutionButton == null ? null : evolutionButton.GetComponentInChildren<TMP_Text>(true);
         currentTurretNameText = currentTurretNameText != null ? currentTurretNameText : FindChildComponent<TMP_Text>(searchRoot, "TurretSelectPopupBackground/MiddlePanel/CurrentTurretImageFrame/CurrentTurretName");
         currentTurretImage = currentTurretImage != null ? currentTurretImage : FindChildComponent<Image>(searchRoot, "TurretSelectPopupBackground/MiddlePanel/CurrentTurretImageFrame/CurrentTurretImage");
         nextTurretNameText = nextTurretNameText != null ? nextTurretNameText : FindChildComponent<TMP_Text>(searchRoot, "TurretSelectPopupBackground/MiddlePanel/NextTurretImageFrame/NextTurretName");
@@ -115,7 +117,6 @@ public class TurretEvolutionPopupUI : TurretPopupPageUI
         SetText(nextTurretNameText, hasEvolution ? GetEvolutionName(entry) : "진화 대기");
         SetImage(nextTurretImage, hasEvolution ? entry.evolutionIcon : null);
         SetCostTexts(hasEvolution ? entry.evolutionCosts : System.Array.Empty<ResourceCost>());
-        SetText(evolutionButtonText, hasEvolution ? "진화" : "Lv.100 필요");
         SetInteractable(hasEvolution && CurrentContext.Turret.CanEvolve(evolutionIndex));
     }
 
@@ -163,12 +164,12 @@ public class TurretEvolutionPopupUI : TurretPopupPageUI
     {
         UnbindButtonListeners();
 
-        if (evolutionCloseButton != null)
+        if (evolutionCloseButton != null && evolutionCloseButton != CloseButton)
         {
             evolutionCloseButton.onClick.AddListener(OnCloseButtonClicked);
         }
 
-        if (evolutionBackButton != null)
+        if (evolutionBackButton != null && evolutionBackButton != BackButton)
         {
             evolutionBackButton.onClick.AddListener(OnBackButtonClicked);
         }
@@ -182,12 +183,12 @@ public class TurretEvolutionPopupUI : TurretPopupPageUI
     // 버튼 클릭 이벤트를 해제한다
     private void UnbindButtonListeners()
     {
-        if (evolutionCloseButton != null)
+        if (evolutionCloseButton != null && evolutionCloseButton != CloseButton)
         {
             evolutionCloseButton.onClick.RemoveListener(OnCloseButtonClicked);
         }
 
-        if (evolutionBackButton != null)
+        if (evolutionBackButton != null && evolutionBackButton != BackButton)
         {
             evolutionBackButton.onClick.RemoveListener(OnBackButtonClicked);
         }

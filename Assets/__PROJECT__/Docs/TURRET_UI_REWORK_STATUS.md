@@ -24,6 +24,14 @@
 - `TurretSkillPopupUI`는 아직 실제 기능 없이 준비 중 상태를 담당한다.
 - 모든 하위 팝업의 `BackButton`은 선택 팝업으로 돌아가는 방향으로 정리 중이다.
 
+## 2026-07-01 Button Reference Hardening
+
+- `TurretSelectPopupUI`는 `BackgroundButton` 참조가 비어 있어도 팝업 루트의 `Image` 오브젝트에 런타임 `Button`을 보강해 바깥 클릭 닫기를 처리한다.
+- `TurretPopupPageUI`의 공통 `Awake`/`OnDestroy` 흐름을 자식 팝업이 명시적으로 호출하도록 정리했다.
+- `TurretUpgradePopupUI`와 `TurretEvolutionPopupUI`는 자식 전용 Back/X 버튼 참조가 비어 있어도 공통 `closeButton`/`backButton` 참조를 재사용한다.
+- 같은 버튼에 공통 리스너와 자식 리스너가 중복 등록되지 않도록 방지했다.
+- 현재 Main 씬의 `Canvas > Turret UI`에는 `SkillPopup` 오브젝트가 없고 `TurretSelectPopupUI`의 Skill 버튼은 준비 중 정책으로 비활성화되어 있다.
+
 ## 2026-06-30 Placement Input Regression
 
 ### Symptom
@@ -66,6 +74,7 @@
 - `UpgradePopup`, `EvolutionPopup`, `DetailPopup`의 실제 계층 이름이 코드 자동 경로와 완전히 일치하는지 추가 검증이 필요하다.
 - `EvolutionPopup`은 실제 진화 전후 이미지, 비용 슬롯, 버튼 활성 조건을 플레이 모드에서 더 확인해야 한다.
 - `SkillPopup`은 아직 기능 없음 상태이며, 버튼 비활성/준비 중 문구 정책을 나중에 확정해야 한다.
+- Main 씬 기준 `SkillPopup` 오브젝트와 `TurretSelectionUIController.skillPopup` 참조가 아직 없다.
 - 기존 옛날 터렛 UI 프리팹/오브젝트가 남아 있으면 더블클릭 또는 업그레이드 입력과 충돌할 수 있다.
 - 터렛 업그레이드 후 사거리 표시 갱신, 선택 팝업 값 갱신, 하위 팝업 값 갱신이 모두 같은 타이밍에 맞는지 검증이 필요하다.
 - `Legacy Pointer Bridge`와 `InputSystemUIInputModule` 기본 포인터 이벤트가 동시에 살아날 경우 같은 입력이 중복 전달될 수 있으므로, 추후 Input System 경로 복구 시 중복 입력 여부를 먼저 확인해야 한다.

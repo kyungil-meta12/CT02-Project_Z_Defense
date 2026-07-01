@@ -3,7 +3,7 @@ using UnityEngine;
 using UnityEngine.UI;
 
 /// <summary>
-/// 선택된 터렛의 읽기 전용 상세 정보를 표시할 팝업의 1차 표시 연결을 담당한다.
+/// 선택된 터렛의 읽기 전용 상세 수치와 데미지 폴리싱 확률 표시를 담당한다.
 /// </summary>
 public class TurretDetailPopupUI : TurretPopupPageUI
 {
@@ -23,7 +23,7 @@ public class TurretDetailPopupUI : TurretPopupPageUI
     [SerializeField] private TMP_Text criticalChanceText;
     [SerializeField] private TMP_Text heavyHitChanceText;
 
-    [Header("상세 정보")]
+    [Header("레거시 상세 정보")]
     [SerializeField] private TMP_Text statText;
 
     private string currentTurretNameTextTemplate;

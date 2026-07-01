@@ -236,12 +236,43 @@
  * - InventorySystem:
  *   진화 비용의 이름, 아이콘, 보유량, 지불 가능 여부를 제공한다.
  *
+ * ==========================================================================================
+ * 8. 2026-07-01 DetailPopup 확장 기록
+ * ==========================================================================================
+ *
+ * 오늘 완료한 내용
+ * ------------------------------------------------------------------------------------------
+ * - DescriptionPopup > TurretDescriptionPopupBackground > MiddlePanel > DetailInfoPanel 아래
+ *   CriticalChance, HeavyHitChance TMP를 상세 수치 표시 대상에 추가했다.
+ * - TurretDetailPopupUI는 기존 Level, DPS, FireRate, BulletSpeed, PierceCount, Range와
+ *   같은 TMP 템플릿 치환 방식으로 치명타/강타 확률을 표시한다.
+ * - 표시 값은 현재 선택 터렛의 TurretDefinitionSO.damagePolishProfile에서 읽는다.
+ * - Damage Polish Profile이 없는 터렛은 치명타/강타 확률을 0%로 표시한다.
+ * - 선택된 터렛이 없을 때는 다른 상세 수치와 동일하게 "-"를 표시한다.
+ * - 기존 statText 단일 상세 문자열은 레거시 호환용으로만 유지한다. 실제 신규 UI는
+ *   DetailInfoPanel의 개별 TMP를 기준으로 본다.
+ * - Roslyn 컴파일러가 중첩 보간 문자열과 반복 조건식 바인딩 중 OutOfMemoryException을
+ *   일으킨 케이스가 있어, 레거시 statText 문자열 생성은 string.Concat과 이미 계산된
+ *   damagePolishProfile 인자를 사용하는 단순 구조로 정리했다.
+ *
+ * 현재 아키텍처
+ * ------------------------------------------------------------------------------------------
+ * - TurretDetailPopupUI:
+ *   선택 컨텍스트의 TurretDefinitionSO, TurretRuntimeStat, TurretDamagePolishProfileSO를
+ *   읽어 상세 수치 TMP를 갱신한다. 이 팝업은 읽기 전용이며 업그레이드/진화 실행을
+ *   직접 수행하지 않는다.
+ *
+ * - TurretDamagePolishProfileSO:
+ *   치명타 확률, 강타 확률, 배율, 데미지 편차를 제공한다. DetailPopup은 현재 확률만
+ *   표시하며 실제 피해 판정은 ProjectileDamageDealer와 BeamFiringEvent의 런타임 공격
+ *   흐름에서 처리한다.
+ *
  * 상세 진행 상태 문서
  * ------------------------------------------------------------------------------------------
  * - Assets/__PROJECT__/Docs/TURRET_UI_REWORK_STATUS.md
  *
  * ==========================================================================================
- * 8. 다음 작업 시작용 문장
+ * 9. 다음 작업 시작용 문장
  * ==========================================================================================
  *
  * 다음 작업을 시작할 때 사용할 문장:

@@ -22,4 +22,4 @@ MonoBehaviour:
   Name: "\uAC74\uC804\uC9C0"
   InfoText: "\uC544\uC9C1\uC740 \uC4F8 \uB9CC\uD55C \uC591\uC774 \uB0A8\uC544\uC788\uB294
     \uAC74\uC804\uC9C0."
-  ItemImage: {fileID: 0}
+  ItemImage: {fileID: 21300000, guid: a4ebd81defff6604a9afad03593aa7de, type: 3}

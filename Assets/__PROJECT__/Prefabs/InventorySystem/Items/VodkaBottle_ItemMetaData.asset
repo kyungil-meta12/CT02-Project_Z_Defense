@@ -17,8 +17,11 @@ MonoBehaviour:
   Createable: 0
   CountPerCraft: 0
   ItemsToCreate: []
-  Decomposable: 0
-  ItemsFromDecompose: []
-  Name: "\uBCF4\uD2B8\uCE74"
+  Decomposable: 1
+  ItemsFromDecompose:
+  - Type: 55
+    Min: 5
+    Max: 10
+  Name: "\uBCF4\uB4DC\uCE74"
   InfoText: "\uB3C4\uC218\uAC00 \uB192\uC740 \uB7EC\uC2DC\uC544\uC0B0 \uBCF4\uB4DC\uCE74."
   ItemImage: {fileID: 21300000, guid: ab955de1fa3f2b245bd2ca2472e7b811, type: 3}

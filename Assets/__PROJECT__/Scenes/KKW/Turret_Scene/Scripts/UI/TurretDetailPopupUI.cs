@@ -20,6 +20,8 @@ public class TurretDetailPopupUI : TurretPopupPageUI
     [SerializeField] private TMP_Text bulletSpeedText;
     [SerializeField] private TMP_Text pierceCountText;
     [SerializeField] private TMP_Text rangeText;
+    [SerializeField] private TMP_Text criticalChanceText;
+    [SerializeField] private TMP_Text heavyHitChanceText;
 
     [Header("상세 정보")]
     [SerializeField] private TMP_Text statText;
@@ -31,6 +33,8 @@ public class TurretDetailPopupUI : TurretPopupPageUI
     private string bulletSpeedTextTemplate;
     private string pierceCountTextTemplate;
     private string rangeTextTemplate;
+    private string criticalChanceTextTemplate;
+    private string heavyHitChanceTextTemplate;
 
     // 컴포넌트 추가 시 현재 팝업 하위 참조를 자동으로 찾는다
     private void Reset()
@@ -68,6 +72,8 @@ public class TurretDetailPopupUI : TurretPopupPageUI
         bulletSpeedText = bulletSpeedText != null ? bulletSpeedText : FindDescriptionComponent<TMP_Text>("MiddlePanel/DetailInfoPanel/BulletSpeed", searchRoot);
         pierceCountText = pierceCountText != null ? pierceCountText : FindDescriptionComponent<TMP_Text>("MiddlePanel/DetailInfoPanel/PierceCount", searchRoot);
         rangeText = rangeText != null ? rangeText : FindDescriptionComponent<TMP_Text>("MiddlePanel/DetailInfoPanel/Range", searchRoot);
+        criticalChanceText = criticalChanceText != null ? criticalChanceText : FindDescriptionComponent<TMP_Text>("MiddlePanel/DetailInfoPanel/CriticalChance", searchRoot);
+        heavyHitChanceText = heavyHitChanceText != null ? heavyHitChanceText : FindDescriptionComponent<TMP_Text>("MiddlePanel/DetailInfoPanel/HeavyHitChance", searchRoot);
     }
 
     // TMP 원문 템플릿을 보관해 괄호와 고정 문구를 유지한다
@@ -107,6 +113,16 @@ public class TurretDetailPopupUI : TurretPopupPageUI
         {
             rangeTextTemplate = rangeText.text;
         }
+
+        if (criticalChanceText != null && string.IsNullOrEmpty(criticalChanceTextTemplate))
+        {
+            criticalChanceTextTemplate = criticalChanceText.text;
+        }
+
+        if (heavyHitChanceText != null && string.IsNullOrEmpty(heavyHitChanceTextTemplate))
+        {
+            heavyHitChanceTextTemplate = heavyHitChanceText.text;
+        }
     }
 
     // 현재 터렛의 이름과 대표 이미지를 상세 팝업에 반영한다
@@ -134,12 +150,13 @@ public class TurretDetailPopupUI : TurretPopupPageUI
         }
 
         TurretRuntimeStat stat = CurrentContext.CalculateCurrentStat();
-        SetDetailStatTexts(CurrentContext.Turret.CurrentTierLevel, stat);
-        SetLegacyStatText(stat);
+        TurretDamagePolishProfileSO damagePolishProfile = CurrentContext.Definition == null ? null : CurrentContext.Definition.damagePolishProfile;
+        SetDetailStatTexts(CurrentContext.Turret.CurrentTierLevel, stat, damagePolishProfile);
+        SetLegacyStatText(stat, damagePolishProfile);
     }
 
     // 상세 수치 TMP 템플릿에 현재 터렛 스탯을 반영한다
-    private void SetDetailStatTexts(int currentLevel, TurretRuntimeStat stat)
+    private void SetDetailStatTexts(int currentLevel, TurretRuntimeStat stat, TurretDamagePolishProfileSO damagePolishProfile)
     {
         SetText(levelText, ApplyTemplate(levelTextTemplate, currentLevel.ToString()));
         SetText(dpsText, ApplyTemplate(dpsTextTemplate, FormatDps(stat)));
@@ -147,6 +164,8 @@ public class TurretDetailPopupUI : TurretPopupPageUI
         SetText(bulletSpeedText, ApplyTemplate(bulletSpeedTextTemplate, FormatValue(stat.projectileSpeed)));
         SetText(pierceCountText, ApplyTemplate(pierceCountTextTemplate, stat.pierceCount.ToString()));
         SetText(rangeText, ApplyTemplate(rangeTextTemplate, FormatValue(stat.range)));
+        SetText(criticalChanceText, ApplyTemplate(criticalChanceTextTemplate, FormatChance(GetCriticalChance(damagePolishProfile))));
+        SetText(heavyHitChanceText, ApplyTemplate(heavyHitChanceTextTemplate, FormatChance(GetHeavyHitChance(damagePolishProfile))));
     }
 
     // 유효하지 않은 선택 상태에서 상세 수치 TMP를 비운다
@@ -158,23 +177,27 @@ public class TurretDetailPopupUI : TurretPopupPageUI
         SetText(bulletSpeedText, ApplyTemplate(bulletSpeedTextTemplate, "-"));
         SetText(pierceCountText, ApplyTemplate(pierceCountTextTemplate, "-"));
         SetText(rangeText, ApplyTemplate(rangeTextTemplate, "-"));
+        SetText(criticalChanceText, ApplyTemplate(criticalChanceTextTemplate, "-"));
+        SetText(heavyHitChanceText, ApplyTemplate(heavyHitChanceTextTemplate, "-"));
     }
 
     // 기존 단일 상세 텍스트 참조가 남아 있을 때만 호환 표시를 유지한다
-    private void SetLegacyStatText(TurretRuntimeStat stat)
+    private void SetLegacyStatText(TurretRuntimeStat stat, TurretDamagePolishProfileSO damagePolishProfile)
     {
         if (statText == null)
         {
             return;
         }
 
-        statText.text =
-            $"공격력: {stat.damage:0.##}\n" +
-            $"사거리: {stat.range:0.##}\n" +
-            $"발사간격: {stat.fireInterval:0.###}\n" +
-            $"탄속: {stat.projectileSpeed:0.##}\n" +
-            $"투사체 수: {stat.projectileCount}\n" +
-            $"관통 횟수: {stat.pierceCount}";
+        statText.text = string.Concat(
+            "공격력: ", FormatValue(stat.damage), "\n",
+            "사거리: ", FormatValue(stat.range), "\n",
+            "발사간격: ", stat.fireInterval.ToString("0.###"), "\n",
+            "탄속: ", FormatValue(stat.projectileSpeed), "\n",
+            "투사체 수: ", stat.projectileCount.ToString(), "\n",
+            "관통 횟수: ", stat.pierceCount.ToString(), "\n",
+            "치명타 확률: ", FormatChance(GetCriticalChance(damagePolishProfile)), "\n",
+            "강타 확률: ", FormatChance(GetHeavyHitChance(damagePolishProfile)));
     }
 
     // 초당 피해량 표시 문자열을 생성한다
@@ -195,6 +218,24 @@ public class TurretDetailPopupUI : TurretPopupPageUI
     private static string FormatValue(float value)
     {
         return value.ToString("0.##");
+    }
+
+    // 확률 값을 백분율 문자열로 변환한다
+    private static string FormatChance(float chance)
+    {
+        return Mathf.Clamp01(chance).ToString("0.#%");
+    }
+
+    // 데미지 폴리싱 프로필에서 치명타 확률을 반환한다
+    private static float GetCriticalChance(TurretDamagePolishProfileSO damagePolishProfile)
+    {
+        return damagePolishProfile == null ? 0.0f : damagePolishProfile.CriticalChance;
+    }
+
+    // 데미지 폴리싱 프로필에서 강타 확률을 반환한다
+    private static float GetHeavyHitChance(TurretDamagePolishProfileSO damagePolishProfile)
+    {
+        return damagePolishProfile == null ? 0.0f : damagePolishProfile.HeavyHitChance;
     }
 
     // 템플릿의 중괄호 구간을 값으로 교체한다

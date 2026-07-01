@@ -20,7 +20,7 @@
 - `TurretUpgradePopupUI` 비용 슬롯은 `ResourceCost`와 `InventorySystem` 메타데이터를 사용해 재화 이름, 수량, 이미지를 표시한다.
 - `TurretUpgradePopupUI`의 `LowPanel/Evolution` 버튼은 직접 진화하지 않고 `TurretEvolutionPopupUI`를 열도록 라우팅한다.
 - `TurretEvolutionPopupUI`는 진화 분기 수에 따라 `MiddlePanel_A/B/C`를 전환하고, 현재 터렛/다음 후보 이미지와 이름, 후보별 진화 비용, 진화 실행 버튼을 표시한다.
-- `TurretDetailPopupUI`는 현재 터렛의 기본 상세 스탯을 읽기 전용으로 표시한다.
+- `TurretDetailPopupUI`는 현재 터렛의 기본 상세 스탯과 `TurretDamagePolishProfileSO` 기반 치명타/강타 확률을 읽기 전용으로 표시한다.
 - `TurretSkillPopupUI`는 아직 실제 기능 없이 준비 중 상태를 담당한다.
 - 모든 하위 팝업의 `BackButton`은 선택 팝업으로 돌아가는 방향으로 정리 중이다.
 
@@ -135,4 +135,5 @@
 - `TurretUpgradePopupUI`에서 현재/다음 수치 TMP, 변화량 TMP, 재화 이름/수량/이미지, Back/Upgrade/Evolution 버튼 연결 확인.
 - `TurretEvolutionPopupUI`에서 `MiddlePanel_A/B/C`, 현재/다음 터렛 이미지, 후보 프레임 이미지, 재화 이름/수량/이미지, Back/X/Evolution 버튼 연결 확인.
 - `TurretEvolutionPopupUI`에서 후보 이미지 클릭 시 진화가 즉시 실행되지 않고 비용 표시와 선택 프레임만 바뀌는지 확인.
+- `TurretDetailPopupUI`에서 `CriticalChance`, `HeavyHitChance` TMP가 현재 터렛의 Damage Polish Profile 확률을 백분율로 표시하는지 확인.
 - `TurretSelectionUIController`에서 Select/Upgrade/Detail/Evolution Popup 참조 확인.

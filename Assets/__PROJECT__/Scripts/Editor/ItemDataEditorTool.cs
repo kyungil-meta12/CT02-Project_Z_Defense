@@ -1539,7 +1539,7 @@ public class ItemDataEditorTool : EditorWindow
             }
 
             ItemCraftData item = craftItems[i];
-            builder.Append(FormatEnumValue(item.Type));
+            builder.Append(item.Type.ToString());
             builder.Append(':');
             builder.Append(Mathf.Max(0, item.Count));
         }
@@ -1566,7 +1566,7 @@ public class ItemDataEditorTool : EditorWindow
             ItemDecomposeData item = decomposeItems[i];
             int min = Mathf.Max(0, item.Min);
             int max = Mathf.Max(min, item.Max);
-            builder.Append(FormatEnumValue(item.Type));
+            builder.Append(item.Type.ToString());
             builder.Append(':');
             builder.Append(min);
             builder.Append('~');

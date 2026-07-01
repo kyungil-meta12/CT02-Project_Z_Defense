@@ -13,13 +13,12 @@ MonoBehaviour:
   m_Name: Coin_ItemMetaData
   m_EditorClassIdentifier: Assembly-CSharp::ItemMetaDataSo
   Type: 0
-  Grade: 4
+  Grade: 0
   Createable: 0
   CountPerCraft: 0
   ItemsToCreate: []
   Decomposable: 0
   ItemsFromDecompose: []
-  Name: "\uCF54\uC778"
-  InfoText: "\uC880\uBE44 \uC0AC\uD0DC \uC774\uC804\uC5D0 \uC0AC\uC6A9\uB418\uB358
-    \uD654\uD3D0."
+  Name: 
+  InfoText: 
   ItemImage: {fileID: 21300000, guid: f7a01888466e6254e8552b137e14190b, type: 3}

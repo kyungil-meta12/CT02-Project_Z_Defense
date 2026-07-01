@@ -187,6 +187,11 @@ public class InventoryUI : MonoBehaviour
         {
             contentDict.Add(c.Type, c);
         }
+    }
+
+    void Start()
+    {
+        InventorySystem.Inst.OnItemCountChange += OnItemValueChanged;
 
         // 인벤토리 셀 생성
         var invenContent = GetContentObject(ContentType.Inventory);
@@ -283,11 +288,6 @@ public class InventoryUI : MonoBehaviour
 
         // 인벤토리 UI 숨기기
         OnCloseInventory();
-    }
-
-    void Start()
-    {
-        InventorySystem.Inst.OnItemCountChange += OnItemValueChanged;
     }
 
     void OnDestroy()

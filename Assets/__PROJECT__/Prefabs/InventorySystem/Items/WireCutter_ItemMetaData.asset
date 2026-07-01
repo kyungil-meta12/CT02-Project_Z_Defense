@@ -12,11 +12,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5f9efc74f895b2d48bb9a9671cba3cd2, type: 3}
   m_Name: WireCutter_ItemMetaData
   m_EditorClassIdentifier: Assembly-CSharp::ItemMetaDataSo
-  Type: 45
+  Type: 47
   Grade: 3
-  Createable: 0
-  CountPerCraft: 0
-  ItemsToCreate: []
+  Createable: 1
+  CountPerCraft: 1
+  ItemsToCreate:
+  - Type: 13
+    Count: 5
+  - Type: 14
+    Count: 5
   Decomposable: 0
   ItemsFromDecompose: []
   Name: "\uC640\uC774\uC5B4 \uCEE4\uD130"

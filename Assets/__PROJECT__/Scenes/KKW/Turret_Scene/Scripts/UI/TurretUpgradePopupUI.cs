@@ -1,7 +1,7 @@
 using TMPro;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
-using System.Text;
 using UnityEngine.Events;
 
 /// <summary>
@@ -10,8 +10,16 @@ using UnityEngine.Events;
 public class TurretUpgradePopupUI : TurretPopupPageUI
 {
     private const int LEVEL_UP_AMOUNT = 1;
+    private const float HOLD_UPGRADE_START_DELAY = 0.5f;
+    private const float HOLD_UPGRADE_RAMP_DURATION = 1.0f;
+    private const float HOLD_UPGRADE_START_RATE = 4.0f;
+    private const float HOLD_UPGRADE_MAX_RATE = 60.0f;
+    private const string POSITIVE_DELTA_PLUS_TEXT = "<color=#FF4040>+</color>";
+    private const string INSUFFICIENT_COST_COLOR = "#FF4040";
+    private const string UPGRADE_BACKGROUND_PATH = "TurretUpgradePopupBackground";
 
     [Header("레벨 표시")]
+    [SerializeField] private TMP_Text currentTurretNameText;
     [SerializeField] private TMP_Text currentTurretLevelText;
     [SerializeField] private TMP_Text nextTurretLevelText;
 
@@ -19,30 +27,60 @@ public class TurretUpgradePopupUI : TurretPopupPageUI
     [SerializeField] private TMP_Text currentDpsText;
     [SerializeField] private TMP_Text currentFireRateText;
     [SerializeField] private TMP_Text currentRangeText;
+    [SerializeField] private TMP_Text currentPierceText;
 
     [Header("다음 수치")]
     [SerializeField] private TMP_Text nextDpsText;
     [SerializeField] private TMP_Text nextFireRateText;
     [SerializeField] private TMP_Text nextRangeText;
+    [SerializeField] private TMP_Text nextPierceText;
 
     [Header("변화량")]
     [SerializeField] private TMP_Text dpsDeltaText;
     [SerializeField] private TMP_Text fireRateDeltaText;
     [SerializeField] private TMP_Text rangeDeltaText;
+    [SerializeField] private TMP_Text pierceDeltaText;
+
+    [Header("터렛 이미지")]
+    [SerializeField] private Image turretImage;
 
     [Header("필요 재화")]
-    [SerializeField] private TMP_Text requireResourceText;
     [SerializeField] private TMP_Text[] resourceItemNameTexts = System.Array.Empty<TMP_Text>();
     [SerializeField] private TMP_Text[] resourceItemCountTexts = System.Array.Empty<TMP_Text>();
     [SerializeField] private Image[] resourceItemImages = System.Array.Empty<Image>();
+    [SerializeField] private Sprite[] resourceItemDefaultSprites = System.Array.Empty<Sprite>();
 
     [Header("버튼")]
     [SerializeField] private Button upgradeCloseButton;
     [SerializeField] private Button upgradeBackButton;
     [SerializeField] private Button upgradeButton;
     [SerializeField] private Button evolutionButton;
-    [SerializeField] private TMP_Text upgradeButtonText;
-    [SerializeField] private TMP_Text evolutionButtonText;
+
+    private string currentTurretNameTextTemplate;
+    private string currentLevelTextTemplate;
+    private string nextLevelTextTemplate;
+    private string currentDpsTextTemplate;
+    private string currentFireRateTextTemplate;
+    private string currentRangeTextTemplate;
+    private string currentPierceTextTemplate;
+    private string nextDpsTextTemplate;
+    private string nextFireRateTextTemplate;
+    private string nextRangeTextTemplate;
+    private string nextPierceTextTemplate;
+    private string dpsDeltaTextTemplate;
+    private string fireRateDeltaTextTemplate;
+    private string rangeDeltaTextTemplate;
+    private string pierceDeltaTextTemplate;
+    private EventTrigger upgradeButtonEventTrigger;
+    private EventTrigger.Entry upgradePointerDownEntry;
+    private EventTrigger.Entry upgradePointerUpEntry;
+    private EventTrigger.Entry upgradePointerExitEntry;
+    private EventTrigger.Entry upgradeCancelEntry;
+    private bool isUpgradeHolding;
+    private bool hasUpgradeHoldRepeatStarted;
+    private float upgradeHoldElapsedTime;
+    private float upgradeHoldRepeatElapsedTime;
+    private float upgradeHoldAccumulator;
 
     public event UnityAction EvolutionPopupRequested;
 
@@ -53,22 +91,75 @@ public class TurretUpgradePopupUI : TurretPopupPageUI
     }
 
     // 활성화 준비 시 버튼 이벤트와 하위 참조를 준비한다
-    private void Awake()
+    protected override void Awake()
     {
+        base.Awake();
         BindChildReferences();
+        CacheTextTemplates();
         BindButtonListeners();
     }
 
     // 파괴 시 버튼 이벤트를 해제한다
-    private void OnDestroy()
+    protected override void OnDestroy()
     {
         UnbindButtonListeners();
+        base.OnDestroy();
+    }
+
+    // 비활성화 시 누르고 있는 업그레이드 입력을 중단한다
+    private void OnDisable()
+    {
+        StopUpgradeHold();
+    }
+
+    // 누르고 있는 동안 업그레이드 반복 속도를 점진적으로 증가시킨다
+    private void Update()
+    {
+        if (!isUpgradeHolding)
+        {
+            return;
+        }
+
+        if (!CanProcessUpgradeInput())
+        {
+            StopUpgradeHold();
+            return;
+        }
+
+        upgradeHoldElapsedTime += Time.unscaledDeltaTime;
+        if (!hasUpgradeHoldRepeatStarted)
+        {
+            if (upgradeHoldElapsedTime < HOLD_UPGRADE_START_DELAY)
+            {
+                return;
+            }
+
+            hasUpgradeHoldRepeatStarted = true;
+            upgradeHoldRepeatElapsedTime = 0.0f;
+            upgradeHoldAccumulator = 0.0f;
+        }
+
+        upgradeHoldRepeatElapsedTime += Time.unscaledDeltaTime;
+        float upgradeRate = Mathf.Lerp(HOLD_UPGRADE_START_RATE, HOLD_UPGRADE_MAX_RATE, Mathf.Clamp01(upgradeHoldRepeatElapsedTime / HOLD_UPGRADE_RAMP_DURATION));
+        float upgradeInterval = 1.0f / upgradeRate;
+        upgradeHoldAccumulator += Time.unscaledDeltaTime;
+
+        while (upgradeHoldAccumulator >= upgradeInterval)
+        {
+            upgradeHoldAccumulator -= upgradeInterval;
+            if (!TryUpgradeOnce())
+            {
+                StopUpgradeHold();
+                return;
+            }
+        }
     }
 
     // 선택된 터렛의 업그레이드 팝업 기본 안내를 표시한다
     public override void Show(TurretSelectionContext context)
     {
         base.Show(context);
+        CacheTextTemplates();
         RefreshUpgradeTexts();
     }
 
@@ -77,39 +168,35 @@ public class TurretUpgradePopupUI : TurretPopupPageUI
     public void BindChildReferences()
     {
         Transform searchRoot = transform;
-        currentTurretLevelText = currentTurretLevelText != null ? currentTurretLevelText : FindChildComponent<TMP_Text>(searchRoot, "TurretSelectPopupBackground/HighPanel/CurrentTurretFrame/CurrentTurretLevel");
-        nextTurretLevelText = nextTurretLevelText != null ? nextTurretLevelText : FindChildComponent<TMP_Text>(searchRoot, "TurretSelectPopupBackground/HighPanel/NextTurretFrame/NextTurretLevel");
-        currentDpsText = currentDpsText != null ? currentDpsText : FindChildComponent<TMP_Text>(searchRoot, "TurretSelectPopupBackground/MiddlePanel/DeltaDetailInfoPanel/DPS");
-        currentFireRateText = currentFireRateText != null ? currentFireRateText : FindChildComponent<TMP_Text>(searchRoot, "TurretSelectPopupBackground/MiddlePanel/DeltaDetailInfoPanel/FireRate");
-        currentRangeText = currentRangeText != null ? currentRangeText : FindChildComponent<TMP_Text>(searchRoot, "TurretSelectPopupBackground/MiddlePanel/DeltaDetailInfoPanel/Range");
-        nextDpsText = nextDpsText != null ? nextDpsText : FindChildComponent<TMP_Text>(searchRoot, "TurretSelectPopupBackground/MiddlePanel/DeltaDetailInfoPanel/NextDPS");
-        nextFireRateText = nextFireRateText != null ? nextFireRateText : FindChildComponent<TMP_Text>(searchRoot, "TurretSelectPopupBackground/MiddlePanel/DeltaDetailInfoPanel/NextFireRate");
-        nextRangeText = nextRangeText != null ? nextRangeText : FindChildComponent<TMP_Text>(searchRoot, "TurretSelectPopupBackground/MiddlePanel/DeltaDetailInfoPanel/NextRange");
-        dpsDeltaText = dpsDeltaText != null ? dpsDeltaText : FindChildComponent<TMP_Text>(searchRoot, "TurretSelectPopupBackground/MiddlePanel/DeltaDetailInfoPanel/DPSDelta");
-        fireRateDeltaText = fireRateDeltaText != null ? fireRateDeltaText : FindChildComponent<TMP_Text>(searchRoot, "TurretSelectPopupBackground/MiddlePanel/DeltaDetailInfoPanel/FireRateDelta");
-        rangeDeltaText = rangeDeltaText != null ? rangeDeltaText : FindChildComponent<TMP_Text>(searchRoot, "TurretSelectPopupBackground/MiddlePanel/DeltaDetailInfoPanel/RangeDelta");
-        requireResourceText = requireResourceText != null ? requireResourceText : FindChildComponent<TMP_Text>(searchRoot, "TurretSelectPopupBackground/MiddlePanel/DeltaDetailInfoPanel/RequireResorce");
-        upgradeCloseButton = upgradeCloseButton != null ? upgradeCloseButton : FindFirstChildComponent<Button>(searchRoot, "TurretSelectPopupBackground/HighPanel/CloseFrame/CloseButton", "TurretSelectPopupBackground/HighPanel/ExitFrame/Button");
-        upgradeBackButton = upgradeBackButton != null ? upgradeBackButton : FindChildComponent<Button>(searchRoot, "TurretSelectPopupBackground/LowPanel/BackButtonFrame/BackButton");
-        upgradeButton = upgradeButton != null ? upgradeButton : FindChildComponent<Button>(searchRoot, "TurretSelectPopupBackground/LowPanel/UpgradeFrame/Upgrade");
-        evolutionButton = evolutionButton != null ? evolutionButton : FindFirstChildComponent<Button>(searchRoot, "TurretSelectPopupBackground/LowPanel/Evolution", "TurretSelectPopupBackground/LowPanel/EvolutionFrame/Evolution", "TurretSelectPopupBackground/LowPanel/EvolutionFrame/EvolutionTextFrame", "TurretSelectPopupBackground/LowPanel/SkillFrame/Skill");
-        upgradeButtonText = upgradeButtonText != null ? upgradeButtonText : upgradeButton == null ? null : upgradeButton.GetComponentInChildren<TMP_Text>(true);
-        evolutionButtonText = evolutionButtonText != null ? evolutionButtonText : evolutionButton == null ? null : evolutionButton.GetComponentInChildren<TMP_Text>(true);
+        currentTurretNameText = currentTurretNameText != null ? currentTurretNameText : FindFirstPopupComponent<TMP_Text>(searchRoot, "HighPanel/CurrentTurretFrame/CurrentTurretName");
+        currentTurretLevelText = currentTurretLevelText != null ? currentTurretLevelText : FindFirstPopupComponent<TMP_Text>(searchRoot, "HighPanel/CurrentTurretFrame/CurrentTurretLevel");
+        nextTurretLevelText = nextTurretLevelText != null ? nextTurretLevelText : FindFirstPopupComponent<TMP_Text>(searchRoot, "HighPanel/NextTurretFrame/NextTurretLevel");
+        currentDpsText = currentDpsText != null ? currentDpsText : FindFirstPopupComponent<TMP_Text>(searchRoot, "MiddlePanel/DeltaDetailInfoPanel/DPS");
+        currentFireRateText = currentFireRateText != null ? currentFireRateText : FindFirstPopupComponent<TMP_Text>(searchRoot, "MiddlePanel/DeltaDetailInfoPanel/FireRate");
+        currentRangeText = currentRangeText != null ? currentRangeText : FindFirstPopupComponent<TMP_Text>(searchRoot, "MiddlePanel/DeltaDetailInfoPanel/Range");
+        currentPierceText = currentPierceText != null ? currentPierceText : FindFirstPopupComponent<TMP_Text>(searchRoot, "MiddlePanel/DeltaDetailInfoPanel/Pierce");
+        nextDpsText = nextDpsText != null ? nextDpsText : FindFirstPopupComponent<TMP_Text>(searchRoot, "MiddlePanel/DeltaDetailInfoPanel/NextDPS");
+        nextFireRateText = nextFireRateText != null ? nextFireRateText : FindFirstPopupComponent<TMP_Text>(searchRoot, "MiddlePanel/DeltaDetailInfoPanel/NextFireRate");
+        nextRangeText = nextRangeText != null ? nextRangeText : FindFirstPopupComponent<TMP_Text>(searchRoot, "MiddlePanel/DeltaDetailInfoPanel/NextRange");
+        nextPierceText = nextPierceText != null ? nextPierceText : FindFirstPopupComponent<TMP_Text>(searchRoot, "MiddlePanel/DeltaDetailInfoPanel/NextPierce");
+        dpsDeltaText = dpsDeltaText != null ? dpsDeltaText : FindFirstPopupComponent<TMP_Text>(searchRoot, "MiddlePanel/DeltaDetailInfoPanel/DPSDelta");
+        fireRateDeltaText = fireRateDeltaText != null ? fireRateDeltaText : FindFirstPopupComponent<TMP_Text>(searchRoot, "MiddlePanel/DeltaDetailInfoPanel/FireRateDelta");
+        rangeDeltaText = rangeDeltaText != null ? rangeDeltaText : FindFirstPopupComponent<TMP_Text>(searchRoot, "MiddlePanel/DeltaDetailInfoPanel/RangeDelta");
+        pierceDeltaText = pierceDeltaText != null ? pierceDeltaText : FindFirstPopupComponent<TMP_Text>(searchRoot, "MiddlePanel/DeltaDetailInfoPanel/PierceDelta");
+        turretImage = ResolveTurretIconImage(searchRoot, turretImage);
+        upgradeCloseButton = upgradeCloseButton != null ? upgradeCloseButton : FindFirstPopupComponent<Button>(searchRoot, "HighPanel/CloseFrame/CloseButton", "HighPanel/ExitFrame/Button");
+        upgradeBackButton = upgradeBackButton != null ? upgradeBackButton : FindFirstPopupComponent<Button>(searchRoot, "LowPanel/BackButtonFrame/BackButton");
+        upgradeCloseButton = upgradeCloseButton != null ? upgradeCloseButton : CloseButton;
+        upgradeBackButton = upgradeBackButton != null ? upgradeBackButton : BackButton;
+        upgradeButton = upgradeButton != null ? upgradeButton : FindFirstPopupComponent<Button>(searchRoot, "LowPanel/UpgradeFrame/Upgrade");
+        evolutionButton = evolutionButton != null ? evolutionButton : FindFirstPopupComponent<Button>(searchRoot, "LowPanel/Evolution", "LowPanel/EvolutionFrame/Evolution", "LowPanel/EvolutionFrame/EvolutionTextFrame", "LowPanel/SkillFrame/Skill");
         BindResourceSlotReferences(searchRoot);
     }
 
     // 업그레이드 버튼 입력으로 현재 터렛을 1레벨 업그레이드한다
     public void OnUpgradeButtonClicked()
     {
-        if (!CurrentContext.IsValid)
-        {
-            return;
-        }
-
-        if (CurrentContext.Turret.TryUpgrade(LEVEL_UP_AMOUNT))
-        {
-            RefreshUpgradeTexts();
-        }
+        TryUpgradeOnce();
     }
 
     // 진화 버튼 입력으로 첫 번째 진화 후보를 실행한다
@@ -153,25 +240,126 @@ public class TurretUpgradePopupUI : TurretPopupPageUI
         bool canShowUpgrade = nextLevel > currentLevel && !turret.IsMaxTierLevelReached;
         bool hasEvolution = turret.GetAvailableEvolutionCount() > 0;
 
-        SetText(currentTurretLevelText, $"Lv. {currentLevel}");
-        SetText(nextTurretLevelText, canShowUpgrade ? $"Lv. {nextLevel}" : "MAX");
+        SetText(currentTurretNameText, ApplyTemplate(currentTurretNameTextTemplate, CurrentContext.GetDisplayName()));
+        SetText(currentTurretLevelText, ApplyTemplate(currentLevelTextTemplate, currentLevel.ToString()));
+        SetText(nextTurretLevelText, ApplyTemplate(nextLevelTextTemplate, canShowUpgrade ? nextLevel.ToString() : "MAX"));
+        SetTurretImage(turret.CurrentTurretDefinition);
         SetStatTexts(currentStat, nextStat);
         SetDeltaTexts(currentStat, nextStat, canShowUpgrade);
         SetCostTexts(upgradeCosts);
         SetInteractable(canShowUpgrade && turret.CanUpgrade(LEVEL_UP_AMOUNT), hasEvolution);
-        SetText(upgradeButtonText, canShowUpgrade ? "업그레이드" : "최대 레벨");
-        SetText(evolutionButtonText, hasEvolution ? "진화" : "Lv.100 필요");
+    }
+
+    // TMP 원문 템플릿을 보관해 괄호와 고정 문구를 유지한다
+    private void CacheTextTemplates()
+    {
+        EnableDeltaRichText();
+
+        if (currentTurretNameText != null && string.IsNullOrEmpty(currentTurretNameTextTemplate))
+        {
+            currentTurretNameTextTemplate = currentTurretNameText.text;
+        }
+
+        if (currentTurretLevelText != null && string.IsNullOrEmpty(currentLevelTextTemplate))
+        {
+            currentLevelTextTemplate = currentTurretLevelText.text;
+        }
+
+        if (nextTurretLevelText != null && string.IsNullOrEmpty(nextLevelTextTemplate))
+        {
+            nextLevelTextTemplate = nextTurretLevelText.text;
+        }
+
+        if (currentDpsText != null && string.IsNullOrEmpty(currentDpsTextTemplate))
+        {
+            currentDpsTextTemplate = currentDpsText.text;
+        }
+
+        if (currentFireRateText != null && string.IsNullOrEmpty(currentFireRateTextTemplate))
+        {
+            currentFireRateTextTemplate = currentFireRateText.text;
+        }
+
+        if (currentRangeText != null && string.IsNullOrEmpty(currentRangeTextTemplate))
+        {
+            currentRangeTextTemplate = currentRangeText.text;
+        }
+
+        if (currentPierceText != null && string.IsNullOrEmpty(currentPierceTextTemplate))
+        {
+            currentPierceTextTemplate = currentPierceText.text;
+        }
+
+        if (nextDpsText != null && string.IsNullOrEmpty(nextDpsTextTemplate))
+        {
+            nextDpsTextTemplate = nextDpsText.text;
+        }
+
+        if (nextFireRateText != null && string.IsNullOrEmpty(nextFireRateTextTemplate))
+        {
+            nextFireRateTextTemplate = nextFireRateText.text;
+        }
+
+        if (nextRangeText != null && string.IsNullOrEmpty(nextRangeTextTemplate))
+        {
+            nextRangeTextTemplate = nextRangeText.text;
+        }
+
+        if (nextPierceText != null && string.IsNullOrEmpty(nextPierceTextTemplate))
+        {
+            nextPierceTextTemplate = nextPierceText.text;
+        }
+
+        if (dpsDeltaText != null && string.IsNullOrEmpty(dpsDeltaTextTemplate))
+        {
+            dpsDeltaTextTemplate = dpsDeltaText.text;
+        }
+
+        if (fireRateDeltaText != null && string.IsNullOrEmpty(fireRateDeltaTextTemplate))
+        {
+            fireRateDeltaTextTemplate = fireRateDeltaText.text;
+        }
+
+        if (rangeDeltaText != null && string.IsNullOrEmpty(rangeDeltaTextTemplate))
+        {
+            rangeDeltaTextTemplate = rangeDeltaText.text;
+        }
+
+        if (pierceDeltaText != null && string.IsNullOrEmpty(pierceDeltaTextTemplate))
+        {
+            pierceDeltaTextTemplate = pierceDeltaText.text;
+        }
+    }
+
+    // 델타 텍스트의 색상 태그가 표시되도록 Rich Text를 켠다
+    private void EnableDeltaRichText()
+    {
+        EnableRichText(dpsDeltaText);
+        EnableRichText(fireRateDeltaText);
+        EnableRichText(rangeDeltaText);
+        EnableRichText(pierceDeltaText);
+    }
+
+    // 텍스트 참조가 있을 때 Rich Text 옵션을 활성화한다
+    private static void EnableRichText(TMP_Text targetText)
+    {
+        if (targetText != null)
+        {
+            targetText.richText = true;
+        }
     }
 
     // 현재와 다음 스탯 수치를 각각 텍스트에 반영한다
     private void SetStatTexts(TurretRuntimeStat currentStat, TurretRuntimeStat nextStat)
     {
-        SetText(currentDpsText, FormatDps(currentStat));
-        SetText(currentFireRateText, FormatValue(currentStat.fireInterval));
-        SetText(currentRangeText, FormatValue(currentStat.range));
-        SetText(nextDpsText, FormatDps(nextStat));
-        SetText(nextFireRateText, FormatValue(nextStat.fireInterval));
-        SetText(nextRangeText, FormatValue(nextStat.range));
+        SetText(currentDpsText, ApplyTemplate(currentDpsTextTemplate, FormatDps(currentStat)));
+        SetText(currentFireRateText, ApplyTemplate(currentFireRateTextTemplate, FormatValue(currentStat.fireInterval)));
+        SetText(currentRangeText, ApplyTemplate(currentRangeTextTemplate, FormatValue(currentStat.range)));
+        SetText(currentPierceText, ApplyTemplate(currentPierceTextTemplate, currentStat.pierceCount.ToString()));
+        SetText(nextDpsText, ApplyTemplate(nextDpsTextTemplate, FormatDps(nextStat)));
+        SetText(nextFireRateText, ApplyTemplate(nextFireRateTextTemplate, FormatValue(nextStat.fireInterval)));
+        SetText(nextRangeText, ApplyTemplate(nextRangeTextTemplate, FormatValue(nextStat.range)));
+        SetText(nextPierceText, ApplyTemplate(nextPierceTextTemplate, nextStat.pierceCount.ToString()));
     }
 
     // 현재 대비 다음 스탯의 변화량을 퍼센트 텍스트에 반영한다
@@ -182,19 +370,26 @@ public class TurretUpgradePopupUI : TurretPopupPageUI
             SetText(dpsDeltaText, "-");
             SetText(fireRateDeltaText, "-");
             SetText(rangeDeltaText, "-");
+            SetText(pierceDeltaText, "-");
             return;
         }
 
-        SetText(dpsDeltaText, FormatDeltaPercent(CalculateDps(currentStat), CalculateDps(nextStat)));
-        SetText(fireRateDeltaText, FormatDeltaPercent(currentStat.fireInterval, nextStat.fireInterval));
-        SetText(rangeDeltaText, FormatDeltaPercent(currentStat.range, nextStat.range));
+        SetText(dpsDeltaText, FormatDeltaPercentText(dpsDeltaTextTemplate, CalculateDps(currentStat), CalculateDps(nextStat)));
+        SetText(fireRateDeltaText, FormatDeltaPercentText(fireRateDeltaTextTemplate, currentStat.fireInterval, nextStat.fireInterval));
+        SetText(rangeDeltaText, FormatDeltaPercentText(rangeDeltaTextTemplate, currentStat.range, nextStat.range));
+        SetText(pierceDeltaText, FormatDeltaIntegerText(pierceDeltaTextTemplate, currentStat.pierceCount, nextStat.pierceCount));
+    }
+
+    // 현재 터렛 정의에 연결된 UI 이미지를 팝업에 반영한다
+    private void SetTurretImage(TurretDefinitionSO definition)
+    {
+        Sprite sprite = definition == null ? null : definition.uiIcon;
+        SetTurretIconImage(turretImage, sprite);
     }
 
     // 업그레이드 필요 재화를 텍스트와 개별 슬롯에 반영한다
     private void SetCostTexts(ResourceCost[] costs)
     {
-        SetText(requireResourceText, FormatCosts(costs));
-
         if (costs == null)
         {
             ClearResourceSlots(0);
@@ -211,8 +406,10 @@ public class TurretUpgradePopupUI : TurretPopupPageUI
                 continue;
             }
 
+            TMP_Text countText = GetTextAt(resourceItemCountTexts, visibleIndex);
+            EnableRichText(countText);
             SetText(GetTextAt(resourceItemNameTexts, visibleIndex), GetCurrencyDisplayName(cost.currencyType));
-            SetText(GetTextAt(resourceItemCountTexts, visibleIndex), cost.amount.ToString());
+            SetText(countText, FormatCostAmountText(cost));
             SetImage(GetImageAt(resourceItemImages, visibleIndex), GetCurrencySprite(cost.currencyType));
             visibleIndex++;
         }
@@ -239,19 +436,19 @@ public class TurretUpgradePopupUI : TurretPopupPageUI
     {
         UnbindButtonListeners();
 
-        if (upgradeCloseButton != null)
+        if (upgradeCloseButton != null && upgradeCloseButton != CloseButton)
         {
             upgradeCloseButton.onClick.AddListener(OnCloseButtonClicked);
         }
 
-        if (upgradeBackButton != null)
+        if (upgradeBackButton != null && upgradeBackButton != BackButton)
         {
             upgradeBackButton.onClick.AddListener(OnBackButtonClicked);
         }
 
         if (upgradeButton != null)
         {
-            upgradeButton.onClick.AddListener(OnUpgradeButtonClicked);
+            BindUpgradeHoldListeners();
         }
 
         if (evolutionButton != null)
@@ -263,19 +460,19 @@ public class TurretUpgradePopupUI : TurretPopupPageUI
     // 버튼 클릭 이벤트를 해제한다
     private void UnbindButtonListeners()
     {
-        if (upgradeCloseButton != null)
+        if (upgradeCloseButton != null && upgradeCloseButton != CloseButton)
         {
             upgradeCloseButton.onClick.RemoveListener(OnCloseButtonClicked);
         }
 
-        if (upgradeBackButton != null)
+        if (upgradeBackButton != null && upgradeBackButton != BackButton)
         {
             upgradeBackButton.onClick.RemoveListener(OnBackButtonClicked);
         }
 
         if (upgradeButton != null)
         {
-            upgradeButton.onClick.RemoveListener(OnUpgradeButtonClicked);
+            UnbindUpgradeHoldListeners();
         }
 
         if (evolutionButton != null)
@@ -284,40 +481,166 @@ public class TurretUpgradePopupUI : TurretPopupPageUI
         }
     }
 
+    // 업그레이드 버튼의 길게 누르기 포인터 이벤트를 등록한다
+    private void BindUpgradeHoldListeners()
+    {
+        if (upgradeButton == null)
+        {
+            return;
+        }
+
+        UnbindUpgradeHoldListeners();
+        upgradeButtonEventTrigger = upgradeButton.GetComponent<EventTrigger>();
+        if (upgradeButtonEventTrigger == null)
+        {
+            upgradeButtonEventTrigger = upgradeButton.gameObject.AddComponent<EventTrigger>();
+        }
+
+        upgradePointerDownEntry = CreateUpgradeHoldEntry(EventTriggerType.PointerDown, OnUpgradeHoldPointerDown);
+        upgradePointerUpEntry = CreateUpgradeHoldEntry(EventTriggerType.PointerUp, OnUpgradeHoldPointerUp);
+        upgradePointerExitEntry = CreateUpgradeHoldEntry(EventTriggerType.PointerExit, OnUpgradeHoldPointerExit);
+        upgradeCancelEntry = CreateUpgradeHoldEntry(EventTriggerType.Cancel, OnUpgradeHoldCancel);
+        upgradeButtonEventTrigger.triggers.Add(upgradePointerDownEntry);
+        upgradeButtonEventTrigger.triggers.Add(upgradePointerUpEntry);
+        upgradeButtonEventTrigger.triggers.Add(upgradePointerExitEntry);
+        upgradeButtonEventTrigger.triggers.Add(upgradeCancelEntry);
+    }
+
+    // 업그레이드 버튼의 길게 누르기 포인터 이벤트를 해제한다
+    private void UnbindUpgradeHoldListeners()
+    {
+        StopUpgradeHold();
+        if (upgradeButtonEventTrigger == null)
+        {
+            return;
+        }
+
+        RemoveUpgradeHoldEntry(upgradePointerDownEntry);
+        RemoveUpgradeHoldEntry(upgradePointerUpEntry);
+        RemoveUpgradeHoldEntry(upgradePointerExitEntry);
+        RemoveUpgradeHoldEntry(upgradeCancelEntry);
+        upgradePointerDownEntry = null;
+        upgradePointerUpEntry = null;
+        upgradePointerExitEntry = null;
+        upgradeCancelEntry = null;
+    }
+
+    // 업그레이드 버튼 EventTrigger 항목을 생성한다
+    private static EventTrigger.Entry CreateUpgradeHoldEntry(EventTriggerType eventType, UnityAction<BaseEventData> callback)
+    {
+        EventTrigger.Entry entry = new EventTrigger.Entry
+        {
+            eventID = eventType
+        };
+        entry.callback.AddListener(callback);
+        return entry;
+    }
+
+    // 등록된 업그레이드 버튼 EventTrigger 항목을 제거한다
+    private void RemoveUpgradeHoldEntry(EventTrigger.Entry entry)
+    {
+        if (upgradeButtonEventTrigger != null && entry != null)
+        {
+            upgradeButtonEventTrigger.triggers.Remove(entry);
+        }
+    }
+
+    // 업그레이드 버튼을 누르는 순간 1회 업그레이드하고 반복 입력을 시작한다
+    private void OnUpgradeHoldPointerDown(BaseEventData eventData)
+    {
+        if (!CanProcessUpgradeInput())
+        {
+            StopUpgradeHold();
+            return;
+        }
+
+        isUpgradeHolding = true;
+        hasUpgradeHoldRepeatStarted = false;
+        upgradeHoldElapsedTime = 0.0f;
+        upgradeHoldRepeatElapsedTime = 0.0f;
+        upgradeHoldAccumulator = 0.0f;
+        if (!TryUpgradeOnce())
+        {
+            StopUpgradeHold();
+        }
+    }
+
+    // 업그레이드 버튼에서 손을 뗄 때 반복 입력을 중단한다
+    private void OnUpgradeHoldPointerUp(BaseEventData eventData)
+    {
+        StopUpgradeHold();
+    }
+
+    // 업그레이드 버튼 밖으로 포인터가 나가면 반복 입력을 중단한다
+    private void OnUpgradeHoldPointerExit(BaseEventData eventData)
+    {
+        StopUpgradeHold();
+    }
+
+    // 업그레이드 입력이 취소되면 반복 입력을 중단한다
+    private void OnUpgradeHoldCancel(BaseEventData eventData)
+    {
+        StopUpgradeHold();
+    }
+
+    // 업그레이드 입력을 처리할 수 있는 상태인지 확인한다
+    private bool CanProcessUpgradeInput()
+    {
+        return CurrentContext.IsValid && upgradeButton != null && upgradeButton.interactable;
+    }
+
+    // 현재 터렛을 1회 업그레이드하고 UI를 갱신한다
+    private bool TryUpgradeOnce()
+    {
+        if (!CurrentContext.IsValid)
+        {
+            return false;
+        }
+
+        if (!CurrentContext.Turret.TryUpgrade(LEVEL_UP_AMOUNT))
+        {
+            RefreshUpgradeTexts();
+            return false;
+        }
+
+        RefreshUpgradeTexts();
+        return true;
+    }
+
+    // 누르고 있는 업그레이드 입력 상태를 초기화한다
+    private void StopUpgradeHold()
+    {
+        isUpgradeHolding = false;
+        hasUpgradeHoldRepeatStarted = false;
+        upgradeHoldElapsedTime = 0.0f;
+        upgradeHoldRepeatElapsedTime = 0.0f;
+        upgradeHoldAccumulator = 0.0f;
+    }
+
     // 개별 재화 이름, 수량, 이미지 배열을 하위 이름 패턴으로 구성한다
     private void BindResourceSlotReferences(Transform searchRoot)
     {
-        Transform resourcePanel = searchRoot.Find("TurretSelectPopupBackground/MiddlePanel/DeltaDetailInfoPanel/RequireResorce/ResorcePanel");
+        Transform resourcePanel = FindFirstPopupTransform(searchRoot, "MiddlePanel/DeltaDetailInfoPanel/RequireResorce/ResorcePanel");
         if (resourcePanel == null)
         {
             EnsureResourceArrays();
             return;
         }
 
-        if (resourceItemNameTexts == null || resourceItemNameTexts.Length == 0)
-        {
-            resourceItemNameTexts = FindTextsByName(resourcePanel, "ItemName");
-        }
+        int slotCount = resourcePanel.childCount;
+        resourceItemNameTexts = new TMP_Text[slotCount];
+        resourceItemCountTexts = new TMP_Text[slotCount];
+        resourceItemImages = new Image[slotCount];
+        resourceItemDefaultSprites = new Sprite[slotCount];
 
-        if (resourceItemCountTexts == null || resourceItemCountTexts.Length == 0)
+        for (int i = 0; i < slotCount; i++)
         {
-            resourceItemCountTexts = FindTextsByName(resourcePanel, "ItemCount");
-            if (resourceItemCountTexts.Length == 0)
-            {
-                resourceItemCountTexts = resourcePanel.GetComponentsInChildren<TMP_Text>(true);
-            }
+            Transform slotRoot = resourcePanel.GetChild(i);
+            resourceItemNameTexts[i] = FindDescendantTextByName(slotRoot, "ItemName");
+            resourceItemCountTexts[i] = FindDescendantTextByName(slotRoot, "ItemCount");
+            resourceItemImages[i] = FindResourceSlotIconImage(slotRoot, i + 1);
+            resourceItemDefaultSprites[i] = resourceItemImages[i] == null ? null : resourceItemImages[i].sprite;
         }
-
-        if (resourceItemImages == null || resourceItemImages.Length == 0)
-        {
-            resourceItemImages = FindImagesByName(resourcePanel, "ItemImage");
-            if (resourceItemImages.Length == 0)
-            {
-                resourceItemImages = FindImagesByName(resourcePanel, "Image");
-            }
-        }
-
-        EnsureResourceArrays();
     }
 
     // 다음 표시 레벨을 계산한다
@@ -353,46 +676,79 @@ public class TurretUpgradePopupUI : TurretPopupPageUI
         return value.ToString("0.##");
     }
 
-    // 변화량을 소수점 둘째 자리 퍼센트로 표시한다
-    private static string FormatDeltaPercent(float currentValue, float nextValue)
+    // 템플릿의 중괄호 구간을 값으로 교체한다
+    private static string ApplyTemplate(string template, string value)
     {
-        if (Mathf.Approximately(currentValue, 0.0f))
+        if (string.IsNullOrEmpty(template))
         {
-            return Mathf.Approximately(nextValue, 0.0f) ? "0.00%" : "+100.00%";
+            return value;
         }
 
-        float percent = (nextValue - currentValue) / Mathf.Abs(currentValue) * 100.0f;
-        return $"{percent:+0.00;-0.00;0.00}%";
+        int openIndex = template.IndexOf('{');
+        int closeIndex = template.IndexOf('}', openIndex + 1);
+        if (openIndex < 0 || closeIndex < 0 || closeIndex <= openIndex)
+        {
+            return value;
+        }
+
+        return template.Substring(0, openIndex) + value + template.Substring(closeIndex + 1);
     }
 
-    // 비용 배열을 UI 표시 문자열로 변환한다
-    private static string FormatCosts(ResourceCost[] costs)
+    // 변화량 퍼센트를 템플릿에 맞춰 표시한다
+    private static string FormatDeltaPercentText(string template, float currentValue, float nextValue)
     {
-        if (costs == null || costs.Length == 0)
+        float percent;
+        if (Mathf.Approximately(currentValue, 0.0f))
         {
-            return "필요 재화 없음";
+            percent = Mathf.Approximately(nextValue, 0.0f) ? 0.0f : 100.0f;
+        }
+        else
+        {
+            percent = (nextValue - currentValue) / Mathf.Abs(currentValue) * 100.0f;
         }
 
-        StringBuilder builder = new StringBuilder(64);
-        for (int i = 0; i < costs.Length; i++)
+        string value = percent > 0.0f ? percent.ToString("0.00") + "%" : percent.ToString("0.00") + "%";
+        return ApplySignedDeltaTemplate(template, value, percent > 0.0f);
+    }
+
+    // 정수 변화량을 템플릿에 맞춰 표시한다
+    private static string FormatDeltaIntegerText(string template, int currentValue, int nextValue)
+    {
+        int delta = nextValue - currentValue;
+        string value = Mathf.Abs(delta).ToString();
+        if (delta < 0)
         {
-            ResourceCost cost = costs[i];
-            if (cost == null || cost.amount <= 0)
-            {
-                continue;
-            }
-
-            if (builder.Length > 0)
-            {
-                builder.Append(" / ");
-            }
-
-            builder.Append(GetCurrencyDisplayName(cost.currencyType));
-            builder.Append(' ');
-            builder.Append(cost.amount);
+            value = delta.ToString();
         }
 
-        return builder.Length == 0 ? "필요 재화 없음" : builder.ToString();
+        return ApplySignedDeltaTemplate(template, value, delta > 0);
+    }
+
+    // 양수 변화량의 플러스 기호만 붉은색으로 표시한다
+    private static string ApplySignedDeltaTemplate(string template, string value, bool isPositive)
+    {
+        string signedValue = isPositive ? POSITIVE_DELTA_PLUS_TEXT + value : value;
+        if (string.IsNullOrEmpty(template))
+        {
+            return signedValue;
+        }
+
+        int openIndex = template.IndexOf('{');
+        int closeIndex = template.IndexOf('}', openIndex + 1);
+        if (openIndex < 0 || closeIndex < 0 || closeIndex <= openIndex)
+        {
+            return signedValue;
+        }
+
+        string prefix = template.Substring(0, openIndex);
+        string suffix = template.Substring(closeIndex + 1);
+        if (prefix.EndsWith("+"))
+        {
+            prefix = prefix.Substring(0, prefix.Length - 1);
+            signedValue = isPositive ? POSITIVE_DELTA_PLUS_TEXT + value : value;
+        }
+
+        return prefix + signedValue + suffix;
     }
 
     // 재화 타입을 UI 표시 이름으로 변환한다
@@ -440,10 +796,27 @@ public class TurretUpgradePopupUI : TurretPopupPageUI
         int slotCount = GetResourceSlotCount();
         for (int i = startIndex; i < slotCount; i++)
         {
-            SetText(GetTextAt(resourceItemNameTexts, i), string.Empty);
-            SetText(GetTextAt(resourceItemCountTexts, i), string.Empty);
-            SetImage(GetImageAt(resourceItemImages, i), null);
+            SetText(GetTextAt(resourceItemNameTexts, i), "-");
+            SetText(GetTextAt(resourceItemCountTexts, i), "-");
+            SetImage(GetImageAt(resourceItemImages, i), GetSpriteAt(resourceItemDefaultSprites, i));
         }
+    }
+
+    // 재화 보유량이 부족하면 보유량/필요량을 붉은색으로 표시한다
+    private static string FormatCostAmountText(ResourceCost cost)
+    {
+        if (cost == null)
+        {
+            return "-";
+        }
+
+        int requiredAmount = Mathf.Max(0, cost.amount);
+        if (InventorySystem.Inst != null && !InventorySystem.Inst.CanUseItem(cost.currencyType, requiredAmount))
+        {
+            return $"<color={INSUFFICIENT_COST_COLOR}>{InventorySystem.Inst.GetCountString(cost.currencyType)}/{requiredAmount}</color>";
+        }
+
+        return requiredAmount.ToString();
     }
 
     // 재화 슬롯 배열 중 사용할 수 있는 최대 슬롯 수를 반환한다
@@ -469,6 +842,7 @@ public class TurretUpgradePopupUI : TurretPopupPageUI
         resourceItemNameTexts = resourceItemNameTexts ?? System.Array.Empty<TMP_Text>();
         resourceItemCountTexts = resourceItemCountTexts ?? System.Array.Empty<TMP_Text>();
         resourceItemImages = resourceItemImages ?? System.Array.Empty<Image>();
+        resourceItemDefaultSprites = resourceItemDefaultSprites ?? System.Array.Empty<Sprite>();
     }
 
     // 지정 배열에서 안전하게 텍스트 참조를 얻는다
@@ -483,6 +857,12 @@ public class TurretUpgradePopupUI : TurretPopupPageUI
         return images != null && index >= 0 && index < images.Length ? images[index] : null;
     }
 
+    // 지정 배열에서 안전하게 기본 슬롯 스프라이트를 얻는다
+    private static Sprite GetSpriteAt(Sprite[] sprites, int index)
+    {
+        return sprites != null && index >= 0 && index < sprites.Length ? sprites[index] : null;
+    }
+
     // 이미지 참조에 스프라이트를 적용한다
     private static void SetImage(Image targetImage, Sprite sprite)
     {
@@ -493,6 +873,38 @@ public class TurretUpgradePopupUI : TurretPopupPageUI
 
         targetImage.sprite = sprite;
         targetImage.enabled = sprite != null;
+    }
+
+    // 터렛 대표 이미지를 현재 RectTransform 안에 비율 유지 방식으로 표시한다
+    private static void SetTurretIconImage(Image targetImage, Sprite sprite)
+    {
+        if (targetImage == null)
+        {
+            return;
+        }
+
+        targetImage.sprite = sprite;
+        targetImage.enabled = sprite != null;
+        targetImage.type = Image.Type.Simple;
+        targetImage.preserveAspect = true;
+        targetImage.color = Color.white;
+    }
+
+    // 현재 업그레이드 팝업 하위의 터렛 이미지 참조만 사용한다
+    private static Image ResolveTurretIconImage(Transform searchRoot, Image currentImage)
+    {
+        if (currentImage != null && currentImage.name != "TurretImageFrame" && currentImage.transform.IsChildOf(searchRoot))
+        {
+            return currentImage;
+        }
+
+        Image iconImage = FindFirstPopupComponent<Image>(searchRoot, "MiddlePanel/TurretImage", "MiddlePanel/TurretImageFrame/TurretImage");
+        if (iconImage != null)
+        {
+            return iconImage;
+        }
+
+        return null;
     }
 
     // 텍스트 참조가 있을 때만 문자열을 적용한다
@@ -516,17 +928,28 @@ public class TurretUpgradePopupUI : TurretPopupPageUI
         return child == null ? null : child.GetComponent<T>();
     }
 
-    // 여러 경로 중 처음 발견되는 하위 컴포넌트를 반환한다
-    private static T FindFirstChildComponent<T>(Transform searchRoot, params string[] childPaths) where T : Component
+    // 지정 경로의 하위 Transform을 찾는다
+    private static Transform FindChildTransform(Transform searchRoot, string childPath)
     {
-        if (childPaths == null)
+        if (searchRoot == null || string.IsNullOrWhiteSpace(childPath))
         {
             return null;
         }
 
-        for (int i = 0; i < childPaths.Length; i++)
+        return searchRoot.Find(childPath);
+    }
+
+    // UpgradePopup 배경명 기준으로 하위 컴포넌트를 찾는다
+    private static T FindFirstPopupComponent<T>(Transform searchRoot, params string[] relativePaths) where T : Component
+    {
+        if (relativePaths == null)
         {
-            T component = FindChildComponent<T>(searchRoot, childPaths[i]);
+            return null;
+        }
+
+        for (int i = 0; i < relativePaths.Length; i++)
+        {
+            T component = FindChildComponent<T>(searchRoot, UPGRADE_BACKGROUND_PATH + "/" + relativePaths[i]);
             if (component != null)
             {
                 return component;
@@ -536,84 +959,61 @@ public class TurretUpgradePopupUI : TurretPopupPageUI
         return null;
     }
 
-    // 하위 텍스트 중 이름에 지정 패턴이 포함된 항목을 반환한다
-    private static TMP_Text[] FindTextsByName(Transform root, string namePattern)
+    // UpgradePopup 배경명 기준으로 하위 Transform을 찾는다
+    private static Transform FindFirstPopupTransform(Transform searchRoot, string relativePath)
     {
-        if (root == null)
+        return FindChildTransform(searchRoot, UPGRADE_BACKGROUND_PATH + "/" + relativePath);
+    }
+
+    // 하위 텍스트 중 이름에 지정 패턴이 포함된 첫 항목을 반환한다
+    private static TMP_Text FindDescendantTextByName(Transform root, string namePattern)
+    {
+        if (root == null || string.IsNullOrEmpty(namePattern))
         {
-            return System.Array.Empty<TMP_Text>();
+            return null;
         }
 
         TMP_Text[] candidates = root.GetComponentsInChildren<TMP_Text>(true);
-        int count = CountMatches(candidates, namePattern);
-        if (count == 0)
-        {
-            return System.Array.Empty<TMP_Text>();
-        }
-
-        TMP_Text[] matches = new TMP_Text[count];
-        int writeIndex = 0;
         for (int i = 0; i < candidates.Length; i++)
         {
             TMP_Text candidate = candidates[i];
             if (candidate != null && candidate.name.Contains(namePattern))
             {
-                matches[writeIndex] = candidate;
-                writeIndex++;
+                return candidate;
             }
         }
 
-        return matches;
+        return null;
     }
 
-    // 하위 이미지 중 이름에 지정 패턴이 포함된 항목을 반환한다
-    private static Image[] FindImagesByName(Transform root, string namePattern)
+    // 슬롯 내부에서 비용 아이콘 이미지를 찾는다
+    private static Image FindResourceSlotIconImage(Transform slotRoot, int slotNumber)
     {
-        if (root == null)
+        if (slotRoot == null)
         {
-            return System.Array.Empty<Image>();
+            return null;
         }
 
-        Image[] candidates = root.GetComponentsInChildren<Image>(true);
-        int count = CountMatches(candidates, namePattern);
-        if (count == 0)
-        {
-            return System.Array.Empty<Image>();
-        }
-
-        Image[] matches = new Image[count];
-        int writeIndex = 0;
+        string numberedName = "Item " + slotNumber;
+        Image[] candidates = slotRoot.GetComponentsInChildren<Image>(true);
         for (int i = 0; i < candidates.Length; i++)
         {
             Image candidate = candidates[i];
-            if (candidate != null && candidate.name.Contains(namePattern))
+            if (candidate != null && candidate.name == numberedName)
             {
-                matches[writeIndex] = candidate;
-                writeIndex++;
+                return candidate;
             }
         }
 
-        return matches;
-    }
-
-    // 컴포넌트 배열에서 이름 패턴과 일치하는 개수를 센다
-    private static int CountMatches(Component[] candidates, string namePattern)
-    {
-        if (candidates == null || string.IsNullOrEmpty(namePattern))
-        {
-            return 0;
-        }
-
-        int count = 0;
         for (int i = 0; i < candidates.Length; i++)
         {
-            Component candidate = candidates[i];
-            if (candidate != null && candidate.name.Contains(namePattern))
+            Image candidate = candidates[i];
+            if (candidate != null && candidate.transform != slotRoot)
             {
-                count++;
+                return candidate;
             }
         }
 
-        return count;
+        return null;
     }
 }

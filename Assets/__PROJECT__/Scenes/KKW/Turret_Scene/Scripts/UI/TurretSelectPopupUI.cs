@@ -26,6 +26,9 @@ public class TurretSelectPopupUI : MonoBehaviour
     [SerializeField] private TMP_Text fireRateText;
     [SerializeField] private TMP_Text noteText;
 
+    [Header("터렛 이미지")]
+    [SerializeField] private Image turretImage;
+
     [Header("스킬 상태")]
     [SerializeField] private bool disableSkillButtonUntilImplemented = true;
 
@@ -48,6 +51,7 @@ public class TurretSelectPopupUI : MonoBehaviour
     private void Awake()
     {
         BindChildReferences();
+        EnsureBackgroundButton();
         CacheTextTemplates();
         BindButtonListeners();
     }
@@ -124,6 +128,24 @@ public class TurretSelectPopupUI : MonoBehaviour
         damageText = damageText != null ? damageText : FindChildComponent<TMP_Text>(searchRoot, "TurretSelectPopupBackground/MiddlePanel/Panel/DPS");
         fireRateText = fireRateText != null ? fireRateText : FindChildComponent<TMP_Text>(searchRoot, "TurretSelectPopupBackground/MiddlePanel/Panel/FireRate");
         noteText = noteText != null ? noteText : FindChildComponent<TMP_Text>(searchRoot, "TurretSelectPopupBackground/MiddlePanel/Panel/NoteFrame/Note");
+        turretImage = ResolveTurretIconImage(searchRoot, turretImage);
+    }
+
+    // 배경 클릭용 Button 컴포넌트가 없으면 표시 루트에서 보강한다
+    private void EnsureBackgroundButton()
+    {
+        if (backgroundButton != null)
+        {
+            return;
+        }
+
+        GameObject backgroundObject = popupRoot != null ? popupRoot : gameObject;
+        backgroundButton = backgroundObject.GetComponent<Button>();
+        if (backgroundButton == null)
+        {
+            backgroundButton = backgroundObject.AddComponent<Button>();
+            backgroundButton.transition = Selectable.Transition.None;
+        }
     }
 
     // 선택된 터렛의 간단 정보를 텍스트에 반영한다
@@ -154,6 +176,15 @@ public class TurretSelectPopupUI : MonoBehaviour
         {
             noteText.text = context.GetShortDescription();
         }
+
+        RefreshTurretImage(context.Definition);
+    }
+
+    // 선택된 터렛 정의에 연결된 UI 이미지를 반영한다
+    private void RefreshTurretImage(TurretDefinitionSO definition)
+    {
+        Sprite sprite = definition == null ? null : definition.uiIcon;
+        SetTurretIconImage(turretImage, sprite);
     }
 
     // TMP 원문 템플릿을 최초 한 번 보관한다
@@ -209,6 +240,37 @@ public class TurretSelectPopupUI : MonoBehaviour
         }
 
         return template.Substring(0, openIndex) + value + template.Substring(closeIndex + 1);
+    }
+
+    // 터렛 대표 이미지를 현재 RectTransform 안에 비율 유지 방식으로 표시한다
+    private static void SetTurretIconImage(Image targetImage, Sprite sprite)
+    {
+        if (targetImage == null)
+        {
+            return;
+        }
+
+        targetImage.sprite = sprite;
+        targetImage.enabled = sprite != null;
+        targetImage.type = Image.Type.Simple;
+        targetImage.preserveAspect = true;
+    }
+
+    // 현재 선택 팝업 하위의 터렛 이미지 참조만 사용한다
+    private static Image ResolveTurretIconImage(Transform searchRoot, Image currentImage)
+    {
+        if (currentImage != null && currentImage.name != "TurretImageFrame" && currentImage.transform.IsChildOf(searchRoot))
+        {
+            return currentImage;
+        }
+
+        Image iconImage = FindFirstChildComponent<Image>(searchRoot, "TurretSelectPopupBackground/MiddlePanel/TurretImage", "TurretSelectPopupBackground/MiddlePanel/TurretImageFrame/TurretImage");
+        if (iconImage != null)
+        {
+            return iconImage;
+        }
+
+        return null;
     }
 
     // 버튼 클릭 이벤트를 등록한다
@@ -281,5 +343,25 @@ public class TurretSelectPopupUI : MonoBehaviour
 
         Transform child = searchRoot.Find(childPath);
         return child == null ? null : child.GetComponent<T>();
+    }
+
+    // 여러 경로 중 처음 발견되는 하위 컴포넌트를 반환한다
+    private static T FindFirstChildComponent<T>(Transform searchRoot, params string[] childPaths) where T : Component
+    {
+        if (childPaths == null)
+        {
+            return null;
+        }
+
+        for (int i = 0; i < childPaths.Length; i++)
+        {
+            T component = FindChildComponent<T>(searchRoot, childPaths[i]);
+            if (component != null)
+            {
+                return component;
+            }
+        }
+
+        return null;
     }
 }

@@ -53,19 +53,19 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5939366483768426405, guid: 9d32345b9deefea468578454fed45729, type: 3}
       propertyPath: m_LocalRotation.w
-      value: 0.013407826
+      value: 0.004176169
       objectReference: {fileID: 0}
     - target: {fileID: 5939366483768426405, guid: 9d32345b9deefea468578454fed45729, type: 3}
       propertyPath: m_LocalRotation.x
-      value: 0.01202473
+      value: -0.01839648
       objectReference: {fileID: 0}
     - target: {fileID: 5939366483768426405, guid: 9d32345b9deefea468578454fed45729, type: 3}
       propertyPath: m_LocalRotation.y
-      value: 0.956693
+      value: 0.95658803
       objectReference: {fileID: 0}
     - target: {fileID: 5939366483768426405, guid: 9d32345b9deefea468578454fed45729, type: 3}
       propertyPath: m_LocalRotation.z
-      value: -0.29054138
+      value: -0.29083237
       objectReference: {fileID: 0}
     - target: {fileID: 5939366483768426405, guid: 9d32345b9deefea468578454fed45729, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
@@ -82,6 +82,10 @@ PrefabInstance:
     - target: {fileID: 6162691470817193601, guid: 9d32345b9deefea468578454fed45729, type: 3}
       propertyPath: m_Name
       value: RankDisplayRoot
+      objectReference: {fileID: 0}
+    - target: {fileID: 6162691470817193601, guid: 9d32345b9deefea468578454fed45729, type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -402,6 +406,7 @@ MonoBehaviour:
   beamPrefab: {fileID: 7663338732539269153, guid: 6a81ea742aa11bf4ba7ff915bed86c4c, type: 3}
   attackProfile: {fileID: 0}
   frostStatusProfile: {fileID: 0}
+  damagePolishProfile: {fileID: 0}
   beamVisibleDuration: 0.15
   minBeamDistance: 0.1
   targetValidationInterval: 0.1

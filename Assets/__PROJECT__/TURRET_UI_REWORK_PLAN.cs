@@ -155,8 +155,8 @@
  *   진화 팝업 이동 버튼의 1차 구조를 가진다.
  * - 업그레이드/진화 비용 슬롯은 ResourceCost와 InventorySystem 메타데이터를 기준으로
  *   재화 이름, 수량, 이미지를 표시하는 방향으로 정리했다.
- * - TurretEvolutionPopupUI를 추가했고, UpgradePopup의 Evolution 버튼에서 여는 구조를
- *   준비했다.
+ * - TurretEvolutionPopupUI를 추가했고, UpgradePopup의 Evolution 버튼에서 여는 구조로
+ *   연결했다.
  * - TurretDetailPopupUI와 TurretSkillPopupUI는 1차 표시/준비 중 상태까지 연결했다.
  * - 머지 이후 BottomBar 터렛 드래그 배치와 카메라 드래그 이동이 함께 멈춘 문제를
  *   진단했다.
@@ -177,18 +177,71 @@
  * - 실제 Canvas > Turret UI 하위 오브젝트와 Inspector 참조가 전부 일치하는지 더
  *   확인해야 한다.
  * - 기존 옛날 터렛 UI가 남아 있으면 더블클릭 또는 버튼 입력과 충돌할 수 있다.
- * - EvolutionPopup의 이미지, 재화 슬롯, 버튼 활성 조건은 플레이 모드 검증이 더 필요하다.
+ * - EvolutionPopup은 후보 선택 후 하단 Evolution 버튼이 선택된 후보 인덱스로 진화하는지
+ *   회귀 검증이 필요하다.
  * - 모든 팝업의 Back/X/바깥 클릭 닫힘 정책을 같은 기준으로 정리해야 한다.
  * - Legacy Pointer Bridge는 현재 입력 복구용 호환 레이어다. 추후 InputSystemUIInputModule
  *   기본 콜백 경로가 정상화되면 같은 입력이 중복 전달되지 않는지 먼저 확인해야 한다.
  * - EventSystemDebugger가 Main 씬에서 비활성화되면 현재 브릿지 입력도 같이 꺼진다.
+ *
+ * ==========================================================================================
+ * 7. 2026-07-01 EvolutionPopup 구조 확정 기록
+ * ==========================================================================================
+ *
+ * 오늘 완료한 내용
+ * ------------------------------------------------------------------------------------------
+ * - UpgradePopup의 Evolution 버튼은 직접 진화하지 않고 EvolutionPopup을 여는 흐름으로
+ *   정리했다.
+ * - EvolutionPopup은 현재 터렛의 TurretEvolutionProgressionSO에서 사용 가능한 진화 후보
+ *   수를 계산해 MiddlePanel_A/B/C 중 하나만 활성화한다.
+ * - 후보가 1개면 MiddlePanel_A, 2개면 MiddlePanel_B, 3개 이상이면 MiddlePanel_C를
+ *   사용한다. 현재 실제 데이터에서 3개 이상 케이스는 4분기다.
+ * - CurrentTurretImage는 현재 터렛 TurretDefinitionSO.uiIcon을 표시한다.
+ * - NextTurretImage 또는 NextTurretImage_1~4는 후보 targetDefinition.uiIcon을 표시한다.
+ * - 후보 이름은 targetDefinition.displayName을 우선 사용하고, 없으면 정의 에셋 이름을
+ *   fallback으로 사용한다.
+ * - 후보 이미지를 클릭해도 즉시 진화하지 않는다. 클릭은 선택 후보 인덱스와 필요 재료
+ *   표시만 갱신한다.
+ * - 실제 진화 실행은 하단 LowPanel/EvolutionFrame/Evolution 버튼에서만 수행한다.
+ * - 선택된 후보의 NextTurretImageFrame 또는 NextTurretImageFrame_1~4는 붉은색으로
+ *   표시하고, 나머지 후보 프레임은 기존 색상으로 복구한다.
+ * - MiddleLowPanel/RequireSorceText는 제목 텍스트로 유지하고 런타임에서 덮어쓰지 않는다.
+ * - MiddleLowPanel/RequireSorceImagePanel 아래 RequireSorceImageFrame 1~8을 진화 비용
+ *   표시 슬롯으로 사용한다.
+ * - 각 비용 슬롯은 Evolution Progression SO의 evolutionCosts를 기준으로 아이템 이미지,
+ *   아이템 이름, 보유/필요 수량을 표시한다.
+ * - 아이템 이미지는 InventorySystem.GetMetaData(currencyType).ItemImage를 사용한다.
+ * - 아이템 이름은 InventorySystem.GetName(currencyType)을 우선 사용한다.
+ * - 보유량이 부족하면 ItemCount TMP를 붉은색 Rich Text로 표시한다.
+ * - 필요한 재료 수가 8개보다 적으면 남는 슬롯은 씬에 배치된 기본 이미지, 현재 crosshair,
+ *   를 유지하고 ItemName/ItemCount 텍스트는 비운다.
+ *
+ * 현재 아키텍처
+ * ------------------------------------------------------------------------------------------
+ * - TurretSelectionUIController:
+ *   선택된 터렛 컨텍스트를 보관하고 Select/Upgrade/Detail/Evolution 팝업 전환을 담당한다.
+ *
+ * - TurretUpgradePopupUI:
+ *   업그레이드 수치와 비용을 표시하고, 진화 가능 상태에서는 EvolutionPopup으로 이동하는
+ *   버튼을 제공한다.
+ *
+ * - TurretEvolutionPopupUI:
+ *   진화 후보 표시, 후보 선택, 후보별 비용 표시, 선택 후보 진화 실행을 담당한다.
+ *   진화 후보 데이터의 source of truth는 TurretEvolutionProgressionSO.evolutionEntries다.
+ *
+ * - TurretDefinitionRuntimeController:
+ *   GetAvailableEvolutionCount, GetAvailableEvolution, CanEvolve, TryCreateEvolvedInstance를
+ *   통해 UI가 필요한 진화 후보/실행 API를 제공한다.
+ *
+ * - InventorySystem:
+ *   진화 비용의 이름, 아이콘, 보유량, 지불 가능 여부를 제공한다.
  *
  * 상세 진행 상태 문서
  * ------------------------------------------------------------------------------------------
  * - Assets/__PROJECT__/Docs/TURRET_UI_REWORK_STATUS.md
  *
  * ==========================================================================================
- * 7. 다음 작업 시작용 문장
+ * 8. 다음 작업 시작용 문장
  * ==========================================================================================
  *
  * 다음 작업을 시작할 때 사용할 문장:

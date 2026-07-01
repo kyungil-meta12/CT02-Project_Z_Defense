@@ -284,6 +284,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: RankDisplayRoot
       objectReference: {fileID: 0}
+    - target: {fileID: 6162691470817193601, guid: 9d32345b9deefea468578454fed45729, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []

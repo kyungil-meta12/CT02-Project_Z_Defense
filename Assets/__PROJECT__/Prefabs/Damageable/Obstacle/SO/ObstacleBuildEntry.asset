@@ -22,3 +22,5 @@ MonoBehaviour:
   buildCosts:
   - currencyType: 0
     amount: 1000
+  additionalCostPercentPerPlacement: 200
+  rebuildCostDiscount: 0.5

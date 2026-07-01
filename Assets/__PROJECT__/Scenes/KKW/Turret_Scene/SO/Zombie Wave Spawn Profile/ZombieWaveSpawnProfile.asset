@@ -55,8 +55,8 @@ MonoBehaviour:
   stages:
   - minWave: 1
     maxWave: 10
-    spawnInterval: 1.6
-    spawnCount: 30
+    spawnInterval: 1.46
+    spawnCount: 10
     spawnBossAsLastEnemy: 0
     normalZombieEntries:
     - zombieType: 0
@@ -84,14 +84,14 @@ MonoBehaviour:
       weight: 1
       minWave: 1
       maxWave: 0
-    hpMultiplier: 1
+    hpMultiplier: 6
     attackDamageMultiplier: 0
     moveAttackSpeedMultiplier: 0
     rewardMultiplier: 0
   - minWave: 11
     maxWave: 25
-    spawnInterval: 1.45
-    spawnCount: 40
+    spawnInterval: 1.43
+    spawnCount: 15
     spawnBossAsLastEnemy: 1
     normalZombieEntries:
     - zombieType: 0
@@ -135,14 +135,14 @@ MonoBehaviour:
       weight: 1
       minWave: 1
       maxWave: 0
-    hpMultiplier: 1.4
-    attackDamageMultiplier: 1.15
+    hpMultiplier: 7
+    attackDamageMultiplier: 2.5
     moveAttackSpeedMultiplier: 0
     rewardMultiplier: 1.2
   - minWave: 26
     maxWave: 50
-    spawnInterval: 1.3
-    spawnCount: 53
+    spawnInterval: 1.4
+    spawnCount: 20
     spawnBossAsLastEnemy: 1
     normalZombieEntries:
     - zombieType: 0
@@ -190,14 +190,14 @@ MonoBehaviour:
       weight: 1
       minWave: 1
       maxWave: 0
-    hpMultiplier: 2
-    attackDamageMultiplier: 1.4
+    hpMultiplier: 9
+    attackDamageMultiplier: 3
     moveAttackSpeedMultiplier: 1.02
     rewardMultiplier: 1.5
   - minWave: 51
     maxWave: 75
-    spawnInterval: 1.18
-    spawnCount: 69
+    spawnInterval: 1.36
+    spawnCount: 25
     spawnBossAsLastEnemy: 1
     normalZombieEntries:
     - zombieType: 0
@@ -245,14 +245,14 @@ MonoBehaviour:
       weight: 1
       minWave: 1
       maxWave: 0
-    hpMultiplier: 3
-    attackDamageMultiplier: 1.9
+    hpMultiplier: 12
+    attackDamageMultiplier: 4
     moveAttackSpeedMultiplier: 1.04
     rewardMultiplier: 1.9
   - minWave: 76
     maxWave: 100
-    spawnInterval: 1.08
-    spawnCount: 88
+    spawnInterval: 1.33
+    spawnCount: 30
     spawnBossAsLastEnemy: 1
     normalZombieEntries:
     - zombieType: 3
@@ -300,14 +300,14 @@ MonoBehaviour:
       weight: 1
       minWave: 1
       maxWave: 0
-    hpMultiplier: 4.5
-    attackDamageMultiplier: 2.6
+    hpMultiplier: 16
+    attackDamageMultiplier: 5.5
     moveAttackSpeedMultiplier: 1.06
     rewardMultiplier: 2.5
   - minWave: 101
     maxWave: 130
-    spawnInterval: 1
-    spawnCount: 110
+    spawnInterval: 1.3
+    spawnCount: 35
     spawnBossAsLastEnemy: 1
     normalZombieEntries:
     - zombieType: 3
@@ -355,14 +355,14 @@ MonoBehaviour:
       weight: 1
       minWave: 1
       maxWave: 0
-    hpMultiplier: 6.5
-    attackDamageMultiplier: 3.6
+    hpMultiplier: 20
+    attackDamageMultiplier: 7
     moveAttackSpeedMultiplier: 1.08
     rewardMultiplier: 3.3
   - minWave: 131
     maxWave: 160
-    spawnInterval: 0.94
-    spawnCount: 135
+    spawnInterval: 1.26
+    spawnCount: 40
     spawnBossAsLastEnemy: 1
     normalZombieEntries:
     - zombieType: 3
@@ -422,14 +422,14 @@ MonoBehaviour:
       weight: 1
       minWave: 1
       maxWave: 0
-    hpMultiplier: 9.5
-    attackDamageMultiplier: 5
+    hpMultiplier: 24
+    attackDamageMultiplier: 9
     moveAttackSpeedMultiplier: 1.1
     rewardMultiplier: 4.4
   - minWave: 161
     maxWave: 200
-    spawnInterval: 0.88
-    spawnCount: 163
+    spawnInterval: 1.23
+    spawnCount: 45
     spawnBossAsLastEnemy: 1
     normalZombieEntries:
     - zombieType: 3
@@ -489,14 +489,14 @@ MonoBehaviour:
       weight: 1
       minWave: 1
       maxWave: 0
-    hpMultiplier: 14
-    attackDamageMultiplier: 7
+    hpMultiplier: 31
+    attackDamageMultiplier: 12
     moveAttackSpeedMultiplier: 1.12
     rewardMultiplier: 6
   - minWave: 201
     maxWave: 240
-    spawnInterval: 0.82
-    spawnCount: 194
+    spawnInterval: 1.2
+    spawnCount: 50
     spawnBossAsLastEnemy: 1
     normalZombieEntries:
     - zombieType: 7
@@ -540,14 +540,14 @@ MonoBehaviour:
       weight: 1
       minWave: 1
       maxWave: 0
-    hpMultiplier: 21
-    attackDamageMultiplier: 9.5
+    hpMultiplier: 40
+    attackDamageMultiplier: 16
     moveAttackSpeedMultiplier: 1.14
     rewardMultiplier: 8
   - minWave: 241
     maxWave: 280
-    spawnInterval: 0.76
-    spawnCount: 228
+    spawnInterval: 1.16
+    spawnCount: 55
     spawnBossAsLastEnemy: 1
     normalZombieEntries:
     - zombieType: 7
@@ -599,14 +599,14 @@ MonoBehaviour:
       weight: 1
       minWave: 1
       maxWave: 0
-    hpMultiplier: 32
-    attackDamageMultiplier: 13
+    hpMultiplier: 51
+    attackDamageMultiplier: 20
     moveAttackSpeedMultiplier: 1.16
     rewardMultiplier: 10.5
   - minWave: 281
     maxWave: 320
-    spawnInterval: 0.7
-    spawnCount: 265
+    spawnInterval: 1.13
+    spawnCount: 60
     spawnBossAsLastEnemy: 1
     normalZombieEntries:
     - zombieType: 15
@@ -654,14 +654,14 @@ MonoBehaviour:
       weight: 1
       minWave: 1
       maxWave: 0
-    hpMultiplier: 48
-    attackDamageMultiplier: 18
+    hpMultiplier: 67
+    attackDamageMultiplier: 26
     moveAttackSpeedMultiplier: 1.18
     rewardMultiplier: 14
   - minWave: 321
     maxWave: 360
-    spawnInterval: 0.66
-    spawnCount: 305
+    spawnInterval: 1.1
+    spawnCount: 70
     spawnBossAsLastEnemy: 1
     normalZombieEntries:
     - zombieType: 15
@@ -709,14 +709,14 @@ MonoBehaviour:
       weight: 1
       minWave: 1
       maxWave: 0
-    hpMultiplier: 72
-    attackDamageMultiplier: 25
+    hpMultiplier: 86
+    attackDamageMultiplier: 33
     moveAttackSpeedMultiplier: 1.2
     rewardMultiplier: 18.5
   - minWave: 361
     maxWave: 400
-    spawnInterval: 0.62
-    spawnCount: 348
+    spawnInterval: 1.06
+    spawnCount: 80
     spawnBossAsLastEnemy: 1
     normalZombieEntries:
     - zombieType: 15
@@ -764,14 +764,14 @@ MonoBehaviour:
       weight: 1
       minWave: 1
       maxWave: 0
-    hpMultiplier: 108
-    attackDamageMultiplier: 34
+    hpMultiplier: 119
+    attackDamageMultiplier: 37
     moveAttackSpeedMultiplier: 1.22
     rewardMultiplier: 24
   - minWave: 401
     maxWave: 450
-    spawnInterval: 0.58
-    spawnCount: 394
+    spawnInterval: 1.03
+    spawnCount: 90
     spawnBossAsLastEnemy: 0
     normalZombieEntries:
     - zombieType: 13
@@ -808,13 +808,13 @@ MonoBehaviour:
       minWave: 1
       maxWave: 0
     hpMultiplier: 170
-    attackDamageMultiplier: 46
+    attackDamageMultiplier: 35
     moveAttackSpeedMultiplier: 1.24
     rewardMultiplier: 31
   - minWave: 451
     maxWave: 500
-    spawnInterval: 0.54
-    spawnCount: 443
+    spawnInterval: 1
+    spawnCount: 100
     spawnBossAsLastEnemy: 1
     normalZombieEntries:
     - zombieType: 13
@@ -851,6 +851,6 @@ MonoBehaviour:
       minWave: 1
       maxWave: 0
     hpMultiplier: 280
-    attackDamageMultiplier: 65
+    attackDamageMultiplier: 40
     moveAttackSpeedMultiplier: 1.26
     rewardMultiplier: 40

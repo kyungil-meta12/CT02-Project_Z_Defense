@@ -13,5 +13,5 @@ MonoBehaviour:
   m_Name: ObstacleSpec
   m_EditorClassIdentifier: Assembly-CSharp::ObstacleSpec
   level: 1
-  levelWeight: 50
-  Hp: 1000
+  levelHpPercentPerLevel: 20
+  Hp: 500

@@ -447,7 +447,22 @@ public class TurretDataCsvEditorTool : EditorWindow
             return false;
         }
 
-        string text = File.ReadAllText(path, Encoding.UTF8);
+        string text;
+        try
+        {
+            using (FileStream stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+            using (StreamReader reader = new StreamReader(stream, Encoding.UTF8, true))
+            {
+                text = reader.ReadToEnd();
+            }
+        }
+        catch (IOException exception)
+        {
+            AddMessage("CSV 파일을 읽을 수 없습니다. Excel에서 저장 중이거나 파일을 독점 잠금 중일 수 있습니다.");
+            AddMessage(exception.Message);
+            return false;
+        }
+
         char delimiter = DetectDelimiter(text);
         table = ParseCsv(text, delimiter);
         if (table.Count <= 0)

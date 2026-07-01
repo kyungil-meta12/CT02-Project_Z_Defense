@@ -23,6 +23,7 @@ internal sealed class WaveStageInput
 {
     public int MinWave;
     public int MaxWave;
+    public float SpawnInterval;
     public int SpawnCount;
     public bool SpawnBossAsLastEnemy;
     public float HpMultiplier;
@@ -138,6 +139,7 @@ internal struct WaveSummaryRow
     public string WaveLabel;
     public int MinWave;
     public int MaxWave;
+    public float SpawnInterval;
     public int SpawnCount;
     public int NormalSpawnCount;
     public int BossSpawnCount;

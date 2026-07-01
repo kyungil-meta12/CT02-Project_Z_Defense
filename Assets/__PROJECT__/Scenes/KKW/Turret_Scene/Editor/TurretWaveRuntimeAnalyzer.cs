@@ -89,6 +89,7 @@ internal sealed class TurretWaveRuntimeAnalyzer
             WaveLabel = isOpenEndedWave ? $"{wave}+" : wave.ToString(CultureInfo.InvariantCulture),
             MinWave = wave,
             MaxWave = wave,
+            SpawnInterval = stage.SpawnInterval,
             SpawnCount = spawnCount,
             NormalSpawnCount = normalSpawnCount,
             BossSpawnCount = bossSpawnCount,

@@ -8,7 +8,7 @@ using UnityEngine;
 internal sealed class TurretBalanceReportTableBuilder
 {
     // 리포트 결과에서 전체 탭 표 모델을 만든다
-    public ReportTableModel[] Build(TurretBalanceReportResult report, float targetClearSeconds, float targetClearSecondsIncrement)
+    public ReportTableModel[] Build(TurretBalanceReportResult report, float targetClearSeconds, float targetClearSecondsIncrement, float zombieArrivalSeconds)
     {
         ReportTableModel[] tables =
         {
@@ -17,48 +17,50 @@ internal sealed class TurretBalanceReportTableBuilder
             new ReportTableModel()
         };
 
-        BuildWaveClearTableCache(report, tables[0], targetClearSeconds, targetClearSecondsIncrement);
+        BuildWaveClearTableCache(report, tables[0], targetClearSeconds, targetClearSecondsIncrement, zombieArrivalSeconds);
         BuildScenarioDetailTableCache(report, tables[1]);
         BuildSourceWarningTableCache(report, tables[2]);
         return tables;
     }
 
     // 웨이브 클리어 표 캐시를 만든다
-    private static void BuildWaveClearTableCache(TurretBalanceReportResult report, ReportTableModel table, float targetClearSeconds, float targetClearSecondsIncrement)
+    private static void BuildWaveClearTableCache(TurretBalanceReportResult report, ReportTableModel table, float targetClearSeconds, float targetClearSecondsIncrement, float zombieArrivalSeconds)
     {
         string incrementDesc = targetClearSecondsIncrement > 0f
             ? $", 웨이브당 +{FormatFloat(targetClearSecondsIncrement)}초 증가"
             : string.Empty;
-        table.Reset("wave_clear_simulation.csv", $"각 웨이브에서, 터렛 시나리오 상세의 종류별 레벨 체크포인트 데이터(누적 재화·DPS)를 참고해 그 웨이브 시작 시점의 Coin 예산(직전 웨이브까지의 총 누적 재화 중 Coin, 첫 웨이브는 초기 지갑 Coin {FormatInt(report.InitialWalletCoin)})으로 설치 가능한 총 DPS가 가장 높은 1~3순위 종류를 보여줍니다. 설치 수는 현재 터렛 슬롯 상한인 최대 8대까지 계산합니다. 웨이브 획득 재화·총 누적 재화는 좀비 드랍 전체(Coin 외 재화 포함)와 웨이브 클리어 Coin 보너스까지 반영합니다. 재화 줄은 실제로 등장하는 재화 종류 수만큼 늘어납니다. 예상 클리어 초 = 웨이브 총 좀비 HP / 1순위 총 DPS입니다. 비고: 기준 클리어 {FormatFloat(targetClearSeconds)}초{incrementDesc} 대비 ±20% 초과 시 경고.", "웨이브", "일반 좀비 수", "보스 좀비 수", "웨이브 총 좀비 HP", "웨이브 획득 재화", "총 누적 재화", "1순위 터렛", "2순위 터렛", "3순위 터렛", "예상 클리어 초", "비고");
+        string arrivalDesc = zombieArrivalSeconds > 0f ? $", 좀비 도달 {FormatFloat(zombieArrivalSeconds)}초 포함" : string.Empty;
+        table.Reset("wave_clear_simulation.csv", $"각 웨이브에서, 터렛 시나리오 상세의 종류별 레벨 체크포인트 데이터(누적 재화·DPS)를 참고해 그 웨이브 시작 시점의 Coin 예산(직전 웨이브까지의 총 누적 재화 중 Coin, 첫 웨이브는 초기 지갑 Coin {FormatInt(report.InitialWalletCoin)})으로 설치 가능한 총 DPS가 가장 높은 1~3순위 종류를 보여줍니다. 설치 수는 현재 터렛 슬롯 상한인 최대 8대까지 계산합니다. 웨이브 획득 재화·총 누적 재화는 좀비 드랍 전체(Coin 외 재화 포함)와 웨이브 클리어 Coin 보너스까지 반영합니다. 재화 줄은 실제로 등장하는 재화 종류 수만큼 늘어납니다. 예상 클리어 초 = 웨이브 총 좀비 HP / 1순위 총 DPS + 좀비 도달 시간입니다. 비고: 기준 클리어 {FormatFloat(targetClearSeconds)}초{incrementDesc}{arrivalDesc} 대비 ±20% 초과 시 경고.", "웨이브", "일반 좀비 수", "보스 좀비 수", "웨이브 총 좀비 HP", "웨이브 획득 재화", "총 누적 재화", "1순위 터렛", "2순위 터렛", "3순위 터렛", "예상 클리어 초", "비고");
         for (int i = 0; i < report.WaveClearRows.Count; i++)
         {
             WaveClearSimulationRow row = report.WaveClearRows[i];
             float waveTarget = targetClearSeconds + i * targetClearSecondsIncrement;
-            string note = BuildWaveClearNote(row, waveTarget);
-            table.AddRow(row.WaveLabel, FormatInt(row.NormalSpawnCount), FormatInt(row.BossSpawnCount), FormatFloat(row.TotalWaveHp), FormatRewardBreakdown(row.AverageRewardPerWave), FormatRewardBreakdown(row.CumulativeReward), FormatRankCell(row.TopRanks, 0), FormatRankCell(row.TopRanks, 1), FormatRankCell(row.TopRanks, 2), FormatFloat(row.BestClearSeconds), note);
+            float adjustedClearSeconds = row.BestClearSeconds + zombieArrivalSeconds;
+            string note = BuildWaveClearNote(adjustedClearSeconds, waveTarget, row.Note);
+            table.AddRow(row.WaveLabel, FormatInt(row.NormalSpawnCount), FormatInt(row.BossSpawnCount), FormatFloat(row.TotalWaveHp), FormatRewardBreakdown(row.AverageRewardPerWave), FormatRewardBreakdown(row.CumulativeReward), FormatRankCell(row.TopRanks, 0), FormatRankCell(row.TopRanks, 1), FormatRankCell(row.TopRanks, 2), FormatFloat(adjustedClearSeconds), note);
         }
 
         TurretBalanceReportTableRenderer.RecalculateColumnWidths(table);
     }
 
-    // 웨이브 클리어 비고를 만든다. 예상 클리어 초가 해당 웨이브 기준 대비 ±20% 초과 시 경고를 추가한다.
-    private static string BuildWaveClearNote(WaveClearSimulationRow row, float waveTarget)
+    // 웨이브 클리어 비고를 만든다. 예상 클리어 초(도달시간 포함)가 해당 웨이브 기준 대비 ±20% 초과 시 경고를 추가한다.
+    private static string BuildWaveClearNote(float adjustedClearSeconds, float waveTarget, string baseNote)
     {
-        string baseNote = row.Note ?? string.Empty;
-        if (row.BestClearSeconds <= 0f || waveTarget <= 0f)
+        baseNote = baseNote ?? string.Empty;
+        if (adjustedClearSeconds <= 0f || waveTarget <= 0f)
         {
             return baseNote;
         }
 
-        float ratio = row.BestClearSeconds / waveTarget;
+        float ratio = adjustedClearSeconds / waveTarget;
         string flagNote = string.Empty;
         if (ratio < 0.8f)
         {
-            flagNote = $"DPS 과잉 (클리어 {FormatFloat(row.BestClearSeconds)}s < 기준 {FormatFloat(waveTarget)}s×80%)";
+            flagNote = $"DPS 과잉 (클리어 {FormatFloat(adjustedClearSeconds)}s < 기준 {FormatFloat(waveTarget)}s×80%)";
         }
         else if (ratio > 1.2f)
         {
-            flagNote = $"DPS 부족 위험 (클리어 {FormatFloat(row.BestClearSeconds)}s > 기준 {FormatFloat(waveTarget)}s×120%)";
+            flagNote = $"DPS 부족 위험 (클리어 {FormatFloat(adjustedClearSeconds)}s > 기준 {FormatFloat(waveTarget)}s×120%)";
         }
 
         if (string.IsNullOrEmpty(flagNote))

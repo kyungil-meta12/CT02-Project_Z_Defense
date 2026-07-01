@@ -397,6 +397,7 @@ internal sealed class TurretBalanceReportInputCollector
         {
             MinWave = Mathf.Max(1, GetRelativeInt(stage, "minWave", 1)),
             MaxWave = GetRelativeInt(stage, "maxWave", 0),
+            SpawnInterval = Mathf.Max(0.01f, GetRelativeFloat(stage, "spawnInterval", 1.0f)),
             SpawnCount = Mathf.Max(0, GetRelativeInt(stage, "spawnCount", 0)),
             SpawnBossAsLastEnemy = GetRelativeBool(stage, "spawnBossAsLastEnemy", false),
             HpMultiplier = SanitizeRuntimeMultiplier(GetRelativeFloat(stage, "hpMultiplier", 1.0f)),

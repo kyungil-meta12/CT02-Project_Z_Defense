@@ -10,7 +10,7 @@ internal static class ObstacleBalanceTableBuilder
     private const float WARN_RATIO_HIGH = 1.2f;
 
     // 장애물 밸런스 결과로 표 모델을 만든다
-    public static ReportTableModel Build(List<ObstacleWaveRow> rows, List<ObstacleEntrySpec> entries, float targetClearSeconds, float targetClearSecondsIncrement, float obstacleTargetTimeMultiplier)
+    public static ReportTableModel Build(List<ObstacleWaveRow> rows, List<ObstacleEntrySpec> entries, float targetClearSeconds, float targetClearSecondsIncrement, float obstacleTargetTimeMultiplier, float zombieArrivalSeconds)
     {
         ReportTableModel table = new ReportTableModel();
 
@@ -34,7 +34,7 @@ internal static class ObstacleBalanceTableBuilder
         {
             float waveTargetSeconds = Mathf.Max(1.0f, targetClearSeconds) + i * Mathf.Max(0.0f, targetClearSecondsIncrement);
             float obstacleTargetSeconds = waveTargetSeconds * Mathf.Max(0.1f, obstacleTargetTimeMultiplier);
-            table.AddRow(BuildRow(rows[i], entries, obstacleTargetSeconds));
+            table.AddRow(BuildRow(rows[i], entries, obstacleTargetSeconds, Mathf.Max(0.0f, zombieArrivalSeconds)));
         }
 
         TurretBalanceReportTableRenderer.RecalculateColumnWidths(table);
@@ -66,7 +66,7 @@ internal static class ObstacleBalanceTableBuilder
     }
 
     // 웨이브 결과 행 하나를 문자열 배열로 변환한다
-    private static string[] BuildRow(ObstacleWaveRow row, List<ObstacleEntrySpec> entries, float obstacleTargetSeconds)
+    private static string[] BuildRow(ObstacleWaveRow row, List<ObstacleEntrySpec> entries, float obstacleTargetSeconds, float zombieArrivalSeconds)
     {
         List<string> cols = new List<string>();
         cols.Add(row.WaveLabel);
@@ -92,30 +92,31 @@ internal static class ObstacleBalanceTableBuilder
         cols.Add(row.Optimal.HasValue ? row.Optimal.Description : "-");
 
         bool hasDestructionTime = row.Optimal.HasValue && row.ZombieDps > 0f && row.DestructionTime > 0f;
-        cols.Add(hasDestructionTime ? FormatFloat(row.DestructionTime) : "-");
+        float adjustedDestructionTime = row.DestructionTime + zombieArrivalSeconds;
+        cols.Add(hasDestructionTime ? FormatFloat(adjustedDestructionTime) : "-");
 
-        cols.Add(BuildNote(row, obstacleTargetSeconds));
+        cols.Add(BuildNote(adjustedDestructionTime, hasDestructionTime, obstacleTargetSeconds));
 
         return cols.ToArray();
     }
 
-    // 파괴시간과 장애물 기준 파괴시간을 비교해 비고 메세지를 만든다
-    private static string BuildNote(ObstacleWaveRow row, float obstacleTargetSeconds)
+    // 파괴시간(도달시간 포함)과 장애물 기준 파괴시간을 비교해 비고 메세지를 만든다
+    private static string BuildNote(float adjustedDestructionTime, bool hasDestructionTime, float obstacleTargetSeconds)
     {
-        if (!row.Optimal.HasValue || row.DestructionTime <= 0f || obstacleTargetSeconds <= 0f)
+        if (!hasDestructionTime || obstacleTargetSeconds <= 0f)
         {
             return "-";
         }
 
-        float ratio = row.DestructionTime / obstacleTargetSeconds;
+        float ratio = adjustedDestructionTime / obstacleTargetSeconds;
         if (ratio < WARN_RATIO_LOW)
         {
-            return $"조기 파괴 위험\n파괴시간({FormatFloat(row.DestructionTime)}s) < 기준({FormatFloat(obstacleTargetSeconds)}s)×80%";
+            return $"조기 파괴 위험\n파괴시간({FormatFloat(adjustedDestructionTime)}s) < 기준({FormatFloat(obstacleTargetSeconds)}s)×80%";
         }
 
         if (ratio > WARN_RATIO_HIGH)
         {
-            return $"장애물 HP 과잉 — 업그레이드 수치 재검토 권장\n파괴시간({FormatFloat(row.DestructionTime)}s) > 기준({FormatFloat(obstacleTargetSeconds)}s)×120%";
+            return $"장애물 HP 과잉 — 업그레이드 수치 재검토 권장\n파괴시간({FormatFloat(adjustedDestructionTime)}s) > 기준({FormatFloat(obstacleTargetSeconds)}s)×120%";
         }
 
         return string.Empty;

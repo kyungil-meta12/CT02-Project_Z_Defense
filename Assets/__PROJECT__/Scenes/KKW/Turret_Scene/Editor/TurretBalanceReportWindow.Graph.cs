@@ -12,6 +12,7 @@ internal sealed class TurretBalanceReportGraphState
     public bool ShowAllTurretDps;
     public bool ShowClearTimeRatio;
     public bool ShowObstacleDestructionRatio;
+    public bool ShowZombieArrivalRatio;
     public float HpAxisScaleMultiplier = 1.0f;
     public readonly Dictionary<RewardCurrencyType, bool> CurrencyVisibility = new Dictionary<RewardCurrencyType, bool>();
 
@@ -64,7 +65,7 @@ internal static class TurretBalanceReportGraphRenderer
     private static readonly Color EvolutionEndColor = new Color(0.68f, 0.34f, 0.92f);
 
     // 그래프 탭 전체 UI를 그린다
-    public static void Draw(TurretBalanceReportResult report, TurretBalanceReportGraphState state, float targetClearSeconds, float targetClearSecondsIncrement, float obstacleTargetTimeMultiplier, List<ObstacleWaveRow> obstacleRows)
+    public static void Draw(TurretBalanceReportResult report, TurretBalanceReportGraphState state, float targetClearSeconds, float targetClearSecondsIncrement, float obstacleTargetTimeMultiplier, float zombieArrivalSeconds, float zombieArrivalTimeMultiplier, List<ObstacleWaveRow> obstacleRows)
     {
         if (state == null)
         {
@@ -82,7 +83,7 @@ internal static class TurretBalanceReportGraphRenderer
         DrawSeriesToggles(state, currencyTypes);
 
         Rect graphRect = GUILayoutUtility.GetRect(0.0f, GRAPH_MIN_HEIGHT, GUILayout.ExpandWidth(true), GUILayout.ExpandHeight(true));
-        DrawGraph(report, state, currencyTypes, graphRect, Mathf.Max(1.0f, targetClearSeconds), Mathf.Max(0.0f, targetClearSecondsIncrement), Mathf.Max(0.1f, obstacleTargetTimeMultiplier), obstacleRows);
+        DrawGraph(report, state, currencyTypes, graphRect, Mathf.Max(1.0f, targetClearSeconds), Mathf.Max(0.0f, targetClearSecondsIncrement), Mathf.Max(0.1f, obstacleTargetTimeMultiplier), Mathf.Max(0.0f, zombieArrivalSeconds), Mathf.Max(0.01f, zombieArrivalTimeMultiplier), obstacleRows);
     }
 
     // 리포트에 등장한 누적 재화 종류 목록을 정렬해서 만든다
@@ -135,6 +136,7 @@ internal static class TurretBalanceReportGraphRenderer
         state.ShowAllTurretDps = nextShowAllTurretDps;
         state.ShowClearTimeRatio = EditorGUILayout.ToggleLeft("클리어 시간 배율", state.ShowClearTimeRatio, GUILayout.Width(140.0f));
         state.ShowObstacleDestructionRatio = EditorGUILayout.ToggleLeft("장애물 파괴시간 배율", state.ShowObstacleDestructionRatio, GUILayout.Width(160.0f));
+        state.ShowZombieArrivalRatio = EditorGUILayout.ToggleLeft("좀비 도달시간 배율", state.ShowZombieArrivalRatio, GUILayout.Width(150.0f));
         state.ShowCumulativeCurrency = EditorGUILayout.ToggleLeft("누적 재화", state.ShowCumulativeCurrency, GUILayout.Width(100.0f));
         GUILayout.FlexibleSpace();
         EditorGUILayout.LabelField($"HP 축 {state.HpAxisScaleMultiplier:0.##}x", EditorStyles.miniLabel, GUILayout.Width(76.0f));
@@ -163,14 +165,14 @@ internal static class TurretBalanceReportGraphRenderer
     }
 
     // 그래프 영역 안에 배경, 축, 선, 툴팁을 그린다
-    private static void DrawGraph(TurretBalanceReportResult report, TurretBalanceReportGraphState state, List<RewardCurrencyType> currencyTypes, Rect graphRect, float targetClearSeconds, float targetClearSecondsIncrement, float obstacleTargetTimeMultiplier, List<ObstacleWaveRow> obstacleRows)
+    private static void DrawGraph(TurretBalanceReportResult report, TurretBalanceReportGraphState state, List<RewardCurrencyType> currencyTypes, Rect graphRect, float targetClearSeconds, float targetClearSecondsIncrement, float obstacleTargetTimeMultiplier, float zombieArrivalSeconds, float zombieArrivalTimeMultiplier, List<ObstacleWaveRow> obstacleRows)
     {
         if (graphRect.width <= GRAPH_LEFT_PADDING + GRAPH_RIGHT_PADDING || graphRect.height <= GRAPH_TOP_PADDING + GRAPH_BOTTOM_PADDING)
         {
             return;
         }
 
-        List<GraphSeries> seriesList = BuildSeriesList(report, state, currencyTypes, targetClearSeconds, targetClearSecondsIncrement, obstacleTargetTimeMultiplier, obstacleRows);
+        List<GraphSeries> seriesList = BuildSeriesList(report, state, currencyTypes, targetClearSeconds, targetClearSecondsIncrement, obstacleTargetTimeMultiplier, zombieArrivalSeconds, zombieArrivalTimeMultiplier, obstacleRows);
         GUI.Box(graphRect, GUIContent.none, EditorStyles.helpBox);
 
         Rect plotRect = new Rect(
@@ -181,15 +183,19 @@ internal static class TurretBalanceReportGraphRenderer
 
         HandleHpAxisWheelZoom(plotRect, state);
         DrawGrid(plotRect, report);
-        if (state.ShowClearTimeRatio || state.ShowObstacleDestructionRatio)
+        bool showAnyRatioBaseline = state.ShowClearTimeRatio || state.ShowObstacleDestructionRatio || state.ShowZombieArrivalRatio;
+        if (showAnyRatioBaseline)
         {
             List<ObstacleWaveRow> obstacleRowsForAxis = state.ShowObstacleDestructionRatio ? obstacleRows : null;
+            List<WaveSummaryRow> arrivalRowsForAxis = state.ShowZombieArrivalRatio ? report.WaveRows : null;
             DrawRatioBaselines(
                 plotRect,
-                CalculateRatioAxisMax(report, obstacleRowsForAxis, targetClearSeconds, targetClearSecondsIncrement, obstacleTargetTimeMultiplier),
+                CalculateRatioAxisMax(report, obstacleRowsForAxis, arrivalRowsForAxis, targetClearSeconds, targetClearSecondsIncrement, obstacleTargetTimeMultiplier, zombieArrivalSeconds, zombieArrivalTimeMultiplier),
                 state.ShowClearTimeRatio,
                 state.ShowObstacleDestructionRatio,
-                obstacleTargetTimeMultiplier);
+                obstacleTargetTimeMultiplier,
+                state.ShowZombieArrivalRatio,
+                zombieArrivalTimeMultiplier);
         }
 
         DrawSeriesList(plotRect, seriesList, report.WaveRows.Count, out GraphHoverInfo hoverInfo);
@@ -198,7 +204,7 @@ internal static class TurretBalanceReportGraphRenderer
     }
 
     // 현재 표시 상태에 맞는 그래프 선 목록을 만든다
-    private static List<GraphSeries> BuildSeriesList(TurretBalanceReportResult report, TurretBalanceReportGraphState state, List<RewardCurrencyType> currencyTypes, float targetClearSeconds, float targetClearSecondsIncrement, float obstacleTargetTimeMultiplier, List<ObstacleWaveRow> obstacleRows)
+    private static List<GraphSeries> BuildSeriesList(TurretBalanceReportResult report, TurretBalanceReportGraphState state, List<RewardCurrencyType> currencyTypes, float targetClearSeconds, float targetClearSecondsIncrement, float obstacleTargetTimeMultiplier, float zombieArrivalSeconds, float zombieArrivalTimeMultiplier, List<ObstacleWaveRow> obstacleRows)
     {
         List<GraphSeries> seriesList = new List<GraphSeries>(8);
         int colorIndex = 0;
@@ -231,9 +237,10 @@ internal static class TurretBalanceReportGraphRenderer
             AddAllTurretDpsSeries(report, seriesList, ref colorIndex, hpAxisMax, targetClearSeconds, targetClearSecondsIncrement);
         }
 
-        bool showAnyRatio = state.ShowClearTimeRatio || state.ShowObstacleDestructionRatio;
+        bool showAnyRatio = state.ShowClearTimeRatio || state.ShowObstacleDestructionRatio || state.ShowZombieArrivalRatio;
         List<ObstacleWaveRow> obstacleRowsForAxis = state.ShowObstacleDestructionRatio ? obstacleRows : null;
-        float ratioAxisMax = showAnyRatio ? CalculateRatioAxisMax(report, obstacleRowsForAxis, targetClearSeconds, targetClearSecondsIncrement, obstacleTargetTimeMultiplier) : 1.0f;
+        List<WaveSummaryRow> arrivalRowsForAxis = state.ShowZombieArrivalRatio ? report.WaveRows : null;
+        float ratioAxisMax = showAnyRatio ? CalculateRatioAxisMax(report, obstacleRowsForAxis, arrivalRowsForAxis, targetClearSeconds, targetClearSecondsIncrement, obstacleTargetTimeMultiplier, zombieArrivalSeconds, zombieArrivalTimeMultiplier) : 1.0f;
         if (state.ShowClearTimeRatio)
         {
             GraphSeries series = CreateSeries("클리어 시간 / 기준 시간", "배", SeriesColors[colorIndex++ % SeriesColors.Length], report.WaveRows.Count);
@@ -276,11 +283,31 @@ internal static class TurretBalanceReportGraphRenderer
             seriesList.Add(series);
         }
 
+        if (state.ShowZombieArrivalRatio)
+        {
+            GraphSeries series = CreateSeries("좀비 전체 도달 시간 / 기준 시간", "배", SeriesColors[colorIndex++ % SeriesColors.Length], report.WaveRows.Count);
+            SetFixedScale(series, 0.0f, ratioAxisMax);
+            for (int i = 0; i < report.WaveRows.Count; i++)
+            {
+                float waveTarget = targetClearSeconds + i * targetClearSecondsIncrement;
+                WaveSummaryRow waveRow = report.WaveRows[i];
+                int spawnCount = waveRow.SpawnCount;
+                float totalArrivalTime = spawnCount > 1
+                    ? waveRow.SpawnInterval * (spawnCount - 1) + zombieArrivalSeconds
+                    : zombieArrivalSeconds;
+                float ratio = waveTarget <= 0.0f ? 0.0f : totalArrivalTime / waveTarget;
+                series.Values.Add(ratio);
+                series.PointNotes.Add($"스폰간격 {FormatFloat(waveRow.SpawnInterval)}초 × {spawnCount - 1}회 + 도달 {FormatFloat(zombieArrivalSeconds)}초 = {FormatFloat(totalArrivalTime)}초 / 기준 {FormatFloat(waveTarget)}초");
+            }
+
+            seriesList.Add(series);
+        }
+
         return seriesList;
     }
 
     // 클리어 시간 배율과 장애물 파괴시간 배율을 합산한 축 최대값을 계산한다
-    private static float CalculateRatioAxisMax(TurretBalanceReportResult report, List<ObstacleWaveRow> obstacleRows, float targetClearSeconds, float targetClearSecondsIncrement, float obstacleTargetTimeMultiplier)
+    private static float CalculateRatioAxisMax(TurretBalanceReportResult report, List<ObstacleWaveRow> obstacleRows, List<WaveSummaryRow> arrivalRows, float targetClearSeconds, float targetClearSecondsIncrement, float obstacleTargetTimeMultiplier, float zombieArrivalSeconds, float zombieArrivalTimeMultiplier)
     {
         float maxValue = 1.0f;
         for (int i = 0; i < report.WaveClearRows.Count; i++)
@@ -306,6 +333,25 @@ internal static class TurretBalanceReportGraphRenderer
                 }
 
                 maxValue = Mathf.Max(maxValue, obstacleRows[i].DestructionTime / waveTarget);
+            }
+        }
+
+        if (arrivalRows != null)
+        {
+            maxValue = Mathf.Max(maxValue, zombieArrivalTimeMultiplier);
+            for (int i = 0; i < arrivalRows.Count; i++)
+            {
+                float waveTarget = targetClearSeconds + i * targetClearSecondsIncrement;
+                if (waveTarget <= 0.0f)
+                {
+                    continue;
+                }
+
+                int spawnCount = arrivalRows[i].SpawnCount;
+                float totalArrivalTime = spawnCount > 1
+                    ? arrivalRows[i].SpawnInterval * (spawnCount - 1) + zombieArrivalSeconds
+                    : zombieArrivalSeconds;
+                maxValue = Mathf.Max(maxValue, totalArrivalTime / waveTarget);
             }
         }
 
@@ -581,7 +627,7 @@ internal static class TurretBalanceReportGraphRenderer
     }
 
     // 표시 중인 배율 그래프의 기준선을 그린다
-    private static void DrawRatioBaselines(Rect plotRect, float ratioAxisMax, bool showClearBaseline, bool showObstacleBaseline, float obstacleTargetTimeMultiplier)
+    private static void DrawRatioBaselines(Rect plotRect, float ratioAxisMax, bool showClearBaseline, bool showObstacleBaseline, float obstacleTargetTimeMultiplier, bool showArrivalBaseline, float zombieArrivalTimeMultiplier)
     {
         if (showClearBaseline)
         {
@@ -592,6 +638,12 @@ internal static class TurretBalanceReportGraphRenderer
         {
             float obstacleBaseline = Mathf.Max(0.1f, obstacleTargetTimeMultiplier);
             DrawRatioBaseline(plotRect, ratioAxisMax, obstacleBaseline, $"장애물 기준 {FormatFloat(obstacleBaseline)}x");
+        }
+
+        if (showArrivalBaseline)
+        {
+            float arrivalBaseline = Mathf.Max(0.01f, zombieArrivalTimeMultiplier);
+            DrawRatioBaseline(plotRect, ratioAxisMax, arrivalBaseline, $"도달 기준 {FormatFloat(arrivalBaseline)}x");
         }
     }
 

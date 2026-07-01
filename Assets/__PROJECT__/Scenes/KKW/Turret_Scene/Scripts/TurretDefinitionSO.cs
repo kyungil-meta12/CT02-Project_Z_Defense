@@ -12,6 +12,9 @@ public class TurretDefinitionSO : ScriptableObject
     [TextArea(2, 5)]
     public string shortDescription;
 
+    [Header("UI 표시")]
+    public Sprite uiIcon;
+
     [Header("기본값")]
     public GameObject basePrefab;
     public TurretStatProfileSO baseStatProfile;

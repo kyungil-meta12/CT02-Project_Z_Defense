@@ -11,8 +11,10 @@ public class TurretUpgradePopupUI : TurretPopupPageUI
     private const int LEVEL_UP_AMOUNT = 1;
     private const string POSITIVE_DELTA_PLUS_TEXT = "<color=#FF4040>+</color>";
     private const string INSUFFICIENT_COST_COLOR = "#FF4040";
+    private const string UPGRADE_BACKGROUND_PATH = "TurretUpgradePopupBackground";
 
     [Header("레벨 표시")]
+    [SerializeField] private TMP_Text currentTurretNameText;
     [SerializeField] private TMP_Text currentTurretLevelText;
     [SerializeField] private TMP_Text nextTurretLevelText;
 
@@ -34,6 +36,9 @@ public class TurretUpgradePopupUI : TurretPopupPageUI
     [SerializeField] private TMP_Text rangeDeltaText;
     [SerializeField] private TMP_Text pierceDeltaText;
 
+    [Header("터렛 이미지")]
+    [SerializeField] private Image turretImage;
+
     [Header("필요 재화")]
     [SerializeField] private TMP_Text[] resourceItemNameTexts = System.Array.Empty<TMP_Text>();
     [SerializeField] private TMP_Text[] resourceItemCountTexts = System.Array.Empty<TMP_Text>();
@@ -46,6 +51,7 @@ public class TurretUpgradePopupUI : TurretPopupPageUI
     [SerializeField] private Button upgradeButton;
     [SerializeField] private Button evolutionButton;
 
+    private string currentTurretNameTextTemplate;
     private string currentLevelTextTemplate;
     private string nextLevelTextTemplate;
     private string currentDpsTextTemplate;
@@ -98,26 +104,28 @@ public class TurretUpgradePopupUI : TurretPopupPageUI
     public void BindChildReferences()
     {
         Transform searchRoot = transform;
-        currentTurretLevelText = currentTurretLevelText != null ? currentTurretLevelText : FindChildComponent<TMP_Text>(searchRoot, "TurretSelectPopupBackground/HighPanel/CurrentTurretFrame/CurrentTurretLevel");
-        nextTurretLevelText = nextTurretLevelText != null ? nextTurretLevelText : FindChildComponent<TMP_Text>(searchRoot, "TurretSelectPopupBackground/HighPanel/NextTurretFrame/NextTurretLevel");
-        currentDpsText = currentDpsText != null ? currentDpsText : FindChildComponent<TMP_Text>(searchRoot, "TurretSelectPopupBackground/MiddlePanel/DeltaDetailInfoPanel/DPS");
-        currentFireRateText = currentFireRateText != null ? currentFireRateText : FindChildComponent<TMP_Text>(searchRoot, "TurretSelectPopupBackground/MiddlePanel/DeltaDetailInfoPanel/FireRate");
-        currentRangeText = currentRangeText != null ? currentRangeText : FindChildComponent<TMP_Text>(searchRoot, "TurretSelectPopupBackground/MiddlePanel/DeltaDetailInfoPanel/Range");
-        currentPierceText = currentPierceText != null ? currentPierceText : FindChildComponent<TMP_Text>(searchRoot, "TurretSelectPopupBackground/MiddlePanel/DeltaDetailInfoPanel/Pierce");
-        nextDpsText = nextDpsText != null ? nextDpsText : FindChildComponent<TMP_Text>(searchRoot, "TurretSelectPopupBackground/MiddlePanel/DeltaDetailInfoPanel/NextDPS");
-        nextFireRateText = nextFireRateText != null ? nextFireRateText : FindChildComponent<TMP_Text>(searchRoot, "TurretSelectPopupBackground/MiddlePanel/DeltaDetailInfoPanel/NextFireRate");
-        nextRangeText = nextRangeText != null ? nextRangeText : FindChildComponent<TMP_Text>(searchRoot, "TurretSelectPopupBackground/MiddlePanel/DeltaDetailInfoPanel/NextRange");
-        nextPierceText = nextPierceText != null ? nextPierceText : FindChildComponent<TMP_Text>(searchRoot, "TurretSelectPopupBackground/MiddlePanel/DeltaDetailInfoPanel/NextPierce");
-        dpsDeltaText = dpsDeltaText != null ? dpsDeltaText : FindChildComponent<TMP_Text>(searchRoot, "TurretSelectPopupBackground/MiddlePanel/DeltaDetailInfoPanel/DPSDelta");
-        fireRateDeltaText = fireRateDeltaText != null ? fireRateDeltaText : FindChildComponent<TMP_Text>(searchRoot, "TurretSelectPopupBackground/MiddlePanel/DeltaDetailInfoPanel/FireRateDelta");
-        rangeDeltaText = rangeDeltaText != null ? rangeDeltaText : FindChildComponent<TMP_Text>(searchRoot, "TurretSelectPopupBackground/MiddlePanel/DeltaDetailInfoPanel/RangeDelta");
-        pierceDeltaText = pierceDeltaText != null ? pierceDeltaText : FindChildComponent<TMP_Text>(searchRoot, "TurretSelectPopupBackground/MiddlePanel/DeltaDetailInfoPanel/PierceDelta");
-        upgradeCloseButton = upgradeCloseButton != null ? upgradeCloseButton : FindFirstChildComponent<Button>(searchRoot, "TurretSelectPopupBackground/HighPanel/CloseFrame/CloseButton", "TurretSelectPopupBackground/HighPanel/ExitFrame/Button");
-        upgradeBackButton = upgradeBackButton != null ? upgradeBackButton : FindChildComponent<Button>(searchRoot, "TurretSelectPopupBackground/LowPanel/BackButtonFrame/BackButton");
+        currentTurretNameText = currentTurretNameText != null ? currentTurretNameText : FindFirstPopupComponent<TMP_Text>(searchRoot, "HighPanel/CurrentTurretFrame/CurrentTurretName");
+        currentTurretLevelText = currentTurretLevelText != null ? currentTurretLevelText : FindFirstPopupComponent<TMP_Text>(searchRoot, "HighPanel/CurrentTurretFrame/CurrentTurretLevel");
+        nextTurretLevelText = nextTurretLevelText != null ? nextTurretLevelText : FindFirstPopupComponent<TMP_Text>(searchRoot, "HighPanel/NextTurretFrame/NextTurretLevel");
+        currentDpsText = currentDpsText != null ? currentDpsText : FindFirstPopupComponent<TMP_Text>(searchRoot, "MiddlePanel/DeltaDetailInfoPanel/DPS");
+        currentFireRateText = currentFireRateText != null ? currentFireRateText : FindFirstPopupComponent<TMP_Text>(searchRoot, "MiddlePanel/DeltaDetailInfoPanel/FireRate");
+        currentRangeText = currentRangeText != null ? currentRangeText : FindFirstPopupComponent<TMP_Text>(searchRoot, "MiddlePanel/DeltaDetailInfoPanel/Range");
+        currentPierceText = currentPierceText != null ? currentPierceText : FindFirstPopupComponent<TMP_Text>(searchRoot, "MiddlePanel/DeltaDetailInfoPanel/Pierce");
+        nextDpsText = nextDpsText != null ? nextDpsText : FindFirstPopupComponent<TMP_Text>(searchRoot, "MiddlePanel/DeltaDetailInfoPanel/NextDPS");
+        nextFireRateText = nextFireRateText != null ? nextFireRateText : FindFirstPopupComponent<TMP_Text>(searchRoot, "MiddlePanel/DeltaDetailInfoPanel/NextFireRate");
+        nextRangeText = nextRangeText != null ? nextRangeText : FindFirstPopupComponent<TMP_Text>(searchRoot, "MiddlePanel/DeltaDetailInfoPanel/NextRange");
+        nextPierceText = nextPierceText != null ? nextPierceText : FindFirstPopupComponent<TMP_Text>(searchRoot, "MiddlePanel/DeltaDetailInfoPanel/NextPierce");
+        dpsDeltaText = dpsDeltaText != null ? dpsDeltaText : FindFirstPopupComponent<TMP_Text>(searchRoot, "MiddlePanel/DeltaDetailInfoPanel/DPSDelta");
+        fireRateDeltaText = fireRateDeltaText != null ? fireRateDeltaText : FindFirstPopupComponent<TMP_Text>(searchRoot, "MiddlePanel/DeltaDetailInfoPanel/FireRateDelta");
+        rangeDeltaText = rangeDeltaText != null ? rangeDeltaText : FindFirstPopupComponent<TMP_Text>(searchRoot, "MiddlePanel/DeltaDetailInfoPanel/RangeDelta");
+        pierceDeltaText = pierceDeltaText != null ? pierceDeltaText : FindFirstPopupComponent<TMP_Text>(searchRoot, "MiddlePanel/DeltaDetailInfoPanel/PierceDelta");
+        turretImage = ResolveTurretIconImage(searchRoot, turretImage);
+        upgradeCloseButton = upgradeCloseButton != null ? upgradeCloseButton : FindFirstPopupComponent<Button>(searchRoot, "HighPanel/CloseFrame/CloseButton", "HighPanel/ExitFrame/Button");
+        upgradeBackButton = upgradeBackButton != null ? upgradeBackButton : FindFirstPopupComponent<Button>(searchRoot, "LowPanel/BackButtonFrame/BackButton");
         upgradeCloseButton = upgradeCloseButton != null ? upgradeCloseButton : CloseButton;
         upgradeBackButton = upgradeBackButton != null ? upgradeBackButton : BackButton;
-        upgradeButton = upgradeButton != null ? upgradeButton : FindChildComponent<Button>(searchRoot, "TurretSelectPopupBackground/LowPanel/UpgradeFrame/Upgrade");
-        evolutionButton = evolutionButton != null ? evolutionButton : FindFirstChildComponent<Button>(searchRoot, "TurretSelectPopupBackground/LowPanel/Evolution", "TurretSelectPopupBackground/LowPanel/EvolutionFrame/Evolution", "TurretSelectPopupBackground/LowPanel/EvolutionFrame/EvolutionTextFrame", "TurretSelectPopupBackground/LowPanel/SkillFrame/Skill");
+        upgradeButton = upgradeButton != null ? upgradeButton : FindFirstPopupComponent<Button>(searchRoot, "LowPanel/UpgradeFrame/Upgrade");
+        evolutionButton = evolutionButton != null ? evolutionButton : FindFirstPopupComponent<Button>(searchRoot, "LowPanel/Evolution", "LowPanel/EvolutionFrame/Evolution", "LowPanel/EvolutionFrame/EvolutionTextFrame", "LowPanel/SkillFrame/Skill");
         BindResourceSlotReferences(searchRoot);
     }
 
@@ -176,8 +184,10 @@ public class TurretUpgradePopupUI : TurretPopupPageUI
         bool canShowUpgrade = nextLevel > currentLevel && !turret.IsMaxTierLevelReached;
         bool hasEvolution = turret.GetAvailableEvolutionCount() > 0;
 
+        SetText(currentTurretNameText, ApplyTemplate(currentTurretNameTextTemplate, CurrentContext.GetDisplayName()));
         SetText(currentTurretLevelText, ApplyTemplate(currentLevelTextTemplate, currentLevel.ToString()));
         SetText(nextTurretLevelText, ApplyTemplate(nextLevelTextTemplate, canShowUpgrade ? nextLevel.ToString() : "MAX"));
+        SetTurretImage(turret.CurrentTurretDefinition);
         SetStatTexts(currentStat, nextStat);
         SetDeltaTexts(currentStat, nextStat, canShowUpgrade);
         SetCostTexts(upgradeCosts);
@@ -188,6 +198,11 @@ public class TurretUpgradePopupUI : TurretPopupPageUI
     private void CacheTextTemplates()
     {
         EnableDeltaRichText();
+
+        if (currentTurretNameText != null && string.IsNullOrEmpty(currentTurretNameTextTemplate))
+        {
+            currentTurretNameTextTemplate = currentTurretNameText.text;
+        }
 
         if (currentTurretLevelText != null && string.IsNullOrEmpty(currentLevelTextTemplate))
         {
@@ -309,6 +324,13 @@ public class TurretUpgradePopupUI : TurretPopupPageUI
         SetText(pierceDeltaText, FormatDeltaIntegerText(pierceDeltaTextTemplate, currentStat.pierceCount, nextStat.pierceCount));
     }
 
+    // 현재 터렛 정의에 연결된 UI 이미지를 팝업에 반영한다
+    private void SetTurretImage(TurretDefinitionSO definition)
+    {
+        Sprite sprite = definition == null ? null : definition.uiIcon;
+        SetTurretIconImage(turretImage, sprite);
+    }
+
     // 업그레이드 필요 재화를 텍스트와 개별 슬롯에 반영한다
     private void SetCostTexts(ResourceCost[] costs)
     {
@@ -406,7 +428,7 @@ public class TurretUpgradePopupUI : TurretPopupPageUI
     // 개별 재화 이름, 수량, 이미지 배열을 하위 이름 패턴으로 구성한다
     private void BindResourceSlotReferences(Transform searchRoot)
     {
-        Transform resourcePanel = searchRoot.Find("TurretSelectPopupBackground/MiddlePanel/DeltaDetailInfoPanel/RequireResorce/ResorcePanel");
+        Transform resourcePanel = FindFirstPopupTransform(searchRoot, "MiddlePanel/DeltaDetailInfoPanel/RequireResorce/ResorcePanel");
         if (resourcePanel == null)
         {
             EnsureResourceArrays();
@@ -661,6 +683,38 @@ public class TurretUpgradePopupUI : TurretPopupPageUI
         targetImage.enabled = sprite != null;
     }
 
+    // 터렛 대표 이미지를 현재 RectTransform 안에 비율 유지 방식으로 표시한다
+    private static void SetTurretIconImage(Image targetImage, Sprite sprite)
+    {
+        if (targetImage == null)
+        {
+            return;
+        }
+
+        targetImage.sprite = sprite;
+        targetImage.enabled = sprite != null;
+        targetImage.type = Image.Type.Simple;
+        targetImage.preserveAspect = true;
+        targetImage.color = Color.white;
+    }
+
+    // 현재 업그레이드 팝업 하위의 터렛 이미지 참조만 사용한다
+    private static Image ResolveTurretIconImage(Transform searchRoot, Image currentImage)
+    {
+        if (currentImage != null && currentImage.name != "TurretImageFrame" && currentImage.transform.IsChildOf(searchRoot))
+        {
+            return currentImage;
+        }
+
+        Image iconImage = FindFirstPopupComponent<Image>(searchRoot, "MiddlePanel/TurretImage", "MiddlePanel/TurretImageFrame/TurretImage");
+        if (iconImage != null)
+        {
+            return iconImage;
+        }
+
+        return null;
+    }
+
     // 텍스트 참조가 있을 때만 문자열을 적용한다
     private static void SetText(TMP_Text targetText, string value)
     {
@@ -682,17 +736,28 @@ public class TurretUpgradePopupUI : TurretPopupPageUI
         return child == null ? null : child.GetComponent<T>();
     }
 
-    // 여러 경로 중 처음 발견되는 하위 컴포넌트를 반환한다
-    private static T FindFirstChildComponent<T>(Transform searchRoot, params string[] childPaths) where T : Component
+    // 지정 경로의 하위 Transform을 찾는다
+    private static Transform FindChildTransform(Transform searchRoot, string childPath)
     {
-        if (childPaths == null)
+        if (searchRoot == null || string.IsNullOrWhiteSpace(childPath))
         {
             return null;
         }
 
-        for (int i = 0; i < childPaths.Length; i++)
+        return searchRoot.Find(childPath);
+    }
+
+    // UpgradePopup 배경명 기준으로 하위 컴포넌트를 찾는다
+    private static T FindFirstPopupComponent<T>(Transform searchRoot, params string[] relativePaths) where T : Component
+    {
+        if (relativePaths == null)
         {
-            T component = FindChildComponent<T>(searchRoot, childPaths[i]);
+            return null;
+        }
+
+        for (int i = 0; i < relativePaths.Length; i++)
+        {
+            T component = FindChildComponent<T>(searchRoot, UPGRADE_BACKGROUND_PATH + "/" + relativePaths[i]);
             if (component != null)
             {
                 return component;
@@ -700,6 +765,12 @@ public class TurretUpgradePopupUI : TurretPopupPageUI
         }
 
         return null;
+    }
+
+    // UpgradePopup 배경명 기준으로 하위 Transform을 찾는다
+    private static Transform FindFirstPopupTransform(Transform searchRoot, string relativePath)
+    {
+        return FindChildTransform(searchRoot, UPGRADE_BACKGROUND_PATH + "/" + relativePath);
     }
 
     // 하위 텍스트 중 이름에 지정 패턴이 포함된 첫 항목을 반환한다

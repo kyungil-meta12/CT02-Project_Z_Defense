@@ -19,10 +19,33 @@
 - `TurretUpgradePopupUI`는 현재/다음 레벨, DPS, 발사간격, 사거리, 변화량, 업그레이드 비용을 표시한다.
 - `TurretUpgradePopupUI` 비용 슬롯은 `ResourceCost`와 `InventorySystem` 메타데이터를 사용해 재화 이름, 수량, 이미지를 표시한다.
 - `TurretUpgradePopupUI`의 `LowPanel/Evolution` 버튼은 직접 진화하지 않고 `TurretEvolutionPopupUI`를 열도록 라우팅한다.
-- `TurretEvolutionPopupUI`는 진화 전후 이름/이미지, 진화 비용, 진화 버튼의 1차 연결 구조를 가진다.
+- `TurretEvolutionPopupUI`는 진화 분기 수에 따라 `MiddlePanel_A/B/C`를 전환하고, 현재 터렛/다음 후보 이미지와 이름, 후보별 진화 비용, 진화 실행 버튼을 표시한다.
 - `TurretDetailPopupUI`는 현재 터렛의 기본 상세 스탯을 읽기 전용으로 표시한다.
 - `TurretSkillPopupUI`는 아직 실제 기능 없이 준비 중 상태를 담당한다.
 - 모든 하위 팝업의 `BackButton`은 선택 팝업으로 돌아가는 방향으로 정리 중이다.
+
+## 2026-07-01 Evolution Popup Structure
+
+- `UpgradePopup`의 `LowPanel/EvolutionFrame/Evolution` 버튼은 직접 진화하지 않고 `EvolutionPopup`을 연다.
+- `EvolutionPopup`은 선택된 터렛의 `TurretEvolutionProgressionSO` 기준으로 사용 가능한 다음 진화 후보 수를 계산한다.
+- 후보 수가 1개면 `MiddlePanel_A`, 2개면 `MiddlePanel_B`, 3개 이상이면 `MiddlePanel_C`를 활성화한다. 현재 데이터 기준 `MiddlePanel_C`는 4분기용이다.
+- 각 패널의 `CurrentTurretImage`는 현재 터렛 `TurretDefinitionSO.uiIcon`을 표시한다.
+- 각 `NextTurretImage` 또는 `NextTurretImage_1~4`는 후보 `targetDefinition.uiIcon`을 표시하고, 후보 이름은 `targetDefinition.displayName`을 우선 사용한다.
+- 후보 이미지를 클릭하면 즉시 진화하지 않고 선택 후보만 변경한다.
+- 선택 후보가 바뀌면 `MiddleLowPanel/RequireSorceImagePanel`의 필요 재료 슬롯이 해당 후보의 `evolutionCosts` 기준으로 즉시 갱신된다.
+- 실제 진화 실행은 하단 `LowPanel/EvolutionFrame/Evolution` 버튼에서만 수행한다.
+- 선택된 후보의 `NextTurretImageFrame` 또는 `NextTurretImageFrame_1~4`는 붉은색으로 표시하고, 나머지 후보 프레임은 원래 색상으로 복구한다.
+
+## 2026-07-01 Evolution Cost Slot Rules
+
+- `RequireSorceText`는 큰 제목용 TMP이며 런타임에서 덮어쓰지 않는다. 씬에 입력된 `필요 재료` 문구를 유지한다.
+- `RequireSorceImagePanel` 아래 `RequireSorceImageFrame 1~8`은 진화 비용 표시 슬롯이다.
+- 각 슬롯은 `ItemName 1~8`, `ItemCount 1~8`, 아이템 이미지로 구성한다.
+- 비용 아이템 이미지는 `InventorySystem.GetMetaData(currencyType).ItemImage`를 사용한다.
+- 아이템 이름은 `InventorySystem.GetName(currencyType)`을 우선 사용하고, 없으면 `RewardCurrencyType` 이름을 사용한다.
+- 수량은 `보유/필요` 형식으로 표시한다.
+- 보유량이 부족하면 수량 TMP에 붉은색 Rich Text를 적용한다.
+- 필요한 재료 수가 8개보다 적으면 남는 슬롯은 기본 이미지, 현재 씬 기준 `crosshair`, 를 유지하고 `ItemName`/`ItemCount` 텍스트는 비운다.
 
 ## 2026-07-01 Button Reference Hardening
 
@@ -71,8 +94,8 @@
 
 - 일부 버튼과 TMP/Image 참조는 에디터 계층 이름에 의존하는 자동 연결 상태다.
 - `TurretSelectPopupBackground`의 바깥 클릭용 `Button` 연결 여부를 에디터에서 계속 확인해야 한다.
-- `UpgradePopup`, `EvolutionPopup`, `DetailPopup`의 실제 계층 이름이 코드 자동 경로와 완전히 일치하는지 추가 검증이 필요하다.
-- `EvolutionPopup`은 실제 진화 전후 이미지, 비용 슬롯, 버튼 활성 조건을 플레이 모드에서 더 확인해야 한다.
+- `UpgradePopup`, `EvolutionPopup`, `DetailPopup`의 실제 계층 이름은 현재 자동 연결 경로와 맞춰져 있지만, 계층 이름 변경 시 바인딩이 깨질 수 있다.
+- `EvolutionPopup`은 후보 선택 후 하단 `Evolution` 버튼이 선택된 후보 인덱스로 진화하는지 회귀 검증이 필요하다.
 - `SkillPopup`은 아직 기능 없음 상태이며, 버튼 비활성/준비 중 문구 정책을 나중에 확정해야 한다.
 - Main 씬 기준 `SkillPopup` 오브젝트와 `TurretSelectionUIController.skillPopup` 참조가 아직 없다.
 - 기존 옛날 터렛 UI 프리팹/오브젝트가 남아 있으면 더블클릭 또는 업그레이드 입력과 충돌할 수 있다.
@@ -84,7 +107,7 @@
 1. `Canvas > Turret UI` 아래 실제 오브젝트와 각 UI 스크립트의 Inspector 참조를 하나씩 대조한다.
 2. `TurretSelectPopup`의 X, 바깥 클릭, 업그레이드, 세부정보, 스킬 버튼을 순서대로 검증한다.
 3. `UpgradePopup`의 Back, Upgrade, Evolution 버튼을 검증한다.
-4. `EvolutionPopup`의 Back, X, Evolution 버튼과 비용 슬롯 이름/수량/이미지 표시를 검증한다.
+4. `EvolutionPopup`의 Back, X, 후보 이미지 선택, 선택 프레임 색상, 비용 슬롯 이름/수량/이미지, Evolution 실행을 검증한다.
 5. `DetailPopup`의 Back, X, 상세 스탯 표시, 엔지니어 상태 표시 확장 지점을 정리한다.
 6. 모든 팝업의 닫힘 정책을 통일한다.
 7. 필요한 경우 자동 연결 경로를 줄이고 Inspector 명시 참조 중심으로 정리한다.
@@ -110,5 +133,6 @@
 - `Note` TMP의 Rich Text 옵션 활성화 확인.
 - `TurretDefinitionSO.shortDescription`에 터렛별 설명 입력 확인.
 - `TurretUpgradePopupUI`에서 현재/다음 수치 TMP, 변화량 TMP, 재화 이름/수량/이미지, Back/Upgrade/Evolution 버튼 연결 확인.
-- `TurretEvolutionPopupUI`에서 현재/다음 터렛 이미지, 재화 이름/수량/이미지, Back/X/Evolution 버튼 연결 확인.
+- `TurretEvolutionPopupUI`에서 `MiddlePanel_A/B/C`, 현재/다음 터렛 이미지, 후보 프레임 이미지, 재화 이름/수량/이미지, Back/X/Evolution 버튼 연결 확인.
+- `TurretEvolutionPopupUI`에서 후보 이미지 클릭 시 진화가 즉시 실행되지 않고 비용 표시와 선택 프레임만 바뀌는지 확인.
 - `TurretSelectionUIController`에서 Select/Upgrade/Detail/Evolution Popup 참조 확인.

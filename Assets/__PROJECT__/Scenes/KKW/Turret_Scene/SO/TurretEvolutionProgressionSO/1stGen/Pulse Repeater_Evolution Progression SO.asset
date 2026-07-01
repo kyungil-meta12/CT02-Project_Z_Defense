@@ -19,7 +19,7 @@ MonoBehaviour:
     evolutionCosts:
     - currencyType: 0
       amount: 180000
-    evolutionIcon: {fileID: 21300000, guid: 7c4ef125d1c37e84e85958119b80e944, type: 3}
+    evolutionIcon: {fileID: 21300000, guid: c257655447cd30746b73683ddaf824be, type: 3}
     evolutionEffectPrefab: {fileID: 640602461530948004, guid: 938be4f127f81d348a60fe4019a9422c, type: 3}
     evolutionEffectLocalOffset: {x: 0, y: 0, z: 0}
     evolutionEffectDuration: 2
@@ -29,7 +29,7 @@ MonoBehaviour:
     evolutionCosts:
     - currencyType: 0
       amount: 180000
-    evolutionIcon: {fileID: 21300000, guid: 7c4ef125d1c37e84e85958119b80e944, type: 3}
+    evolutionIcon: {fileID: 21300000, guid: 8c8123907aaa3ec40b4ec89a71a39e07, type: 3}
     evolutionEffectPrefab: {fileID: 640602461530948004, guid: 938be4f127f81d348a60fe4019a9422c, type: 3}
     evolutionEffectLocalOffset: {x: 0, y: 0, z: 0}
     evolutionEffectDuration: 2
@@ -39,7 +39,7 @@ MonoBehaviour:
     evolutionCosts:
     - currencyType: 0
       amount: 180000
-    evolutionIcon: {fileID: 21300000, guid: 7c4ef125d1c37e84e85958119b80e944, type: 3}
+    evolutionIcon: {fileID: 21300000, guid: e684018a2647b3844a537cda91d8136f, type: 3}
     evolutionEffectPrefab: {fileID: 640602461530948004, guid: 938be4f127f81d348a60fe4019a9422c, type: 3}
     evolutionEffectLocalOffset: {x: 0, y: 0, z: 0}
     evolutionEffectDuration: 2
@@ -49,7 +49,7 @@ MonoBehaviour:
     evolutionCosts:
     - currencyType: 0
       amount: 180000
-    evolutionIcon: {fileID: 21300000, guid: 7c4ef125d1c37e84e85958119b80e944, type: 3}
+    evolutionIcon: {fileID: 21300000, guid: b3970c3a136d352438fad00625ba2227, type: 3}
     evolutionEffectPrefab: {fileID: 640602461530948004, guid: 938be4f127f81d348a60fe4019a9422c, type: 3}
     evolutionEffectLocalOffset: {x: 0, y: 0, z: 0}
     evolutionEffectDuration: 2

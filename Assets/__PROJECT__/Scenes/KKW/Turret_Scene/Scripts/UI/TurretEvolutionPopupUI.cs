@@ -1,34 +1,49 @@
-using System.Text;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
 /// <summary>
-/// 선택된 터렛의 진화 전후 정보, 진화 비용, 진화 실행 버튼을 표시한다.
+/// 선택된 터렛의 진화 분기 수에 맞는 패널을 열고 진화 후보 정보와 실행 버튼을 표시한다.
 /// </summary>
 public class TurretEvolutionPopupUI : TurretPopupPageUI
 {
-    [Header("진화 후보")]
-    [SerializeField, Min(0)] private int evolutionIndex;
+    private const int MAX_EVOLUTION_SLOT_COUNT = 4;
+    private const int MAX_RESOURCE_SLOT_COUNT = 8;
+    private const string INSUFFICIENT_COST_COLOR = "#FF4040";
+    private const string BACKGROUND_PATH = "TurretSelectPopupBackground";
+    private const string PANEL_A_PATH = BACKGROUND_PATH + "/MiddlePanel_A";
+    private const string PANEL_B_PATH = BACKGROUND_PATH + "/MiddlePanel_B";
+    private const string PANEL_C_PATH = BACKGROUND_PATH + "/MiddlePanel_C";
 
-    [Header("현재 터렛")]
-    [SerializeField] private TMP_Text currentTurretNameText;
-    [SerializeField] private Image currentTurretImage;
+    [Header("진화 패널")]
+    [SerializeField] private GameObject oneBranchPanel;
+    [SerializeField] private GameObject twoBranchPanel;
+    [SerializeField] private GameObject fourBranchPanel;
 
     [Header("다음 터렛")]
-    [SerializeField] private TMP_Text nextTurretNameText;
-    [SerializeField] private Image nextTurretImage;
+    [SerializeField] private Image[] nextTurretFrameImages = System.Array.Empty<Image>();
+    [SerializeField] private Color[] nextTurretFrameDefaultColors = System.Array.Empty<Color>();
+    [SerializeField] private Button[] evolutionCandidateButtons = System.Array.Empty<Button>();
+
+    [Header("선택 표시")]
+    [SerializeField] private Color selectedCandidateFrameColor = new Color(1f, 0.12f, 0.12f, 1f);
 
     [Header("필요 재화")]
-    [SerializeField] private TMP_Text requireResourceText;
     [SerializeField] private TMP_Text[] resourceItemNameTexts = System.Array.Empty<TMP_Text>();
     [SerializeField] private TMP_Text[] resourceItemCountTexts = System.Array.Empty<TMP_Text>();
     [SerializeField] private Image[] resourceItemImages = System.Array.Empty<Image>();
+    [SerializeField] private Transform[] resourceSlotFrames = System.Array.Empty<Transform>();
+    [SerializeField] private Sprite[] resourceItemDefaultSprites = System.Array.Empty<Sprite>();
 
     [Header("버튼")]
     [SerializeField] private Button evolutionCloseButton;
     [SerializeField] private Button evolutionBackButton;
     [SerializeField] private Button evolutionButton;
+
+    [Header("진화 실행")]
+    [SerializeField] private bool replacePrefabOnEvolution = true;
+
+    private int selectedEvolutionIndex;
 
     // 컴포넌트 추가 시 현재 팝업 하위 참조를 자동으로 찾는다
     private void Reset()
@@ -63,31 +78,22 @@ public class TurretEvolutionPopupUI : TurretPopupPageUI
     public void BindChildReferences()
     {
         Transform searchRoot = transform;
-        evolutionCloseButton = evolutionCloseButton != null ? evolutionCloseButton : FindChildComponent<Button>(searchRoot, "TurretSelectPopupBackground/HighPanel/ExitFrame/Button");
-        evolutionBackButton = evolutionBackButton != null ? evolutionBackButton : FindChildComponent<Button>(searchRoot, "TurretSelectPopupBackground/LowPanel/BackButtonFrame/BackButton");
+        oneBranchPanel = oneBranchPanel != null ? oneBranchPanel : FindChildGameObject(searchRoot, PANEL_A_PATH);
+        twoBranchPanel = twoBranchPanel != null ? twoBranchPanel : FindChildGameObject(searchRoot, PANEL_B_PATH);
+        fourBranchPanel = fourBranchPanel != null ? fourBranchPanel : FindChildGameObject(searchRoot, PANEL_C_PATH);
+        evolutionCloseButton = evolutionCloseButton != null ? evolutionCloseButton : FindChildComponent<Button>(searchRoot, BACKGROUND_PATH + "/HighPanel/ExitFrame/Button");
+        evolutionBackButton = evolutionBackButton != null ? evolutionBackButton : FindChildComponent<Button>(searchRoot, BACKGROUND_PATH + "/LowPanel/BackButtonFrame/BackButton");
         evolutionCloseButton = evolutionCloseButton != null ? evolutionCloseButton : CloseButton;
         evolutionBackButton = evolutionBackButton != null ? evolutionBackButton : BackButton;
-        evolutionButton = evolutionButton != null ? evolutionButton : FindChildComponent<Button>(searchRoot, "TurretSelectPopupBackground/LowPanel/EvolutionFrame/EvolutionTextFrame");
-        currentTurretNameText = currentTurretNameText != null ? currentTurretNameText : FindChildComponent<TMP_Text>(searchRoot, "TurretSelectPopupBackground/MiddlePanel/CurrentTurretImageFrame/CurrentTurretName");
-        currentTurretImage = currentTurretImage != null ? currentTurretImage : FindChildComponent<Image>(searchRoot, "TurretSelectPopupBackground/MiddlePanel/CurrentTurretImageFrame/CurrentTurretImage");
-        nextTurretNameText = nextTurretNameText != null ? nextTurretNameText : FindChildComponent<TMP_Text>(searchRoot, "TurretSelectPopupBackground/MiddlePanel/NextTurretImageFrame/NextTurretName");
-        nextTurretImage = nextTurretImage != null ? nextTurretImage : FindChildComponent<Image>(searchRoot, "TurretSelectPopupBackground/MiddlePanel/NextTurretImageFrame/TurretImage");
-        requireResourceText = requireResourceText != null ? requireResourceText : FindChildComponent<TMP_Text>(searchRoot, "TurretSelectPopupBackground/MiddleLowPanel/RequireSorceText");
+        evolutionButton = evolutionButton != null ? evolutionButton : FindFirstChildComponent<Button>(searchRoot, BACKGROUND_PATH + "/LowPanel/EvolutionFrame/EvolutionTextFrame", BACKGROUND_PATH + "/LowPanel/EvolutionFrame/Evolution");
+        BindBranchPanelReferences();
         BindResourceSlotReferences(searchRoot);
     }
 
-    // 진화 버튼 입력으로 현재 후보 진화를 실행한다
+    // 진화 버튼 입력으로 현재 선택 후보 진화를 실행한다
     public void OnEvolutionButtonClicked()
     {
-        if (!CurrentContext.IsValid)
-        {
-            return;
-        }
-
-        if (CurrentContext.Turret.TryEvolve(evolutionIndex))
-        {
-            RefreshEvolutionTexts();
-        }
+        Evolve(selectedEvolutionIndex);
     }
 
     // 닫기 버튼 입력으로 전체 선택을 해제한다
@@ -107,24 +113,335 @@ public class TurretEvolutionPopupUI : TurretPopupPageUI
     {
         if (!CurrentContext.IsValid)
         {
+            selectedEvolutionIndex = 0;
+            EvolutionBranchPanelData emptyPanel = SetActiveBranchPanel(0);
+            SetCostTexts(System.Array.Empty<ResourceCost>());
             SetInteractable(false);
+            ApplyCandidateSelectionHighlights(emptyPanel);
             return;
         }
 
-        TurretEvolutionEntry entry = CurrentContext.Turret.GetAvailableEvolution(evolutionIndex);
-        bool hasEvolution = entry != null && entry.targetDefinition != null;
-        SetText(currentTurretNameText, CurrentContext.GetDisplayName());
-        SetText(nextTurretNameText, hasEvolution ? GetEvolutionName(entry) : "진화 대기");
-        SetImage(nextTurretImage, hasEvolution ? entry.evolutionIcon : null);
-        SetCostTexts(hasEvolution ? entry.evolutionCosts : System.Array.Empty<ResourceCost>());
-        SetInteractable(hasEvolution && CurrentContext.Turret.CanEvolve(evolutionIndex));
+        int availableCount = Mathf.Min(CurrentContext.Turret.GetAvailableEvolutionCount(), MAX_EVOLUTION_SLOT_COUNT);
+        selectedEvolutionIndex = Mathf.Clamp(selectedEvolutionIndex, 0, Mathf.Max(0, availableCount - 1));
+        EvolutionBranchPanelData activePanel = SetActiveBranchPanel(availableCount);
+        RefreshCurrentTurretSlots(activePanel);
+        RefreshEvolutionCandidateSlots(activePanel, availableCount);
+        RefreshSelectedEvolutionDetails(activePanel);
+    }
+
+    // 현재 선택된 후보 인덱스로 진화를 실행한다
+    private void Evolve(int availableIndex)
+    {
+        if (!CurrentContext.IsValid)
+        {
+            return;
+        }
+
+        TurretDefinitionRuntimeController evolvedTurret = null;
+        if (replacePrefabOnEvolution)
+        {
+            evolvedTurret = CurrentContext.Turret.TryCreateEvolvedInstance(availableIndex);
+        }
+        else if (CurrentContext.Turret.TryEvolve(availableIndex))
+        {
+            evolvedTurret = CurrentContext.Turret;
+        }
+
+        if (evolvedTurret == null)
+        {
+            RefreshEvolutionTexts();
+            return;
+        }
+
+        TurretBaseSlot evolvedSlot = evolvedTurret.GetComponentInParent<TurretBaseSlot>();
+        CurrentContext = new TurretSelectionContext(evolvedTurret, evolvedSlot);
+        selectedEvolutionIndex = 0;
+        RefreshEvolutionTexts();
+    }
+
+    // 분기 수에 맞는 패널만 활성화하고 해당 패널 데이터를 반환한다
+    private EvolutionBranchPanelData SetActiveBranchPanel(int availableCount)
+    {
+        bool useOneBranchPanel = availableCount <= 1;
+        bool useTwoBranchPanel = availableCount == 2;
+        bool useFourBranchPanel = availableCount > 2;
+        SetGameObjectActive(oneBranchPanel, useOneBranchPanel);
+        SetGameObjectActive(twoBranchPanel, useTwoBranchPanel);
+        SetGameObjectActive(fourBranchPanel, useFourBranchPanel);
+
+        if (useTwoBranchPanel)
+        {
+            return CreatePanelData(twoBranchPanel);
+        }
+
+        if (useFourBranchPanel)
+        {
+            return CreatePanelData(fourBranchPanel);
+        }
+
+        return CreatePanelData(oneBranchPanel);
+    }
+
+    // 활성 패널의 현재 터렛 이름과 이미지를 갱신한다
+    private void RefreshCurrentTurretSlots(EvolutionBranchPanelData panelData)
+    {
+        Sprite currentSprite = CurrentContext.Definition == null ? null : CurrentContext.Definition.uiIcon;
+        SetText(panelData.CurrentTurretNameText, CurrentContext.GetDisplayName());
+        SetImage(panelData.CurrentTurretImage, currentSprite);
+    }
+
+    // 활성 패널의 진화 후보 슬롯들을 갱신한다
+    private void RefreshEvolutionCandidateSlots(EvolutionBranchPanelData panelData, int availableCount)
+    {
+        for (int i = 0; i < panelData.CandidateSlots.Length; i++)
+        {
+            EvolutionCandidateSlot slot = panelData.CandidateSlots[i];
+            TurretEvolutionEntry entry = i < availableCount ? CurrentContext.Turret.GetAvailableEvolution(i) : null;
+            RefreshEvolutionCandidateSlot(slot, entry, i);
+        }
+    }
+
+    // 단일 진화 후보 슬롯의 이름, 이미지, 버튼 상태를 갱신한다
+    private void RefreshEvolutionCandidateSlot(EvolutionCandidateSlot slot, TurretEvolutionEntry entry, int slotIndex)
+    {
+        bool hasEntry = entry != null && entry.targetDefinition != null;
+        SetGameObjectActive(slot.Root, hasEntry);
+        SetText(slot.NameText, hasEntry ? GetEvolutionName(entry) : string.Empty);
+        SetImage(slot.Image, hasEntry ? GetEvolutionSprite(entry) : null);
+
+        if (slot.Button != null)
+        {
+            slot.Button.onClick.RemoveListener(OnCandidate0Clicked);
+            slot.Button.onClick.RemoveListener(OnCandidate1Clicked);
+            slot.Button.onClick.RemoveListener(OnCandidate2Clicked);
+            slot.Button.onClick.RemoveListener(OnCandidate3Clicked);
+            slot.Button.onClick.AddListener(GetCandidateClickAction(slotIndex));
+            slot.Button.interactable = hasEntry;
+        }
+    }
+
+    // 선택된 후보의 비용과 실행 가능 상태를 갱신한다
+    private void RefreshSelectedEvolutionDetails(EvolutionBranchPanelData panelData)
+    {
+        TurretEvolutionEntry selectedEntry = CurrentContext.Turret.GetAvailableEvolution(selectedEvolutionIndex);
+        SetCostTexts(selectedEntry == null ? System.Array.Empty<ResourceCost>() : selectedEntry.evolutionCosts);
+        SetInteractable(selectedEntry != null && CurrentContext.Turret.CanEvolve(selectedEvolutionIndex));
+        ApplyCandidateSelectionHighlights(panelData);
+    }
+
+    // 분기 패널 안의 현재 터렛과 후보 슬롯 참조를 구성한다
+    private EvolutionBranchPanelData CreatePanelData(GameObject panelObject)
+    {
+        if (panelObject == null)
+        {
+            return new EvolutionBranchPanelData(null, null, System.Array.Empty<EvolutionCandidateSlot>());
+        }
+
+        Transform panelTransform = panelObject.transform;
+        TMP_Text currentNameText = FindFirstDescendantByExactName<TMP_Text>(panelTransform, "CurrentTurretName");
+        Image currentImage = FindFirstDescendantByExactName<Image>(panelTransform, "CurrentTurretImage");
+        EvolutionCandidateSlot[] candidateSlots = CreateCandidateSlots(panelTransform);
+        return new EvolutionBranchPanelData(currentNameText, currentImage, candidateSlots);
+    }
+
+    // 분기 패널 안의 다음 진화 후보 슬롯들을 이름 규칙으로 찾는다
+    private EvolutionCandidateSlot[] CreateCandidateSlots(Transform panelTransform)
+    {
+        EvolutionCandidateSlot[] slots = new EvolutionCandidateSlot[MAX_EVOLUTION_SLOT_COUNT];
+        bool hasUnsuffixedSlot = FindFirstDescendantTransformByExactName(panelTransform, "NextTurretImageFrame") != null ||
+                                 FindFirstDescendantTransformByExactName(panelTransform, "NextTurretImage") != null;
+        for (int i = 0; i < MAX_EVOLUTION_SLOT_COUNT; i++)
+        {
+            string suffix = hasUnsuffixedSlot && i == 0 ? string.Empty : "_" + (i + 1);
+            Transform frame = FindFirstDescendantTransformByExactName(panelTransform, "NextTurretImageFrame" + suffix);
+            Transform imageTransform = FindFirstDescendantTransformByExactName(panelTransform, "NextTurretImage" + suffix);
+            Transform searchRoot = frame != null ? frame : imageTransform;
+            TMP_Text nameText = searchRoot == null ? null : FindFirstDescendantByExactName<TMP_Text>(searchRoot, "NextTurretName");
+            Image image = imageTransform == null ? null : imageTransform.GetComponent<Image>();
+            Image frameImage = frame == null ? null : frame.GetComponent<Image>();
+            Button button = ResolveCandidateButton(searchRoot, imageTransform);
+            slots[i] = new EvolutionCandidateSlot(searchRoot == null ? null : searchRoot.gameObject, frameImage, nameText, image, button);
+        }
+
+        return TrimEmptySlots(slots);
+    }
+
+    // 비어 있지 않은 후보 슬롯만 남긴 배열을 반환한다
+    private static EvolutionCandidateSlot[] TrimEmptySlots(EvolutionCandidateSlot[] slots)
+    {
+        int count = 0;
+        for (int i = 0; i < slots.Length; i++)
+        {
+            if (slots[i].Root != null || slots[i].FrameImage != null || slots[i].Image != null || slots[i].NameText != null || slots[i].Button != null)
+            {
+                count++;
+            }
+        }
+
+        EvolutionCandidateSlot[] trimmedSlots = new EvolutionCandidateSlot[count];
+        int writeIndex = 0;
+        for (int i = 0; i < slots.Length; i++)
+        {
+            if (slots[i].Root == null && slots[i].FrameImage == null && slots[i].Image == null && slots[i].NameText == null && slots[i].Button == null)
+            {
+                continue;
+            }
+
+            trimmedSlots[writeIndex] = slots[i];
+            writeIndex++;
+        }
+
+        return trimmedSlots;
+    }
+
+    // 후보 슬롯에서 직접 누를 버튼 컴포넌트를 찾는다
+    private static Button ResolveCandidateButton(Transform frame, Transform imageTransform)
+    {
+        if (frame != null)
+        {
+            Button frameButton = frame.GetComponent<Button>();
+            if (frameButton != null)
+            {
+                return frameButton;
+            }
+
+            Button childButton = frame.GetComponentInChildren<Button>(true);
+            if (childButton != null)
+            {
+                return childButton;
+            }
+
+            Button runtimeButton = frame.gameObject.AddComponent<Button>();
+            runtimeButton.transition = Selectable.Transition.None;
+            return runtimeButton;
+        }
+
+        return imageTransform == null ? null : imageTransform.GetComponent<Button>();
+    }
+
+    // 모든 분기 패널의 공통 참조 배열과 후보 버튼 이벤트를 갱신한다
+    private void BindBranchPanelReferences()
+    {
+        UnbindCandidateButtonListeners();
+        EvolutionBranchPanelData onePanelData = CreatePanelData(oneBranchPanel);
+        EvolutionBranchPanelData twoPanelData = CreatePanelData(twoBranchPanel);
+        EvolutionBranchPanelData fourPanelData = CreatePanelData(fourBranchPanel);
+        nextTurretFrameImages = CollectCandidateFrameImages(onePanelData, twoPanelData, fourPanelData);
+        nextTurretFrameDefaultColors = CollectImageColors(nextTurretFrameImages);
+        evolutionCandidateButtons = CollectCandidateButtons(onePanelData, twoPanelData, fourPanelData);
+        BindCandidateButtonListeners();
+    }
+
+    // 후보 버튼 클릭 이벤트를 등록한다
+    private void BindCandidateButtonListeners()
+    {
+        if (evolutionCandidateButtons == null)
+        {
+            return;
+        }
+
+        for (int i = 0; i < evolutionCandidateButtons.Length; i++)
+        {
+            Button candidateButton = evolutionCandidateButtons[i];
+            if (candidateButton == null)
+            {
+                continue;
+            }
+
+            candidateButton.onClick.RemoveListener(OnCandidate0Clicked);
+            candidateButton.onClick.RemoveListener(OnCandidate1Clicked);
+            candidateButton.onClick.RemoveListener(OnCandidate2Clicked);
+            candidateButton.onClick.RemoveListener(OnCandidate3Clicked);
+        }
+    }
+
+    // 후보 버튼 클릭 이벤트를 해제한다
+    private void UnbindCandidateButtonListeners()
+    {
+        if (evolutionCandidateButtons == null)
+        {
+            return;
+        }
+
+        for (int i = 0; i < evolutionCandidateButtons.Length; i++)
+        {
+            Button candidateButton = evolutionCandidateButtons[i];
+            if (candidateButton == null)
+            {
+                continue;
+            }
+
+            candidateButton.onClick.RemoveListener(OnCandidate0Clicked);
+            candidateButton.onClick.RemoveListener(OnCandidate1Clicked);
+            candidateButton.onClick.RemoveListener(OnCandidate2Clicked);
+            candidateButton.onClick.RemoveListener(OnCandidate3Clicked);
+        }
+    }
+
+    // 후보 인덱스에 맞는 클릭 콜백을 반환한다
+    private UnityEngine.Events.UnityAction GetCandidateClickAction(int index)
+    {
+        switch (index)
+        {
+            case 0:
+                return OnCandidate0Clicked;
+            case 1:
+                return OnCandidate1Clicked;
+            case 2:
+                return OnCandidate2Clicked;
+            case 3:
+                return OnCandidate3Clicked;
+            default:
+                return OnCandidate0Clicked;
+        }
+    }
+
+    // 첫 번째 진화 후보를 선택한다
+    private void OnCandidate0Clicked()
+    {
+        SelectEvolutionCandidate(0);
+    }
+
+    // 두 번째 진화 후보를 선택한다
+    private void OnCandidate1Clicked()
+    {
+        SelectEvolutionCandidate(1);
+    }
+
+    // 세 번째 진화 후보를 선택한다
+    private void OnCandidate2Clicked()
+    {
+        SelectEvolutionCandidate(2);
+    }
+
+    // 네 번째 진화 후보를 선택한다
+    private void OnCandidate3Clicked()
+    {
+        SelectEvolutionCandidate(3);
+    }
+
+    // 선택 인덱스를 갱신하고 해당 후보 비용을 표시한다
+    private void SelectEvolutionCandidate(int index)
+    {
+        if (!CurrentContext.IsValid)
+        {
+            return;
+        }
+
+        int availableCount = Mathf.Min(CurrentContext.Turret.GetAvailableEvolutionCount(), MAX_EVOLUTION_SLOT_COUNT);
+        if (index < 0 || index >= availableCount)
+        {
+            return;
+        }
+
+        selectedEvolutionIndex = index;
+        EvolutionBranchPanelData activePanel = SetActiveBranchPanel(availableCount);
+        RefreshSelectedEvolutionDetails(activePanel);
     }
 
     // 필요 재화 텍스트와 개별 슬롯을 갱신한다
     private void SetCostTexts(ResourceCost[] costs)
     {
-        SetText(requireResourceText, FormatCosts(costs));
-
         if (costs == null)
         {
             ClearResourceSlots(0);
@@ -141,8 +458,8 @@ public class TurretEvolutionPopupUI : TurretPopupPageUI
                 continue;
             }
 
-            SetText(GetTextAt(resourceItemNameTexts, visibleIndex), GetCurrencyDisplayName(cost.currencyType));
-            SetText(GetTextAt(resourceItemCountTexts, visibleIndex), cost.amount.ToString());
+            SetResourceNameText(visibleIndex, GetCurrencyDisplayName(cost.currencyType));
+            SetResourceCountText(visibleIndex, FormatCostAmountText(cost));
             SetImage(GetImageAt(resourceItemImages, visibleIndex), GetCurrencySprite(cost.currencyType));
             visibleIndex++;
         }
@@ -150,7 +467,60 @@ public class TurretEvolutionPopupUI : TurretPopupPageUI
         ClearResourceSlots(visibleIndex);
     }
 
-    // 진화 버튼 활성 상태를 적용한다
+    // 선택된 후보 프레임만 강조 색상으로 표시한다
+    private void ApplyCandidateSelectionHighlights(EvolutionBranchPanelData panelData)
+    {
+        EvolutionCandidateSlot[] slots = panelData.CandidateSlots;
+        for (int i = 0; i < slots.Length; i++)
+        {
+            SetCandidateFrameSelected(slots[i], CanHighlightCandidateIndex(i));
+        }
+    }
+
+    // 지정 후보 인덱스를 선택 하이라이트로 표시할 수 있는지 확인한다
+    private bool CanHighlightCandidateIndex(int index)
+    {
+        if (!CurrentContext.IsValid || index != selectedEvolutionIndex)
+        {
+            return false;
+        }
+
+        int availableCount = Mathf.Min(CurrentContext.Turret.GetAvailableEvolutionCount(), MAX_EVOLUTION_SLOT_COUNT);
+        return index >= 0 && index < availableCount;
+    }
+
+    // 후보 프레임의 선택 색상 또는 기본 색상을 적용한다
+    private void SetCandidateFrameSelected(EvolutionCandidateSlot slot, bool isSelected)
+    {
+        if (slot.FrameImage == null)
+        {
+            return;
+        }
+
+        slot.FrameImage.color = isSelected ? selectedCandidateFrameColor : GetCandidateFrameDefaultColor(slot.FrameImage);
+    }
+
+    // 후보 프레임 이미지의 저장된 기본 색상을 반환한다
+    private Color GetCandidateFrameDefaultColor(Image frameImage)
+    {
+        if (nextTurretFrameImages == null || nextTurretFrameDefaultColors == null)
+        {
+            return Color.white;
+        }
+
+        int count = Mathf.Min(nextTurretFrameImages.Length, nextTurretFrameDefaultColors.Length);
+        for (int i = 0; i < count; i++)
+        {
+            if (nextTurretFrameImages[i] == frameImage)
+            {
+                return nextTurretFrameDefaultColors[i];
+            }
+        }
+
+        return Color.white;
+    }
+
+    // 하단 진화 버튼 활성 상태를 적용한다
     private void SetInteractable(bool canEvolve)
     {
         if (evolutionButton != null)
@@ -178,6 +548,8 @@ public class TurretEvolutionPopupUI : TurretPopupPageUI
         {
             evolutionButton.onClick.AddListener(OnEvolutionButtonClicked);
         }
+
+        BindCandidateButtonListeners();
     }
 
     // 버튼 클릭 이벤트를 해제한다
@@ -197,39 +569,34 @@ public class TurretEvolutionPopupUI : TurretPopupPageUI
         {
             evolutionButton.onClick.RemoveListener(OnEvolutionButtonClicked);
         }
+
+        UnbindCandidateButtonListeners();
     }
 
     // 개별 재화 이름, 수량, 이미지 배열을 하위 이름 패턴으로 구성한다
     private void BindResourceSlotReferences(Transform searchRoot)
     {
-        Transform resourcePanel = searchRoot.Find("TurretSelectPopupBackground/MiddleLowPanel/RequireSorceImagePanel");
+        Transform resourcePanel = searchRoot.Find(BACKGROUND_PATH + "/MiddleLowPanel/RequireSorceImagePanel");
         if (resourcePanel == null)
         {
             EnsureResourceArrays();
             return;
         }
 
-        if (resourceItemNameTexts == null || resourceItemNameTexts.Length == 0)
+        resourceItemNameTexts = new TMP_Text[MAX_RESOURCE_SLOT_COUNT];
+        resourceItemCountTexts = new TMP_Text[MAX_RESOURCE_SLOT_COUNT];
+        resourceItemImages = new Image[MAX_RESOURCE_SLOT_COUNT];
+        resourceSlotFrames = new Transform[MAX_RESOURCE_SLOT_COUNT];
+        resourceItemDefaultSprites = new Sprite[MAX_RESOURCE_SLOT_COUNT];
+        for (int i = 0; i < MAX_RESOURCE_SLOT_COUNT; i++)
         {
-            resourceItemNameTexts = FindTextsByName(resourcePanel, "ItemName");
-        }
-
-        if (resourceItemCountTexts == null || resourceItemCountTexts.Length == 0)
-        {
-            resourceItemCountTexts = FindTextsByName(resourcePanel, "ItemCount");
-            if (resourceItemCountTexts.Length == 0)
-            {
-                resourceItemCountTexts = resourcePanel.GetComponentsInChildren<TMP_Text>(true);
-            }
-        }
-
-        if (resourceItemImages == null || resourceItemImages.Length == 0)
-        {
-            resourceItemImages = FindImagesByName(resourcePanel, "ItemImage");
-            if (resourceItemImages.Length == 0)
-            {
-                resourceItemImages = FindImagesByName(resourcePanel, "Image");
-            }
+            int slotNumber = i + 1;
+            Transform frame = FindFirstDescendantTransformByExactName(resourcePanel, "RequireSorceImageFrame " + slotNumber);
+            resourceSlotFrames[i] = frame;
+            resourceItemNameTexts[i] = FindResourceSlotText(resourcePanel, frame, "ItemName", slotNumber);
+            resourceItemCountTexts[i] = FindResourceSlotText(resourcePanel, frame, "ItemCount", slotNumber);
+            resourceItemImages[i] = FindResourceSlotImage(frame);
+            resourceItemDefaultSprites[i] = resourceItemImages[i] == null ? null : resourceItemImages[i].sprite;
         }
 
         EnsureResourceArrays();
@@ -243,48 +610,34 @@ public class TurretEvolutionPopupUI : TurretPopupPageUI
             return string.Empty;
         }
 
-        if (!string.IsNullOrWhiteSpace(entry.displayName))
-        {
-            return entry.displayName;
-        }
-
         TurretDefinitionSO targetDefinition = entry.targetDefinition;
-        if (targetDefinition == null)
+        if (targetDefinition != null && !string.IsNullOrWhiteSpace(targetDefinition.displayName))
         {
-            return string.Empty;
+            return targetDefinition.displayName;
         }
 
-        return !string.IsNullOrWhiteSpace(targetDefinition.displayName) ? targetDefinition.displayName : targetDefinition.name;
+        if (targetDefinition != null)
+        {
+            return targetDefinition.name;
+        }
+
+        return string.IsNullOrWhiteSpace(entry.displayName) ? string.Empty : entry.displayName;
     }
 
-    // 비용 배열을 UI 표시 문자열로 변환한다
-    private static string FormatCosts(ResourceCost[] costs)
+    // 진화 엔트리의 대표 이미지를 반환한다
+    private static Sprite GetEvolutionSprite(TurretEvolutionEntry entry)
     {
-        if (costs == null || costs.Length == 0)
+        if (entry == null)
         {
-            return "필요 재화 없음";
+            return null;
         }
 
-        StringBuilder builder = new StringBuilder(64);
-        for (int i = 0; i < costs.Length; i++)
+        if (entry.targetDefinition != null && entry.targetDefinition.uiIcon != null)
         {
-            ResourceCost cost = costs[i];
-            if (cost == null || cost.amount <= 0)
-            {
-                continue;
-            }
-
-            if (builder.Length > 0)
-            {
-                builder.Append(" / ");
-            }
-
-            builder.Append(GetCurrencyDisplayName(cost.currencyType));
-            builder.Append(' ');
-            builder.Append(cost.amount);
+            return entry.targetDefinition.uiIcon;
         }
 
-        return builder.Length == 0 ? "필요 재화 없음" : builder.ToString();
+        return entry.evolutionIcon;
     }
 
     // 재화 타입을 UI 표시 이름으로 변환한다
@@ -326,15 +679,39 @@ public class TurretEvolutionPopupUI : TurretPopupPageUI
         return metadata == null ? null : metadata.ItemImage;
     }
 
+    // 비용 수량을 보유량과 요구량 형식으로 변환하고 부족하면 붉은색을 적용한다
+    private static string FormatCostAmountText(ResourceCost cost)
+    {
+        if (cost == null)
+        {
+            return string.Empty;
+        }
+
+        int requiredAmount = Mathf.Max(0, cost.amount);
+        if (InventorySystem.Inst == null)
+        {
+            return "0/" + requiredAmount;
+        }
+
+        string ownedAmount = InventorySystem.Inst.GetCountString(cost.currencyType);
+        string amountText = ownedAmount + "/" + requiredAmount;
+        if (!InventorySystem.Inst.CanUseItem(cost.currencyType, requiredAmount))
+        {
+            return "<color=" + INSUFFICIENT_COST_COLOR + ">" + amountText + "</color>";
+        }
+
+        return amountText;
+    }
+
     // 지정 인덱스 이후 재화 슬롯 표시를 비운다
     private void ClearResourceSlots(int startIndex)
     {
         int slotCount = GetResourceSlotCount();
         for (int i = startIndex; i < slotCount; i++)
         {
-            SetText(GetTextAt(resourceItemNameTexts, i), string.Empty);
-            SetText(GetTextAt(resourceItemCountTexts, i), string.Empty);
-            SetImage(GetImageAt(resourceItemImages, i), null);
+            SetResourceNameText(i, string.Empty);
+            SetResourceCountText(i, string.Empty);
+            SetImage(GetImageAt(resourceItemImages, i), GetSpriteAt(resourceItemDefaultSprites, i));
         }
     }
 
@@ -361,6 +738,8 @@ public class TurretEvolutionPopupUI : TurretPopupPageUI
         resourceItemNameTexts = resourceItemNameTexts ?? System.Array.Empty<TMP_Text>();
         resourceItemCountTexts = resourceItemCountTexts ?? System.Array.Empty<TMP_Text>();
         resourceItemImages = resourceItemImages ?? System.Array.Empty<Image>();
+        resourceSlotFrames = resourceSlotFrames ?? System.Array.Empty<Transform>();
+        resourceItemDefaultSprites = resourceItemDefaultSprites ?? System.Array.Empty<Sprite>();
     }
 
     // 지정 배열에서 안전하게 텍스트 참조를 얻는다
@@ -375,6 +754,105 @@ public class TurretEvolutionPopupUI : TurretPopupPageUI
         return images != null && index >= 0 && index < images.Length ? images[index] : null;
     }
 
+    // 지정 배열에서 안전하게 스프라이트 참조를 얻는다
+    private static Sprite GetSpriteAt(Sprite[] sprites, int index)
+    {
+        return sprites != null && index >= 0 && index < sprites.Length ? sprites[index] : null;
+    }
+
+    // 재료 이름 슬롯과 같은 프레임 안의 이름 텍스트를 함께 갱신한다
+    private void SetResourceNameText(int slotIndex, string value)
+    {
+        TMP_Text primaryText = GetTextAt(resourceItemNameTexts, slotIndex);
+        SetText(primaryText, value);
+        SetFrameTextsByPrefix(GetTransformAt(resourceSlotFrames, slotIndex), "ItemName", value);
+    }
+
+    // 재료 수량 슬롯과 같은 프레임 안의 수량 텍스트를 함께 갱신한다
+    private void SetResourceCountText(int slotIndex, string value)
+    {
+        TMP_Text primaryText = GetTextAt(resourceItemCountTexts, slotIndex);
+        EnableRichText(primaryText);
+        SetText(primaryText, value);
+        SetFrameTextsByPrefix(GetTransformAt(resourceSlotFrames, slotIndex), "ItemCount", value);
+    }
+
+    // 지정 배열에서 안전하게 Transform 참조를 얻는다
+    private static Transform GetTransformAt(Transform[] transforms, int index)
+    {
+        return transforms != null && index >= 0 && index < transforms.Length ? transforms[index] : null;
+    }
+
+    // 프레임 안의 지정 접두사 텍스트를 모두 갱신한다
+    private static void SetFrameTextsByPrefix(Transform frame, string namePrefix, string value)
+    {
+        if (frame == null || string.IsNullOrEmpty(namePrefix))
+        {
+            return;
+        }
+
+        TMP_Text[] texts = frame.GetComponentsInChildren<TMP_Text>(true);
+        for (int i = 0; i < texts.Length; i++)
+        {
+            TMP_Text text = texts[i];
+            if (text == null || !text.name.StartsWith(namePrefix, System.StringComparison.Ordinal))
+            {
+                continue;
+            }
+
+            EnableRichText(text);
+            SetText(text, value);
+        }
+    }
+
+    // 텍스트 참조에 리치 텍스트 색상 태그 사용을 허용한다
+    private static void EnableRichText(TMP_Text targetText)
+    {
+        if (targetText != null)
+        {
+            targetText.richText = true;
+        }
+    }
+
+    // 재료 슬롯에서 번호가 붙은 텍스트와 프레임 내부 기본 텍스트를 순서대로 찾는다
+    private static TMP_Text FindResourceSlotText(Transform resourcePanel, Transform frame, string baseName, int slotNumber)
+    {
+        TMP_Text text = FindFirstDescendantByExactName<TMP_Text>(frame, baseName + " " + slotNumber);
+        if (text != null)
+        {
+            return text;
+        }
+
+        text = FindFirstDescendantByExactName<TMP_Text>(frame, baseName);
+        if (text != null)
+        {
+            return text;
+        }
+
+        return FindFirstDescendantByExactName<TMP_Text>(resourcePanel, baseName + " " + slotNumber);
+    }
+
+    // 재료 프레임 아래에서 실제 아이템 아이콘 이미지를 찾는다
+    private static Image FindResourceSlotImage(Transform frame)
+    {
+        if (frame == null)
+        {
+            return null;
+        }
+
+        Image[] images = frame.GetComponentsInChildren<Image>(true);
+        for (int i = 0; i < images.Length; i++)
+        {
+            Image image = images[i];
+            if (image != null && image.transform != frame)
+            {
+                return image;
+            }
+        }
+
+        return frame.GetComponent<Image>();
+    }
+
     // 이미지 참조에 스프라이트를 적용한다
     private static void SetImage(Image targetImage, Sprite sprite)
     {
@@ -385,6 +863,9 @@ public class TurretEvolutionPopupUI : TurretPopupPageUI
 
         targetImage.sprite = sprite;
         targetImage.enabled = sprite != null;
+        targetImage.type = Image.Type.Simple;
+        targetImage.preserveAspect = true;
+        targetImage.color = Color.white;
     }
 
     // 텍스트 참조가 있을 때만 문자열을 적용한다
@@ -396,96 +877,186 @@ public class TurretEvolutionPopupUI : TurretPopupPageUI
         }
     }
 
+    // 지정 오브젝트의 활성 상태를 안전하게 변경한다
+    private static void SetGameObjectActive(GameObject targetObject, bool isActive)
+    {
+        if (targetObject != null && targetObject.activeSelf != isActive)
+        {
+            targetObject.SetActive(isActive);
+        }
+    }
+
+    // 지정 경로의 하위 게임 오브젝트를 찾는다
+    private static GameObject FindChildGameObject(Transform searchRoot, string childPath)
+    {
+        Transform child = FindChildTransform(searchRoot, childPath);
+        return child == null ? null : child.gameObject;
+    }
+
     // 지정 경로의 하위 컴포넌트를 찾는다
     private static T FindChildComponent<T>(Transform searchRoot, string childPath) where T : Component
+    {
+        Transform child = FindChildTransform(searchRoot, childPath);
+        return child == null ? null : child.GetComponent<T>();
+    }
+
+    // 여러 경로 중 처음 발견되는 하위 컴포넌트를 반환한다
+    private static T FindFirstChildComponent<T>(Transform searchRoot, params string[] childPaths) where T : Component
+    {
+        if (childPaths == null)
+        {
+            return null;
+        }
+
+        for (int i = 0; i < childPaths.Length; i++)
+        {
+            T component = FindChildComponent<T>(searchRoot, childPaths[i]);
+            if (component != null)
+            {
+                return component;
+            }
+        }
+
+        return null;
+    }
+
+    // 지정 경로의 하위 Transform을 찾는다
+    private static Transform FindChildTransform(Transform searchRoot, string childPath)
     {
         if (searchRoot == null || string.IsNullOrWhiteSpace(childPath))
         {
             return null;
         }
 
-        Transform child = searchRoot.Find(childPath);
-        return child == null ? null : child.GetComponent<T>();
+        return searchRoot.Find(childPath);
     }
 
-    // 하위 텍스트 중 이름에 지정 패턴이 포함된 항목을 반환한다
-    private static TMP_Text[] FindTextsByName(Transform root, string namePattern)
+    // 하위 오브젝트 중 정확한 이름의 첫 Transform을 찾는다
+    private static Transform FindFirstDescendantTransformByExactName(Transform root, string targetName)
     {
-        if (root == null)
+        if (root == null || string.IsNullOrEmpty(targetName))
         {
-            return System.Array.Empty<TMP_Text>();
+            return null;
         }
 
-        TMP_Text[] candidates = root.GetComponentsInChildren<TMP_Text>(true);
-        int count = CountMatches(candidates, namePattern);
-        if (count == 0)
-        {
-            return System.Array.Empty<TMP_Text>();
-        }
-
-        TMP_Text[] matches = new TMP_Text[count];
-        int writeIndex = 0;
+        Transform[] candidates = root.GetComponentsInChildren<Transform>(true);
         for (int i = 0; i < candidates.Length; i++)
         {
-            TMP_Text candidate = candidates[i];
-            if (candidate != null && candidate.name.Contains(namePattern))
+            Transform candidate = candidates[i];
+            if (candidate != null && candidate.name == targetName)
             {
-                matches[writeIndex] = candidate;
+                return candidate;
+            }
+        }
+
+        return null;
+    }
+
+    // 하위 오브젝트 중 정확한 이름의 첫 컴포넌트를 찾는다
+    private static T FindFirstDescendantByExactName<T>(Transform root, string targetName) where T : Component
+    {
+        Transform targetTransform = FindFirstDescendantTransformByExactName(root, targetName);
+        return targetTransform == null ? null : targetTransform.GetComponent<T>();
+    }
+
+    // 세 패널의 후보 프레임 이미지 참조를 모은다
+    private static Image[] CollectCandidateFrameImages(params EvolutionBranchPanelData[] panelDataArray)
+    {
+        Image[] images = new Image[CountCandidateSlots(panelDataArray)];
+        int writeIndex = 0;
+        for (int i = 0; i < panelDataArray.Length; i++)
+        {
+            EvolutionCandidateSlot[] slots = panelDataArray[i].CandidateSlots;
+            for (int j = 0; j < slots.Length; j++)
+            {
+                images[writeIndex] = slots[j].FrameImage;
                 writeIndex++;
             }
         }
 
-        return matches;
+        return images;
     }
 
-    // 하위 이미지 중 이름에 지정 패턴이 포함된 항목을 반환한다
-    private static Image[] FindImagesByName(Transform root, string namePattern)
+    // 이미지 배열의 현재 색상을 기본 색상 배열로 복사한다
+    private static Color[] CollectImageColors(Image[] images)
     {
-        if (root == null)
+        if (images == null)
         {
-            return System.Array.Empty<Image>();
+            return System.Array.Empty<Color>();
         }
 
-        Image[] candidates = root.GetComponentsInChildren<Image>(true);
-        int count = CountMatches(candidates, namePattern);
-        if (count == 0)
+        Color[] colors = new Color[images.Length];
+        for (int i = 0; i < images.Length; i++)
         {
-            return System.Array.Empty<Image>();
+            colors[i] = images[i] == null ? Color.white : images[i].color;
         }
 
-        Image[] matches = new Image[count];
+        return colors;
+    }
+
+    // 세 패널의 후보 버튼 참조를 모은다
+    private static Button[] CollectCandidateButtons(params EvolutionBranchPanelData[] panelDataArray)
+    {
+        Button[] buttons = new Button[CountCandidateSlots(panelDataArray)];
         int writeIndex = 0;
-        for (int i = 0; i < candidates.Length; i++)
+        for (int i = 0; i < panelDataArray.Length; i++)
         {
-            Image candidate = candidates[i];
-            if (candidate != null && candidate.name.Contains(namePattern))
+            EvolutionCandidateSlot[] slots = panelDataArray[i].CandidateSlots;
+            for (int j = 0; j < slots.Length; j++)
             {
-                matches[writeIndex] = candidate;
+                buttons[writeIndex] = slots[j].Button;
                 writeIndex++;
             }
         }
 
-        return matches;
+        return buttons;
     }
 
-    // 컴포넌트 배열에서 이름 패턴과 일치하는 개수를 센다
-    private static int CountMatches(Component[] candidates, string namePattern)
+    // 세 패널의 후보 슬롯 총 개수를 반환한다
+    private static int CountCandidateSlots(EvolutionBranchPanelData[] panelDataArray)
     {
-        if (candidates == null || string.IsNullOrEmpty(namePattern))
-        {
-            return 0;
-        }
-
         int count = 0;
-        for (int i = 0; i < candidates.Length; i++)
+        for (int i = 0; i < panelDataArray.Length; i++)
         {
-            Component candidate = candidates[i];
-            if (candidate != null && candidate.name.Contains(namePattern))
-            {
-                count++;
-            }
+            count += panelDataArray[i].CandidateSlots.Length;
         }
 
         return count;
+    }
+
+    // 분기 패널에 필요한 참조 묶음을 보관한다
+    private readonly struct EvolutionBranchPanelData
+    {
+        public readonly TMP_Text CurrentTurretNameText;
+        public readonly Image CurrentTurretImage;
+        public readonly EvolutionCandidateSlot[] CandidateSlots;
+
+        // 분기 패널 참조 묶음을 초기화한다
+        public EvolutionBranchPanelData(TMP_Text currentTurretNameText, Image currentTurretImage, EvolutionCandidateSlot[] candidateSlots)
+        {
+            CurrentTurretNameText = currentTurretNameText;
+            CurrentTurretImage = currentTurretImage;
+            CandidateSlots = candidateSlots ?? System.Array.Empty<EvolutionCandidateSlot>();
+        }
+    }
+
+    // 진화 후보 하나의 표시와 클릭 참조를 보관한다
+    private readonly struct EvolutionCandidateSlot
+    {
+        public readonly GameObject Root;
+        public readonly Image FrameImage;
+        public readonly TMP_Text NameText;
+        public readonly Image Image;
+        public readonly Button Button;
+
+        // 진화 후보 슬롯 참조 묶음을 초기화한다
+        public EvolutionCandidateSlot(GameObject root, Image frameImage, TMP_Text nameText, Image image, Button button)
+        {
+            Root = root;
+            FrameImage = frameImage;
+            NameText = nameText;
+            Image = image;
+            Button = button;
+        }
     }
 }

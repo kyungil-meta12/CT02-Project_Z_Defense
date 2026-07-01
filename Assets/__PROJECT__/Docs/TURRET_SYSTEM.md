@@ -911,6 +911,11 @@ Engineer buff policy:
 - `TurretUpgradePopupUI`, `TurretDetailPopupUI`, `TurretSkillPopupUI`, and `TurretEvolutionPopupUI` are inspector-wired popup pages. Child popup `BackButton` controls should return to `TurretSelectPopup`.
 - `TurretUpgradePopupUI` should route its `LowPanel/Evolution` button to `TurretEvolutionPopupUI` instead of performing evolution directly.
 - Upgrade and evolution cost slots should follow `ResourceCost` data from turret ScriptableObjects, and resource name/image display should use `InventorySystem` metadata when available.
+- `TurretEvolutionPopupUI` owns only evolution UI selection and execution. The source of truth for candidates remains `TurretEvolutionProgressionSO`, exposed through `TurretDefinitionRuntimeController.GetAvailableEvolutionCount`, `GetAvailableEvolution`, `CanEvolve`, and `TryCreateEvolvedInstance`.
+- `TurretEvolutionPopupUI` chooses `MiddlePanel_A`, `MiddlePanel_B`, or `MiddlePanel_C` by available evolution count. Use A for one candidate, B for two candidates, and C for three or more candidates. Current authored data uses C for four-candidate branches.
+- Clicking a `NextTurretImage` candidate should not evolve immediately. It selects the candidate, refreshes the candidate-specific `evolutionCosts`, and highlights that candidate's `NextTurretImageFrame`. The low-panel `Evolution` button performs the actual evolution for the selected candidate.
+- Evolution material slots live under `MiddleLowPanel/RequireSorceImagePanel` and are capped at eight visible slots. `RequireSorceText` is a static title and should not be overwritten at runtime.
+- Empty evolution material slots should keep their authored placeholder image, currently `crosshair`, while clearing `ItemName` and `ItemCount` text.
 - `TurretRangeIndicator` renders one reusable world-space indicator for the currently selected turret.
 - `TurretRangeIndicator` can use a configured prefab such as `Marker circle simple cyan 1` for polished range presentation, while keeping the previous `LineRenderer` circle as a fallback when no prefab is assigned.
 - Prefab-based range indicators are instantiated once, reused, moved to the selected turret center, and scaled by `range / prefabRadiusAtScaleOne`.

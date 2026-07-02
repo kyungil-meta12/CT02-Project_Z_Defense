@@ -1,5 +1,6 @@
 using TMPro;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 /// <summary>
@@ -28,6 +29,10 @@ public class TurretEvolutionPopupUI : TurretPopupPageUI
     [Header("선택 표시")]
     [SerializeField] private Color selectedCandidateFrameColor = new Color(1f, 0.12f, 0.12f, 1f);
 
+    [Header("후보 정보 팝업")]
+    [SerializeField] private TurretInfoPopupUI turretInfoPopup;
+    [SerializeField, Min(0.1f)] private float candidateInfoHoldDuration = 0.5f;
+
     [Header("필요 재화")]
     [SerializeField] private TMP_Text[] resourceItemNameTexts = System.Array.Empty<TMP_Text>();
     [SerializeField] private TMP_Text[] resourceItemCountTexts = System.Array.Empty<TMP_Text>();
@@ -44,6 +49,10 @@ public class TurretEvolutionPopupUI : TurretPopupPageUI
     [SerializeField] private bool replacePrefabOnEvolution = true;
 
     private int selectedEvolutionIndex;
+    private int pressedCandidateIndex = -1;
+    private float pressedCandidateElapsedTime;
+    private bool hasOpenedInfoByHold;
+    private bool suppressNextCandidateClick;
 
     // 컴포넌트 추가 시 현재 팝업 하위 참조를 자동으로 찾는다
     private void Reset()
@@ -59,6 +68,25 @@ public class TurretEvolutionPopupUI : TurretPopupPageUI
         BindButtonListeners();
     }
 
+    // 후보 버튼을 누르고 있는 시간을 계산해 정보 팝업을 연다
+    private void Update()
+    {
+        if (pressedCandidateIndex < 0 || hasOpenedInfoByHold)
+        {
+            return;
+        }
+
+        pressedCandidateElapsedTime += Time.unscaledDeltaTime;
+        if (pressedCandidateElapsedTime < candidateInfoHoldDuration)
+        {
+            return;
+        }
+
+        hasOpenedInfoByHold = true;
+        suppressNextCandidateClick = true;
+        OpenEvolutionCandidateInfo(pressedCandidateIndex);
+    }
+
     // 파괴 시 버튼 이벤트를 해제한다
     protected override void OnDestroy()
     {
@@ -70,6 +98,7 @@ public class TurretEvolutionPopupUI : TurretPopupPageUI
     public override void Show(TurretSelectionContext context)
     {
         base.Show(context);
+        ClearCandidatePressState();
         RefreshEvolutionTexts();
     }
 
@@ -86,6 +115,7 @@ public class TurretEvolutionPopupUI : TurretPopupPageUI
         evolutionCloseButton = evolutionCloseButton != null ? evolutionCloseButton : CloseButton;
         evolutionBackButton = evolutionBackButton != null ? evolutionBackButton : BackButton;
         evolutionButton = evolutionButton != null ? evolutionButton : FindFirstChildComponent<Button>(searchRoot, BACKGROUND_PATH + "/LowPanel/EvolutionFrame/EvolutionTextFrame", BACKGROUND_PATH + "/LowPanel/EvolutionFrame/Evolution");
+        turretInfoPopup = turretInfoPopup != null ? turretInfoPopup : ResolveTurretInfoPopup(searchRoot);
         BindBranchPanelReferences();
         BindResourceSlotReferences(searchRoot);
     }
@@ -153,7 +183,12 @@ public class TurretEvolutionPopupUI : TurretPopupPageUI
             return;
         }
 
-        TurretBaseSlot evolvedSlot = evolvedTurret.GetComponentInParent<TurretBaseSlot>();
+        TurretBaseSlot evolvedSlot = CurrentContext.Slot != null ? CurrentContext.Slot : evolvedTurret.GetComponentInParent<TurretBaseSlot>();
+        if (evolvedSlot != null)
+        {
+            evolvedSlot.SetCurrentTurret(evolvedTurret);
+        }
+
         CurrentContext = new TurretSelectionContext(evolvedTurret, evolvedSlot);
         RequestSelectionContextUpdate(CurrentContext);
         selectedEvolutionIndex = 0;
@@ -218,6 +253,7 @@ public class TurretEvolutionPopupUI : TurretPopupPageUI
             slot.Button.onClick.RemoveListener(OnCandidate3Clicked);
             slot.Button.onClick.AddListener(GetCandidateClickAction(slotIndex));
             slot.Button.interactable = hasEntry;
+            BindCandidatePressForwarder(slot.Button, slotIndex);
         }
     }
 
@@ -424,6 +460,12 @@ public class TurretEvolutionPopupUI : TurretPopupPageUI
     // 선택 인덱스를 갱신하고 해당 후보 비용을 표시한다
     private void SelectEvolutionCandidate(int index)
     {
+        if (suppressNextCandidateClick)
+        {
+            suppressNextCandidateClick = false;
+            return;
+        }
+
         if (!CurrentContext.IsValid)
         {
             return;
@@ -435,9 +477,98 @@ public class TurretEvolutionPopupUI : TurretPopupPageUI
             return;
         }
 
+        if (index == selectedEvolutionIndex)
+        {
+            OpenEvolutionCandidateInfo(index);
+            return;
+        }
+
         selectedEvolutionIndex = index;
         EvolutionBranchPanelData activePanel = SetActiveBranchPanel(availableCount);
         RefreshSelectedEvolutionDetails(activePanel);
+    }
+
+    // 후보 버튼 누르기 시작 상태를 기록한다
+    public void NotifyCandidatePointerDown(int index)
+    {
+        pressedCandidateIndex = index;
+        pressedCandidateElapsedTime = 0.0f;
+        hasOpenedInfoByHold = false;
+    }
+
+    // 후보 버튼 누르기 종료 상태를 초기화한다
+    public void NotifyCandidatePointerUp(int index)
+    {
+        if (pressedCandidateIndex == index)
+        {
+            ClearCandidatePressState();
+        }
+    }
+
+    // 후보 버튼 영역을 벗어나면 누르기 상태를 초기화한다
+    public void NotifyCandidatePointerExit(int index)
+    {
+        if (pressedCandidateIndex == index)
+        {
+            ClearCandidatePressState();
+        }
+    }
+
+    // 후보 버튼에 누르고 있기 전달 컴포넌트를 연결한다
+    private void BindCandidatePressForwarder(Button candidateButton, int index)
+    {
+        if (candidateButton == null)
+        {
+            return;
+        }
+
+        TurretEvolutionCandidatePressForwarder forwarder = candidateButton.GetComponent<TurretEvolutionCandidatePressForwarder>();
+        if (forwarder == null)
+        {
+            forwarder = candidateButton.gameObject.AddComponent<TurretEvolutionCandidatePressForwarder>();
+        }
+
+        forwarder.Initialize(this, index);
+    }
+
+    // 현재 후보 누르기 상태를 초기화한다
+    private void ClearCandidatePressState()
+    {
+        pressedCandidateIndex = -1;
+        pressedCandidateElapsedTime = 0.0f;
+        hasOpenedInfoByHold = false;
+    }
+
+    // 지정 진화 후보의 1레벨 정보 팝업을 표시한다
+    private void OpenEvolutionCandidateInfo(int index)
+    {
+        if (!CurrentContext.IsValid)
+        {
+            return;
+        }
+
+        TurretEvolutionEntry entry = CurrentContext.Turret.GetAvailableEvolution(index);
+        if (entry == null || entry.targetDefinition == null)
+        {
+            return;
+        }
+
+        EnsureTurretInfoPopup();
+        if (turretInfoPopup != null)
+        {
+            turretInfoPopup.Show(entry.targetDefinition);
+        }
+    }
+
+    // 터렛 정보 팝업 참조를 필요할 때 준비한다
+    private void EnsureTurretInfoPopup()
+    {
+        if (turretInfoPopup != null)
+        {
+            return;
+        }
+
+        turretInfoPopup = ResolveTurretInfoPopup(transform);
     }
 
     // 필요 재화 텍스트와 개별 슬롯을 갱신한다
@@ -960,6 +1091,27 @@ public class TurretEvolutionPopupUI : TurretPopupPageUI
         return targetTransform == null ? null : targetTransform.GetComponent<T>();
     }
 
+    // 씬에 배치된 터렛 정보 팝업 컴포넌트를 찾거나 보강한다
+    private static TurretInfoPopupUI ResolveTurretInfoPopup(Transform searchRoot)
+    {
+        Transform root = searchRoot == null ? null : searchRoot.root;
+        TurretInfoPopupUI popup = root == null ? null : root.GetComponentInChildren<TurretInfoPopupUI>(true);
+        if (popup != null)
+        {
+            return popup;
+        }
+
+        Transform popupTransform = FindFirstDescendantTransformByExactName(root, "TurretInfoPopup");
+        if (popupTransform == null)
+        {
+            return null;
+        }
+
+        TurretInfoPopupUI addedPopup = popupTransform.gameObject.AddComponent<TurretInfoPopupUI>();
+        addedPopup.BindChildReferences();
+        return addedPopup;
+    }
+
     // 세 패널의 후보 프레임 이미지 참조를 모은다
     private static Image[] CollectCandidateFrameImages(params EvolutionBranchPanelData[] panelDataArray)
     {
@@ -1058,6 +1210,47 @@ public class TurretEvolutionPopupUI : TurretPopupPageUI
             NameText = nameText;
             Image = image;
             Button = button;
+        }
+    }
+}
+
+// 진화 후보 버튼의 누르고 있기 입력을 EvolutionPopup으로 전달한다.
+internal sealed class TurretEvolutionCandidatePressForwarder : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, IPointerExitHandler
+{
+    private TurretEvolutionPopupUI owner;
+    private int candidateIndex;
+
+    // 전달 대상 팝업과 후보 인덱스를 설정한다
+    public void Initialize(TurretEvolutionPopupUI owner_, int candidateIndex_)
+    {
+        owner = owner_;
+        candidateIndex = candidateIndex_;
+    }
+
+    // 포인터 누르기 시작을 전달한다
+    public void OnPointerDown(PointerEventData eventData)
+    {
+        if (owner != null)
+        {
+            owner.NotifyCandidatePointerDown(candidateIndex);
+        }
+    }
+
+    // 포인터 누르기 종료를 전달한다
+    public void OnPointerUp(PointerEventData eventData)
+    {
+        if (owner != null)
+        {
+            owner.NotifyCandidatePointerUp(candidateIndex);
+        }
+    }
+
+    // 포인터가 버튼 영역을 벗어난 상태를 전달한다
+    public void OnPointerExit(PointerEventData eventData)
+    {
+        if (owner != null)
+        {
+            owner.NotifyCandidatePointerExit(candidateIndex);
         }
     }
 }

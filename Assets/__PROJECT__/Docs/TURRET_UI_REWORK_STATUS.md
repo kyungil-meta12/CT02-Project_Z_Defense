@@ -77,6 +77,12 @@
 - `TurretDetailPopupUI`에 `UpgradeRequested` 이벤트와 상세 팝업 전용 Upgrade 버튼 바인딩을 추가했다.
 - `TurretSelectionUIController`가 상세 팝업의 `UpgradeRequested`를 기존 `OpenUpgradePopup` 경로에 연결하므로, 선택 팝업에서 Upgrade로 들어간 경우와 동일하게 업그레이드를 진행할 수 있다.
 
+## 2026-07-02 Evolved Turret Reselection Fix
+
+- 프리팹 교체 진화 성공 후 `TurretBaseSlot.CurrentTurret`가 새 터렛으로 갱신되지 않아, 모든 팝업을 닫고 슬롯/터렛을 다시 클릭할 때 선택 팝업이 열리지 않을 수 있던 문제를 수정했다.
+- `TurretEvolutionPopupUI`가 진화 성공 직후 기존 슬롯에 `SetCurrentTurret(evolvedTurret)`를 호출해 슬롯 점유 상태를 새 터렛으로 동기화한다.
+- `TurretSelectionUIController`의 슬롯 클릭 fallback은 `CurrentTurret`가 비어 있으면 `RefreshAndGetCurrentTurret()`로 빌드 포인트 아래 터렛을 한 번 재탐색한다.
+
 ## 2026-06-30 Placement Input Regression
 
 ### Symptom
@@ -111,6 +117,34 @@
 - `Legacy Pointer Bridge`는 현재 입력 복구용 호환 레이어다.
 - 장기적으로는 `InputSystemUIInputModule`이 포인터 콜백을 보내지 못하는 정확한 에디터/액션 에셋 설정 원인을 다시 확인하고, 브릿지를 유지할지 제거할지 결정해야 한다.
 - 브릿지를 유지하는 동안에는 `EventSystemDebugger`가 Main 씬에서 활성화되어 있어야 한다.
+
+## 2026-07-02 Evolution Candidate Info Popup
+
+### Goal
+
+- `EvolutionPopup`에서 진화 후보 이미지를 짧게 한 번 클릭하면 기존처럼 선택과 비용 표시만 갱신한다.
+- 이미 선택된 후보를 다시 클릭하거나, 후보 이미지를 0.5초 이상 누르고 있으면 `TurretInfoPopup`을 겹쳐 표시한다.
+- `TurretInfoPopup`은 `EvolutionPopup`을 닫지 않고 위에 뜨며, Back 버튼과 상단 X 버튼은 정보 팝업만 닫는다.
+
+### Fix
+
+- `TurretEvolutionPopupUI`가 후보 버튼의 `PointerDown`, `PointerUp`, `PointerExit`을 감지하도록 후보별 포인터 전달 컴포넌트를 자동 연결한다.
+- 후보를 누르고 있는 시간이 `candidateInfoHoldDuration` 이상이면 해당 진화 후보의 1레벨 기준 정보를 `TurretInfoPopup`에 표시한다.
+- 이미 선택된 붉은 프레임 후보를 다시 클릭하면 같은 정보 팝업을 연다.
+- 길게 누르기로 정보 팝업이 열린 경우, 같은 입력의 후속 클릭이 선택 로직을 다시 실행하지 않도록 억제한다.
+- `TurretInfoPopupUI`를 추가해 후보 터렛의 이름, 레벨, 공격력, 발사간격, 아이콘을 표시하고, Information 버튼으로 1레벨 상세 스탯을 표시한다.
+- `TurretInfoPopupUI`의 `HighPanel/ExitFrame/Button`을 별도 닫기 버튼으로 바인딩해 Back과 동일하게 `TurretInfoPopup`만 닫는다.
+- 비활성 상태의 `TurretInfoPopup`에 런타임으로 `TurretInfoPopupUI`가 자동 부착되는 경우 `Awake`가 아직 실행되지 않아 `popupRoot`가 비어 있을 수 있으므로, `Show`와 `Hide`에서 참조를 즉시 보강한다.
+- `Show`로 활성화되는 순간 `Awake`가 실행되더라도 현재 표시 대상이 있으면 다시 `Hide`하지 않도록 처리한다.
+
+### Play Mode Check
+
+- 첫 클릭: 후보 선택, 붉은 프레임 표시, 비용 표시만 변경.
+- 선택된 후보 재클릭: `TurretInfoPopup` 표시.
+- 후보 0.5초 이상 홀드: `TurretInfoPopup` 표시.
+- 정보 팝업 Back: `TurretInfoPopup`만 닫힘.
+- 정보 팝업 상단 X: `TurretInfoPopup`만 닫힘.
+- 정보 팝업 Information: 진화 대상 터렛의 1레벨 상세 스탯 표시.
 
 ## Known Weak Points
 

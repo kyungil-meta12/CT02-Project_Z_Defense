@@ -447,12 +447,12 @@ public class TurretSelectionUIController : MonoBehaviour
         }
 
         slot = hit.collider.GetComponentInParent<TurretBaseSlot>();
-        if (slot == null || slot.CurrentTurret == null)
+        if (slot == null)
         {
             return false;
         }
 
-        turret = slot.CurrentTurret;
+        turret = slot.CurrentTurret != null ? slot.CurrentTurret : slot.RefreshAndGetCurrentTurret();
         return turret != null;
     }
 }

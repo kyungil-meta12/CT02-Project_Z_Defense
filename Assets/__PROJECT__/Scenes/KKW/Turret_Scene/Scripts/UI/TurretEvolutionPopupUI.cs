@@ -155,8 +155,9 @@ public class TurretEvolutionPopupUI : TurretPopupPageUI
 
         TurretBaseSlot evolvedSlot = evolvedTurret.GetComponentInParent<TurretBaseSlot>();
         CurrentContext = new TurretSelectionContext(evolvedTurret, evolvedSlot);
+        RequestSelectionContextUpdate(CurrentContext);
         selectedEvolutionIndex = 0;
-        RefreshEvolutionTexts();
+        RequestBackToSelectPopup();
     }
 
     // 분기 수에 맞는 패널만 활성화하고 해당 패널 데이터를 반환한다

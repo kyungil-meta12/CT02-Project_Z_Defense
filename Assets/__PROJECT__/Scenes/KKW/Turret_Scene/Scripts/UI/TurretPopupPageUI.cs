@@ -99,6 +99,15 @@ public class TurretPopupPageUI : MonoBehaviour
         Hide();
     }
 
+    // 하위 팝업에서 변경된 선택 컨텍스트를 상위 컨트롤러에 반영한다
+    protected void RequestSelectionContextUpdate(TurretSelectionContext context)
+    {
+        if (owner != null)
+        {
+            owner.UpdateSelectionFromChild(context);
+        }
+    }
+
     // 공통 제목과 상태 문구를 현재 선택 기준으로 갱신한다
     protected virtual void RefreshCommonTexts()
     {

@@ -64,6 +64,19 @@
 - 같은 버튼에 공통 리스너와 자식 리스너가 중복 등록되지 않도록 방지했다.
 - 현재 Main 씬의 `Canvas > Turret UI`에는 `SkillPopup` 오브젝트가 없고 `TurretSelectPopupUI`의 Skill 버튼은 준비 중 정책으로 비활성화되어 있다.
 
+## 2026-07-02 Evolution Popup Runtime Context Fix
+
+- `TurretEvolutionPopupUI`가 진화 성공 후 내부 `CurrentContext`만 새 터렛으로 갱신하던 문제를 수정했다.
+- 하위 팝업이 변경된 선택 컨텍스트를 `TurretSelectionUIController`에 반영할 수 있도록 `TurretPopupPageUI.RequestSelectionContextUpdate`와 `TurretSelectionUIController.UpdateSelectionFromChild`를 추가했다.
+- 진화 직후 상위 선택 컨텍스트와 사거리 표시가 새 터렛 기준으로 갱신되므로, 하단 Evolution 실행 뒤 Back으로 선택 팝업에 복귀해도 이전 터렛 참조가 남지 않는다.
+- 진화 성공 후 `EvolutionPopup`에 머무르지 않고 새 터렛 기준 `TurretSelectPopup`으로 복귀한다. 이후 Upgrade/Detail/Evolution 루프를 같은 방식으로 다시 진행할 수 있다.
+
+## 2026-07-02 Detail Popup Upgrade Route Fix
+
+- `DescriptionPopup`의 `LowPanel/Upgrade` 버튼이 아무 동작도 하지 않던 문제를 수정했다.
+- `TurretDetailPopupUI`에 `UpgradeRequested` 이벤트와 상세 팝업 전용 Upgrade 버튼 바인딩을 추가했다.
+- `TurretSelectionUIController`가 상세 팝업의 `UpgradeRequested`를 기존 `OpenUpgradePopup` 경로에 연결하므로, 선택 팝업에서 Upgrade로 들어간 경우와 동일하게 업그레이드를 진행할 수 있다.
+
 ## 2026-06-30 Placement Input Regression
 
 ### Symptom

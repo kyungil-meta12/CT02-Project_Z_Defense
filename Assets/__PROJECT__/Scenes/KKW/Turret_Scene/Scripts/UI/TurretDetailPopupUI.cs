@@ -1,5 +1,6 @@
 using TMPro;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.UI;
 
 /// <summary>
@@ -26,6 +27,9 @@ public class TurretDetailPopupUI : TurretPopupPageUI
     [Header("레거시 상세 정보")]
     [SerializeField] private TMP_Text statText;
 
+    [Header("버튼")]
+    [SerializeField] private Button detailUpgradeButton;
+
     private string currentTurretNameTextTemplate;
     private string levelTextTemplate;
     private string dpsTextTemplate;
@@ -35,6 +39,8 @@ public class TurretDetailPopupUI : TurretPopupPageUI
     private string rangeTextTemplate;
     private string criticalChanceTextTemplate;
     private string heavyHitChanceTextTemplate;
+
+    public event UnityAction UpgradeRequested;
 
     // 컴포넌트 추가 시 현재 팝업 하위 참조를 자동으로 찾는다
     private void Reset()
@@ -48,6 +54,14 @@ public class TurretDetailPopupUI : TurretPopupPageUI
         base.Awake();
         BindChildReferences();
         CacheTextTemplates();
+        BindButtonListeners();
+    }
+
+    // 파괴 시 상세 팝업 전용 버튼 이벤트를 해제한다
+    protected override void OnDestroy()
+    {
+        UnbindButtonListeners();
+        base.OnDestroy();
     }
 
     // 선택된 터렛의 현재 기본 스탯을 상세 팝업에 표시한다
@@ -74,6 +88,18 @@ public class TurretDetailPopupUI : TurretPopupPageUI
         rangeText = rangeText != null ? rangeText : FindDescriptionComponent<TMP_Text>("MiddlePanel/DetailInfoPanel/Range", searchRoot);
         criticalChanceText = criticalChanceText != null ? criticalChanceText : FindDescriptionComponent<TMP_Text>("MiddlePanel/DetailInfoPanel/CriticalChance", searchRoot);
         heavyHitChanceText = heavyHitChanceText != null ? heavyHitChanceText : FindDescriptionComponent<TMP_Text>("MiddlePanel/DetailInfoPanel/HeavyHitChance", searchRoot);
+        detailUpgradeButton = detailUpgradeButton != null ? detailUpgradeButton : FindFirstDescriptionComponent<Button>(searchRoot, "LowPanel/UpgradeFrame/Upgrade", "LowPanel/UpgradeButton", "LowPanel/Upgrade");
+    }
+
+    // 상세 팝업의 업그레이드 버튼 입력을 상위 컨트롤러에 알린다
+    public void RequestUpgrade()
+    {
+        if (!CurrentContext.IsValid)
+        {
+            return;
+        }
+
+        UpgradeRequested?.Invoke();
     }
 
     // TMP 원문 템플릿을 보관해 괄호와 고정 문구를 유지한다
@@ -298,6 +324,26 @@ public class TurretDetailPopupUI : TurretPopupPageUI
         targetImage.color = Color.white;
     }
 
+    // 상세 팝업 전용 버튼 클릭 이벤트를 등록한다
+    private void BindButtonListeners()
+    {
+        UnbindButtonListeners();
+
+        if (detailUpgradeButton != null)
+        {
+            detailUpgradeButton.onClick.AddListener(RequestUpgrade);
+        }
+    }
+
+    // 상세 팝업 전용 버튼 클릭 이벤트를 해제한다
+    private void UnbindButtonListeners()
+    {
+        if (detailUpgradeButton != null)
+        {
+            detailUpgradeButton.onClick.RemoveListener(RequestUpgrade);
+        }
+    }
+
     // 현재 상세 팝업 하위의 터렛 이미지 참조만 사용한다
     private static Image ResolveTurretIconImage(Transform searchRoot, Image currentImage)
     {
@@ -319,5 +365,25 @@ public class TurretDetailPopupUI : TurretPopupPageUI
 
         Transform child = searchRoot.Find(DESCRIPTION_BACKGROUND_PATH + "/" + relativePath);
         return child == null ? null : child.GetComponent<T>();
+    }
+
+    // 여러 상세 팝업 경로 중 처음 발견되는 하위 컴포넌트를 반환한다
+    private static T FindFirstDescriptionComponent<T>(Transform searchRoot, params string[] relativePaths) where T : Component
+    {
+        if (relativePaths == null)
+        {
+            return null;
+        }
+
+        for (int i = 0; i < relativePaths.Length; i++)
+        {
+            T component = FindDescriptionComponent<T>(relativePaths[i], searchRoot);
+            if (component != null)
+            {
+                return component;
+            }
+        }
+
+        return null;
     }
 }

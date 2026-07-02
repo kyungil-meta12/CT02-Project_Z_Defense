@@ -1,5 +1,5 @@
 ﻿Type<RewardCurrencyType>(아이템 타입),Grade<ItemGrade>(아이템 등급),Createable<Boolean>(제작 가능 여부),CountPerCraft<Int32>(한 번 제작할 때 만들어지는 개수),ItemsToCreate<ItemCraftDataList>(제작에 필요한 아이템 목록),Decomposable<Boolean>(분해 가능 여부),ItemsFromDecompose<ItemDecomposeDataList>(분해 시 나오는 아이템들),Name<String>(표시할 아이템 이름 텍스트),InfoText<String>(표시할 아이템 설명 텍스트),ItemImageAssetPath<SpriteAssetPath>(표시할 아이템 이미지)
-Coin=0,S=0,True,0,,False,,,,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Coins/Icon_Coin_Dollar_Gold_LP.png
+Coin=0,D=4,False,0,,False,,,,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Coins/Icon_Coin_Dollar_Gold_LP.png
 Stone=1,D=4,False,0,,False,,돌,길가에 흔히 굴러다니는 돌.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Resources Nature/Icon_Stone_LP.png
 Bone=2,D=4,False,0,,False,,뼈,누군가의 뼈.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Fantasy/Icon_Bone_LP.png
 Wood=3,D=4,False,0,,False,,나무 막대기,공원에서 흔히 볼 수 있는 나무 막대기.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Resources Nature/Icon_Stick_Wood_LP.png

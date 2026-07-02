@@ -26,6 +26,9 @@ public sealed class TurretDamageMeterRowUI : MonoBehaviour
     [Header("이동 연출")]
     [SerializeField, Min(0.01f)] private float smoothTime = 0.12f;
 
+    [Header("투명도")]
+    [SerializeField] private CanvasGroup canvasGroup;
+
     private RectTransform rectTransform;
     private float targetY;
     private float yVelocity;
@@ -36,6 +39,7 @@ public sealed class TurretDamageMeterRowUI : MonoBehaviour
         rectTransform = transform as RectTransform;
         CacheBarFillRect();
         CacheMaxBarWidth();
+        CacheCanvasGroup();
 
         if (rectTransform != null)
         {
@@ -69,6 +73,39 @@ public sealed class TurretDamageMeterRowUI : MonoBehaviour
     public void SetTargetY(float targetY_)
     {
         targetY = targetY_;
+    }
+
+    // Row의 전체 투명도를 변경한다
+    public void SetAlpha(float alpha)
+    {
+        CacheCanvasGroup();
+        if (canvasGroup == null)
+        {
+            return;
+        }
+
+        canvasGroup.alpha = Mathf.Clamp01(alpha);
+    }
+
+    // Row의 현재 Y 위치와 목표 Y 위치를 즉시 맞춘다
+    public void SetCurrentY(float currentY)
+    {
+        targetY = currentY;
+        yVelocity = 0.0f;
+
+        if (rectTransform == null)
+        {
+            rectTransform = transform as RectTransform;
+        }
+
+        if (rectTransform == null)
+        {
+            return;
+        }
+
+        Vector2 position = rectTransform.anchoredPosition;
+        position.y = currentY;
+        rectTransform.anchoredPosition = position;
     }
 
     // Row의 표시 값을 갱신한다
@@ -177,5 +214,20 @@ public sealed class TurretDamageMeterRowUI : MonoBehaviour
         }
 
         return (safeDamage / 1000000000.0f).ToString("0.00") + "b";
+    }
+
+    // Row 전체 투명도 제어용 CanvasGroup을 캐시하거나 보강한다
+    private void CacheCanvasGroup()
+    {
+        if (canvasGroup != null)
+        {
+            return;
+        }
+
+        canvasGroup = GetComponent<CanvasGroup>();
+        if (canvasGroup == null)
+        {
+            canvasGroup = gameObject.AddComponent<CanvasGroup>();
+        }
     }
 }

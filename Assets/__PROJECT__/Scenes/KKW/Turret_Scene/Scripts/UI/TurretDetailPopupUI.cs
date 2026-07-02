@@ -8,6 +8,7 @@ using UnityEngine.UI;
 /// </summary>
 public class TurretDetailPopupUI : TurretPopupPageUI
 {
+    private const int PREVIEW_LEVEL = 1;
     private const string DESCRIPTION_BACKGROUND_PATH = "TurretDescriptionPopupBackground";
 
     [Header("터렛 기본 정보")]
@@ -29,6 +30,7 @@ public class TurretDetailPopupUI : TurretPopupPageUI
 
     [Header("버튼")]
     [SerializeField] private Button detailUpgradeButton;
+    [SerializeField] private GameObject detailUpgradeFrame;
 
     private string currentTurretNameTextTemplate;
     private string levelTextTemplate;
@@ -39,6 +41,8 @@ public class TurretDetailPopupUI : TurretPopupPageUI
     private string rangeTextTemplate;
     private string criticalChanceTextTemplate;
     private string heavyHitChanceTextTemplate;
+    private bool isPreviewMode;
+    private TurretDefinitionSO previewDefinition;
 
     public event UnityAction UpgradeRequested;
 
@@ -67,10 +71,31 @@ public class TurretDetailPopupUI : TurretPopupPageUI
     // 선택된 터렛의 현재 기본 스탯을 상세 팝업에 표시한다
     public override void Show(TurretSelectionContext context)
     {
+        isPreviewMode = false;
+        previewDefinition = null;
         base.Show(context);
         CacheTextTemplates();
+        SetPreviewButtonState(false);
         RefreshHeader();
         RefreshStatText();
+    }
+
+    // 진화 후보 터렛을 1레벨 기준 상세 팝업으로 표시한다
+    public void ShowPreview(TurretDefinitionSO definition)
+    {
+        if (definition == null)
+        {
+            return;
+        }
+
+        isPreviewMode = true;
+        previewDefinition = definition;
+        base.Show(default);
+        BindChildReferences();
+        CacheTextTemplates();
+        SetPreviewButtonState(true);
+        RefreshPreviewHeader();
+        RefreshPreviewStatText();
     }
 
     [ContextMenu("참조 다시 연결")]
@@ -78,7 +103,7 @@ public class TurretDetailPopupUI : TurretPopupPageUI
     public void BindChildReferences()
     {
         Transform searchRoot = transform;
-        currentTurretNameText = currentTurretNameText != null ? currentTurretNameText : FindDescriptionComponent<TMP_Text>("CurrentTurretNameFrame/CurrentTurretName", searchRoot);
+        currentTurretNameText = currentTurretNameText != null ? currentTurretNameText : FindFirstDescriptionComponent<TMP_Text>(searchRoot, "HighPanel/CurrentTurretNameFrame/CurrentTurretName", "CurrentTurretNameFrame/CurrentTurretName");
         turretImage = ResolveTurretIconImage(searchRoot, turretImage);
         levelText = levelText != null ? levelText : FindDescriptionComponent<TMP_Text>("MiddlePanel/DetailInfoPanel/Level", searchRoot);
         dpsText = dpsText != null ? dpsText : FindDescriptionComponent<TMP_Text>("MiddlePanel/DetailInfoPanel/DPS", searchRoot);
@@ -89,17 +114,47 @@ public class TurretDetailPopupUI : TurretPopupPageUI
         criticalChanceText = criticalChanceText != null ? criticalChanceText : FindDescriptionComponent<TMP_Text>("MiddlePanel/DetailInfoPanel/CriticalChance", searchRoot);
         heavyHitChanceText = heavyHitChanceText != null ? heavyHitChanceText : FindDescriptionComponent<TMP_Text>("MiddlePanel/DetailInfoPanel/HeavyHitChance", searchRoot);
         detailUpgradeButton = detailUpgradeButton != null ? detailUpgradeButton : FindFirstDescriptionComponent<Button>(searchRoot, "LowPanel/UpgradeFrame/Upgrade", "LowPanel/UpgradeButton", "LowPanel/Upgrade");
+        detailUpgradeFrame = detailUpgradeFrame != null ? detailUpgradeFrame : FindDescriptionGameObject("LowPanel/UpgradeFrame", searchRoot);
     }
 
     // 상세 팝업의 업그레이드 버튼 입력을 상위 컨트롤러에 알린다
     public void RequestUpgrade()
     {
+        if (isPreviewMode)
+        {
+            return;
+        }
+
         if (!CurrentContext.IsValid)
         {
             return;
         }
 
         UpgradeRequested?.Invoke();
+    }
+
+    // 닫기 버튼 입력을 현재 모드에 맞게 처리한다
+    private void RequestDetailClose()
+    {
+        if (isPreviewMode)
+        {
+            Hide();
+            return;
+        }
+
+        RequestCloseSelection();
+    }
+
+    // 뒤로가기 버튼 입력을 현재 모드에 맞게 처리한다
+    private void RequestDetailBack()
+    {
+        if (isPreviewMode)
+        {
+            Hide();
+            return;
+        }
+
+        RequestBackToSelectPopup();
     }
 
     // TMP 원문 템플릿을 보관해 괄호와 고정 문구를 유지한다
@@ -165,6 +220,26 @@ public class TurretDetailPopupUI : TurretPopupPageUI
         SetTurretIconImage(turretImage, CurrentContext.Definition == null ? null : CurrentContext.Definition.uiIcon);
     }
 
+    // 미리보기 대상 터렛의 이름과 대표 이미지를 상세 팝업에 반영한다
+    private void RefreshPreviewHeader()
+    {
+        TMP_Text previewNameText = FindFirstDescriptionComponent<TMP_Text>(transform, "HighPanel/CurrentTurretNameFrame/CurrentTurretName", "CurrentTurretNameFrame/CurrentTurretName");
+        if (previewNameText != null)
+        {
+            currentTurretNameText = previewNameText;
+        }
+
+        if (previewDefinition == null)
+        {
+            SetText(currentTurretNameText, ApplyNameTemplate(currentTurretNameTextTemplate, string.Empty));
+            SetTurretIconImage(turretImage, null);
+            return;
+        }
+
+        SetText(currentTurretNameText, ApplyNameTemplate(currentTurretNameTextTemplate, GetDisplayName(previewDefinition)));
+        SetTurretIconImage(turretImage, previewDefinition.uiIcon);
+    }
+
     // 현재 터렛 스탯을 상세 정보 문자열로 갱신한다
     private void RefreshStatText()
     {
@@ -178,6 +253,22 @@ public class TurretDetailPopupUI : TurretPopupPageUI
         TurretRuntimeStat stat = CurrentContext.CalculateCurrentStat();
         TurretDamagePolishProfileSO damagePolishProfile = CurrentContext.Definition == null ? null : CurrentContext.Definition.damagePolishProfile;
         SetDetailStatTexts(CurrentContext.Turret.CurrentTierLevel, stat, damagePolishProfile);
+        SetLegacyStatText(stat, damagePolishProfile);
+    }
+
+    // 미리보기 대상 터렛의 1레벨 상세 수치를 표시한다
+    private void RefreshPreviewStatText()
+    {
+        if (previewDefinition == null)
+        {
+            ClearDetailStatTexts();
+            SetText(statText, "선택된 터렛 없음");
+            return;
+        }
+
+        TurretRuntimeStat stat = TurretStatCalculator.Calculate(previewDefinition, PREVIEW_LEVEL);
+        TurretDamagePolishProfileSO damagePolishProfile = previewDefinition.damagePolishProfile;
+        SetDetailStatTexts(PREVIEW_LEVEL, stat, damagePolishProfile);
         SetLegacyStatText(stat, damagePolishProfile);
     }
 
@@ -264,6 +355,17 @@ public class TurretDetailPopupUI : TurretPopupPageUI
         return damagePolishProfile == null ? 0.0f : damagePolishProfile.HeavyHitChance;
     }
 
+    // 터렛 정의의 표시 이름을 반환한다
+    private static string GetDisplayName(TurretDefinitionSO definition)
+    {
+        if (definition == null)
+        {
+            return string.Empty;
+        }
+
+        return string.IsNullOrWhiteSpace(definition.displayName) ? definition.name : definition.displayName;
+    }
+
     // 템플릿의 중괄호 구간을 값으로 교체한다
     private static string ApplyTemplate(string template, string value)
     {
@@ -329,6 +431,16 @@ public class TurretDetailPopupUI : TurretPopupPageUI
     {
         UnbindButtonListeners();
 
+        if (CloseButton != null)
+        {
+            CloseButton.onClick.AddListener(RequestDetailClose);
+        }
+
+        if (BackButton != null)
+        {
+            BackButton.onClick.AddListener(RequestDetailBack);
+        }
+
         if (detailUpgradeButton != null)
         {
             detailUpgradeButton.onClick.AddListener(RequestUpgrade);
@@ -338,9 +450,35 @@ public class TurretDetailPopupUI : TurretPopupPageUI
     // 상세 팝업 전용 버튼 클릭 이벤트를 해제한다
     private void UnbindButtonListeners()
     {
+        if (CloseButton != null)
+        {
+            CloseButton.onClick.RemoveListener(RequestCloseSelection);
+            CloseButton.onClick.RemoveListener(RequestDetailClose);
+        }
+
+        if (BackButton != null)
+        {
+            BackButton.onClick.RemoveListener(RequestBackToSelectPopup);
+            BackButton.onClick.RemoveListener(RequestDetailBack);
+        }
+
         if (detailUpgradeButton != null)
         {
             detailUpgradeButton.onClick.RemoveListener(RequestUpgrade);
+        }
+    }
+
+    // 미리보기 모드에서 업그레이드 진입 버튼을 비활성화한다
+    private void SetPreviewButtonState(bool isPreview)
+    {
+        if (detailUpgradeFrame != null)
+        {
+            detailUpgradeFrame.SetActive(!isPreview);
+        }
+
+        if (detailUpgradeButton != null)
+        {
+            detailUpgradeButton.interactable = !isPreview;
         }
     }
 
@@ -365,6 +503,18 @@ public class TurretDetailPopupUI : TurretPopupPageUI
 
         Transform child = searchRoot.Find(DESCRIPTION_BACKGROUND_PATH + "/" + relativePath);
         return child == null ? null : child.GetComponent<T>();
+    }
+
+    // 상세 팝업 배경명 기준으로 하위 게임 오브젝트를 찾는다
+    private static GameObject FindDescriptionGameObject(string relativePath, Transform searchRoot)
+    {
+        if (searchRoot == null || string.IsNullOrWhiteSpace(relativePath))
+        {
+            return null;
+        }
+
+        Transform child = searchRoot.Find(DESCRIPTION_BACKGROUND_PATH + "/" + relativePath);
+        return child == null ? null : child.gameObject;
     }
 
     // 여러 상세 팝업 경로 중 처음 발견되는 하위 컴포넌트를 반환한다

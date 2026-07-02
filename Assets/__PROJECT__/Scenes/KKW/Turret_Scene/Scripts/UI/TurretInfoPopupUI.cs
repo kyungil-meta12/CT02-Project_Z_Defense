@@ -18,6 +18,11 @@ public class TurretInfoPopupUI : MonoBehaviour
     [SerializeField] private Button backButton;
     [SerializeField] private Button closeButton;
     [SerializeField] private Button informationButton;
+    [SerializeField] private Button upgradeButton;
+    [SerializeField] private GameObject upgradeFrame;
+
+    [Header("연결 팝업")]
+    [SerializeField] private TurretDetailPopupUI descriptionPopup;
 
     [Header("텍스트")]
     [SerializeField] private TMP_Text nameText;
@@ -67,6 +72,9 @@ public class TurretInfoPopupUI : MonoBehaviour
         backButton = backButton != null ? backButton : FindFirstChildComponent<Button>(searchRoot, BACKGROUND_PATH + "/LowPanel/BackFrame/Back", BACKGROUND_PATH + "/LowPanel/BackButtonFrame/BackButton");
         closeButton = closeButton != null ? closeButton : FindFirstChildComponent<Button>(searchRoot, BACKGROUND_PATH + "/HighPanel/ExitFrame/Button");
         informationButton = informationButton != null ? informationButton : FindFirstChildComponent<Button>(searchRoot, BACKGROUND_PATH + "/LowPanel/InformationFrame/Information");
+        upgradeButton = upgradeButton != null ? upgradeButton : FindFirstChildComponent<Button>(searchRoot, BACKGROUND_PATH + "/LowPanel/UpgradeFrame/Upgrade");
+        upgradeFrame = upgradeFrame != null ? upgradeFrame : FindFirstChildGameObject(searchRoot, BACKGROUND_PATH + "/LowPanel/UpgradeFrame");
+        descriptionPopup = descriptionPopup != null ? descriptionPopup : ResolveDescriptionPopup(searchRoot);
         nameText = nameText != null ? nameText : FindFirstChildComponent<TMP_Text>(searchRoot, BACKGROUND_PATH + "/HighPanel/CurrentTurretNameFrame/CurrentTurretName");
         levelText = levelText != null ? levelText : FindFirstChildComponent<TMP_Text>(searchRoot, BACKGROUND_PATH + "/MiddlePanel/Panel/Level");
         damageText = damageText != null ? damageText : FindFirstChildComponent<TMP_Text>(searchRoot, BACKGROUND_PATH + "/MiddlePanel/Panel/DPS");
@@ -82,6 +90,7 @@ public class TurretInfoPopupUI : MonoBehaviour
         BindChildReferences();
         CacheTextTemplates();
         RefreshSummary();
+        SetPreviewOnlyButtonState();
 
         if (popupRoot != null)
         {
@@ -100,7 +109,7 @@ public class TurretInfoPopupUI : MonoBehaviour
         }
     }
 
-    // 정보 버튼 입력으로 현재 후보 터렛의 상세 정보를 노트 영역에 표시한다
+    // 정보 버튼 입력으로 현재 후보 터렛의 상세 팝업을 1레벨 기준으로 표시한다
     public void ShowDetail()
     {
         if (currentDefinition == null)
@@ -108,17 +117,11 @@ public class TurretInfoPopupUI : MonoBehaviour
             return;
         }
 
-        TurretRuntimeStat stat = TurretStatCalculator.Calculate(currentDefinition, PREVIEW_LEVEL);
-        TurretDamagePolishProfileSO damagePolishProfile = currentDefinition.damagePolishProfile;
-        SetText(noteText, string.Concat(
-            "공격력: ", FormatValue(stat.damage), "\n",
-            "사거리: ", FormatValue(stat.range), "\n",
-            "발사간격: ", FormatValue(stat.fireInterval), "\n",
-            "탄속: ", FormatValue(stat.projectileSpeed), "\n",
-            "투사체 수: ", Mathf.Max(1, stat.projectileCount).ToString(), "\n",
-            "관통 횟수: ", Mathf.Max(0, stat.pierceCount).ToString(), "\n",
-            "치명타 확률: ", FormatChance(GetCriticalChance(damagePolishProfile)), "\n",
-            "강타 확률: ", FormatChance(GetHeavyHitChance(damagePolishProfile))));
+        EnsureDescriptionPopup();
+        if (descriptionPopup != null)
+        {
+            descriptionPopup.ShowPreview(currentDefinition);
+        }
     }
 
     // TMP 원문 템플릿을 최초 한 번 보관한다
@@ -203,6 +206,31 @@ public class TurretInfoPopupUI : MonoBehaviour
         }
     }
 
+    // 진화 후보 미리보기 팝업에서는 업그레이드 진입 버튼을 비활성화한다
+    private void SetPreviewOnlyButtonState()
+    {
+        if (upgradeFrame != null)
+        {
+            upgradeFrame.SetActive(false);
+        }
+
+        if (upgradeButton != null)
+        {
+            upgradeButton.interactable = false;
+        }
+    }
+
+    // 상세 팝업 참조를 필요할 때 준비한다
+    private void EnsureDescriptionPopup()
+    {
+        if (descriptionPopup != null)
+        {
+            return;
+        }
+
+        descriptionPopup = ResolveDescriptionPopup(transform);
+    }
+
     // 터렛 정의의 표시 이름을 반환한다
     private static string GetDisplayName(TurretDefinitionSO definition)
     {
@@ -245,6 +273,20 @@ public class TurretInfoPopupUI : MonoBehaviour
     private static float GetHeavyHitChance(TurretDamagePolishProfileSO damagePolishProfile)
     {
         return damagePolishProfile == null ? 0.0f : damagePolishProfile.HeavyHitChance;
+    }
+
+    // 로드된 UI 계층에서 터렛 상세 팝업을 찾는다
+    private static TurretDetailPopupUI ResolveDescriptionPopup(Transform searchRoot)
+    {
+        Transform root = searchRoot == null ? null : searchRoot.root;
+        TurretDetailPopupUI popup = root == null ? null : root.GetComponentInChildren<TurretDetailPopupUI>(true);
+        if (popup != null)
+        {
+            return popup;
+        }
+
+        Transform popupTransform = FindFirstDescendantTransformByExactName(root, "DescriptionPopup");
+        return popupTransform == null ? null : popupTransform.GetComponent<TurretDetailPopupUI>();
     }
 
     // 템플릿의 중괄호 자리만 값으로 교체한다
@@ -320,6 +362,46 @@ public class TurretInfoPopupUI : MonoBehaviour
             if (component != null)
             {
                 return component;
+            }
+        }
+
+        return null;
+    }
+
+    // 여러 경로 중 처음 발견되는 하위 게임 오브젝트를 반환한다
+    private static GameObject FindFirstChildGameObject(Transform searchRoot, params string[] childPaths)
+    {
+        if (searchRoot == null || childPaths == null)
+        {
+            return null;
+        }
+
+        for (int i = 0; i < childPaths.Length; i++)
+        {
+            Transform child = searchRoot.Find(childPaths[i]);
+            if (child != null)
+            {
+                return child.gameObject;
+            }
+        }
+
+        return null;
+    }
+
+    // 지정 이름과 정확히 일치하는 첫 번째 하위 Transform을 반환한다
+    private static Transform FindFirstDescendantTransformByExactName(Transform root, string targetName)
+    {
+        if (root == null || string.IsNullOrWhiteSpace(targetName))
+        {
+            return null;
+        }
+
+        Transform[] candidates = root.GetComponentsInChildren<Transform>(true);
+        for (int i = 0; i < candidates.Length; i++)
+        {
+            if (candidates[i].name == targetName)
+            {
+                return candidates[i];
             }
         }
 

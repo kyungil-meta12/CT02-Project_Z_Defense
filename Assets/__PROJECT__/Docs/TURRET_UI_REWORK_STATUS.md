@@ -146,6 +146,30 @@
 - 정보 팝업 상단 X: `TurretInfoPopup`만 닫힘.
 - 정보 팝업 Information: 진화 대상 터렛의 1레벨 상세 스탯 표시.
 
+## 2026-07-02 Evolution Candidate Description Preview
+
+### Goal
+
+- `TurretInfoPopup`의 Information 버튼은 기존 팝업 내부 텍스트 변경이 아니라, 해당 진화 후보 터렛의 `DescriptionPopup`을 추가로 표시한다.
+- `DescriptionPopup`은 1레벨 기준 상세 수치를 표시하며, `TurretInfoPopup`과 `EvolutionPopup`은 닫지 않는다.
+- 진화 후보 정보 보기에서 열린 `TurretInfoPopup`의 Upgrade 버튼은 사용할 수 없게 비활성화한다.
+
+### Fix
+
+- `TurretDetailPopupUI`에 `ShowPreview(TurretDefinitionSO)`를 추가해 실제 설치 터렛 컨텍스트 없이 후보 터렛 정의를 1레벨 기준으로 표시한다.
+- `TurretDetailPopupUI`는 미리보기 모드에서 `BackButtonFrame/BackButton`과 `CloseFrame/CloseButton` 입력을 `Hide`로 처리해 `DescriptionPopup`만 닫는다.
+- `TurretDetailPopupUI`는 미리보기 모드에서 `LowPanel/UpgradeFrame`을 숨기고 Upgrade 버튼을 비활성화한다.
+- `TurretInfoPopupUI`의 Information 버튼은 씬의 `DescriptionPopup`을 찾아 `ShowPreview`를 호출한다.
+- `TurretInfoPopupUI`도 진화 후보 전용 팝업이므로 `LowPanel/UpgradeFrame`을 숨기고 Upgrade 버튼을 비활성화한다.
+
+### Play Mode Check
+
+- 진화 후보 재클릭 또는 0.5초 홀드: `TurretInfoPopup` 표시.
+- `TurretInfoPopup` Information: 후보 터렛의 `DescriptionPopup` 표시.
+- `DescriptionPopup` Back: `DescriptionPopup`만 닫히고 `TurretInfoPopup`으로 복귀.
+- `DescriptionPopup` X: `DescriptionPopup`만 닫히고 `TurretInfoPopup`으로 복귀.
+- 후보 상세 미리보기의 Upgrade 버튼은 비활성화.
+
 ## Known Weak Points
 
 - 일부 버튼과 TMP/Image 참조는 에디터 계층 이름에 의존하는 자동 연결 상태다.

@@ -39,6 +39,9 @@ internal sealed class WaveStageInput
 internal struct SpawnEntryInput
 {
     public UnityEngine.Object PrefabReference;
+    public NormalZombieType NormalType;
+    public BossZombieType BossType;
+    public bool IsBoss;
     public int Weight;
     public int MinWave;
     public int MaxWave;
@@ -156,6 +159,7 @@ internal struct WaveSummaryRow
     public Dictionary<RewardCurrencyType, float> CumulativeReward;
     public float AvailableBudgetCoin;
     public float AverageNormalZombieDps;
+    public string DpsDataNote;
 }
 
 // 웨이브 클리어 시뮬레이션 표 한 순위 항목의 터렛/설치 수/레벨/총 DPS.

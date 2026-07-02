@@ -448,7 +448,7 @@ internal sealed class TurretBalanceReportInputCollector
 
             NormalZombieType zombieType = (NormalZombieType)entry.FindPropertyRelative("zombieType").enumValueIndex;
             profile.TryGetNormalPrefabForType(zombieType, out PoolObject prefab);
-            target.Add(CreateSpawnEntryInput(entry, prefab));
+            target.Add(CreateSpawnEntryInput(entry, prefab, zombieType, default, false));
         }
     }
 
@@ -470,12 +470,12 @@ internal sealed class TurretBalanceReportInputCollector
 
             BossZombieType bossType = (BossZombieType)entry.FindPropertyRelative("bossType").enumValueIndex;
             profile.TryGetBossPrefabForType(bossType, out PoolObject prefab);
-            target.Add(CreateSpawnEntryInput(entry, prefab));
+            target.Add(CreateSpawnEntryInput(entry, prefab, default, bossType, true));
         }
     }
 
     // 직렬화된 스폰 후보 하나를 계산 입력 DTO로 변환한다
-    private static SpawnEntryInput CreateSpawnEntryInput(SerializedProperty entry, PoolObject poolObject)
+    private static SpawnEntryInput CreateSpawnEntryInput(SerializedProperty entry, PoolObject poolObject, NormalZombieType normalType, BossZombieType bossType, bool isBoss)
     {
         GameObject prefab = poolObject != null ? poolObject.gameObject : null;
         NormalZombie normalZombie = prefab == null ? null : prefab.GetComponent<NormalZombie>();
@@ -490,6 +490,9 @@ internal sealed class TurretBalanceReportInputCollector
         return new SpawnEntryInput
         {
             PrefabReference = poolObject,
+            NormalType = normalType,
+            BossType = bossType,
+            IsBoss = isBoss,
             Weight = Mathf.Max(0, GetRelativeInt(entry, WEIGHT_PROPERTY, 0)),
             MinWave = Mathf.Max(1, GetRelativeInt(entry, "minWave", 1)),
             MaxWave = GetRelativeInt(entry, "maxWave", 0),

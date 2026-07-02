@@ -1,6 +1,7 @@
 #if UNITY_EDITOR
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Text;
 using UnityEditor;
@@ -154,12 +155,13 @@ public class ZombieBalanceCsvEditorTool : EditorWindow
 
         SerializedObject serializedObject = new SerializedObject(profile);
         SerializedProperty stages = serializedObject.FindProperty("stages");
+        List<ZombieWaveDpsMeasurementProfileSO> dpsProfiles = LoadZombieWaveDpsMeasurementProfiles();
         StringBuilder builder = new StringBuilder(4096);
-        builder.AppendLine("MinWave(시작 웨이브),MaxWave(종료 웨이브),SpawnInterval(스폰 간격),SpawnCount(스폰 수),SpawnBossAsLastEnemy(마지막 적 보스 여부),HpMultiplier(체력 배율),AttackDamageMultiplier(공격력 배율),MoveAttackSpeedMultiplier(이동/공격 속도 배율),RewardMultiplier(보상 배율),NormalZombieEntries(일반 좀비 후보),BossZombieEntries(보스 좀비 후보)");
+        builder.AppendLine("MinWave(시작 웨이브),MaxWave(종료 웨이브),SpawnInterval(스폰 간격),SpawnCount(스폰 수),SpawnBossAsLastEnemy(마지막 적 보스 여부),HpMultiplier(체력 배율),AttackDamageMultiplier(공격력 배율),MoveAttackSpeedMultiplier(이동/공격 속도 배율),RewardMultiplier(보상 배율),NormalZombieEntries(일반 좀비 후보),BossZombieEntries(보스 좀비 후보),MeasuredNormalDps(일반 실측/정규화 DPS),MeasuredBossDps_Boomer(부머 실측/정규화 DPS),MeasuredBossDps_Screamer(스크리머 실측/정규화 DPS),MeasuredBossDps_Tank(탱크 실측/정규화 DPS)");
         for (int i = 0; i < stages.arraySize; i++)
         {
             SerializedProperty stage = stages.GetArrayElementAtIndex(i);
-            AppendWaveStageCsvLine(builder, stage);
+            AppendWaveStageCsvLine(builder, stages, stage, dpsProfiles);
         }
 
         WriteUtf8Csv(WAVE_CSV_PATH, builder.ToString());
@@ -168,7 +170,7 @@ public class ZombieBalanceCsvEditorTool : EditorWindow
     }
 
     // CSV 한 줄에 웨이브 스테이지 값을 추가한다
-    private static void AppendWaveStageCsvLine(StringBuilder builder, SerializedProperty stage)
+    private static void AppendWaveStageCsvLine(StringBuilder builder, SerializedProperty stages, SerializedProperty stage, List<ZombieWaveDpsMeasurementProfileSO> dpsProfiles)
     {
         builder.Append(GetRelativeInt(stage, "minWave"));
         builder.Append(',');
@@ -191,7 +193,241 @@ public class ZombieBalanceCsvEditorTool : EditorWindow
         builder.Append(EscapeCsvField(FormatNormalZombieEntries(stage.FindPropertyRelative("normalZombieEntries"))));
         builder.Append(',');
         builder.Append(EscapeCsvField(FormatBossZombieEntries(stage.FindPropertyRelative("bossZombieEntries"))));
+        builder.Append(',');
+        builder.Append(ResolveNormalDpsCsvValue(stages, stage, dpsProfiles));
+        builder.Append(',');
+        builder.Append(ResolveBossDpsCsvValue(stages, stage, dpsProfiles, BossZombieType.Boomer));
+        builder.Append(',');
+        builder.Append(ResolveBossDpsCsvValue(stages, stage, dpsProfiles, BossZombieType.Screamer));
+        builder.Append(',');
+        builder.Append(ResolveBossDpsCsvValue(stages, stage, dpsProfiles, BossZombieType.Tank));
         builder.AppendLine();
+    }
+
+    // 프로젝트 내 좀비 DPS 측정 프로필을 모두 로드한다
+    private static List<ZombieWaveDpsMeasurementProfileSO> LoadZombieWaveDpsMeasurementProfiles()
+    {
+        string[] guids = AssetDatabase.FindAssets("t:ZombieWaveDpsMeasurementProfileSO");
+        List<ZombieWaveDpsMeasurementProfileSO> profiles = new List<ZombieWaveDpsMeasurementProfileSO>(guids.Length);
+        for (int i = 0; i < guids.Length; i++)
+        {
+            string path = AssetDatabase.GUIDToAssetPath(guids[i]);
+            ZombieWaveDpsMeasurementProfileSO profile = AssetDatabase.LoadAssetAtPath<ZombieWaveDpsMeasurementProfileSO>(path);
+            if (profile != null)
+            {
+                profiles.Add(profile);
+            }
+        }
+
+        return profiles;
+    }
+
+    // 일반 좀비 DPS CSV 값을 실측 또는 정규화 값으로 계산한다
+    private static string ResolveNormalDpsCsvValue(SerializedProperty stages, SerializedProperty targetStage, List<ZombieWaveDpsMeasurementProfileSO> dpsProfiles)
+    {
+        int targetWave = Mathf.Max(1, GetRelativeInt(targetStage, "minWave"));
+        if (TryGetExactMeasuredNormalDps(dpsProfiles, targetWave, out float exactDps))
+        {
+            return FormatDpsCsvValue(exactDps);
+        }
+
+        float targetAttackMultiplier = SanitizeDpsMultiplier(GetRelativeFloat(targetStage, "attackDamageMultiplier"));
+        float targetSpeedMultiplier = SanitizeDpsMultiplier(GetRelativeFloat(targetStage, "moveAttackSpeedMultiplier"));
+        if (TryGetNormalizedMeasuredNormalDps(stages, dpsProfiles, targetAttackMultiplier, targetSpeedMultiplier, out float normalizedDps))
+        {
+            return FormatDpsCsvValue(normalizedDps);
+        }
+
+        return string.Empty;
+    }
+
+    // 보스 좀비 DPS CSV 값을 실측 또는 정규화 값으로 계산한다
+    private static string ResolveBossDpsCsvValue(SerializedProperty stages, SerializedProperty targetStage, List<ZombieWaveDpsMeasurementProfileSO> dpsProfiles, BossZombieType bossType)
+    {
+        int targetWave = Mathf.Max(1, GetRelativeInt(targetStage, "minWave"));
+        if (TryGetExactMeasuredBossDps(dpsProfiles, targetWave, bossType, out float exactDps))
+        {
+            return FormatDpsCsvValue(exactDps);
+        }
+
+        float targetAttackMultiplier = SanitizeDpsMultiplier(GetRelativeFloat(targetStage, "attackDamageMultiplier"));
+        float targetSpeedMultiplier = SanitizeDpsMultiplier(GetRelativeFloat(targetStage, "moveAttackSpeedMultiplier"));
+        if (TryGetNormalizedMeasuredBossDps(stages, dpsProfiles, bossType, targetAttackMultiplier, targetSpeedMultiplier, out float normalizedDps))
+        {
+            return FormatDpsCsvValue(normalizedDps);
+        }
+
+        return string.Empty;
+    }
+
+    // 같은 웨이브의 일반 좀비 실측 DPS를 찾는다
+    private static bool TryGetExactMeasuredNormalDps(List<ZombieWaveDpsMeasurementProfileSO> dpsProfiles, int wave, out float dps)
+    {
+        dps = 0.0f;
+        if (dpsProfiles == null)
+        {
+            return false;
+        }
+
+        for (int i = 0; i < dpsProfiles.Count; i++)
+        {
+            ZombieWaveDpsMeasurementProfileSO profile = dpsProfiles[i];
+            if (profile != null && profile.TryGetDps(wave, ZombieRewardTypeFilter.NormalOnly, out dps))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    // 같은 웨이브의 보스 타입별 실측 DPS를 찾는다
+    private static bool TryGetExactMeasuredBossDps(List<ZombieWaveDpsMeasurementProfileSO> dpsProfiles, int wave, BossZombieType bossType, out float dps)
+    {
+        dps = 0.0f;
+        if (dpsProfiles == null)
+        {
+            return false;
+        }
+
+        for (int i = 0; i < dpsProfiles.Count; i++)
+        {
+            ZombieWaveDpsMeasurementProfileSO profile = dpsProfiles[i];
+            if (profile != null && profile.TryGetBossDps(wave, bossType, out dps))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    // 다른 웨이브의 일반 좀비 실측값을 대상 웨이브 배율로 정규화한다
+    private static bool TryGetNormalizedMeasuredNormalDps(SerializedProperty stages, List<ZombieWaveDpsMeasurementProfileSO> dpsProfiles, float targetAttackMultiplier, float targetSpeedMultiplier, out float dps)
+    {
+        dps = 0.0f;
+        if (dpsProfiles == null)
+        {
+            return false;
+        }
+
+        for (int i = 0; i < dpsProfiles.Count; i++)
+        {
+            ZombieWaveDpsMeasurementProfileSO profile = dpsProfiles[i];
+            if (profile == null)
+            {
+                continue;
+            }
+
+            IReadOnlyList<WaveZombieDpsSample> samples = profile.Samples;
+            for (int j = 0; j < samples.Count; j++)
+            {
+                WaveZombieDpsSample sample = samples[j];
+                if (sample == null || !sample.TryGetDps(ZombieRewardTypeFilter.NormalOnly, out float measuredDps))
+                {
+                    continue;
+                }
+
+                if (TryNormalizeMeasuredDps(stages, sample.Wave, measuredDps, targetAttackMultiplier, targetSpeedMultiplier, out dps))
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    // 다른 웨이브의 보스 타입별 실측값을 대상 웨이브 배율로 정규화한다
+    private static bool TryGetNormalizedMeasuredBossDps(SerializedProperty stages, List<ZombieWaveDpsMeasurementProfileSO> dpsProfiles, BossZombieType bossType, float targetAttackMultiplier, float targetSpeedMultiplier, out float dps)
+    {
+        dps = 0.0f;
+        if (dpsProfiles == null)
+        {
+            return false;
+        }
+
+        for (int i = 0; i < dpsProfiles.Count; i++)
+        {
+            ZombieWaveDpsMeasurementProfileSO profile = dpsProfiles[i];
+            if (profile == null)
+            {
+                continue;
+            }
+
+            IReadOnlyList<WaveZombieDpsSample> samples = profile.Samples;
+            for (int j = 0; j < samples.Count; j++)
+            {
+                WaveZombieDpsSample sample = samples[j];
+                if (sample == null || !sample.TryGetBossDps(bossType, out float measuredDps))
+                {
+                    continue;
+                }
+
+                if (TryNormalizeMeasuredDps(stages, sample.Wave, measuredDps, targetAttackMultiplier, targetSpeedMultiplier, out dps))
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    // 실측 DPS를 측정 웨이브 배율 기준값으로 되돌린 뒤 대상 배율을 적용한다
+    private static bool TryNormalizeMeasuredDps(SerializedProperty stages, int measuredWave, float measuredDps, float targetAttackMultiplier, float targetSpeedMultiplier, out float dps)
+    {
+        dps = 0.0f;
+        if (measuredDps <= 0.0f || !TryGetDpsMultipliersForWave(stages, measuredWave, out float measuredAttackMultiplier, out float measuredSpeedMultiplier))
+        {
+            return false;
+        }
+
+        float measuredFactor = SanitizeDpsMultiplier(measuredAttackMultiplier) * SanitizeDpsMultiplier(measuredSpeedMultiplier);
+        float targetFactor = SanitizeDpsMultiplier(targetAttackMultiplier) * SanitizeDpsMultiplier(targetSpeedMultiplier);
+        dps = measuredDps / measuredFactor * targetFactor;
+        return dps > 0.0f;
+    }
+
+    // 지정 웨이브가 속한 스테이지의 DPS 관련 배율을 찾는다
+    private static bool TryGetDpsMultipliersForWave(SerializedProperty stages, int wave, out float attackMultiplier, out float speedMultiplier)
+    {
+        attackMultiplier = 1.0f;
+        speedMultiplier = 1.0f;
+        if (stages == null)
+        {
+            return false;
+        }
+
+        int safeWave = Mathf.Max(1, wave);
+        for (int i = 0; i < stages.arraySize; i++)
+        {
+            SerializedProperty stage = stages.GetArrayElementAtIndex(i);
+            int minWave = GetRelativeInt(stage, "minWave");
+            int maxWave = GetRelativeInt(stage, "maxWave");
+            if (safeWave < minWave || (maxWave > 0 && safeWave > maxWave))
+            {
+                continue;
+            }
+
+            attackMultiplier = GetRelativeFloat(stage, "attackDamageMultiplier");
+            speedMultiplier = GetRelativeFloat(stage, "moveAttackSpeedMultiplier");
+            return true;
+        }
+
+        return false;
+    }
+
+    // DPS 배율에 사용할 수 없는 값을 안전한 기본값으로 바꾼다
+    private static float SanitizeDpsMultiplier(float multiplier)
+    {
+        return multiplier > 0.0f ? multiplier : 1.0f;
+    }
+
+    // DPS 값을 CSV 표시 문자열로 변환한다
+    private static string FormatDpsCsvValue(float dps)
+    {
+        return dps > 0.0f ? dps.ToString("0.###", CultureInfo.InvariantCulture) : string.Empty;
     }
 
     // 웨이브 스폰 CSV를 프로필에 반영한다

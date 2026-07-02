@@ -39,6 +39,7 @@ internal struct ObstacleWaveRow
     public string WaveLabel;
     public Dictionary<RewardCurrencyType, float> Budget;
     public float ZombieDps;
+    public string DpsDataNote;
     public ObstacleInstallSample[] SingleSamples;
     public ObstacleInstallSample[] MaxSamples;
     public ObstacleOptimalResult Optimal;
@@ -138,6 +139,7 @@ internal static class ObstacleBalanceCalculator
                 WaveLabel = wave.WaveLabel,
                 Budget = budget,
                 ZombieDps = zombieDps,
+                DpsDataNote = wave.DpsDataNote,
                 SingleSamples = single,
                 MaxSamples = max,
                 Optimal = optimal,

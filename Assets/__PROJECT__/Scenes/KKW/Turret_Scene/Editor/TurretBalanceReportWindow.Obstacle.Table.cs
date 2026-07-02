@@ -23,7 +23,7 @@ internal static class ObstacleBalanceTableBuilder
 
         string[] headers = BuildHeaders(entries);
         string info = "웨이브 시작 전 누적 재화 예산 기준(Coin은 초기 지갑 포함). "
-                    + "총 좀비 DPS는 보스 제외 일반 좀비 전체 수 기준이며, 웨이브 공격력/이동·공격 속도 배율을 반영합니다 (클립 평균 1.65초, 루프당 OnAttack 2회 기준). "
+                    + "총 좀비 DPS는 보스 제외 일반 좀비 전체 수 기준이며, 런타임 측정 DPS 또는 측정값을 웨이브 배율로 정규화한 DPS만 사용합니다. "
                     + "단일: 1개 설치 후 예산 전액으로 최대 업그레이드. "
                     + "최대 설치(Obstacle 전용): 1~9개 중 총 HP 최대 조합, 예산 전액 기준. "
                     + "최적 조합: 게이트+장애물 간 재화 효율(HP/재화) 기준 탐욕 배분, 합산 HP로 파괴시간 계산. "
@@ -95,31 +95,44 @@ internal static class ObstacleBalanceTableBuilder
         float adjustedDestructionTime = row.DestructionTime + zombieArrivalSeconds;
         cols.Add(hasDestructionTime ? FormatFloat(adjustedDestructionTime) : "-");
 
-        cols.Add(BuildNote(adjustedDestructionTime, hasDestructionTime, obstacleTargetSeconds));
+        cols.Add(BuildNote(adjustedDestructionTime, hasDestructionTime, obstacleTargetSeconds, row.DpsDataNote));
 
         return cols.ToArray();
     }
 
     // 파괴시간(도달시간 포함)과 장애물 기준 파괴시간을 비교해 비고 메세지를 만든다
-    private static string BuildNote(float adjustedDestructionTime, bool hasDestructionTime, float obstacleTargetSeconds)
+    private static string BuildNote(float adjustedDestructionTime, bool hasDestructionTime, float obstacleTargetSeconds, string dpsDataNote)
     {
+        string balanceNote = string.Empty;
         if (!hasDestructionTime || obstacleTargetSeconds <= 0f)
         {
-            return "-";
+            balanceNote = "-";
         }
-
-        float ratio = adjustedDestructionTime / obstacleTargetSeconds;
-        if (ratio < WARN_RATIO_LOW)
+        else
         {
-            return $"조기 파괴 위험\n파괴시간({FormatFloat(adjustedDestructionTime)}s) < 기준({FormatFloat(obstacleTargetSeconds)}s)×80%";
+            float ratio = adjustedDestructionTime / obstacleTargetSeconds;
+            if (ratio < WARN_RATIO_LOW)
+            {
+                balanceNote = $"조기 파괴 위험\n파괴시간({FormatFloat(adjustedDestructionTime)}s) < 기준({FormatFloat(obstacleTargetSeconds)}s)×80%";
+            }
+            else if (ratio > WARN_RATIO_HIGH)
+            {
+                balanceNote = $"장애물 HP 과잉 — 업그레이드 수치 재검토 권장\n파괴시간({FormatFloat(adjustedDestructionTime)}s) > 기준({FormatFloat(obstacleTargetSeconds)}s)×120%";
+            }
+
         }
 
-        if (ratio > WARN_RATIO_HIGH)
+        if (string.IsNullOrWhiteSpace(dpsDataNote))
         {
-            return $"장애물 HP 과잉 — 업그레이드 수치 재검토 권장\n파괴시간({FormatFloat(adjustedDestructionTime)}s) > 기준({FormatFloat(obstacleTargetSeconds)}s)×120%";
+            return balanceNote;
         }
 
-        return string.Empty;
+        if (string.IsNullOrWhiteSpace(balanceNote) || balanceNote == "-")
+        {
+            return dpsDataNote;
+        }
+
+        return dpsDataNote + "\n" + balanceNote;
     }
 
     // 재화별 예산을 재화 종류 수만큼 줄바꿈한 문자열로 만든다

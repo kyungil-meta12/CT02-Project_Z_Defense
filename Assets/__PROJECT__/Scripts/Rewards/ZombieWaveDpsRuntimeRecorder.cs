@@ -11,11 +11,14 @@ public static class ZombieWaveDpsRuntimeRecorder
         public float TotalDamage;
     }
 
-    private static readonly Dictionary<ZombieRewardTypeFilter, RuntimeDpsBucket> Buckets = new Dictionary<ZombieRewardTypeFilter, RuntimeDpsBucket>(2);
-    private static readonly List<ZombieDpsEntry> FlushEntries = new List<ZombieDpsEntry>(2);
+    private static readonly Dictionary<BossZombieType, RuntimeDpsBucket> BossBuckets = new Dictionary<BossZombieType, RuntimeDpsBucket>(3);
+    private static readonly List<ZombieDpsEntry> FlushEntries = new List<ZombieDpsEntry>(1);
+    private static readonly List<BossZombieDpsEntry> BossFlushEntries = new List<BossZombieDpsEntry>(3);
     private static bool isEnabled;
     private static int currentWave = 1;
     private static float waveStartTime;
+    private static RuntimeDpsBucket normalBucket;
+    private static bool hasNormalDamage;
     private static ZombieWaveDpsMeasurementProfileSO currentProfile;
 
     // 새 웨이브 측정 세션을 시작한다
@@ -25,30 +28,56 @@ public static class ZombieWaveDpsRuntimeRecorder
         currentProfile = profile;
         currentWave = Mathf.Max(1, wave);
         waveStartTime = Time.time;
-        Buckets.Clear();
+        normalBucket = new RuntimeDpsBucket();
+        hasNormalDamage = false;
+        BossBuckets.Clear();
     }
 
-    // 실제 적용된 좀비 공격 피해량을 기록한다
-    public static void RecordDamage(ZombieRewardTypeFilter zombieType, float damage)
+    // 실제 적용된 일반 좀비 공격 피해량을 기록한다
+    public static void RecordNormalDamage(float damage)
     {
-        if (!isEnabled || zombieType == ZombieRewardTypeFilter.Any || damage <= 0.0f)
+        if (!isEnabled || damage <= 0.0f)
         {
             return;
         }
 
-        if (!Buckets.TryGetValue(zombieType, out RuntimeDpsBucket bucket))
+        normalBucket.TotalDamage += damage;
+        hasNormalDamage = true;
+    }
+
+    // 실제 적용된 보스 좀비 공격 피해량을 타입별로 기록한다
+    public static void RecordBossDamage(BossZombieType bossType, float damage)
+    {
+        if (!isEnabled || damage <= 0.0f)
+        {
+            return;
+        }
+
+        if (!BossBuckets.TryGetValue(bossType, out RuntimeDpsBucket bucket))
         {
             bucket = new RuntimeDpsBucket();
         }
 
         bucket.TotalDamage += damage;
-        Buckets[zombieType] = bucket;
+        BossBuckets[bossType] = bucket;
+    }
+
+    // 기존 호출 호환성을 위해 일반/보스 평균 타입 피해량을 기록한다
+    public static void RecordDamage(ZombieRewardTypeFilter zombieType, float damage)
+    {
+        if (zombieType == ZombieRewardTypeFilter.NormalOnly)
+        {
+            RecordNormalDamage(damage);
+            return;
+        }
+
+        // BossOnly 평균 기록은 더 이상 사용하지 않는다.
     }
 
     // 현재 웨이브 측정 결과를 프로필에 저장하고 세션을 종료한다
     public static void CompleteWave(int wave)
     {
-        if (!isEnabled || currentProfile == null || Buckets.Count <= 0)
+        if (!isEnabled || currentProfile == null || (!hasNormalDamage && BossBuckets.Count <= 0))
         {
             return;
         }
@@ -61,23 +90,37 @@ public static class ZombieWaveDpsRuntimeRecorder
 
         float elapsedSeconds = Mathf.Max(0.01f, Time.time - waveStartTime);
         FlushEntries.Clear();
-        AddFlushEntry(ZombieRewardTypeFilter.NormalOnly, elapsedSeconds);
-        AddFlushEntry(ZombieRewardTypeFilter.BossOnly, elapsedSeconds);
+        BossFlushEntries.Clear();
+        AddNormalFlushEntry(elapsedSeconds);
+        AddBossFlushEntry(BossZombieType.Boomer, elapsedSeconds);
+        AddBossFlushEntry(BossZombieType.Screamer, elapsedSeconds);
+        AddBossFlushEntry(BossZombieType.Tank, elapsedSeconds);
 
-        if (FlushEntries.Count > 0)
+        if (FlushEntries.Count > 0 || BossFlushEntries.Count > 0)
         {
-            currentProfile.SetWaveDps(safeWave, FlushEntries);
+            currentProfile.SetWaveDps(safeWave, FlushEntries, BossFlushEntries);
         }
     }
 
-    // 지정 타입의 누적 피해를 DPS 엔트리로 변환한다
-    private static void AddFlushEntry(ZombieRewardTypeFilter zombieType, float elapsedSeconds)
+    // 일반 좀비 누적 피해를 DPS 엔트리로 변환한다
+    private static void AddNormalFlushEntry(float elapsedSeconds)
     {
-        if (!Buckets.TryGetValue(zombieType, out RuntimeDpsBucket bucket) || bucket.TotalDamage <= 0.0f)
+        if (!hasNormalDamage || normalBucket.TotalDamage <= 0.0f)
         {
             return;
         }
 
-        FlushEntries.Add(new ZombieDpsEntry(zombieType, bucket.TotalDamage / elapsedSeconds));
+        FlushEntries.Add(new ZombieDpsEntry(ZombieRewardTypeFilter.NormalOnly, normalBucket.TotalDamage / elapsedSeconds));
+    }
+
+    // 보스 좀비 누적 피해를 DPS 엔트리로 변환한다
+    private static void AddBossFlushEntry(BossZombieType bossType, float elapsedSeconds)
+    {
+        if (!BossBuckets.TryGetValue(bossType, out RuntimeDpsBucket bucket) || bucket.TotalDamage <= 0.0f)
+        {
+            return;
+        }
+
+        BossFlushEntries.Add(new BossZombieDpsEntry(bossType, bucket.TotalDamage / elapsedSeconds));
     }
 }

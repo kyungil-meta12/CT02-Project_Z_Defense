@@ -17,7 +17,7 @@ public class ZombieWaveDpsMeasurementProfileSO : ScriptableObject
 
     public IReadOnlyList<WaveZombieDpsSample> Samples => samples;
 
-    // 지정 웨이브와 좀비 타입의 측정 DPS를 찾는다
+    // 지정 웨이브와 일반 좀비 타입의 측정 DPS를 찾는다
     public bool TryGetDps(int wave, ZombieRewardTypeFilter zombieType, out float dps)
     {
         int safeWave = Mathf.Max(1, wave);
@@ -36,8 +36,33 @@ public class ZombieWaveDpsMeasurementProfileSO : ScriptableObject
         return false;
     }
 
+    // 지정 웨이브와 보스 좀비 타입의 측정 DPS를 찾는다
+    public bool TryGetBossDps(int wave, BossZombieType bossType, out float dps)
+    {
+        int safeWave = Mathf.Max(1, wave);
+        for (int i = 0; i < samples.Count; i++)
+        {
+            WaveZombieDpsSample sample = samples[i];
+            if (sample.Wave != safeWave)
+            {
+                continue;
+            }
+
+            return sample.TryGetBossDps(bossType, out dps);
+        }
+
+        dps = 0.0f;
+        return false;
+    }
+
     // 지정 웨이브의 타입별 DPS 목록을 갱신한다
     public void SetWaveDps(int wave, List<ZombieDpsEntry> entries)
+    {
+        SetWaveDps(wave, entries, null);
+    }
+
+    // 지정 웨이브의 일반/보스 타입별 DPS 목록을 갱신한다
+    public void SetWaveDps(int wave, List<ZombieDpsEntry> entries, List<BossZombieDpsEntry> bossEntries)
     {
         int safeWave = Mathf.Max(1, wave);
         WaveZombieDpsSample targetSample = null;
@@ -57,6 +82,7 @@ public class ZombieWaveDpsMeasurementProfileSO : ScriptableObject
         }
 
         targetSample.SetEntries(entries);
+        targetSample.SetBossEntries(bossEntries);
         SortSamples();
         MarkDirty();
     }
@@ -98,14 +124,19 @@ public class ZombieWaveDpsMeasurementProfileSO : ScriptableObject
     }
 }
 
+/// <summary>
+/// 한 웨이브에서 측정된 일반/보스 좀비 DPS 목록을 보관한다.
+/// </summary>
 [Serializable]
 public sealed class WaveZombieDpsSample
 {
     [SerializeField] private int wave = 1;
     [SerializeField] private List<ZombieDpsEntry> zombieDpsEntries = new List<ZombieDpsEntry>();
+    [SerializeField] private List<BossZombieDpsEntry> bossZombieDpsEntries = new List<BossZombieDpsEntry>();
 
     public int Wave => wave;
     public IReadOnlyList<ZombieDpsEntry> ZombieDpsEntries => zombieDpsEntries;
+    public IReadOnlyList<BossZombieDpsEntry> BossZombieDpsEntries => bossZombieDpsEntries;
 
     // 직렬화용 기본 샘플을 생성한다
     public WaveZombieDpsSample()
@@ -125,6 +156,23 @@ public sealed class WaveZombieDpsSample
         {
             ZombieDpsEntry entry = zombieDpsEntries[i];
             if (entry.ZombieType == zombieType)
+            {
+                dps = entry.Dps;
+                return dps > 0.0f;
+            }
+        }
+
+        dps = 0.0f;
+        return false;
+    }
+
+    // 지정 보스 타입의 DPS를 찾는다
+    public bool TryGetBossDps(BossZombieType bossType, out float dps)
+    {
+        for (int i = 0; i < bossZombieDpsEntries.Count; i++)
+        {
+            BossZombieDpsEntry entry = bossZombieDpsEntries[i];
+            if (entry.BossType == bossType)
             {
                 dps = entry.Dps;
                 return dps > 0.0f;
@@ -155,8 +203,32 @@ public sealed class WaveZombieDpsSample
             zombieDpsEntries.Add(entry);
         }
     }
+
+    // 보스 타입별 DPS 목록을 교체한다
+    public void SetBossEntries(List<BossZombieDpsEntry> entries)
+    {
+        bossZombieDpsEntries.Clear();
+        if (entries == null)
+        {
+            return;
+        }
+
+        for (int i = 0; i < entries.Count; i++)
+        {
+            BossZombieDpsEntry entry = entries[i];
+            if (entry.Dps <= 0.0f)
+            {
+                continue;
+            }
+
+            bossZombieDpsEntries.Add(entry);
+        }
+    }
 }
 
+/// <summary>
+/// 일반 좀비 필터 단위의 DPS 측정값을 보관한다.
+/// </summary>
 [Serializable]
 public struct ZombieDpsEntry
 {
@@ -170,6 +242,26 @@ public struct ZombieDpsEntry
     public ZombieDpsEntry(ZombieRewardTypeFilter zombieType, float dps)
     {
         this.zombieType = zombieType;
+        this.dps = Mathf.Max(0.0f, dps);
+    }
+}
+
+/// <summary>
+/// 보스 좀비 타입 단위의 DPS 측정값을 보관한다.
+/// </summary>
+[Serializable]
+public struct BossZombieDpsEntry
+{
+    [SerializeField] private BossZombieType bossType;
+    [SerializeField] private float dps;
+
+    public BossZombieType BossType => bossType;
+    public float Dps => dps;
+
+    // 보스 타입별 DPS 엔트리를 생성한다
+    public BossZombieDpsEntry(BossZombieType bossType, float dps)
+    {
+        this.bossType = bossType;
         this.dps = Mathf.Max(0.0f, dps);
     }
 }

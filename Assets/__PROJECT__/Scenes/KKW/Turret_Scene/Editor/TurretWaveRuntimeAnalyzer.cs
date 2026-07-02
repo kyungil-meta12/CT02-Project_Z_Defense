@@ -5,17 +5,15 @@ using UnityEngine;
 // 좀비 스폰 프로필 입력을 런타임 스폰 의미에 맞춰 웨이브별 기대값으로 변환한다.
 internal sealed class TurretWaveRuntimeAnalyzer
 {
-    // 일반 좀비 공격 클립 평균 길이와 루프당 OnAttack 이벤트 수 (Zombie_Atk_Arm_1=1.6s, Atk_Arms_3=1.7s 평균; Atk_Arms_4는 이벤트 미설정으로 제외)
-    private const float NZ_ATTACK_EVENTS_PER_CLIP = 2.0f;
-    private const float NZ_AVERAGE_CLIP_SECONDS = 1.65f;
-
     private readonly ZombieRewardExpectationCalculator rewardCalculator = new ZombieRewardExpectationCalculator();
     private IReadOnlyList<ZombieWaveDpsMeasurementProfileSO> zombieDpsMeasurementProfiles;
+    private IReadOnlyList<WaveProfileInput> waveProfiles;
 
     // 모든 웨이브 스폰 프로필을 개별 웨이브 행으로 분석한다
     public void BuildWaveRows(TurretBalanceInputSnapshot snapshot, List<WaveSummaryRow> waveRows, List<ReportWarning> warnings)
     {
         zombieDpsMeasurementProfiles = snapshot.ZombieDpsMeasurementProfiles;
+        waveProfiles = snapshot.WaveProfiles;
         for (int i = 0; i < snapshot.WaveProfiles.Count; i++)
         {
             WaveProfileInput source = snapshot.WaveProfiles[i];
@@ -80,6 +78,7 @@ internal sealed class TurretWaveRuntimeAnalyzer
 
         float totalHp = normalSummary.AverageHp * normalSpawnCount + bossSummary.AverageHp * bossSpawnCount;
         float averageNormalZombieDps = normalSummary.AverageDps;
+        string dpsDataNote = BuildDpsDataNote(normalSpawnCount, bossSpawnCount, normalSummary, bossSummary);
         Dictionary<RewardCurrencyType, float> averageRewardPerWave = new Dictionary<RewardCurrencyType, float>();
         AddScaledRewards(averageRewardPerWave, normalSummary.AverageRewardPerKill, normalSpawnCount);
         AddScaledRewards(averageRewardPerWave, bossSummary.AverageRewardPerKill, bossSpawnCount);
@@ -103,8 +102,32 @@ internal sealed class TurretWaveRuntimeAnalyzer
             AverageBossZombieHp = bossSummary.AverageHp,
             TotalWaveHp = totalHp,
             AverageRewardPerWave = averageRewardPerWave,
-            AverageNormalZombieDps = averageNormalZombieDps
+            AverageNormalZombieDps = averageNormalZombieDps,
+            DpsDataNote = dpsDataNote
         };
+    }
+
+    // 스폰 그룹별 DPS 데이터 누락 비고를 만든다
+    private static string BuildDpsDataNote(int normalSpawnCount, int bossSpawnCount, WeightedZombieSummary normalSummary, WeightedZombieSummary bossSummary)
+    {
+        bool missingNormalDps = normalSpawnCount > 0 && normalSummary.CandidateCount > 0 && normalSummary.HasMissingDpsData;
+        bool missingBossDps = bossSpawnCount > 0 && bossSummary.CandidateCount > 0 && bossSummary.HasMissingDpsData;
+        if (missingNormalDps && missingBossDps)
+        {
+            return "일반/보스 좀비 DPS 데이터 없음";
+        }
+
+        if (missingNormalDps)
+        {
+            return "일반 좀비 DPS 데이터 없음";
+        }
+
+        if (missingBossDps)
+        {
+            return "보스 좀비 DPS 데이터 없음";
+        }
+
+        return string.Empty;
     }
 
     // 스폰 수가 있는데 사용할 수 있는 후보가 없으면 원천 데이터 경고를 추가한다
@@ -144,7 +167,7 @@ internal sealed class TurretWaveRuntimeAnalyzer
             }
 
             int weight = Mathf.Max(0, entry.Weight);
-            if (!TryGetPrefabBalanceData(entry, wave, isBoss, rewardMultiplier, out ZombieBalanceData zombieData))
+            if (!TryGetPrefabBalanceData(entry, wave, isBoss, attackDamageMultiplier, moveAttackSpeedMultiplier, rewardMultiplier, out ZombieBalanceData zombieData))
             {
                 ReportWarning.Add(warnings, ReportWarningSeverity.Warning, "ZombieWaveSpawnProfileSO", profilePath, $"{stageIndex + 1}번째 스테이지 {groupLabel} 엔트리의 HP/보상 데이터를 읽을 수 없습니다.");
                 continue;
@@ -159,8 +182,9 @@ internal sealed class TurretWaveRuntimeAnalyzer
 
             totalWeight += weight;
             summary.CandidateCount++;
+            summary.HasMissingDpsData |= zombieData.HasMissingDpsData;
             weightedHp += zombieData.AverageHp * hpMultiplier * weight;
-            weightedDps += zombieData.AverageDps * attackDamageMultiplier * moveAttackSpeedMultiplier * weight;
+            weightedDps += zombieData.AverageDps * weight;
             AddScaledRewards(weightedRewards, zombieData.ExpectedRewards, weight);
         }
 
@@ -189,7 +213,7 @@ internal sealed class TurretWaveRuntimeAnalyzer
     }
 
     // 프리팹에서 리포트용 HP와 재화별 기대 보상 데이터를 읽는다
-    private bool TryGetPrefabBalanceData(SpawnEntryInput entry, int wave, bool isBoss, float rewardMultiplier, out ZombieBalanceData data)
+    private bool TryGetPrefabBalanceData(SpawnEntryInput entry, int wave, bool isBoss, float attackDamageMultiplier, float moveAttackSpeedMultiplier, float rewardMultiplier, out ZombieBalanceData data)
     {
         data = new ZombieBalanceData();
         if (entry.Prefab == null)
@@ -201,10 +225,13 @@ internal sealed class TurretWaveRuntimeAnalyzer
         if (normalZombie != null)
         {
             data.AverageHp = GetAverageNormalZombieHp(normalZombie);
-            data.AverageDps = GetAverageNormalZombieDps(normalZombie);
-            if (TryGetMeasuredZombieDps(wave, ZombieRewardTypeFilter.NormalOnly, out float measuredDps))
+            if (TryResolveNormalZombieDps(wave, attackDamageMultiplier, moveAttackSpeedMultiplier, out float measuredDps))
             {
                 data.AverageDps = measuredDps;
+            }
+            else
+            {
+                data.HasMissingDpsData = true;
             }
 
             data.ExpectedRewards = rewardCalculator.CalculateExpectedRewards(entry.RewardProfileOverride, normalZombie.spec, wave, false, rewardMultiplier);
@@ -218,17 +245,43 @@ internal sealed class TurretWaveRuntimeAnalyzer
         }
 
         data.AverageHp = GetAverageBossZombieHp(bossZombie);
-        if (TryGetMeasuredZombieDps(wave, ZombieRewardTypeFilter.BossOnly, out float bossMeasuredDps))
+        if (TryResolveBossZombieDps(wave, entry.BossType, attackDamageMultiplier, moveAttackSpeedMultiplier, out float bossDps))
         {
-            data.AverageDps = bossMeasuredDps;
+            data.AverageDps = bossDps;
+        }
+        else
+        {
+            data.HasMissingDpsData = true;
         }
 
         data.ExpectedRewards = rewardCalculator.CalculateExpectedRewards(entry.RewardProfileOverride, bossZombie.spec, wave, isBoss, rewardMultiplier);
         return data.AverageHp > 0.0f;
     }
 
-    // 저장된 웨이브별 좀비 DPS 측정값을 찾는다
-    private bool TryGetMeasuredZombieDps(int wave, ZombieRewardTypeFilter zombieType, out float dps)
+    // 현재 웨이브의 일반 좀비 DPS를 실측값 또는 정규화 실측값으로 찾는다
+    private bool TryResolveNormalZombieDps(int wave, float attackDamageMultiplier, float moveAttackSpeedMultiplier, out float dps)
+    {
+        if (TryGetMeasuredNormalZombieDps(wave, out dps))
+        {
+            return true;
+        }
+
+        return TryGetNormalizedMeasuredNormalZombieDps(attackDamageMultiplier, moveAttackSpeedMultiplier, out dps);
+    }
+
+    // 현재 웨이브의 보스 좀비 DPS를 실측값 또는 정규화 실측값으로 찾는다
+    private bool TryResolveBossZombieDps(int wave, BossZombieType bossType, float attackDamageMultiplier, float moveAttackSpeedMultiplier, out float dps)
+    {
+        if (TryGetMeasuredBossZombieDps(wave, bossType, out dps))
+        {
+            return true;
+        }
+
+        return TryGetNormalizedMeasuredBossZombieDps(bossType, attackDamageMultiplier, moveAttackSpeedMultiplier, out dps);
+    }
+
+    // 저장된 웨이브별 일반 좀비 DPS 측정값을 찾는다
+    private bool TryGetMeasuredNormalZombieDps(int wave, out float dps)
     {
         if (zombieDpsMeasurementProfiles == null)
         {
@@ -239,7 +292,7 @@ internal sealed class TurretWaveRuntimeAnalyzer
         for (int i = 0; i < zombieDpsMeasurementProfiles.Count; i++)
         {
             ZombieWaveDpsMeasurementProfileSO profile = zombieDpsMeasurementProfiles[i];
-            if (profile != null && profile.TryGetDps(wave, zombieType, out dps))
+            if (profile != null && profile.TryGetDps(wave, ZombieRewardTypeFilter.NormalOnly, out dps))
             {
                 return true;
             }
@@ -247,6 +300,159 @@ internal sealed class TurretWaveRuntimeAnalyzer
 
         dps = 0.0f;
         return false;
+    }
+
+    // 저장된 웨이브별 보스 좀비 DPS 측정값을 찾는다
+    private bool TryGetMeasuredBossZombieDps(int wave, BossZombieType bossType, out float dps)
+    {
+        if (zombieDpsMeasurementProfiles == null)
+        {
+            dps = 0.0f;
+            return false;
+        }
+
+        for (int i = 0; i < zombieDpsMeasurementProfiles.Count; i++)
+        {
+            ZombieWaveDpsMeasurementProfileSO profile = zombieDpsMeasurementProfiles[i];
+            if (profile != null && profile.TryGetBossDps(wave, bossType, out dps))
+            {
+                return true;
+            }
+        }
+
+        dps = 0.0f;
+        return false;
+    }
+
+    // 다른 웨이브의 일반 좀비 실측값을 현재 웨이브 배율로 정규화한다
+    private bool TryGetNormalizedMeasuredNormalZombieDps(float targetAttackDamageMultiplier, float targetMoveAttackSpeedMultiplier, out float dps)
+    {
+        dps = 0.0f;
+        if (zombieDpsMeasurementProfiles == null)
+        {
+            return false;
+        }
+
+        for (int i = 0; i < zombieDpsMeasurementProfiles.Count; i++)
+        {
+            ZombieWaveDpsMeasurementProfileSO profile = zombieDpsMeasurementProfiles[i];
+            if (profile == null)
+            {
+                continue;
+            }
+
+            IReadOnlyList<WaveZombieDpsSample> samples = profile.Samples;
+            for (int j = 0; j < samples.Count; j++)
+            {
+                WaveZombieDpsSample sample = samples[j];
+                if (sample == null || !sample.TryGetDps(ZombieRewardTypeFilter.NormalOnly, out float measuredDps))
+                {
+                    continue;
+                }
+
+                if (TryNormalizeMeasuredDps(sample.Wave, measuredDps, targetAttackDamageMultiplier, targetMoveAttackSpeedMultiplier, out dps))
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    // 다른 웨이브의 보스 타입별 실측값을 현재 웨이브 배율로 정규화한다
+    private bool TryGetNormalizedMeasuredBossZombieDps(BossZombieType bossType, float targetAttackDamageMultiplier, float targetMoveAttackSpeedMultiplier, out float dps)
+    {
+        dps = 0.0f;
+        if (zombieDpsMeasurementProfiles == null)
+        {
+            return false;
+        }
+
+        for (int i = 0; i < zombieDpsMeasurementProfiles.Count; i++)
+        {
+            ZombieWaveDpsMeasurementProfileSO profile = zombieDpsMeasurementProfiles[i];
+            if (profile == null)
+            {
+                continue;
+            }
+
+            IReadOnlyList<WaveZombieDpsSample> samples = profile.Samples;
+            for (int j = 0; j < samples.Count; j++)
+            {
+                WaveZombieDpsSample sample = samples[j];
+                if (sample == null || !sample.TryGetBossDps(bossType, out float measuredDps))
+                {
+                    continue;
+                }
+
+                if (TryNormalizeMeasuredDps(sample.Wave, measuredDps, targetAttackDamageMultiplier, targetMoveAttackSpeedMultiplier, out dps))
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    // 실측 웨이브 배율을 제거한 뒤 대상 웨이브 배율을 적용한다
+    private bool TryNormalizeMeasuredDps(int measuredWave, float measuredDps, float targetAttackDamageMultiplier, float targetMoveAttackSpeedMultiplier, out float dps)
+    {
+        dps = 0.0f;
+        if (measuredDps <= 0.0f || !TryGetDpsMultipliersForWave(measuredWave, out float measuredAttackDamageMultiplier, out float measuredMoveAttackSpeedMultiplier))
+        {
+            return false;
+        }
+
+        float measuredFactor = SanitizeDpsMultiplier(measuredAttackDamageMultiplier) * SanitizeDpsMultiplier(measuredMoveAttackSpeedMultiplier);
+        float targetFactor = SanitizeDpsMultiplier(targetAttackDamageMultiplier) * SanitizeDpsMultiplier(targetMoveAttackSpeedMultiplier);
+        dps = measuredDps / measuredFactor * targetFactor;
+        return dps > 0.0f;
+    }
+
+    // 지정 웨이브가 속한 스테이지의 DPS 관련 배율을 찾는다
+    private bool TryGetDpsMultipliersForWave(int wave, out float attackDamageMultiplier, out float moveAttackSpeedMultiplier)
+    {
+        attackDamageMultiplier = 1.0f;
+        moveAttackSpeedMultiplier = 1.0f;
+        if (waveProfiles == null)
+        {
+            return false;
+        }
+
+        int safeWave = Mathf.Max(1, wave);
+        for (int i = 0; i < waveProfiles.Count; i++)
+        {
+            WaveProfileInput profile = waveProfiles[i];
+            if (profile == null)
+            {
+                continue;
+            }
+
+            for (int j = 0; j < profile.Stages.Count; j++)
+            {
+                WaveStageInput stage = profile.Stages[j];
+                int minWave = Mathf.Max(1, stage.MinWave);
+                int maxWave = stage.MaxWave;
+                if (safeWave < minWave || (maxWave > 0 && safeWave > maxWave))
+                {
+                    continue;
+                }
+
+                attackDamageMultiplier = stage.AttackDamageMultiplier;
+                moveAttackSpeedMultiplier = stage.MoveAttackSpeedMultiplier;
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    // DPS 배율에 사용할 수 없는 값을 안전한 기본값으로 바꾼다
+    private static float SanitizeDpsMultiplier(float multiplier)
+    {
+        return multiplier > 0.0f ? multiplier : 1.0f;
     }
 
     // 일반 좀비 스펙의 평균 HP를 계산한다
@@ -260,21 +466,6 @@ internal sealed class TurretWaveRuntimeAnalyzer
         float minMultiplier = zombie.spec.MinHp > 0.0f ? zombie.spec.MinHp : 1.0f;
         float maxMultiplier = zombie.spec.MaxHp > 0.0f ? zombie.spec.MaxHp : minMultiplier;
         return Mathf.Max(0.0f, zombie.spec.Hp * ((minMultiplier + maxMultiplier) * 0.5f));
-    }
-
-    // 일반 좀비 스펙의 평균 DPS를 계산한다 (클립 평균 길이 1.65초, 루프당 2회 OnAttack 기준)
-    private static float GetAverageNormalZombieDps(NormalZombie zombie)
-    {
-        if (zombie == null || zombie.spec == null)
-        {
-            return 0.0f;
-        }
-
-        NormalZombieSpec spec = zombie.spec;
-        float avgDamage = (spec.MinAttackDamage + spec.MaxAttackDamage) * 0.5f;
-        float avgSpeedMult = (spec.MinMoveAttackSpeed + spec.MaxMoveAttackSpeed) * 0.5f;
-        float attacksPerSec = spec.AttackSpeed * avgSpeedMult * (NZ_ATTACK_EVENTS_PER_CLIP / NZ_AVERAGE_CLIP_SECONDS);
-        return Mathf.Max(0.0f, avgDamage * attacksPerSec);
     }
 
     // 보스 좀비 스펙의 평균 HP를 계산한다
@@ -344,6 +535,7 @@ internal sealed class TurretWaveRuntimeAnalyzer
     {
         public float AverageHp;
         public float AverageDps;
+        public bool HasMissingDpsData;
         public Dictionary<RewardCurrencyType, float> ExpectedRewards;
     }
 
@@ -353,6 +545,7 @@ internal sealed class TurretWaveRuntimeAnalyzer
         public int CandidateCount;
         public float AverageHp;
         public float AverageDps;
+        public bool HasMissingDpsData;
         public Dictionary<RewardCurrencyType, float> AverageRewardPerKill;
     }
 }

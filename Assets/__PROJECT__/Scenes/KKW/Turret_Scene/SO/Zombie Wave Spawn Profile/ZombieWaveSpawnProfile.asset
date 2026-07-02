@@ -55,7 +55,7 @@ MonoBehaviour:
   stages:
   - minWave: 1
     maxWave: 10
-    spawnInterval: 1.46
+    spawnInterval: 3
     spawnCount: 10
     spawnBossAsLastEnemy: 0
     normalZombieEntries:
@@ -90,7 +90,7 @@ MonoBehaviour:
     rewardMultiplier: 0
   - minWave: 11
     maxWave: 25
-    spawnInterval: 1.43
+    spawnInterval: 2.2
     spawnCount: 15
     spawnBossAsLastEnemy: 1
     normalZombieEntries:
@@ -141,7 +141,7 @@ MonoBehaviour:
     rewardMultiplier: 1.2
   - minWave: 26
     maxWave: 50
-    spawnInterval: 1.4
+    spawnInterval: 1.9
     spawnCount: 20
     spawnBossAsLastEnemy: 1
     normalZombieEntries:
@@ -196,7 +196,7 @@ MonoBehaviour:
     rewardMultiplier: 1.5
   - minWave: 51
     maxWave: 75
-    spawnInterval: 1.36
+    spawnInterval: 1.7
     spawnCount: 25
     spawnBossAsLastEnemy: 1
     normalZombieEntries:
@@ -251,7 +251,7 @@ MonoBehaviour:
     rewardMultiplier: 1.9
   - minWave: 76
     maxWave: 100
-    spawnInterval: 1.33
+    spawnInterval: 1.6
     spawnCount: 30
     spawnBossAsLastEnemy: 1
     normalZombieEntries:
@@ -306,7 +306,7 @@ MonoBehaviour:
     rewardMultiplier: 2.5
   - minWave: 101
     maxWave: 130
-    spawnInterval: 1.3
+    spawnInterval: 1.5
     spawnCount: 35
     spawnBossAsLastEnemy: 1
     normalZombieEntries:
@@ -361,7 +361,7 @@ MonoBehaviour:
     rewardMultiplier: 3.3
   - minWave: 131
     maxWave: 160
-    spawnInterval: 1.26
+    spawnInterval: 1.4
     spawnCount: 40
     spawnBossAsLastEnemy: 1
     normalZombieEntries:
@@ -428,7 +428,7 @@ MonoBehaviour:
     rewardMultiplier: 4.4
   - minWave: 161
     maxWave: 200
-    spawnInterval: 1.23
+    spawnInterval: 1.3
     spawnCount: 45
     spawnBossAsLastEnemy: 1
     normalZombieEntries:

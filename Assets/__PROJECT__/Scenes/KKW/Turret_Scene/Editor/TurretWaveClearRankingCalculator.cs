@@ -126,16 +126,32 @@ internal sealed class TurretWaveClearRankingCalculator
     {
         wave.AverageRewardPerWave.TryGetValue(RewardCurrencyType.Coin, out float averageCoinPerWave);
         string rewardNote = wave.SpawnCount > 0 && averageCoinPerWave <= 0.0f ? "웨이브 획득 코인이 0입니다. 좀비 보상 프로필을 확인하세요." : string.Empty;
-        if (string.IsNullOrWhiteSpace(rewardNote))
+        return CombineNotes(wave.DpsDataNote, rewardNote, simulationNote);
+    }
+
+    // 비어 있지 않은 비고 문자열을 하나로 합친다
+    private static string CombineNotes(string firstNote, string secondNote, string thirdNote)
+    {
+        string result = string.Empty;
+        AppendNote(ref result, firstNote);
+        AppendNote(ref result, secondNote);
+        AppendNote(ref result, thirdNote);
+        return result;
+    }
+
+    // 비고 문자열이 있으면 결과 문자열에 추가한다
+    private static void AppendNote(ref string result, string note)
+    {
+        if (string.IsNullOrWhiteSpace(note))
         {
-            return simulationNote;
+            return;
         }
 
-        if (string.IsNullOrWhiteSpace(simulationNote))
+        if (!string.IsNullOrWhiteSpace(result))
         {
-            return rewardNote;
+            result += " / ";
         }
 
-        return rewardNote + " / " + simulationNote;
+        result += note;
     }
 }

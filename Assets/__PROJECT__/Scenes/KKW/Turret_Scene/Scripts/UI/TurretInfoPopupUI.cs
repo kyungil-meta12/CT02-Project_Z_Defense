@@ -77,7 +77,7 @@ public class TurretInfoPopupUI : MonoBehaviour
         descriptionPopup = descriptionPopup != null ? descriptionPopup : ResolveDescriptionPopup(searchRoot);
         nameText = nameText != null ? nameText : FindFirstChildComponent<TMP_Text>(searchRoot, BACKGROUND_PATH + "/HighPanel/CurrentTurretNameFrame/CurrentTurretName");
         levelText = levelText != null ? levelText : FindFirstChildComponent<TMP_Text>(searchRoot, BACKGROUND_PATH + "/MiddlePanel/Panel/Level");
-        damageText = damageText != null ? damageText : FindFirstChildComponent<TMP_Text>(searchRoot, BACKGROUND_PATH + "/MiddlePanel/Panel/DPS");
+        damageText = damageText != null ? damageText : FindFirstChildComponent<TMP_Text>(searchRoot, BACKGROUND_PATH + "/MiddlePanel/Panel/Damage", BACKGROUND_PATH + "/MiddlePanel/Panel/DPS");
         fireRateText = fireRateText != null ? fireRateText : FindFirstChildComponent<TMP_Text>(searchRoot, BACKGROUND_PATH + "/MiddlePanel/Panel/FireRate");
         noteText = noteText != null ? noteText : FindFirstChildComponent<TMP_Text>(searchRoot, BACKGROUND_PATH + "/MiddlePanel/Panel/NoteFrame/Note");
         turretImage = ResolveTurretIconImage(searchRoot, turretImage);
@@ -160,7 +160,7 @@ public class TurretInfoPopupUI : MonoBehaviour
         TurretRuntimeStat stat = TurretStatCalculator.Calculate(currentDefinition, PREVIEW_LEVEL);
         SetText(nameText, GetDisplayName(currentDefinition));
         SetText(levelText, ApplyTemplate(levelTextTemplate, "Lv. " + PREVIEW_LEVEL));
-        SetText(damageText, ApplyTemplate(damageTextTemplate, FormatDps(stat)));
+        SetText(damageText, ApplyTemplate(damageTextTemplate, FormatValue(stat.damage)));
         SetText(fireRateText, ApplyTemplate(fireRateTextTemplate, FormatValue(stat.fireInterval)));
         SetText(noteText, currentDefinition.shortDescription);
         SetTurretIconImage(turretImage, currentDefinition.uiIcon);
@@ -240,15 +240,6 @@ public class TurretInfoPopupUI : MonoBehaviour
         }
 
         return string.IsNullOrWhiteSpace(definition.displayName) ? definition.name : definition.displayName;
-    }
-
-    // 초당 피해량 표시 문자열을 생성한다
-    private static string FormatDps(TurretRuntimeStat stat)
-    {
-        float safeFireInterval = Mathf.Max(0.01f, stat.fireInterval);
-        int safeProjectileCount = Mathf.Max(1, stat.projectileCount);
-        float dps = Mathf.Max(0.0f, stat.damage) * safeProjectileCount / safeFireInterval;
-        return FormatValue(dps);
     }
 
     // 단일 스탯 값을 소수점 둘째 자리까지 표시한다

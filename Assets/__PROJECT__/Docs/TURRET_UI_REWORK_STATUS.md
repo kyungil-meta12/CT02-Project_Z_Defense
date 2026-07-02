@@ -170,6 +170,19 @@
 - `DescriptionPopup` X: `DescriptionPopup`만 닫히고 `TurretInfoPopup`으로 복귀.
 - 후보 상세 미리보기의 Upgrade 버튼은 비활성화.
 
+## 2026-07-02 Turret UI Damage Display Correction
+
+### Goal
+
+- Turret UI의 `Damage` 표시는 초당 피해량이 아니라 `KKW/Turret_Scene/SO/Turret Stat Profile`에서 계산된 단발 피해량을 표시한다.
+- 기존 씬 계층명이 `DPS`에서 `Damage`로 변경된 로컬 변경과 기존 `DPS` 계층명을 모두 지원한다.
+
+### Fix
+
+- `TurretSelectPopupUI`, `TurretInfoPopupUI`, `TurretDetailPopupUI`, `TurretUpgradePopupUI`의 Damage 표시값을 `damage * projectileCount / fireInterval` 계산값에서 `TurretRuntimeStat.damage`로 변경했다.
+- `TurretUpgradePopupUI`의 Damage 변화량도 DPS 변화율이 아니라 `currentStat.damage` 대비 `nextStat.damage` 변화율로 계산한다.
+- 자동 참조 경로는 `Damage`, `NextDamage`, `DamageDelta`를 우선 찾고, 기존 `DPS`, `NextDPS`, `DPSDelta`를 fallback으로 유지한다.
+
 ## Known Weak Points
 
 - 일부 버튼과 TMP/Image 참조는 에디터 계층 이름에 의존하는 자동 연결 상태다.

@@ -125,7 +125,7 @@ public class TurretSelectPopupUI : MonoBehaviour
         skillButton = skillButton != null ? skillButton : FindChildComponent<Button>(searchRoot, "TurretSelectPopupBackground/LowPanel/SkillFrame/Skill");
         nameText = nameText != null ? nameText : FindChildComponent<TMP_Text>(searchRoot, "TurretSelectPopupBackground/HighPanel/CurrentTurretNameFrame/CurrentTurretName");
         levelText = levelText != null ? levelText : FindChildComponent<TMP_Text>(searchRoot, "TurretSelectPopupBackground/MiddlePanel/Panel/Level");
-        damageText = damageText != null ? damageText : FindChildComponent<TMP_Text>(searchRoot, "TurretSelectPopupBackground/MiddlePanel/Panel/DPS");
+        damageText = damageText != null ? damageText : FindFirstChildComponent<TMP_Text>(searchRoot, "TurretSelectPopupBackground/MiddlePanel/Panel/Damage", "TurretSelectPopupBackground/MiddlePanel/Panel/DPS");
         fireRateText = fireRateText != null ? fireRateText : FindChildComponent<TMP_Text>(searchRoot, "TurretSelectPopupBackground/MiddlePanel/Panel/FireRate");
         noteText = noteText != null ? noteText : FindChildComponent<TMP_Text>(searchRoot, "TurretSelectPopupBackground/MiddlePanel/Panel/NoteFrame/Note");
         turretImage = ResolveTurretIconImage(searchRoot, turretImage);
@@ -164,7 +164,7 @@ public class TurretSelectPopupUI : MonoBehaviour
         TurretRuntimeStat stat = context.CalculateCurrentStat();
         if (damageText != null)
         {
-            damageText.text = ApplyTemplate(damageTextTemplate, $"{CalculateDamagePerSecond(stat):0.##}");
+            damageText.text = ApplyTemplate(damageTextTemplate, $"{stat.damage:0.##}");
         }
 
         if (fireRateText != null)
@@ -214,14 +214,6 @@ public class TurretSelectPopupUI : MonoBehaviour
             skillButton.interactable = !disableSkillButtonUntilImplemented;
         }
 
-    }
-
-    // 현재 스탯 기준 초당 피해량을 계산한다
-    private static float CalculateDamagePerSecond(TurretRuntimeStat stat)
-    {
-        float safeFireInterval = Mathf.Max(0.01f, stat.fireInterval);
-        int safeProjectileCount = Mathf.Max(1, stat.projectileCount);
-        return Mathf.Max(0.0f, stat.damage) * safeProjectileCount / safeFireInterval;
     }
 
     // 템플릿의 중괄호 자리만 값으로 교체한다

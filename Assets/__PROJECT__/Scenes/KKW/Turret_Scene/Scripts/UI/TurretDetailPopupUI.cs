@@ -106,7 +106,7 @@ public class TurretDetailPopupUI : TurretPopupPageUI
         currentTurretNameText = currentTurretNameText != null ? currentTurretNameText : FindFirstDescriptionComponent<TMP_Text>(searchRoot, "HighPanel/CurrentTurretNameFrame/CurrentTurretName", "CurrentTurretNameFrame/CurrentTurretName");
         turretImage = ResolveTurretIconImage(searchRoot, turretImage);
         levelText = levelText != null ? levelText : FindDescriptionComponent<TMP_Text>("MiddlePanel/DetailInfoPanel/Level", searchRoot);
-        dpsText = dpsText != null ? dpsText : FindDescriptionComponent<TMP_Text>("MiddlePanel/DetailInfoPanel/DPS", searchRoot);
+        dpsText = dpsText != null ? dpsText : FindFirstDescriptionComponent<TMP_Text>(searchRoot, "MiddlePanel/DetailInfoPanel/Damage", "MiddlePanel/DetailInfoPanel/DPS");
         fireRateText = fireRateText != null ? fireRateText : FindDescriptionComponent<TMP_Text>("MiddlePanel/DetailInfoPanel/FireRate", searchRoot);
         bulletSpeedText = bulletSpeedText != null ? bulletSpeedText : FindDescriptionComponent<TMP_Text>("MiddlePanel/DetailInfoPanel/BulletSpeed", searchRoot);
         pierceCountText = pierceCountText != null ? pierceCountText : FindDescriptionComponent<TMP_Text>("MiddlePanel/DetailInfoPanel/PierceCount", searchRoot);
@@ -276,7 +276,7 @@ public class TurretDetailPopupUI : TurretPopupPageUI
     private void SetDetailStatTexts(int currentLevel, TurretRuntimeStat stat, TurretDamagePolishProfileSO damagePolishProfile)
     {
         SetText(levelText, ApplyTemplate(levelTextTemplate, currentLevel.ToString()));
-        SetText(dpsText, ApplyTemplate(dpsTextTemplate, FormatDps(stat)));
+        SetText(dpsText, ApplyTemplate(dpsTextTemplate, FormatValue(stat.damage)));
         SetText(fireRateText, ApplyTemplate(fireRateTextTemplate, FormatValue(stat.fireInterval)));
         SetText(bulletSpeedText, ApplyTemplate(bulletSpeedTextTemplate, FormatValue(stat.projectileSpeed)));
         SetText(pierceCountText, ApplyTemplate(pierceCountTextTemplate, stat.pierceCount.ToString()));
@@ -315,20 +315,6 @@ public class TurretDetailPopupUI : TurretPopupPageUI
             "관통 횟수: ", stat.pierceCount.ToString(), "\n",
             "치명타 확률: ", FormatChance(GetCriticalChance(damagePolishProfile)), "\n",
             "강타 확률: ", FormatChance(GetHeavyHitChance(damagePolishProfile)));
-    }
-
-    // 초당 피해량 표시 문자열을 생성한다
-    private static string FormatDps(TurretRuntimeStat stat)
-    {
-        return FormatValue(CalculateDps(stat));
-    }
-
-    // 초당 피해량을 계산한다
-    private static float CalculateDps(TurretRuntimeStat stat)
-    {
-        float safeFireInterval = Mathf.Max(0.01f, stat.fireInterval);
-        int safeProjectileCount = Mathf.Max(1, stat.projectileCount);
-        return Mathf.Max(0.0f, stat.damage) * safeProjectileCount / safeFireInterval;
     }
 
     // 단일 스탯 값을 소수점 둘째 자리까지 표시한다

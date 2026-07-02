@@ -24,9 +24,23 @@ public class ObstaclePlacementSlotUI : MonoBehaviour, IBeginDragHandler, IDragHa
     // 자동 생성된 버튼에 빌드 항목과 컨트롤러를 주입한다
     public void Initialize(ObstacleBuildEntrySO buildEntry_, ObstaclePlacementController placementController_)
     {
+        UnsubscribePlacementController();
         buildEntry = buildEntry_;
         placementController = placementController_;
+        SubscribePlacementController();
         Refresh();
+    }
+
+    // 활성화 시 배치 컨트롤러 이벤트를 다시 구독한다
+    private void OnEnable()
+    {
+        SubscribePlacementController();
+    }
+
+    // 비활성화 시 배치 컨트롤러 이벤트 구독을 해제한다
+    private void OnDisable()
+    {
+        UnsubscribePlacementController();
     }
 
     // 인스펙터에서 기본 UI 참조와 컨트롤러를 자동으로 찾는다
@@ -125,6 +139,51 @@ public class ObstaclePlacementSlotUI : MonoBehaviour, IBeginDragHandler, IDragHa
         placementController = FindFirstObjectByType<ObstaclePlacementController>();
     }
 
+    // 현재 설치 횟수 기준 배치 비용을 조회한다
+    private ResourceCost[] GetCurrentPlacementCosts()
+    {
+        if (placementController == null)
+        {
+            return buildEntry.BuildCosts;
+        }
+
+        return placementController.GetCurrentPlacementCosts(buildEntry);
+    }
+
+    // 배치 성공 횟수 변경 이벤트를 구독한다
+    private void SubscribePlacementController()
+    {
+        if (placementController == null)
+        {
+            return;
+        }
+
+        placementController.OnPlacementCountChanged -= OnPlacementCountChanged;
+        placementController.OnPlacementCountChanged += OnPlacementCountChanged;
+    }
+
+    // 배치 성공 횟수 변경 이벤트 구독을 해제한다
+    private void UnsubscribePlacementController()
+    {
+        if (placementController == null)
+        {
+            return;
+        }
+
+        placementController.OnPlacementCountChanged -= OnPlacementCountChanged;
+    }
+
+    // 같은 빌드 항목의 설치 횟수가 바뀌면 비용 표시를 갱신한다
+    private void OnPlacementCountChanged(ObstacleBuildEntrySO changedBuildEntry)
+    {
+        if (changedBuildEntry != buildEntry)
+        {
+            return;
+        }
+
+        Refresh();
+    }
+
     // 빌드 항목 정보를 버튼의 아이콘과 텍스트에 반영한다
     private void Refresh()
     {
@@ -153,8 +212,8 @@ public class ObstaclePlacementSlotUI : MonoBehaviour, IBeginDragHandler, IDragHa
             tmpNameText.text = buildEntry.DisplayName;
         }
 
-        // UI 표시는 실제 소비에 쓰이는 BuildCosts를 그대로 사용해 표시 비용과 결제 비용이 갈라지지 않게 한다.
-        string costLabel = FormatCosts(buildEntry.BuildCosts);
+        // 설치 횟수에 따라 오르는 실효 비용(GetPlacementCosts)을 표시해야 실제 결제 비용과 갈라지지 않는다.
+        string costLabel = FormatCosts(GetCurrentPlacementCosts());
         if (costText != null)
         {
             costText.text = costLabel;

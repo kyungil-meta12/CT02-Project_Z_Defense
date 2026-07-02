@@ -309,26 +309,26 @@ public class ObstacleBuildSlot : MonoBehaviour
         return InventorySystem.Inst.CanAfford(buildEntry.GetPlacementCosts(count, isRebuild));
     }
 
-    // 장애물 배치 실패 사유를 콘솔에 출력한다
+    // 장애물 배치 실패 사유를 콘솔에 출력하고, 플레이어에게도 경고 팝업으로 알린다
     private void LogPlacementFailed(ObstacleBuildEntrySO buildEntry, string reason)
     {
-        if (!logPlacementResults)
+        if (logPlacementResults)
         {
-            return;
+            Debug.LogWarning($"[ObstacleBuildSlot] 배치 실패 - 슬롯: {name}, 항목: {GetBuildEntryName(buildEntry)}, 사유: {reason}", this);
         }
 
-        Debug.LogWarning($"[ObstacleBuildSlot] 배치 실패 - 슬롯: {name}, 항목: {GetBuildEntryName(buildEntry)}, 사유: {reason}", this);
+        WarningPopupManager.ShowWarning(reason);
     }
 
-    // 장애물 배치 성공 결과를 콘솔에 출력한다
+    // 장애물 배치 성공 결과를 콘솔에 출력하고, 플레이어에게도 완료 팝업으로 알린다
     private void LogPlacementSucceeded(ObstacleBuildEntrySO buildEntry, Obstacle placedObstacle, ResourceCost[] buildCosts)
     {
-        if (!logPlacementResults)
+        if (logPlacementResults)
         {
-            return;
+            Debug.Log($"[ObstacleBuildSlot] 배치 성공 - 슬롯: {name}, 항목: {GetBuildEntryName(buildEntry)}, 설치 대상: {GetObstacleName(placedObstacle)}, 비용: {FormatCosts(buildCosts)}, 남은 재화: {FormatWallet()}", this);
         }
 
-        Debug.Log($"[ObstacleBuildSlot] 배치 성공 - 슬롯: {name}, 항목: {GetBuildEntryName(buildEntry)}, 설치 대상: {GetObstacleName(placedObstacle)}, 비용: {FormatCosts(buildCosts)}, 남은 재화: {FormatWallet()}", this);
+        WarningPopupManager.ShowWarning($"{GetBuildEntryName(buildEntry)} 설치 완료");
     }
 
     // 빌드 항목의 로그용 이름을 반환한다

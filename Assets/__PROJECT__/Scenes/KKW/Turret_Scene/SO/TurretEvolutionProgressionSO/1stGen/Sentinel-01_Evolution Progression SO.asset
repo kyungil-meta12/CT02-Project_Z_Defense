@@ -21,11 +21,11 @@ MonoBehaviour:
       amount: 10000
     - currencyType: 12
       amount: 22
-    - currencyType: 24
+    - currencyType: 34
       amount: 3
-    - currencyType: 22
+    - currencyType: 23
       amount: 1
-    - currencyType: 31
+    - currencyType: 25
       amount: 111
     evolutionIcon: {fileID: 21300000, guid: 6d09530bfe4f5184b992fa84c274a713, type: 3}
     evolutionEffectPrefab: {fileID: 640602461530948004, guid: 938be4f127f81d348a60fe4019a9422c, type: 3}

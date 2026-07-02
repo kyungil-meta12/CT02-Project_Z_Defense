@@ -909,6 +909,7 @@ Engineer buff policy:
 - `TurretSelectPopupUI` is a lightweight action hub only. It routes Upgrade to `TurretUpgradePopupUI`, Detail to `TurretDetailPopupUI`, and Skill to `TurretSkillPopupUI`.
 - `TurretSelectPopupUI` displays `TurretDefinitionSO.shortDescription` in its Note text. This text may include TMP rich text tags such as `<nobr>` to prevent Korean word breaks.
 - `TurretUpgradePopupUI`, `TurretDetailPopupUI`, `TurretSkillPopupUI`, and `TurretEvolutionPopupUI` are inspector-wired popup pages. Child popup `BackButton` controls should return to `TurretSelectPopup`.
+- `TurretDetailPopupUI` reads `TurretDefinitionSO.damagePolishProfile` for critical and heavy-hit chance display. Missing profiles should display `0%` rather than blocking the detail popup.
 - `TurretUpgradePopupUI` should route its `LowPanel/Evolution` button to `TurretEvolutionPopupUI` instead of performing evolution directly.
 - Upgrade and evolution cost slots should follow `ResourceCost` data from turret ScriptableObjects, and resource name/image display should use `InventorySystem` metadata when available.
 - `TurretEvolutionPopupUI` owns only evolution UI selection and execution. The source of truth for candidates remains `TurretEvolutionProgressionSO`, exposed through `TurretDefinitionRuntimeController.GetAvailableEvolutionCount`, `GetAvailableEvolution`, `CanEvolve`, and `TryCreateEvolvedInstance`.

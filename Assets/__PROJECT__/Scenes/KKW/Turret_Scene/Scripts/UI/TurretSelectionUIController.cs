@@ -117,6 +117,20 @@ public class TurretSelectionUIController : MonoBehaviour
         HideRangeIndicator();
     }
 
+    // 하위 팝업에서 변경된 선택 터렛 컨텍스트를 현재 선택에 반영한다
+    public void UpdateSelectionFromChild(TurretSelectionContext context)
+    {
+        if (!context.IsValid)
+        {
+            ClearSelection();
+            return;
+        }
+
+        currentContext = context;
+        ClearPendingTurretClick();
+        RefreshRangeIndicator();
+    }
+
     // 카메라 터치 이벤트로 전달된 월드 히트에서 터렛 선택을 처리한다
     private void OnCameraTargetTouched(RaycastHit hit)
     {
@@ -331,6 +345,12 @@ public class TurretSelectionUIController : MonoBehaviour
         selectPopup.SkillRequested += OpenSkillPopup;
         selectPopup.CloseRequested += ClearSelection;
 
+        if (detailPopup != null)
+        {
+            detailPopup.UpgradeRequested -= OpenUpgradePopup;
+            detailPopup.UpgradeRequested += OpenUpgradePopup;
+        }
+
         if (upgradePopup != null)
         {
             upgradePopup.EvolutionPopupRequested -= OpenEvolutionPopup;
@@ -350,6 +370,11 @@ public class TurretSelectionUIController : MonoBehaviour
         selectPopup.DetailRequested -= OpenDetailPopup;
         selectPopup.SkillRequested -= OpenSkillPopup;
         selectPopup.CloseRequested -= ClearSelection;
+
+        if (detailPopup != null)
+        {
+            detailPopup.UpgradeRequested -= OpenUpgradePopup;
+        }
 
         if (upgradePopup != null)
         {
@@ -422,12 +447,12 @@ public class TurretSelectionUIController : MonoBehaviour
         }
 
         slot = hit.collider.GetComponentInParent<TurretBaseSlot>();
-        if (slot == null || slot.CurrentTurret == null)
+        if (slot == null)
         {
             return false;
         }
 
-        turret = slot.CurrentTurret;
+        turret = slot.CurrentTurret != null ? slot.CurrentTurret : slot.RefreshAndGetCurrentTurret();
         return turret != null;
     }
 }

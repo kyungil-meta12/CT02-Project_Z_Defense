@@ -20,7 +20,7 @@
 - `TurretUpgradePopupUI` 비용 슬롯은 `ResourceCost`와 `InventorySystem` 메타데이터를 사용해 재화 이름, 수량, 이미지를 표시한다.
 - `TurretUpgradePopupUI`의 `LowPanel/Evolution` 버튼은 직접 진화하지 않고 `TurretEvolutionPopupUI`를 열도록 라우팅한다.
 - `TurretEvolutionPopupUI`는 진화 분기 수에 따라 `MiddlePanel_A/B/C`를 전환하고, 현재 터렛/다음 후보 이미지와 이름, 후보별 진화 비용, 진화 실행 버튼을 표시한다.
-- `TurretDetailPopupUI`는 현재 터렛의 기본 상세 스탯을 읽기 전용으로 표시한다.
+- `TurretDetailPopupUI`는 현재 터렛의 기본 상세 스탯과 `TurretDamagePolishProfileSO` 기반 치명타/강타 확률을 읽기 전용으로 표시한다.
 - `TurretSkillPopupUI`는 아직 실제 기능 없이 준비 중 상태를 담당한다.
 - 모든 하위 팝업의 `BackButton`은 선택 팝업으로 돌아가는 방향으로 정리 중이다.
 
@@ -47,6 +47,15 @@
 - 보유량이 부족하면 수량 TMP에 붉은색 Rich Text를 적용한다.
 - 필요한 재료 수가 8개보다 적으면 남는 슬롯은 기본 이미지, 현재 씬 기준 `crosshair`, 를 유지하고 `ItemName`/`ItemCount` 텍스트는 비운다.
 
+## 2026-07-01 Detail Popup Damage Polish Display
+
+- `DescriptionPopup > TurretDescriptionPopupBackground > MiddlePanel > DetailInfoPanel` 아래 `CriticalChance`, `HeavyHitChance` TMP를 상세 수치 표시 대상에 추가했다.
+- `TurretDetailPopupUI`는 현재 선택 터렛의 `TurretDefinitionSO.damagePolishProfile`에서 치명타/강타 확률을 읽어 백분율로 표시한다.
+- Damage Polish Profile이 비어 있으면 치명타/강타 확률은 `0%`로 표시한다.
+- 선택된 터렛이 없을 때는 다른 상세 수치와 동일하게 `-`를 표시한다.
+- 기존 `statText` 단일 상세 문자열은 레거시 호환용으로만 유지한다. 신규 UI는 `DetailInfoPanel`의 개별 TMP를 기준으로 본다.
+- Roslyn `OutOfMemoryException` 재발을 줄이기 위해 레거시 `statText` 문자열은 중첩 보간 문자열 대신 `string.Concat`과 미리 계산된 `damagePolishProfile` 인자를 사용한다.
+
 ## 2026-07-01 Button Reference Hardening
 
 - `TurretSelectPopupUI`는 `BackgroundButton` 참조가 비어 있어도 팝업 루트의 `Image` 오브젝트에 런타임 `Button`을 보강해 바깥 클릭 닫기를 처리한다.
@@ -54,6 +63,25 @@
 - `TurretUpgradePopupUI`와 `TurretEvolutionPopupUI`는 자식 전용 Back/X 버튼 참조가 비어 있어도 공통 `closeButton`/`backButton` 참조를 재사용한다.
 - 같은 버튼에 공통 리스너와 자식 리스너가 중복 등록되지 않도록 방지했다.
 - 현재 Main 씬의 `Canvas > Turret UI`에는 `SkillPopup` 오브젝트가 없고 `TurretSelectPopupUI`의 Skill 버튼은 준비 중 정책으로 비활성화되어 있다.
+
+## 2026-07-02 Evolution Popup Runtime Context Fix
+
+- `TurretEvolutionPopupUI`가 진화 성공 후 내부 `CurrentContext`만 새 터렛으로 갱신하던 문제를 수정했다.
+- 하위 팝업이 변경된 선택 컨텍스트를 `TurretSelectionUIController`에 반영할 수 있도록 `TurretPopupPageUI.RequestSelectionContextUpdate`와 `TurretSelectionUIController.UpdateSelectionFromChild`를 추가했다.
+- 진화 직후 상위 선택 컨텍스트와 사거리 표시가 새 터렛 기준으로 갱신되므로, 하단 Evolution 실행 뒤 Back으로 선택 팝업에 복귀해도 이전 터렛 참조가 남지 않는다.
+- 진화 성공 후 `EvolutionPopup`에 머무르지 않고 새 터렛 기준 `TurretSelectPopup`으로 복귀한다. 이후 Upgrade/Detail/Evolution 루프를 같은 방식으로 다시 진행할 수 있다.
+
+## 2026-07-02 Detail Popup Upgrade Route Fix
+
+- `DescriptionPopup`의 `LowPanel/Upgrade` 버튼이 아무 동작도 하지 않던 문제를 수정했다.
+- `TurretDetailPopupUI`에 `UpgradeRequested` 이벤트와 상세 팝업 전용 Upgrade 버튼 바인딩을 추가했다.
+- `TurretSelectionUIController`가 상세 팝업의 `UpgradeRequested`를 기존 `OpenUpgradePopup` 경로에 연결하므로, 선택 팝업에서 Upgrade로 들어간 경우와 동일하게 업그레이드를 진행할 수 있다.
+
+## 2026-07-02 Evolved Turret Reselection Fix
+
+- 프리팹 교체 진화 성공 후 `TurretBaseSlot.CurrentTurret`가 새 터렛으로 갱신되지 않아, 모든 팝업을 닫고 슬롯/터렛을 다시 클릭할 때 선택 팝업이 열리지 않을 수 있던 문제를 수정했다.
+- `TurretEvolutionPopupUI`가 진화 성공 직후 기존 슬롯에 `SetCurrentTurret(evolvedTurret)`를 호출해 슬롯 점유 상태를 새 터렛으로 동기화한다.
+- `TurretSelectionUIController`의 슬롯 클릭 fallback은 `CurrentTurret`가 비어 있으면 `RefreshAndGetCurrentTurret()`로 빌드 포인트 아래 터렛을 한 번 재탐색한다.
 
 ## 2026-06-30 Placement Input Regression
 
@@ -89,6 +117,71 @@
 - `Legacy Pointer Bridge`는 현재 입력 복구용 호환 레이어다.
 - 장기적으로는 `InputSystemUIInputModule`이 포인터 콜백을 보내지 못하는 정확한 에디터/액션 에셋 설정 원인을 다시 확인하고, 브릿지를 유지할지 제거할지 결정해야 한다.
 - 브릿지를 유지하는 동안에는 `EventSystemDebugger`가 Main 씬에서 활성화되어 있어야 한다.
+
+## 2026-07-02 Evolution Candidate Info Popup
+
+### Goal
+
+- `EvolutionPopup`에서 진화 후보 이미지를 짧게 한 번 클릭하면 기존처럼 선택과 비용 표시만 갱신한다.
+- 이미 선택된 후보를 다시 클릭하거나, 후보 이미지를 0.5초 이상 누르고 있으면 `TurretInfoPopup`을 겹쳐 표시한다.
+- `TurretInfoPopup`은 `EvolutionPopup`을 닫지 않고 위에 뜨며, Back 버튼과 상단 X 버튼은 정보 팝업만 닫는다.
+
+### Fix
+
+- `TurretEvolutionPopupUI`가 후보 버튼의 `PointerDown`, `PointerUp`, `PointerExit`을 감지하도록 후보별 포인터 전달 컴포넌트를 자동 연결한다.
+- 후보를 누르고 있는 시간이 `candidateInfoHoldDuration` 이상이면 해당 진화 후보의 1레벨 기준 정보를 `TurretInfoPopup`에 표시한다.
+- 이미 선택된 붉은 프레임 후보를 다시 클릭하면 같은 정보 팝업을 연다.
+- 길게 누르기로 정보 팝업이 열린 경우, 같은 입력의 후속 클릭이 선택 로직을 다시 실행하지 않도록 억제한다.
+- `TurretInfoPopupUI`를 추가해 후보 터렛의 이름, 레벨, 공격력, 발사간격, 아이콘을 표시하고, Information 버튼으로 1레벨 상세 스탯을 표시한다.
+- `TurretInfoPopupUI`의 `HighPanel/ExitFrame/Button`을 별도 닫기 버튼으로 바인딩해 Back과 동일하게 `TurretInfoPopup`만 닫는다.
+- 비활성 상태의 `TurretInfoPopup`에 런타임으로 `TurretInfoPopupUI`가 자동 부착되는 경우 `Awake`가 아직 실행되지 않아 `popupRoot`가 비어 있을 수 있으므로, `Show`와 `Hide`에서 참조를 즉시 보강한다.
+- `Show`로 활성화되는 순간 `Awake`가 실행되더라도 현재 표시 대상이 있으면 다시 `Hide`하지 않도록 처리한다.
+
+### Play Mode Check
+
+- 첫 클릭: 후보 선택, 붉은 프레임 표시, 비용 표시만 변경.
+- 선택된 후보 재클릭: `TurretInfoPopup` 표시.
+- 후보 0.5초 이상 홀드: `TurretInfoPopup` 표시.
+- 정보 팝업 Back: `TurretInfoPopup`만 닫힘.
+- 정보 팝업 상단 X: `TurretInfoPopup`만 닫힘.
+- 정보 팝업 Information: 진화 대상 터렛의 1레벨 상세 스탯 표시.
+
+## 2026-07-02 Evolution Candidate Description Preview
+
+### Goal
+
+- `TurretInfoPopup`의 Information 버튼은 기존 팝업 내부 텍스트 변경이 아니라, 해당 진화 후보 터렛의 `DescriptionPopup`을 추가로 표시한다.
+- `DescriptionPopup`은 1레벨 기준 상세 수치를 표시하며, `TurretInfoPopup`과 `EvolutionPopup`은 닫지 않는다.
+- 진화 후보 정보 보기에서 열린 `TurretInfoPopup`의 Upgrade 버튼은 사용할 수 없게 비활성화한다.
+
+### Fix
+
+- `TurretDetailPopupUI`에 `ShowPreview(TurretDefinitionSO)`를 추가해 실제 설치 터렛 컨텍스트 없이 후보 터렛 정의를 1레벨 기준으로 표시한다.
+- `TurretDetailPopupUI`는 미리보기 모드에서 `BackButtonFrame/BackButton`과 `CloseFrame/CloseButton` 입력을 `Hide`로 처리해 `DescriptionPopup`만 닫는다.
+- `TurretDetailPopupUI`는 미리보기 모드에서 `LowPanel/UpgradeFrame`을 숨기고 Upgrade 버튼을 비활성화한다.
+- `TurretInfoPopupUI`의 Information 버튼은 씬의 `DescriptionPopup`을 찾아 `ShowPreview`를 호출한다.
+- `TurretInfoPopupUI`도 진화 후보 전용 팝업이므로 `LowPanel/UpgradeFrame`을 숨기고 Upgrade 버튼을 비활성화한다.
+
+### Play Mode Check
+
+- 진화 후보 재클릭 또는 0.5초 홀드: `TurretInfoPopup` 표시.
+- `TurretInfoPopup` Information: 후보 터렛의 `DescriptionPopup` 표시.
+- `DescriptionPopup` Back: `DescriptionPopup`만 닫히고 `TurretInfoPopup`으로 복귀.
+- `DescriptionPopup` X: `DescriptionPopup`만 닫히고 `TurretInfoPopup`으로 복귀.
+- 후보 상세 미리보기의 Upgrade 버튼은 비활성화.
+
+## 2026-07-02 Turret UI Damage Display Correction
+
+### Goal
+
+- Turret UI의 `Damage` 표시는 초당 피해량이 아니라 `KKW/Turret_Scene/SO/Turret Stat Profile`에서 계산된 단발 피해량을 표시한다.
+- 기존 씬 계층명이 `DPS`에서 `Damage`로 변경된 로컬 변경과 기존 `DPS` 계층명을 모두 지원한다.
+
+### Fix
+
+- `TurretSelectPopupUI`, `TurretInfoPopupUI`, `TurretDetailPopupUI`, `TurretUpgradePopupUI`의 Damage 표시값을 `damage * projectileCount / fireInterval` 계산값에서 `TurretRuntimeStat.damage`로 변경했다.
+- `TurretUpgradePopupUI`의 Damage 변화량도 DPS 변화율이 아니라 `currentStat.damage` 대비 `nextStat.damage` 변화율로 계산한다.
+- 자동 참조 경로는 `Damage`, `NextDamage`, `DamageDelta`를 우선 찾고, 기존 `DPS`, `NextDPS`, `DPSDelta`를 fallback으로 유지한다.
 
 ## Known Weak Points
 
@@ -135,4 +228,5 @@
 - `TurretUpgradePopupUI`에서 현재/다음 수치 TMP, 변화량 TMP, 재화 이름/수량/이미지, Back/Upgrade/Evolution 버튼 연결 확인.
 - `TurretEvolutionPopupUI`에서 `MiddlePanel_A/B/C`, 현재/다음 터렛 이미지, 후보 프레임 이미지, 재화 이름/수량/이미지, Back/X/Evolution 버튼 연결 확인.
 - `TurretEvolutionPopupUI`에서 후보 이미지 클릭 시 진화가 즉시 실행되지 않고 비용 표시와 선택 프레임만 바뀌는지 확인.
+- `TurretDetailPopupUI`에서 `CriticalChance`, `HeavyHitChance` TMP가 현재 터렛의 Damage Polish Profile 확률을 백분율로 표시하는지 확인.
 - `TurretSelectionUIController`에서 Select/Upgrade/Detail/Evolution Popup 참조 확인.

@@ -27,6 +27,7 @@ public sealed class IgnitionDamageApplier : MonoBehaviour, ITurretRuntimeStatRec
     private float damageTickTimer;
     private IgnitionStatusPayload ignitionStatusPayload;
     private TurretStatGrowthProfileSO statGrowthProfile;
+    private TurretDamageMeterSource damageMeterSource;
     private bool hasLoggedMissingDamagePath;
 
     // 시작 시 감지 이벤트를 구독하고 첫 데미지 틱을 준비한다
@@ -139,6 +140,13 @@ public sealed class IgnitionDamageApplier : MonoBehaviour, ITurretRuntimeStatRec
         RefreshIgnitionStatusPayload();
     }
 
+    // 외부 터렛 정의에서 딜 미터기 출처를 설정한다
+    public void SetDamageMeterSource(TurretDamageMeterSource damageMeterSource_)
+    {
+        damageMeterSource = damageMeterSource_;
+        RefreshIgnitionStatusPayload();
+    }
+
     // 외부 터렛 정의에서 전달한 상태 프로필이 Ignition이면 현재 레벨과 함께 적용한다
     public void SetStatusProfile(ScriptableObject statusProfile, int level, TurretStatGrowthProfileSO growthProfile)
     {
@@ -178,6 +186,7 @@ public sealed class IgnitionDamageApplier : MonoBehaviour, ITurretRuntimeStatRec
         }
 
         ignitionStatusPayload = ignitionStatusProfile.CreatePayload(ignitionStatusLevel, damagePerSecond, statGrowthProfile);
+        ignitionStatusPayload.damageSource = damageMeterSource;
         hasLoggedMissingDamagePath = false;
     }
 
@@ -228,7 +237,7 @@ public sealed class IgnitionDamageApplier : MonoBehaviour, ITurretRuntimeStatRec
                 continue;
             }
 
-            target.TakeDamage(new DamageInfo(damage, DamagePopupType.Normal, DamagePopupPolicyResolver.ResolveAreaOfEffect()));
+            target.TakeDamage(new DamageInfo(damage, DamagePopupType.Normal, DamagePopupPolicyResolver.ResolveAreaOfEffect(), damageMeterSource));
 
             if (logDamage)
             {

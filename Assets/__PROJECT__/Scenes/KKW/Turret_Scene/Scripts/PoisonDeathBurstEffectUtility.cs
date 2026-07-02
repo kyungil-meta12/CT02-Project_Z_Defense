@@ -105,7 +105,8 @@ public static class PoisonDeathBurstEffectUtility
             deathBurstMaxStackCount = sourcePayload.deathBurstMaxStackCount,
             deathBurstStackRefreshMode = sourcePayload.deathBurstStackRefreshMode,
             deathBurstBossDamageMultiplier = sourcePayload.deathBurstBossDamageMultiplier,
-            deathBurstAllowChain = sourcePayload.deathBurstAllowChain
+            deathBurstAllowChain = sourcePayload.deathBurstAllowChain,
+            damageSource = sourcePayload.damageSource
         };
 
         return weakPoisonPayload;

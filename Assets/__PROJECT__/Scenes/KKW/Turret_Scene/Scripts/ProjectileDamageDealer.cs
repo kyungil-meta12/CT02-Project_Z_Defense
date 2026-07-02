@@ -21,6 +21,7 @@ public class ProjectileDamageDealer : MonoBehaviour
     private PoisonStatusPayload poisonStatusPayload;
     private ElectroStatusPayload electroStatusPayload;
     private TurretDamagePolishProfileSO damagePolishProfile;
+    private TurretDamageMeterSource damageMeterSource;
 
     public bool HasReachedPierceLimit
     {
@@ -71,12 +72,21 @@ public class ProjectileDamageDealer : MonoBehaviour
     // 데미지 처리 상태, 추적 타겟, 상태이상, 데미지 폴리싱 정보를 초기화한다
     public void Init(float damage_, int pierceCount_, bool logDamage_, GameObject target, PoisonStatusPayload poisonStatusPayload_, ElectroStatusPayload electroStatusPayload_, TurretDamagePolishProfileSO damagePolishProfile_)
     {
+        Init(damage_, pierceCount_, logDamage_, target, poisonStatusPayload_, electroStatusPayload_, damagePolishProfile_, null);
+    }
+
+    // 데미지 처리 상태, 추적 타겟, 상태이상, 데미지 폴리싱 정보, 딜 미터기 출처를 초기화한다
+    public void Init(float damage_, int pierceCount_, bool logDamage_, GameObject target, PoisonStatusPayload poisonStatusPayload_, ElectroStatusPayload electroStatusPayload_, TurretDamagePolishProfileSO damagePolishProfile_, TurretDamageMeterSource damageMeterSource_)
+    {
         damage = Mathf.Max(0.0f, damage_);
         pierceCount = Mathf.Max(0, pierceCount_);
         logDamage = logDamage_;
         poisonStatusPayload = poisonStatusPayload_;
         electroStatusPayload = electroStatusPayload_;
         damagePolishProfile = damagePolishProfile_;
+        damageMeterSource = damageMeterSource_;
+        poisonStatusPayload.damageSource = damageMeterSource;
+        electroStatusPayload.damageSource = damageMeterSource;
         hitDamageables.Clear();
         trackedTargetDamageable = ResolveDamageable(target);
         enabled = true;
@@ -101,7 +111,7 @@ public class ProjectileDamageDealer : MonoBehaviour
         TurretDamagePolishResult damageResult = RollDamage();
         NotifyNonElectroDamageReceived(damageable, damageResult.Damage);
         DamagePopupPolicy popupPolicy = DamagePopupPolicyResolver.ResolveDirectHit(damageResult.PopupType);
-        damageable.TakeDamage(new DamageInfo(damageResult.Damage, damageResult.PopupType, popupPolicy));
+        damageable.TakeDamage(new DamageInfo(damageResult.Damage, damageResult.PopupType, popupPolicy, damageMeterSource));
         hitDamageables.Add(damageable);
         ApplyPoisonStatus(damageable);
         ApplyElectroStatus(hitCollider, damageable, 0, damageResult.Damage);

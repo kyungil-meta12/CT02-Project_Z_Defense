@@ -30,6 +30,7 @@ namespace ProjectZDefense.StatusEffects
         public float reactionTickInterval;
         public float bossDamageMultiplier;
         public IgnitionInteractionFlags interactionFlags;
+        public global::TurretDamageMeterSource damageSource;
     }
 
     /// <summary>

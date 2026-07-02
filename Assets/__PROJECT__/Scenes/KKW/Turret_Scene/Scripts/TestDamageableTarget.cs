@@ -47,8 +47,11 @@ public class TestDamageableTarget : MonoBehaviour, IDamageable
             return;
         }
 
-        float appliedDamage = Mathf.Max(0.0f, damageInfo.Damage);
-        CurrHp = Mathf.Clamp(CurrHp - appliedDamage, 0.0f, TotalHp);
+        float beforeHp = CurrHp;
+        float requestedDamage = Mathf.Max(0.0f, damageInfo.Damage);
+        CurrHp = Mathf.Clamp(CurrHp - requestedDamage, 0.0f, TotalHp);
+        float appliedDamage = Mathf.Max(0.0f, beforeHp - CurrHp);
+        TurretDamageMeterManager.ReportDamage(damageInfo.DamageSource, appliedDamage);
 
         if (logDamage)
         {

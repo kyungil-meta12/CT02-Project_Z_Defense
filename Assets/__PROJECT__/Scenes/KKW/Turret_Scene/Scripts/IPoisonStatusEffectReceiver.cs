@@ -21,6 +21,7 @@ namespace ProjectZDefense.StatusEffects
         public PoisonStackRefreshMode deathBurstStackRefreshMode;
         public float deathBurstBossDamageMultiplier;
         public bool deathBurstAllowChain;
+        public global::TurretDamageMeterSource damageSource;
     }
 
     /// <summary>

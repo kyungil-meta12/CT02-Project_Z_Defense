@@ -26,6 +26,7 @@ namespace ProjectZDefense.StatusEffects
         public float freezeCooldownPerTarget;
         public float freezeExplosionSlowRatio;
         public float freezeExplosionSlowDuration;
+        public global::TurretDamageMeterSource damageSource;
     }
 
     /// <summary>

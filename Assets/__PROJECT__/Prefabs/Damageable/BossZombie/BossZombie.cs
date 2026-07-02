@@ -495,10 +495,13 @@ public class BossZombie : PoolObject, IDamageable, IAimPointProvider, IFrostStat
             return;
         }
 
-        float appliedDamage = Mathf.Max(0f, damageInfo.Damage);
-        CurrHp -= appliedDamage;
-        StoreDamage(appliedDamage);
+        float beforeHp = CurrHp;
+        float requestedDamage = Mathf.Max(0f, damageInfo.Damage);
+        CurrHp -= requestedDamage;
         CurrHp = Mathf.Clamp(CurrHp, 0f, TotalHp);
+        float appliedDamage = Mathf.Max(0f, beforeHp - CurrHp);
+        TurretDamageMeterManager.ReportDamage(damageInfo.DamageSource, appliedDamage);
+        StoreDamage(appliedDamage);
         hpUI.gameObject.SetActive(true);
         hpUI.InputCurrHp(CurrHp);
 
@@ -507,7 +510,7 @@ public class BossZombie : PoolObject, IDamageable, IAimPointProvider, IFrostStat
             //Debug.Log($"[BossZombie] Damage:{appliedDamage:0.###}, HP:{CurrHp:0.###}/{TotalHp:0.###}", this);
         }
 
-        DamagePopupSpawner.SpawnDamage(transform, new DamageInfo(appliedDamage, damageInfo.PopupType, damageInfo.PopupPolicy), DamagePopupTargetType.BossZombie);
+        DamagePopupSpawner.SpawnDamage(transform, new DamageInfo(appliedDamage, damageInfo.PopupType, damageInfo.PopupPolicy, damageInfo.DamageSource), DamagePopupTargetType.BossZombie);
 
         if (CurrHp > 0f && poisonStatusRuntime != null && poisonStatusRuntime.IsActive)
         {

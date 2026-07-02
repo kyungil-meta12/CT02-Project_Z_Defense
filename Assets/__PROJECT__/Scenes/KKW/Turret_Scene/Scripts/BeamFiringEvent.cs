@@ -48,6 +48,7 @@ public class BeamFiringEvent : FiringEvent
     private float projectileScale = 1.0f;
     private float currentProjectileDamage;
     private bool currentLogProjectileDamage;
+    private TurretDamageMeterSource damageMeterSource;
     private int frostStatusLevel = 1;
     private Quaternion beamRotationOffset = Quaternion.identity;
     private bool hasBeamRotationOffset;
@@ -119,7 +120,7 @@ public class BeamFiringEvent : FiringEvent
     }
 
     // 빔 발사 요청마다 현재 타겟과 빔 유지 상태를 갱신한다
-    public override void Fire(GameObject projectilePrefab, GameObject target, float projectileSpeed, float projectileScale_, float projectileDamage, int projectilePierceCount, bool logProjectileDamage, PoisonStatusPayload poisonStatusPayload, ElectroStatusPayload electroStatusPayload, TurretDamagePolishProfileSO damagePolishProfile_)
+    public override void Fire(GameObject projectilePrefab, GameObject target, float projectileSpeed, float projectileScale_, float projectileDamage, int projectilePierceCount, bool logProjectileDamage, PoisonStatusPayload poisonStatusPayload, ElectroStatusPayload electroStatusPayload, TurretDamagePolishProfileSO damagePolishProfile_, TurretDamageMeterSource damageMeterSource_)
     {
         if (beamPrefab == null || target == null || !target.activeInHierarchy)
         {
@@ -129,6 +130,7 @@ public class BeamFiringEvent : FiringEvent
 
         SetProjectileScale(projectileScale_);
         SetDamagePolishProfile(damagePolishProfile_);
+        damageMeterSource = damageMeterSource_;
         EnsureBeamInstances();
         bool targetChanged = currentTarget != target;
         if (targetChanged)
@@ -512,7 +514,7 @@ public class BeamFiringEvent : FiringEvent
         TurretDamagePolishResult damageResult = RollDamage(safeDamage);
         NotifyNonElectroDamageReceived(damageable, damageResult.Damage);
         DamagePopupPolicy popupPolicy = DamagePopupPolicyResolver.ResolveHighFrequencyTick(damageResult.PopupType);
-        damageable.TakeDamage(new DamageInfo(damageResult.Damage, damageResult.PopupType, popupPolicy));
+        damageable.TakeDamage(new DamageInfo(damageResult.Damage, damageResult.PopupType, popupPolicy, damageMeterSource));
         ApplyFrostStatus(damageable);
 
         if (logProjectileDamage)
@@ -574,7 +576,9 @@ public class BeamFiringEvent : FiringEvent
             return;
         }
 
-        frostReceiver.ApplyFrostStatus(frostStatusProfile.CreatePayload(frostStatusLevel, GetDamageTickInterval()));
+        FrostStatusPayload payload = frostStatusProfile.CreatePayload(frostStatusLevel, GetDamageTickInterval());
+        payload.damageSource = damageMeterSource;
+        frostReceiver.ApplyFrostStatus(payload);
     }
 
     // 관통 판정에 사용할 버퍼 배열을 준비한다

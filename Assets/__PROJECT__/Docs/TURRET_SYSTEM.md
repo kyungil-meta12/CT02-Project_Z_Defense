@@ -96,6 +96,20 @@ Do not use display names as stable IDs.
 19. `DamagePopupPolicyResolver` reads `DamagePopupPolicyProfile.asset` through `DamagePopupSettings.asset` when the profile is assigned, so popup policy tuning does not require code changes.
 20. `ProjectileHitDetector` handles tracked target, trigger/collision, and movement raycast hit paths.
 21. Damage receivers spawn damage popups where appropriate.
+22. `TurretDamageMeterSource` is attached per turret instance and is carried through `DamageInfo` plus Poison, Electro, Ignition, and Frost payloads so delayed damage stays credited to the original turret.
+23. Damage receivers report only actual HP loss (`beforeHp - afterHp`) to `TurretDamageMeterManager`, so overkill is excluded from the damage meter.
+
+## Runtime Damage Meter
+
+- `TurretDamageMeterManager` owns wave-scoped turret damage totals and keeps previous-wave values visible until the first damage of the next wave is reported.
+- The first damage in a new wave resets all currently installed turret entries to `0` and then applies that first actual damage.
+- Removed, sold, disabled, or evolved-away turret instances unregister their source and disappear from the meter. Evolved turrets register as new separate entries.
+- Ranking is sorted every `0.25` seconds, while text and bar UI refresh is intended for `0.15` second cadence.
+- Row movement is handled by `TurretDamageMeterRowUI` with `Mathf.SmoothDamp` in `Update`; do not add `Vertical Layout Group` to the row root.
+- Bars use first-place-relative fill ratio, while percent text uses total installed turret damage share.
+- `TurretDamageMeterColorProfileSO` maps turret definitions or stable `turretId` values to bar colors. Direct `TurretDefinitionSO` reference rules take priority, then `turretId`, then fallback color.
+- Create the color profile from `Project Z Defense/UI/Turret Damage Meter Color Profile` and assign it to `TurretDamageMeterUI.colorProfile`.
+- If the install cap ever exceeds eight, the manager can keep all entries and the UI can display only the configured top row limit.
 
 ## Beam Attack Runtime Flow
 

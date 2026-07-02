@@ -80,6 +80,7 @@ namespace ProjectZDefense.StatusEffects
         public float chainCoreLineWidth;
         public float chainCoreLineStartDelay;
         public float chainCoreLineDuration;
+        public global::TurretDamageMeterSource damageSource;
     }
 
     /// <summary>

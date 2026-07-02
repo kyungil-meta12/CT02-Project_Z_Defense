@@ -22,6 +22,7 @@ public class TurretDefinitionRuntimeController : MonoBehaviour
     [SerializeField] private TurretStatProfileApplier statProfileApplier;
     [SerializeField] private Turret targetTurret;
     [SerializeField] private FiringEvent targetFiringEvent;
+    [SerializeField] private TurretDamageMeterSource damageMeterSource;
     [SerializeField] private string currentTurretName;
     [SerializeField] private string availableEvolutionNames;
 
@@ -147,6 +148,7 @@ public class TurretDefinitionRuntimeController : MonoBehaviour
             statProfileApplier.SetStatusProfile(turretDefinition.ignitionStatusProfile, level, turretDefinition.statGrowthProfile);
         }
 
+        ApplyDamageMeterSource();
         ApplyDamagePolishProfile();
 
         if (applyVFXToTurret)
@@ -525,6 +527,37 @@ public class TurretDefinitionRuntimeController : MonoBehaviour
         }
     }
 
+    // 터렛과 하위 런타임 수신자에 딜 미터기 출처를 적용한다
+    private void ApplyDamageMeterSource()
+    {
+        EnsureDamageMeterSource();
+
+        if (targetTurret != null)
+        {
+            targetTurret.SetDamageMeterSource(damageMeterSource);
+        }
+
+        IgnitionDamageApplier ignitionDamageApplier = GetComponentInChildren<IgnitionDamageApplier>(true);
+        if (ignitionDamageApplier != null)
+        {
+            ignitionDamageApplier.SetDamageMeterSource(damageMeterSource);
+        }
+    }
+
+    // 터렛 인스턴스에 딜 미터기 출처 컴포넌트가 없으면 추가한다
+    private void EnsureDamageMeterSource()
+    {
+        if (damageMeterSource == null)
+        {
+            damageMeterSource = GetComponent<TurretDamageMeterSource>();
+        }
+
+        if (damageMeterSource == null)
+        {
+            damageMeterSource = gameObject.AddComponent<TurretDamageMeterSource>();
+        }
+    }
+
     // 현재 레벨에 맞는 투사체 스케일을 반환한다
     private float GetProjectileScale()
     {
@@ -545,6 +578,7 @@ public class TurretDefinitionRuntimeController : MonoBehaviour
         }
 
         PoisonStatusPayload payload = turretDefinition.poisonStatusProfile.CreatePayload(level, turretDefinition.statGrowthProfile);
+        payload.damageSource = damageMeterSource;
         return payload.hasPoisonStatus ? payload : default;
     }
 
@@ -557,6 +591,7 @@ public class TurretDefinitionRuntimeController : MonoBehaviour
         }
 
         ElectroStatusPayload payload = turretDefinition.electroStatusProfile.CreatePayload(level, turretDefinition.statGrowthProfile);
+        payload.damageSource = damageMeterSource;
         return payload.hasElectroStatus ? payload : default;
     }
 
@@ -688,6 +723,11 @@ public class TurretDefinitionRuntimeController : MonoBehaviour
         if (targetFiringEvent == null)
         {
             targetFiringEvent = GetComponent<FiringEvent>();
+        }
+
+        if (damageMeterSource == null)
+        {
+            damageMeterSource = GetComponent<TurretDamageMeterSource>();
         }
     }
 

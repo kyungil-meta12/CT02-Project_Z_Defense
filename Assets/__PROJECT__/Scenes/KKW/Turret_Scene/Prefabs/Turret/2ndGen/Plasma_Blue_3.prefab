@@ -413,6 +413,7 @@ MonoBehaviour:
   statProfileApplier: {fileID: 7561970265809762340}
   targetTurret: {fileID: 3486989703782890445}
   targetFiringEvent: {fileID: 3641896206739026334}
+  damageMeterSource: {fileID: 0}
   currentTurretName: 
   availableEvolutionNames: 
 --- !u!114 &-1133597919205309772
@@ -472,19 +473,19 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5939366483768426405, guid: 9d32345b9deefea468578454fed45729, type: 3}
       propertyPath: m_LocalRotation.w
-      value: 0.92775
+      value: 0.9348023
       objectReference: {fileID: 0}
     - target: {fileID: 5939366483768426405, guid: 9d32345b9deefea468578454fed45729, type: 3}
       propertyPath: m_LocalRotation.x
-      value: -0.32647854
+      value: 0.07267622
       objectReference: {fileID: 0}
     - target: {fileID: 5939366483768426405, guid: 9d32345b9deefea468578454fed45729, type: 3}
       propertyPath: m_LocalRotation.y
-      value: -0.17449312
+      value: -0.3466592
       objectReference: {fileID: 0}
     - target: {fileID: 5939366483768426405, guid: 9d32345b9deefea468578454fed45729, type: 3}
       propertyPath: m_LocalRotation.z
-      value: -0.047370076
+      value: 0.026271896
       objectReference: {fileID: 0}
     - target: {fileID: 5939366483768426405, guid: 9d32345b9deefea468578454fed45729, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
@@ -501,6 +502,10 @@ PrefabInstance:
     - target: {fileID: 6162691470817193601, guid: 9d32345b9deefea468578454fed45729, type: 3}
       propertyPath: m_Name
       value: RankDisplayRoot
+      objectReference: {fileID: 0}
+    - target: {fileID: 6162691470817193601, guid: 9d32345b9deefea468578454fed45729, type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

@@ -20,8 +20,29 @@ public class ItemData
     public string CountString;
 }
 
+/// <summary>
+/// 저장 파일에 기록되는 재화 한 종류의 수량 데이터
+/// </summary>
+[Serializable]
+public class CurrencySaveEntry
+{
+    public RewardCurrencyType Type;
+    public double Value;
+    public int Exponent;
+    public bool Negative;
+}
 
-public class InventorySystem : MonoBehaviour
+/// <summary>
+/// 재화 저장 파일 전체 구조
+/// </summary>
+[Serializable]
+public class CurrencySaveData
+{
+    public List<CurrencySaveEntry> Currencies = new();
+}
+
+
+public class InventorySystem : MonoBehaviour, ISaveable
 {
     public static InventorySystem Inst;
 
@@ -30,6 +51,11 @@ public class InventorySystem : MonoBehaviour
     [SerializeField] private bool applyInitialWalletOnlyWhenEmpty = true;
     [SerializeField] private bool logInitialWalletApply = true;
     [SerializeField] private ResourceCost[] initialWalletCurrencies = { new ResourceCost(RewardCurrencyType.Coin, 50) };
+
+    // SaveManager 저장 파일 안에서 재화 데이터를 구분하는 키
+    public string SaveKey => "Currency";
+    // SaveManager에서 복원 중인지 여부. 복원 중 발생하는 변경은 다시 저장을 유발하면 안 된다.
+    private bool isLoadingSave;
 
     // 아이템이 딕셔너리에 추가될 때 사용할 메타데이터 리스트
     public ItemMetaDataListSo itemMetaDataListSo;
@@ -77,12 +103,20 @@ public class InventorySystem : MonoBehaviour
     {
         // 메타데이터 리스트 무결성 검사
         CheckItemMetaDataValidation();
+        // SaveManager에 등록한다. 저장된 재화가 있으면 이 시점에 즉시 복원되며,
+        // 복원에 성공하면 IsEmpty()가 false가 되어 아래 초기 자본 지급은 자동으로 건너뛴다.
+        SaveManager.Inst.Register(this);
         // 초기 자본 추가
         ApplyInitialWalletIfNeeded();
     }
 
     void OnDestroy()
     {
+        if (SaveManager.Inst)
+        {
+            SaveManager.Inst.Unregister(this);
+        }
+
         Inst = null;
     }
 
@@ -185,6 +219,12 @@ public class InventorySystem : MonoBehaviour
         var prevCountCopy = new Incremental(data.Count - data.PrevCount);
         OnItemCountChange?.Invoke(data, prevCountCopy);
         data.PrevCount = new Incremental(data.Count);
+
+        // 저장 파일을 불러오는 중에 발생한 변경은 저장이 필요한 변경이 아니므로 dirty 표시하지 않는다
+        if (!isLoadingSave)
+        {
+            SaveManager.Inst?.MarkDirty();
+        }
     }
 
 
@@ -443,6 +483,62 @@ public class InventorySystem : MonoBehaviour
                 print($"[InventorySystem] 아이템 사용됨 | 사용 타입: {itemType} | 사용 개수: {amount} | 남은 개수: {item.Count}");
                 return true;
             }
+        }
+    }
+
+
+    //Save / Load (ISaveable)
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    /// <summary>
+    /// 현재 보유한 모든 재화를 JSON 문자열로 직렬화한다. SaveManager가 저장 시점에 호출한다.
+    /// </summary>
+    public string CaptureSaveData()
+    {
+        CurrencySaveData saveData = new();
+        foreach (var pair in itemDict)
+        {
+            Incremental count = pair.Value.Count;
+            if (count <= 0)
+            {
+                continue;
+            }
+
+            saveData.Currencies.Add(new CurrencySaveEntry
+            {
+                Type = pair.Key,
+                Value = count.Value,
+                Exponent = count.Exponent,
+                Negative = count.Negative
+            });
+        }
+
+        return JsonUtility.ToJson(saveData);
+    }
+
+    /// <summary>
+    /// 저장 파일에서 읽어온 JSON으로 재화를 복원한다. SaveManager.Register 시점에 호출된다.
+    /// </summary>
+    public void RestoreSaveData(string json)
+    {
+        CurrencySaveData saveData = JsonUtility.FromJson<CurrencySaveData>(json);
+        if (saveData?.Currencies == null)
+        {
+            return;
+        }
+
+        isLoadingSave = true;
+        try
+        {
+            foreach (CurrencySaveEntry entry in saveData.Currencies)
+            {
+                double signedValue = entry.Negative ? -entry.Value : entry.Value;
+                AddItem(entry.Type, new Incremental(signedValue, entry.Exponent));
+            }
+        }
+        finally
+        {
+            isLoadingSave = false;
         }
     }
 

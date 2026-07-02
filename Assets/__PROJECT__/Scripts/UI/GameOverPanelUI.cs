@@ -1,4 +1,5 @@
 using System.Collections;
+using TMPro;
 using UnityEngine;
 
 /// <summary>
@@ -11,6 +12,11 @@ public class GameOverPanelUI : MonoBehaviour
     [Header("게임오버 패널")]
     [SerializeField] private CanvasGroup canvasGroup;
     [SerializeField] private GameObject panelRoot;
+    [SerializeField] private TMP_Text titleText;
+    [SerializeField] private TMP_Text statusText;
+
+    private string defaultTitleText;
+    private string defaultStatusText;
 
     // 필요한 UI 참조를 자동으로 연결한다
     private void Reset()
@@ -22,8 +28,44 @@ public class GameOverPanelUI : MonoBehaviour
     private void Awake()
     {
         AutoBindReferences();
+        CacheDefaultMessages();
         SetAlpha(0.0f);
         SetVisible(false);
+    }
+
+    // 제목/상태 문구를 지정한다. null이나 빈 문자열을 넘긴 항목은 변경하지 않는다
+    public void SetMessage(string title, string status = null)
+    {
+        if (!string.IsNullOrEmpty(title) && titleText != null)
+        {
+            titleText.text = title;
+        }
+
+        if (!string.IsNullOrEmpty(status) && statusText != null)
+        {
+            statusText.text = status;
+        }
+    }
+
+    // 제목/상태 문구를 기본 게임오버 문구로 되돌린다
+    public void ResetMessageToDefault()
+    {
+        if (titleText != null)
+        {
+            titleText.text = defaultTitleText;
+        }
+
+        if (statusText != null)
+        {
+            statusText.text = defaultStatusText;
+        }
+    }
+
+    // 시작 시점의 기본 문구를 캐싱해 이후 복원에 사용한다
+    private void CacheDefaultMessages()
+    {
+        defaultTitleText = titleText != null ? titleText.text : string.Empty;
+        defaultStatusText = statusText != null ? statusText.text : string.Empty;
     }
 
     // 지정 시간 동안 패널을 불투명하게 만든다
@@ -97,5 +139,23 @@ public class GameOverPanelUI : MonoBehaviour
         {
             panelRoot = gameObject;
         }
+
+        if (titleText == null)
+        {
+            titleText = FindChildText("Title");
+        }
+
+        if (statusText == null)
+        {
+            statusText = FindChildText("Status");
+        }
+    }
+
+    // panelRoot 하위에서 지정한 이름의 텍스트 컴포넌트를 찾는다
+    private TMP_Text FindChildText(string childName)
+    {
+        Transform root = panelRoot != null ? panelRoot.transform : transform;
+        Transform child = root.Find(childName);
+        return child != null ? child.GetComponent<TMP_Text>() : null;
     }
 }

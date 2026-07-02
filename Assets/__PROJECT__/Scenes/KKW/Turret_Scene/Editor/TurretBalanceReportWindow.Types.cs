@@ -8,6 +8,7 @@ internal sealed class TurretBalanceInputSnapshot
     public int WaveClearCoinBonusPercentage;
     public readonly List<TurretShopEntrySO> ShopEntries = new List<TurretShopEntrySO>();
     public readonly List<WaveProfileInput> WaveProfiles = new List<WaveProfileInput>();
+    public readonly List<ZombieWaveDpsMeasurementProfileSO> ZombieDpsMeasurementProfiles = new List<ZombieWaveDpsMeasurementProfileSO>();
     public readonly List<ReportWarning> Warnings = new List<ReportWarning>();
 }
 

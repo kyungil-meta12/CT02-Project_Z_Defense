@@ -8,6 +8,8 @@ using UnityEngine;
 /// </summary>
 public class GameManager : MonoBehaviour
 {
+    [Header("웨이브 실패시 웨이브 감소 수치")]
+    public int waveDecrease = 1;
     private const int DEFAULT_DEFENSE_LINE_COUNT = 4;
     private const float DEFAULT_FIXED_DELTA_TIME = 0.02f;
     private const float MIN_TIME_SCALE = 0.01f;
@@ -40,11 +42,17 @@ public class GameManager : MonoBehaviour
     [SerializeField, Min(0.0f)] private float gameOverFadeInDuration = 10.0f;
     [SerializeField, Min(0.0f)] private float gameOverFadeOutDuration = 10.0f;
 
+    [Header("게임 종료")]
+    [SerializeField, Min(0.0f)] private float quitFadeDuration = 2.0f;
+    [SerializeField] private string quitTitleMessage = "게임 종료";
+    [SerializeField] private string quitStatusMessage = "";
+
     public event Action<int> OnWaveIncrease; // 웨이브 증가 이벤트
     public event Action<int> OnWaveDecrease; // 웨이브 감소 이벤트
     private readonly List<Survivor> survivors = new List<Survivor>(16);
     private readonly List<ZombieSpawner> zombieSpawners = new List<ZombieSpawner>(2);
     private Coroutine gameOverCoroutine;
+    private Coroutine quitGameCoroutine;
     private bool isWaveProgressionPaused;
     private bool suppressDefenseLineRestore;
 
@@ -57,6 +65,9 @@ public class GameManager : MonoBehaviour
     [Header("게임 배속")]
     [SerializeField, Min(MIN_TIME_SCALE)] private float startTimeScale = 1f;
     [SerializeField, HideInInspector] private float baseFixedDeltaTime = DEFAULT_FIXED_DELTA_TIME;
+    [Header("좀비 DPS 디버그")]
+    [SerializeField] private bool enableZombieDpsMeasurement;
+    [SerializeField] private ZombieWaveDpsMeasurementProfileSO zombieDpsMeasurementProfile;
 
     public float StartTimeScale => startTimeScale;
     public float CurrentTimeScale => Time.timeScale;
@@ -85,6 +96,7 @@ public class GameManager : MonoBehaviour
 
         Wave = startWave;
         SetGameTimeScale(startTimeScale);
+        BeginZombieDpsMeasurementWave();
 
         DontDestroyOnLoad(gameObject);
         EnsureDefaultDefenseLineEntries();
@@ -124,10 +136,12 @@ public class GameManager : MonoBehaviour
         // 킬 카운트가 목표 킬 카운트에 도달할 시 웨이브를 증가시킨다
         if(DestKillCount > 0 && KillCount == DestKillCount)
         {
+            CompleteZombieDpsMeasurementWave();
             KillCount = 0;
             Wave++;
             InventorySystem.Inst.AddCoinBouns(waveClearCoinBonusPercentage);
             OnWaveIncrease?.Invoke(Wave);
+            BeginZombieDpsMeasurementWave();
         }
     }
 
@@ -418,7 +432,39 @@ public class GameManager : MonoBehaviour
             return;
         }
 
+        CompleteZombieDpsMeasurementWave();
         gameOverCoroutine = StartCoroutine(GameOverSequence());
+    }
+
+    // 페이드 인 후 게임을 종료한다(에디터: 플레이 모드 중지, 빌드: 애플리케이션 종료)
+    public void QuitGame()
+    {
+        if (quitGameCoroutine != null)
+        {
+            return;
+        }
+
+        quitGameCoroutine = StartCoroutine(QuitGameSequence());
+    }
+
+    // 페이드 패널을 불투명하게 만든 뒤 실행 환경에 맞춰 게임을 종료한다
+    private IEnumerator QuitGameSequence()
+    {
+        if (gameOverPanelUI != null)
+        {
+            gameOverPanelUI.SetMessage(quitTitleMessage, quitStatusMessage);
+            yield return gameOverPanelUI.FadeIn(quitFadeDuration);
+        }
+        else
+        {
+            yield return new WaitForSecondsRealtime(quitFadeDuration);
+        }
+
+#if UNITY_EDITOR
+        UnityEditor.EditorApplication.isPlaying = false;
+#else
+        Application.Quit();
+#endif
     }
 
     // 외부 재건축 시스템이 방어선 복구 완료 시 생존자 복귀를 요청한다
@@ -886,6 +932,7 @@ public class GameManager : MonoBehaviour
             yield break;
         }
 
+        gameOverPanelUI.ResetMessageToDefault();
         yield return gameOverPanelUI.FadeIn(gameOverFadeInDuration);
     }
 
@@ -988,7 +1035,7 @@ public class GameManager : MonoBehaviour
     // 현재 웨이브의 이전 웨이브를 처음부터 다시 시작할 수 있도록 준비한다
     private void PreparePreviousWaveRestart()
     {
-        Wave = Mathf.Max(1, Wave - 1);
+        Wave = Mathf.Max(1, Wave - waveDecrease);
         KillCount = 0;
         DestKillCount = 0;
         // 웨이브 실패 패널티: 그동안 모은 코인량을 초기화해 클리어 보너스에 누적되지 않도록 한다.
@@ -1009,6 +1056,19 @@ public class GameManager : MonoBehaviour
 
         InputDestKillCount(totalSpawnCount);
         OnWaveDecrease?.Invoke(Wave);
+        BeginZombieDpsMeasurementWave();
+    }
+
+    // 현재 웨이브의 좀비 DPS 측정을 시작한다
+    private void BeginZombieDpsMeasurementWave()
+    {
+        ZombieWaveDpsRuntimeRecorder.BeginWave(Wave, enableZombieDpsMeasurement, zombieDpsMeasurementProfile);
+    }
+
+    // 현재 웨이브의 좀비 DPS 측정 결과를 저장한다
+    private void CompleteZombieDpsMeasurementWave()
+    {
+        ZombieWaveDpsRuntimeRecorder.CompleteWave(Wave);
     }
 
     // 준비된 좀비 스포너를 다시 실행한다

@@ -24,6 +24,7 @@ internal sealed class TurretBalanceReportInputCollector
         snapshot.InitialWalletCoin = LoadInitialWalletCoin(snapshot.Warnings);
         snapshot.WaveClearCoinBonusPercentage = LoadWaveClearCoinBonusPercentage(snapshot.Warnings);
         LoadShopEntries(snapshot);
+        LoadZombieDpsMeasurementProfiles(snapshot);
         LoadWaveProfiles(snapshot);
         return snapshot;
     }
@@ -39,6 +40,7 @@ internal sealed class TurretBalanceReportInputCollector
         AppendAssetSignatures(builder, "t:TurretUpgradeCostProfileSO");
         AppendAssetSignatures(builder, "t:ZombieWaveSpawnProfileSO");
         AppendAssetSignatures(builder, "t:ZombieRewardProfileSO");
+        AppendAssetSignatures(builder, "t:ZombieWaveDpsMeasurementProfileSO");
         AppendAssetSignatures(builder, "t:ObstacleBuildEntrySO");
         AppendAssetSignatures(builder, "t:ObstacleDefinitionSO");
         AppendAssetSignatures(builder, "t:ObstacleUpgradeCostProfileSO");
@@ -258,6 +260,23 @@ internal sealed class TurretBalanceReportInputCollector
         }
 
         return totalCoin;
+    }
+
+    // 좀비 DPS 측정 프로필 에셋을 로드한다
+    private static void LoadZombieDpsMeasurementProfiles(TurretBalanceInputSnapshot snapshot)
+    {
+        string[] guids = AssetDatabase.FindAssets("t:ZombieWaveDpsMeasurementProfileSO");
+        for (int i = 0; i < guids.Length; i++)
+        {
+            string path = AssetDatabase.GUIDToAssetPath(guids[i]);
+            ZombieWaveDpsMeasurementProfileSO profile = AssetDatabase.LoadAssetAtPath<ZombieWaveDpsMeasurementProfileSO>(path);
+            if (profile == null)
+            {
+                continue;
+            }
+
+            snapshot.ZombieDpsMeasurementProfiles.Add(profile);
+        }
     }
 
     // 터렛 상점 엔트리 에셋을 로드하고 필수 참조를 검증한다

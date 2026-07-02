@@ -10,10 +10,12 @@ internal sealed class TurretWaveRuntimeAnalyzer
     private const float NZ_AVERAGE_CLIP_SECONDS = 1.65f;
 
     private readonly ZombieRewardExpectationCalculator rewardCalculator = new ZombieRewardExpectationCalculator();
+    private IReadOnlyList<ZombieWaveDpsMeasurementProfileSO> zombieDpsMeasurementProfiles;
 
     // 모든 웨이브 스폰 프로필을 개별 웨이브 행으로 분석한다
     public void BuildWaveRows(TurretBalanceInputSnapshot snapshot, List<WaveSummaryRow> waveRows, List<ReportWarning> warnings)
     {
+        zombieDpsMeasurementProfiles = snapshot.ZombieDpsMeasurementProfiles;
         for (int i = 0; i < snapshot.WaveProfiles.Count; i++)
         {
             WaveProfileInput source = snapshot.WaveProfiles[i];
@@ -200,6 +202,11 @@ internal sealed class TurretWaveRuntimeAnalyzer
         {
             data.AverageHp = GetAverageNormalZombieHp(normalZombie);
             data.AverageDps = GetAverageNormalZombieDps(normalZombie);
+            if (TryGetMeasuredZombieDps(wave, ZombieRewardTypeFilter.NormalOnly, out float measuredDps))
+            {
+                data.AverageDps = measuredDps;
+            }
+
             data.ExpectedRewards = rewardCalculator.CalculateExpectedRewards(entry.RewardProfileOverride, normalZombie.spec, wave, false, rewardMultiplier);
             return data.AverageHp > 0.0f;
         }
@@ -211,8 +218,35 @@ internal sealed class TurretWaveRuntimeAnalyzer
         }
 
         data.AverageHp = GetAverageBossZombieHp(bossZombie);
+        if (TryGetMeasuredZombieDps(wave, ZombieRewardTypeFilter.BossOnly, out float bossMeasuredDps))
+        {
+            data.AverageDps = bossMeasuredDps;
+        }
+
         data.ExpectedRewards = rewardCalculator.CalculateExpectedRewards(entry.RewardProfileOverride, bossZombie.spec, wave, isBoss, rewardMultiplier);
         return data.AverageHp > 0.0f;
+    }
+
+    // 저장된 웨이브별 좀비 DPS 측정값을 찾는다
+    private bool TryGetMeasuredZombieDps(int wave, ZombieRewardTypeFilter zombieType, out float dps)
+    {
+        if (zombieDpsMeasurementProfiles == null)
+        {
+            dps = 0.0f;
+            return false;
+        }
+
+        for (int i = 0; i < zombieDpsMeasurementProfiles.Count; i++)
+        {
+            ZombieWaveDpsMeasurementProfileSO profile = zombieDpsMeasurementProfiles[i];
+            if (profile != null && profile.TryGetDps(wave, zombieType, out dps))
+            {
+                return true;
+            }
+        }
+
+        dps = 0.0f;
+        return false;
     }
 
     // 일반 좀비 스펙의 평균 HP를 계산한다

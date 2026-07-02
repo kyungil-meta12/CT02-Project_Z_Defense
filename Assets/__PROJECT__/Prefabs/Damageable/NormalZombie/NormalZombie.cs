@@ -305,6 +305,7 @@ public class NormalZombie : PoolObject, IDamageable, IAimPointProvider, IFrostSt
                 if (iDmg.IsAlive)
                 {
                     iDmg.TakeDamage(new DamageInfo(attackDamage));
+                    ZombieWaveDpsRuntimeRecorder.RecordDamage(ZombieRewardTypeFilter.NormalOnly, attackDamage);
                 }
                 else
                 {

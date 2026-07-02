@@ -820,6 +820,7 @@ public class BossZombie : PoolObject, IDamageable, IAimPointProvider, IFrostStat
         }
 
         iDmg.TakeDamage(new DamageInfo(damage));
+        ZombieWaveDpsRuntimeRecorder.RecordDamage(ZombieRewardTypeFilter.BossOnly, damage);
         return true;
     }
     

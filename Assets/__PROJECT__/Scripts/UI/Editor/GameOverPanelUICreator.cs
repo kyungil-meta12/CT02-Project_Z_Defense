@@ -38,10 +38,8 @@ internal static class GameOverPanelUICreator
 
         TMP_Text titleText = CreateText("Title", panelObject.transform, "Game Over", 64, FontStyles.Bold, TextAlignmentOptions.Center);
         TMP_Text statusText = CreateText("Status", panelObject.transform, "Preparing previous wave...", 28, FontStyles.Normal, TextAlignmentOptions.Center);
-        _ = titleText;
-        _ = statusText;
 
-        AssignPanelReferences(panelUI, canvasGroup, panelObject);
+        AssignPanelReferences(panelUI, canvasGroup, panelObject, titleText, statusText);
 
         Undo.RegisterCreatedObjectUndo(canvasObject, "Create Game Over Panel UI");
         Selection.activeGameObject = rootObject;
@@ -115,11 +113,13 @@ internal static class GameOverPanelUICreator
     }
 
     // GameOverPanelUI의 직렬화된 참조를 연결한다
-    private static void AssignPanelReferences(GameOverPanelUI panelUI, CanvasGroup canvasGroup, GameObject panelRoot)
+    private static void AssignPanelReferences(GameOverPanelUI panelUI, CanvasGroup canvasGroup, GameObject panelRoot, TMP_Text titleText, TMP_Text statusText)
     {
         SerializedObject serializedObject = new SerializedObject(panelUI);
         serializedObject.FindProperty("canvasGroup").objectReferenceValue = canvasGroup;
         serializedObject.FindProperty("panelRoot").objectReferenceValue = panelRoot;
+        serializedObject.FindProperty("titleText").objectReferenceValue = titleText;
+        serializedObject.FindProperty("statusText").objectReferenceValue = statusText;
         serializedObject.ApplyModifiedPropertiesWithoutUndo();
     }
 

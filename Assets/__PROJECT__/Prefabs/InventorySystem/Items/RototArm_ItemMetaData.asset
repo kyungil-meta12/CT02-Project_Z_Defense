@@ -14,9 +14,19 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ItemMetaDataSo
   Type: 73
   Grade: 1
-  Createable: 0
-  CountPerCraft: 0
-  ItemsToCreate: []
+  Createable: 1
+  CountPerCraft: 1
+  ItemsToCreate:
+  - Type: 31
+    Count: 50
+  - Type: 32
+    Count: 100
+  - Type: 20
+    Count: 40
+  - Type: 10
+    Count: 40
+  - Type: 41
+    Count: 1
   Decomposable: 0
   ItemsFromDecompose: []
   Name: "\uB85C\uBD07 \uD314"

@@ -17,8 +17,11 @@ MonoBehaviour:
   Createable: 0
   CountPerCraft: 0
   ItemsToCreate: []
-  Decomposable: 0
-  ItemsFromDecompose: []
+  Decomposable: 1
+  ItemsFromDecompose:
+  - Type: 51
+    Min: 1
+    Max: 1
   Name: "\uBB34\uC804\uAE30"
   InfoText: "\uB2E8\uAC70\uB9AC\uC5D0\uC11C \uD1B5\uC2E0\uD560 \uC218 \uC788\uB294
     \uBB34\uC804\uAE30."

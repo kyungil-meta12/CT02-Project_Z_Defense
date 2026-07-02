@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ItemMetaDataSo
   Type: 0
   Grade: 0
-  Createable: 0
+  Createable: 1
   CountPerCraft: 0
   ItemsToCreate: []
   Decomposable: 0

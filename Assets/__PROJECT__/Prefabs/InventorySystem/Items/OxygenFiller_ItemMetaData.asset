@@ -12,17 +12,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5f9efc74f895b2d48bb9a9671cba3cd2, type: 3}
   m_Name: OxygenFiller_ItemMetaData
   m_EditorClassIdentifier: Assembly-CSharp::ItemMetaDataSo
-  Type: 87
+  Type: 68
   Grade: 1
-  Createable: 1
-  CountPerCraft: 1
-  ItemsToCreate:
-  - Type: 56
-    Count: 1
-  - Type: 62
-    Count: 10
-  - Type: 44
-    Count: 10
+  Createable: 0
+  CountPerCraft: 0
+  ItemsToCreate: []
   Decomposable: 0
   ItemsFromDecompose: []
   Name: "\uC0B0\uC18C \uCDA9\uC9C4\uAE30"

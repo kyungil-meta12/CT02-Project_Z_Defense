@@ -1,100 +1,82 @@
 ﻿Type<RewardCurrencyType>(아이템 타입),Grade<ItemGrade>(아이템 등급),Createable<Boolean>(제작 가능 여부),CountPerCraft<Int32>(한 번 제작할 때 만들어지는 개수),ItemsToCreate<ItemCraftDataList>(제작에 필요한 아이템 목록),Decomposable<Boolean>(분해 가능 여부),ItemsFromDecompose<ItemDecomposeDataList>(분해 시 나오는 아이템들),Name<String>(표시할 아이템 이름 텍스트),InfoText<String>(표시할 아이템 설명 텍스트),ItemImageAssetPath<SpriteAssetPath>(표시할 아이템 이미지)
-Coin=0,D=4,False,0,,False,,,,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Coins/Icon_Coin_Dollar_Gold_LP.png
+Coin=0,S=0,False,0,,False,,,,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Coins/Icon_Coin_Dollar_Gold_LP.png
 Stone=1,D=4,False,0,,False,,돌,길가에 흔히 굴러다니는 돌.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Resources Nature/Icon_Stone_LP.png
 Bone=2,D=4,False,0,,False,,뼈,누군가의 뼈.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Fantasy/Icon_Bone_LP.png
 Wood=3,D=4,False,0,,False,,나무 막대기,공원에서 흔히 볼 수 있는 나무 막대기.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Resources Nature/Icon_Stick_Wood_LP.png
-VodkaBottle=4,D=4,False,0,,True,Water=57:5~10,보드카,도수가 높은 러시아산 보드카.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Drinks/Icon_Vodka_Bottle_LP.png
-WineBottle=5,D=4,False,0,,True,Water=57:5~10,와인,프랑스산 적포도주.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Drinks/Icon_Wine_Bottle_Red_LP.png
-Molotov=6,D=4,False,0,,True,Water=57:1~4;GasCan=37:1~4,화염병,과격 시위 현장에서 볼법한 화염병.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Weapons/Icon_Molotov_Cocktail_LP.png
-Lighter=7,D=4,False,0,,True,GasCan=37:2~5,라이터,불을 붙일 때 사용하는 라이터.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Tools/Icon_Lighter_Plastic_LP.png
-Carbon=8,D=4,False,0,,False,,석탄,무엇으로 이루어졌는지 알 수 없는 석탄.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Resources Nature/Icon_Resource_Carbon_LP.png
-CameraNoLens=9,D=4,False,0,,False,,렌즈 없는 카메라,렌즈가 없어 사용할 수 없는 디지털 카메라.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Electronics/Icon_Camera_Dslr_Body_LP.png
-Lead=10,D=4,False,0,,False,,납,전자기판 남땜에 사용되는 실납.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Resources Items/Ext/Icon_Bars_Lead_LP 1.png
-Silver=11,D=4,False,0,,False,,은,반짝이는 금속.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Resources Items/Icon_Bars_Silver_LP.png
-Iron=12,D=4,False,0,,False,,철,가장 많이 사용되는 금속.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Resources Items/Icon_Bars_Iron_LP.png
-IronPiece=13,D=4,False,0,,False,,철 조각,어딘가에서 떨어져 나온 철 조각.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Resources Nature/Icon_Resource_Iron_LP.png
-Aluminium=14,D=4,False,0,,False,,알루미늄,가볍고 튼튼한 금속.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Resources Nature/Icon_Resource_Aluminium_LP.png
-Cement=15,D=4,False,0,,False,,시멘트,공사 현장에서 사용되는 시멘트.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Farm/Icon_Bag_Farm_LP.png
-GunPowder=16,D=4,False,0,,False,,화약,폭탄이나 탄약을 제조할 때 사용되는 화약.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Resources Nature/Icon_Gunpowder_LP.png
-Grenade=17,D=4,False,0,,True,Silver=11:1~5;GunPowder=16:1~5,유탄,유탄 발사기에서 사용되는 탄약.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Weapons/Icon_Ammo_Grenade_HE_LP.png
-FlareGrenade=18,D=4,False,0,,True,GunPowder=16:1~5;Silver=11:1~5,화염 유탄,폭발하면 주변에 불을 붙이는 유탄.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Weapons/Icon_Ammo_Grenade_Flare_LP.png
-PistolBullet=19,D=4,False,0,,True,Silver=11:1~5;GunPowder=16:1~5,권총 탄약,소구경 권총 탄약.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Weapons/Icon_Pistol_Bullets_LP.png
-BigPistolBullet=20,D=4,False,0,,True,GunPowder=16:1~5;Lead=10:1~5,대구경 권총 탄약,대구경 권총 탄약.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Weapons/Icon_Pistol_Bullets_Special_LP.png
-Matches=21,D=4,False,0,,True,Wood=3:1~4;GunPowder=16:1~4,성냥,불을 붙일 때 사용한다. 놀랍게도 라이터보다 늦게 발명되었다.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Survival/Icon_Matches_Box_LP.png
-Banana=22,D=4,False,0,,False,,바나나,달콤한 열대과일.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Fruits/Icon_Banana_LP.png
-Drink=23,D=4,False,0,,False,,음료수 컵,누군가 먹다 남긴 음료수 컵.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Food/Icon_Cup_Drink_LP.png
-Cookie=24,D=4,False,0,,False,,쿠키,누군가 베어 문 흔적이 있는 쿠키.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Coffee/Icon_Cookie_Bite_LP.png
-Fabric=25,C=3,False,0,,False,,천,흰색 천.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Resources Items/Icon_Fabric_LP.png
-SuperAlloy=26,C=3,False,0,,False,,합성 알루미늄,강화된 알루미늄.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Resources Items/Icon_Superalloy_LP.png
-Concrete=27,C=3,False,0,,False,,콘크리트,가장 기본적인 건축 재료,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Resources Items/Icon_Concrete_LP.png
-SuitCase=28,C=3,False,0,,False,,서류가방,무엇이 들어있는지 모르는 서류 가방.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Money/Icon_Work_Suitcase_LP.png
-Backpack=29,C=3,False,0,,False,,가방,무엇이 들어있는지 모르는 배낭.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Survival/Icon_Backbag_LP.png
-Trumpet=31,C=3,False,0,,False,,트럼펫,악기를 연주하는 것은 좀비들을 불러 모으는 것이나 마찬가지다.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Music/Icon_Trumpet_LP.png
-Canabis=32,C=3,False,0,,False,,대마초,"불법일 수도, 합법일 수도 있는 풀.",Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Resources Nature/Icon_Canabis_LP.png
-TableTennisBat=33,C=3,False,0,,False,,탁구채,탁구공을 쳐내는 채.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Sport/Icon_Table_Tennis_Bat_Red_LP.png
-TennisBall=34,C=3,False,0,,False,,테니스공,형광색의 탄성있는 공.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Sport/Icon_Ball_Tennis_LP.png
-Medkit=35,C=3,False,0,,False,,응급상자,여러 상황에서 유용한 의료 약품과 도구들이 들어있다.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Survival/Icon_Medkit_LP.png
-RecordLP=36,C=3,False,0,,False,,레코드 판,음악을 기록하는 판.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Music/Icon_Music_Record_LP.png
-GasCan=37,C=3,False,0,,False,,연료통,"보통 자동차 연료로 사용하지만, 화염 무기로도 사용될 수 있다.",Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Vehicles/Icon_Canister_Gas_LP.png
-MetalLighter=38,C=3,True,1,GasCan=37:5;IronPiece=13:5,False,,금속 라이터,열고 닫을 때 청량한 소리를 내는 금속 라이터.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Tools/Icon_Lighter_Metal_LP.png
-Cigar=39,C=3,True,1,Canabis=32:10,False,,담배,심적으로 힘들 때 좋은 친구가 되어준다.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Resources Nature/Icon_Tobacco_Cigar_LP.png
-Book=40,C=3,False,0,,False,,책,철 지난 내용을 담고 있는 전공 서적.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Fantasy/Icon_Book_LP.png
-CarbonFiber=41,C=3,False,0,,False,,카본파이버,가볍고 튼튼한 탄소 섬유.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Resources Items/Icon_Carbon_Fiber_LP.png
-SteelBeam=42,C=3,False,0,,False,,H빔,건물을 지을 때 사용되는 H 모양의 철근.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Resources Items/Icon_Steel_Beam_LP.png
-SteelRod=43,C=3,False,0,,False,,철근,건물의 기둥을 만들 때 넣는 철근.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Resources Items/Icon_Steel_Rods_LP.png
-MachinePart=44,C=3,False,0,,False,,기계 부품,크기만 맞는다면 여러 곳에 쓸 수 있다.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Common/Icon_Gear_Wheels_Group_LP.png
-Bolt=45,C=3,False,0,,False,,나사,스크류 드라이버로 조이는 나사.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Resources Items/Icon_Bolts_LP.png
-Nail=46,C=3,False,0,,False,,못,망치로 박거나 네일건으로 고정시키는 못.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Tools/Icon_Nails_LP.png
-WireCutter=47,C=3,True,1,IronPiece=13:5;Aluminium=14:5,False,,와이어 커터,금속 와이어를 자를 때 사용하는 공구.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Tools/Icon_Wire_Cutters_LP.png
-Hammer=48,C=3,True,1,IronPiece=13:5;Aluminium=14:5;Wood=3:2,False,,망치,못을 박을 때 사용하는 공구.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Tools/Icon_Hammer_LP.png
-Wrench=49,C=3,True,1,IronPiece=13:5;Aluminium=14:5,False,,렌치,너트를 조일 때 사용하는 공구.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Tools/Icon_Wrench_LP.png
-Hydrogen=50,C=3,False,0,,False,,수소,원소 주기율표에서 가장 앞에 있는 기체.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Resources Nature/Icon_Resource_Hydrogen_LP.png
-Oxygen=51,C=3,False,0,,False,,산소,대기 중에 많이 존재하는 기체.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Resources Nature/Icon_Resource_Oxygen_LP.png
-SilverKey=52,C=3,False,0,,False,,은 열쇠,은으로 만들어진 열쇠. 어디에 쓰이는 열쇠인지는 모른다.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Fantasy/Icon_Key_Silver_LP.png
-Scandium=53,C=3,False,0,,False,,스칸듐,합금으로 사용되면 큰 효과를 내는 금속.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Resources Nature/Icon_Resource_Scandium_LP.png
-Chlorine=54,C=3,False,0,,False,,염소,각종 화약 제품을 생산할 때 사용되는 물질.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Resources Nature/Icon_Resource_Chlorine_LP.png
-Silicon=55,C=3,False,0,,False,,실리콘,웨이퍼를 생산할 때 사용되는 물질.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Resources Nature/Icon_Resource_Silicon_LP.png
-ToolBox=56,C=3,True,1,Wrench=49:1;Hammer=48:1;WireCutter=47:1,False,,공구 상자,여러가지 공구가 든 상자.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Resources Items/Icon_Tools_Steel_LP.png
-Water=57,C=3,False,0,,False,,물,인체의 70%를 차지하는 중요한 물질.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Resources Nature/Icon_Water_Drop_LP.png
-WalkieTalkie=58,C=3,False,0,,False,,무전기,단거리에서 통신할 수 있는 무전기.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Survival/Icon_Walkie_Talkie_LP.png
-FlashLight=59,C=3,False,0,,False,,손전등,어두운 곳을 비출 수 있는 손전등.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Tools/Icon_Flashlight_LP.png
-Keyboard=60,C=3,False,0,,False,,키보드,디버깅에 원한이 남아있는 개발자의 영혼이 깃든 키보드.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Electronics/Icon_Computer_Keyboard_LP.png
-OpenedCan=61,C=3,False,0,,False,,빈 캔,길가에 굴러다디는 캔 쓰레기.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Survival/Icon_Can_Open_LP.png
-DuctTape=62,B=2,False,0,,False,,덕트테이프,어느 곳이든지 모두 고칠 수 있는 만능 테이프.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Survival/Icon_Duct_Tape_LP.png
-Frog=63,B=2,False,0,,False,,독개구리,독화살촉을 만드는데 쓰였던 개구리.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Animals/Icon_Frog_LP.png
-HollyPlant=64,B=2,False,0,,False,,호랑가시나무,크리스마스 트리 장식으로 쓰이는 탓에 독이 있는지 모르는 사람이 많다.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Winter/Icon_Holly_Plant_LP.png
-ConductiveWire=65,B=2,False,0,,False,,구리선,전기가 통하는 구리선.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Resources Items/Icon_Conductive_Wire_LP.png
-Battery=66,B=2,False,0,,False,,건전지,아직은 쓸 만한 양이 남아있는 건전지.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Survival/Icon_Battery_Small_LP.png
-GunBarrel=67,B=2,False,0,,False,,총열,총기에서 가장 중요한 부품 중 하나이다.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Weapons/Icon_Silencer_Gun_LP.png
-Gold=68,B=2,False,0,,False,,금,노랗게 반짝이고 무거운 금속.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Resources Items/Icon_Bars_Gold_LP.png
-Ruby=69,B=2,False,0,,False,,루비,빨간색 광물.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Common/Icon_Gem_Red_LP.png
-Sapphire=70,B=2,False,0,,False,,사파이어,파란색 광물.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Common/Icon_Gem_Blue_LP.png
-SilverRing=71,B=2,False,0,,False,,은 반지,은으로 만들어진 반지.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Clothes/Icon_Ring_Silver_LP.png
-GoldRing=72,B=2,False,0,,False,,금 반지,금으로 만들어진 반지.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Clothes/Icon_Ring_Gold_LP.png
-GoldKey=73,B=2,False,0,,False,,금 열쇠,금으로 만들어진 열쇠. 어디에 쓰이는 열쇠인지는 모른다.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Fantasy/Icon_Key_Gold_LP.png
-BrokenMicroChip=74,B=2,False,0,,False,,손상된 마이크로 칩,작동하지 않는 마이크로칩. 살짝 고치면 쓸 수 있을 것 같다.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item1/Source/Ext/ResourceIcon_BrokenMicroChip.png
-EmptyCircuitBoard=75,B=2,False,0,,False,,빈 전자 회로,전자제품이 사용되는 회로 보드. 칩이 달려있지 않은 빈 보드이다.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Resources Items/Icon_Printed_Circuit_LP.png
-Blueprint=76,B=2,False,0,,False,,설계도,설계 데이터가 담긴 USB. 어딘가 쓸모가 있을 것 같다.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Electronics/Ext/Icon_Usb_Flash_Stick_Blue_LP.png
-Smartphone=77,B=2,False,0,,False,,스마트폰,작동은 되지만 잠겨있어 사용할 수 없다.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Electronics/Icon_Mobile_LP.png
-CameraLens=78,B=2,False,0,,False,,카메라 렌즈,카메라에서 분리한 렌즈.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Scifi/Icon_Scifi_Buggy_Wheel_LP.png
-Camera=79,B=2,False,0,,False,,카메라,렌즈가 끼워진 완전한 카메라.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Electronics/Icon_Camera_Dslr_LP.png
-LidarSensor=80,A=1,False,0,,False,,라이다 센서,레이저로 거리를 측정하는 센서.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Scifi/Icon_Matter_Manipulator_LP.png
-UraniumOre=81,A=1,False,0,,False,,우라늄 원석,정제되지 않은 우라늄 원석.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Resources Nature/Icon_Gems_Green_LP.png
-Uranium=82,A=1,False,0,,False,,정제된 우라늄,완전히 정제된 우라늄 원석.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Common/Icon_Gem_Green_LP.png
-Clover=83,A=1,False,0,,False,,클로버,잎이 네개 달린 네잎 클로버.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Nature/Icon_Cloverleaf_LP.png
-GreenEye=84,A=1,False,0,,False,,썩은 눈알,얼마나 썩었는지 감도 안 잡히는 좀비의 눈알.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Magic/Icon_Magic_Earth_Eye_LP.png
-Poison=85,A=1,False,0,,False,,천연 독,독이 있는 동식물에서 추출한 독성 물질.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Drinks/Icon_Tea_Cup_Small_LP.png
-OxygenCan=86,A=1,False,0,,False,,산소통,산소가 든 금속 통.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Resources Items/Icon_Oxygen_Cylinder_LP.png
-OxygenFiller=87,A=1,True,1,ToolBox=56:1;DuctTape=62:10;MachinePart=44:10,False,,산소 충진기,산소통에 산소를 충진하는 기계.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Survival/Icon_Cooker_LP.png
-MicroChip=88,A=1,False,0,,False,,마이크로 칩,작동하는 마이크로 칩.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item1/Source/Ext/ResourceIcon_MicroChip.png
-NuclerRadioactive=89,A=1,False,0,,False,,방사능 물질,방사선을 띄는 물질.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Survival/Icon_Atomic_Sign_LP.png
-Engine=90,A=1,False,0,,False,,엔진,요란한 소리를 내는 엔진.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Vehicles/Icon_Engine_LP.png
-Generator=91,A=1,False,0,,False,,발전기,기름을 사용하여 전기를 만드는 발전기.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Survival/Icon_Generator_LP.png
-RototArm=92,A=1,False,0,,False,,로봇 팔,모터로 움직이는 기계 팔.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Scifi/Icon_Scifi_Robotic_Arm_LP.png
-CircuitBoard=93,A=1,False,0,,False,,전자 회로,칩이 장착되어 작동하는 전자 회로.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item1/Source/Resource Icon (76).png
-AdvancedBlueprint=94,A=1,False,0,,False,,고급 설계도,더 정밀한 장비의 설계 데이터가 담긴 USB.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Electronics/Ext/Icon_Usb_Flash_Stick_Purple_LP.png
-IceFlake=95,S=0,False,0,,False,,눈꽃,가장 잘 알려진 형태를 가지고 있는 눈꽃.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Magic/Icon_Magic_Ice_Snow_LP.png
-IceHeart=96,S=0,False,0,,False,,얼음 심장,심장 모양의 얼음 덩어리.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Magic/Icon_Magic_Ice_Heart_LP.png
-Flare=97,S=0,False,0,,False,,화염,뜨거운 열기와 눈부신 밝기를 자랑하는 화염.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Common/Icon_Gm_LP.png
-Lightning=98,S=0,False,0,,False,,번개,고전압을 가진 번개.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Common/Icon_Lighting_Bold_LP.png
-CompoundPoison=99,S=0,False,0,,False,,복합 독,여러 독설 물질을 조합해 강력한 독성을 자랑하는 독.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Fantasy/Icon_Potion_Medicine_LP.png
+VodkaBottle=4,D=4,False,0,,False,,보드카,도수가 높은 러시아산 보드카.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Drinks/Icon_Vodka_Bottle_LP.png
+WineBottle=5,D=4,False,0,,False,,와인,프랑스산 적포도주.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Drinks/Icon_Wine_Bottle_Red_LP.png
+Molotov=6,D=4,False,0,,False,,화염병,과격 시위 현장에서 볼법한 화염병.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Weapons/Icon_Molotov_Cocktail_LP.png
+Carbon=7,D=4,False,0,,False,,석탄,무엇으로 이루어졌는지 알 수 없는 석탄.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Resources Nature/Icon_Resource_Carbon_LP.png
+Lead=8,D=4,False,0,,False,,납,전자기판 남땜에 사용되는 실납.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Resources Items/Ext/Icon_Bars_Lead_LP 1.png
+Copper=9,D=4,False,0,,False,,구리,전도성이 좋은 금속.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Resources Items/Icon_Bars_Iron_LP.png
+Iron=10,D=4,False,0,,False,,철,가장 많이 사용되는 금속.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Resources Nature/Icon_Resource_Iron_LP.png
+Aluminium=11,D=4,False,0,,False,,알루미늄,가볍고 튼튼한 금속.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Resources Nature/Icon_Resource_Aluminium_LP.png
+Cement=12,D=4,False,0,,False,,시멘트,공사 현장에서 사용되는 시멘트.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Farm/Icon_Bag_Farm_LP.png
+GunPowder=13,D=4,False,0,,False,,화약,폭탄이나 탄약을 제조할 때 사용되는 화약.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Resources Nature/Icon_Gunpowder_LP.png
+Grenade=14,D=4,False,0,,False,,유탄,유탄 발사기에서 사용되는 탄약.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Weapons/Icon_Ammo_Grenade_HE_LP.png
+FlareGrenade=15,D=4,False,0,,False,,화염 유탄,폭발하면 주변에 불을 붙이는 유탄.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Weapons/Icon_Ammo_Grenade_Flare_LP.png
+PistolBullet=16,D=4,False,0,,False,,권총 탄약,소구경 권총 탄약.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Weapons/Icon_Pistol_Bullets_LP.png
+BigPistolBullet=17,D=4,False,0,,False,,대구경 권총 탄약,대구경 권총 탄약.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Weapons/Icon_Pistol_Bullets_Special_LP.png
+Matches=18,D=4,False,0,,False,,성냥,불을 붙일 때 사용한다. 놀랍게도 라이터보다 늦게 발명되었다.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Survival/Icon_Matches_Box_LP.png
+Drink=19,D=4,False,0,,False,,음료수 컵,누군가 먹다 남긴 음료수 컵.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Food/Icon_Cup_Drink_LP.png
+SuperAlloy=20,C=3,False,0,,False,,합성 알루미늄,강화된 알루미늄.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Resources Items/Icon_Superalloy_LP.png
+Concrete=21,C=3,False,0,,False,,콘크리트,가장 기본적인 건축 재료,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Resources Items/Icon_Concrete_LP.png
+SuitCase=22,C=3,False,0,,False,,서류가방,무엇이 들어있는지 모르는 서류 가방.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Money/Icon_Work_Suitcase_LP.png
+Backpack=23,C=3,False,0,,False,,배낭,무엇이 들어있는지 모르는 배낭.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Survival/Icon_Backbag_LP.png
+Trumpet=24,C=3,False,0,,False,,트럼펫,악기를 연주하는 것은 좀비들을 불러 모으는 것이나 마찬가지다.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Music/Icon_Trumpet_LP.png
+TableTennisBat=25,C=3,False,0,,False,,탁구채,탁구공을 쳐내는 채.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Sport/Icon_Table_Tennis_Bat_Red_LP.png
+GasCan=26,C=3,False,0,,False,,연료통,"보통 자동차 연료로 사용하지만, 화염 무기로도 사용될 수 있다.",Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Vehicles/Icon_Canister_Gas_LP.png
+MetalLighter=27,C=3,False,0,,False,,금속 라이터,열고 닫을 때 청량한 소리를 내는 금속 라이터.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Tools/Icon_Lighter_Metal_LP.png
+CarbonFiber=28,C=3,False,0,,False,,카본파이버,가볍고 튼튼한 탄소 섬유.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Resources Items/Icon_Carbon_Fiber_LP.png
+SteelBeam=29,C=3,False,0,,False,,H빔,건물을 지을 때 사용되는 H 모양의 철근.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Resources Items/Icon_Steel_Beam_LP.png
+SteelRod=30,C=3,False,0,,False,,철근,건물의 기둥을 만들 때 넣는 철근.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Resources Items/Icon_Steel_Rods_LP.png
+MachinePart=31,C=3,False,0,,False,,기계 부품,크기만 맞는다면 여러 곳에 쓸 수 있다.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Common/Icon_Gear_Wheels_Group_LP.png
+Bolt=32,C=3,False,0,,False,,나사,스크류 드라이버로 조이는 나사.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Resources Items/Icon_Bolts_LP.png
+WireCutter=33,C=3,False,0,,False,,와이어 커터,금속 와이어를 자를 때 사용하는 공구.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Tools/Icon_Wire_Cutters_LP.png
+Hammer=34,C=3,False,0,,False,,망치,못을 박을 때 사용하는 공구.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Tools/Icon_Hammer_LP.png
+Wrench=35,C=3,False,0,,False,,렌치,너트를 조일 때 사용하는 공구.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Tools/Icon_Wrench_LP.png
+Hydrogen=36,C=3,False,0,,False,,수소,원소 주기율표에서 가장 앞에 있는 기체.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Resources Nature/Icon_Resource_Hydrogen_LP.png
+Oxygen=37,C=3,False,0,,False,,산소,대기 중에 많이 존재하는 기체.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Resources Nature/Icon_Resource_Oxygen_LP.png
+SilverKey=38,C=3,False,0,,False,,은 열쇠,은으로 만들어진 열쇠. 어디에 쓰이는 열쇠인지는 모른다.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Fantasy/Icon_Key_Silver_LP.png
+Scandium=39,C=3,False,0,,False,,스칸듐,합금으로 사용되면 큰 효과를 내는 금속.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Resources Nature/Icon_Resource_Scandium_LP.png
+Chlorine=40,C=3,False,0,,False,,염소,각종 화약 제품을 생산할 때 사용되는 물질.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Resources Nature/Icon_Resource_Chlorine_LP.png
+ToolBox=41,C=3,False,0,,False,,공구 상자,여러가지 공구가 든 상자.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Resources Items/Icon_Tools_Steel_LP.png
+Water=42,C=3,False,0,,False,,물,인체의 70%를 차지하는 중요한 물질.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Resources Nature/Icon_Water_Drop_LP.png
+WalkieTalkie=43,C=3,False,0,,False,,무전기,단거리에서 통신할 수 있는 무전기.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Survival/Icon_Walkie_Talkie_LP.png
+FlashLight=44,C=3,False,0,,False,,손전등,어두운 곳을 비출 수 있는 손전등.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Tools/Icon_Flashlight_LP.png
+Keyboard=45,C=3,False,0,,False,,키보드,디버깅에 원한이 남아있는 개발자의 영혼이 깃든 키보드.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Electronics/Icon_Computer_Keyboard_LP.png
+OpenedCan=46,C=3,False,0,,False,,빈 캔,길가에 굴러다디는 캔 쓰레기.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Survival/Icon_Can_Open_LP.png
+DuctTape=47,B=2,False,0,,False,,덕트테이프,어느 곳이든지 모두 고칠 수 있는 만능 테이프.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Survival/Icon_Duct_Tape_LP.png
+Frog=48,B=2,False,0,,False,,독개구리,독화살촉을 만드는데 쓰였던 개구리.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Animals/Icon_Frog_LP.png
+HollyPlant=49,B=2,False,0,,False,,호랑가시나무,크리스마스 트리 장식으로 쓰이는 탓에 독이 있는지 모르는 사람이 많다.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Winter/Icon_Holly_Plant_LP.png
+ConductiveWire=50,B=2,False,0,,False,,구리선,전기가 통하는 구리선.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Resources Items/Icon_Conductive_Wire_LP.png
+Battery=51,B=2,False,0,,False,,건전지,아직은 쓸 만한 양이 남아있는 건전지.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Survival/Icon_Battery_Small_LP.png
+GunBarrel=52,B=2,False,0,,False,,총열,총기에서 가장 중요한 부품 중 하나이다.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Weapons/Icon_Silencer_Gun_LP.png
+Gold=53,B=2,False,0,,False,,금,노랗게 반짝이고 무거운 금속.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Resources Items/Icon_Bars_Gold_LP.png
+GoldRing=54,B=2,False,0,,False,,금 반지,금으로 만들어진 반지.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Clothes/Icon_Ring_Gold_LP.png
+GoldKey=55,B=2,False,0,,False,,금 열쇠,금으로 만들어진 열쇠. 어디에 쓰이는 열쇠인지는 모른다.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Fantasy/Icon_Key_Gold_LP.png
+BrokenMicroChip=56,B=2,False,0,,False,,손상된 마이크로 칩,작동하지 않는 마이크로칩. 살짝 고치면 쓸 수 있을 것 같다.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item1/Source/Ext/ResourceIcon_BrokenMicroChip.png
+BrokenCircuitBoard=57,B=2,False,0,,False,,빈 전자 회로,전자제품이 사용되는 회로 보드. 칩이 달려있지 않은 빈 보드이다.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Resources Items/Icon_Printed_Circuit_LP.png
+Blueprint=58,B=2,False,0,,False,,설계도,설계 데이터가 담긴 USB. 어딘가 쓸모가 있을 것 같다.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Electronics/Ext/Icon_Usb_Flash_Stick_Blue_LP.png
+Smartphone=59,B=2,False,0,,False,,스마트폰,작동은 되지만 잠겨있어 사용할 수 없다.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Electronics/Icon_Mobile_LP.png
+CameraLens=60,B=2,False,0,,False,,카메라 렌즈,카메라에서 분리한 렌즈.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Scifi/Icon_Scifi_Buggy_Wheel_LP.png
+Camera=61,B=2,False,0,,False,,카메라,렌즈가 끼워진 완전한 카메라.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Electronics/Icon_Camera_Dslr_LP.png
+LidarSensor=62,A=1,False,0,,False,,라이다 센서,레이저로 거리를 측정하는 센서.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Scifi/Icon_Matter_Manipulator_LP.png
+UraniumOre=63,A=1,False,0,,False,,우라늄 원석,정제되지 않은 우라늄 원석.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Resources Nature/Icon_Gems_Green_LP.png
+Clover=64,A=1,False,0,,False,,클로버,잎이 네개 달린 네잎 클로버.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Nature/Icon_Cloverleaf_LP.png
+GreenEye=65,A=1,False,0,,False,,썩은 눈알,얼마나 썩었는지 감도 안 잡히는 좀비의 눈알.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Magic/Icon_Magic_Earth_Eye_LP.png
+Poison=66,A=1,False,0,,False,,천연 독,독이 있는 동식물에서 추출한 독성 물질.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Drinks/Icon_Tea_Cup_Small_LP.png
+OxygenCan=67,A=1,False,0,,False,,산소통,산소가 든 금속 통.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Resources Items/Icon_Oxygen_Cylinder_LP.png
+OxygenFiller=68,A=1,False,0,,False,,산소 충진기,산소통에 산소를 충진하는 기계.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Survival/Icon_Cooker_LP.png
+MicroChip=69,A=1,False,0,,False,,마이크로 칩,작동하는 마이크로 칩.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item1/Source/Ext/ResourceIcon_MicroChip.png
+NuclerRadioactive=70,A=1,False,0,,False,,방사능 물질,방사선을 띄는 물질.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Survival/Icon_Atomic_Sign_LP.png
+Engine=71,A=1,False,0,,False,,엔진,요란한 소리를 내는 엔진.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Vehicles/Icon_Engine_LP.png
+Generator=72,A=1,False,0,,False,,발전기,기름을 사용하여 전기를 만드는 발전기.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Survival/Icon_Generator_LP.png
+RototArm=73,A=1,False,0,,False,,로봇 팔,모터로 움직이는 기계 팔.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Scifi/Icon_Scifi_Robotic_Arm_LP.png
+CircuitBoard=74,A=1,False,0,,False,,전자 회로,칩이 장착되어 작동하는 전자 회로.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item1/Source/Resource Icon (76).png
+AdvancedBlueprint=75,A=1,False,0,,False,,고급 설계도,더 정밀한 장비의 설계 데이터가 담긴 USB.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Electronics/Ext/Icon_Usb_Flash_Stick_Purple_LP.png
+IceFlake=76,S=0,False,0,,False,,눈꽃,가장 잘 알려진 형태를 가지고 있는 눈꽃.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Magic/Icon_Magic_Ice_Snow_LP.png
+IceHeart=77,S=0,False,0,,False,,얼음 심장,심장 모양의 얼음 덩어리.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Magic/Icon_Magic_Ice_Heart_LP.png
+Flare=78,S=0,False,0,,False,,화염,뜨거운 열기와 눈부신 밝기를 자랑하는 화염.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Common/Icon_Gm_LP.png
+Lightning=79,S=0,False,0,,False,,번개,고전압을 가진 번개.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Common/Icon_Lighting_Bold_LP.png
+CompoundPoison=80,S=0,False,0,,False,,복합 독,여러 독설 물질을 조합해 강력한 독성을 자랑하는 독.,Assets/__PROJECT__/Private Assets/Z_Defense_Assets/Item4/Low Poly Icon Pack/Images/Icons/Fantasy/Icon_Potion_Medicine_LP.png

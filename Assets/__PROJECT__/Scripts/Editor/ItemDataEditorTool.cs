@@ -342,6 +342,7 @@ public class ItemDataEditorTool : EditorWindow
     }
 
     // 누락 및 값이 다른 enum을 CSV 기준으로 동기화하여 재생성한다
+    // 누락 및 값이 다른 enum을 CSV 기준으로 완전히 초기화 후 재생성한다
     private void RegenerateRewardCurrencyEnum()
     {
         if (enumSyncRequests.Count == 0)
@@ -357,48 +358,98 @@ public class ItemDataEditorTool : EditorWindow
             return;
         }
 
-        List<RewardCurrencyEnumEntry> enumEntries = GetCurrentRewardCurrencyEntries();
-
-        // 동기화 요청(누락 추가 및 기존 값 갱신) 적용
-        foreach (var kvp in enumSyncRequests)
+        // 1. CSV 파일 텍스트 읽기
+        if (!TryReadCsvText(out string csvText))
         {
-            string syncName = kvp.Key;
-            long? syncValue = kvp.Value;
+            FlushMessagesToConsole(false);
+            return;
+        }
 
-            int existingIndex = enumEntries.FindIndex(e => string.Equals(e.Name, syncName, StringComparison.Ordinal));
-            if (existingIndex >= 0)
+        List<List<string>> table = ParseCsv(csvText);
+        if (table.Count <= 1)
+        {
+            AddMessage("CSV에 데이터 행이 없습니다.");
+            FlushMessagesToConsole(false);
+            return;
+        }
+
+        // 2. 헤더 맵을 빌드하여 'Type' 컬럼의 인덱스 확인
+        if (!TryBuildHeaderMap(table[0], out Dictionary<string, int> headerMap, out _))
+        {
+            FlushMessagesToConsole(false);
+            return;
+        }
+
+        // 기존 내용을 참조하지 않고 완전히 새로 채울 리스트와 중복 방지용 셋
+        List<RewardCurrencyEnumEntry> enumEntries = new List<RewardCurrencyEnumEntry>();
+        HashSet<string> processedNames = new HashSet<string>(StringComparer.Ordinal);
+
+        // 3. CSV의 모든 행을 순회하며 Type 컬럼의 내용을 파싱
+        for (int i = 1; i < table.Count; i++)
+        {
+            List<string> fields = table[i];
+            if (IsEmptyCsvRow(fields))
             {
-                // 이미 존재하는 enum의 경우 값만 갱신
-                if (syncValue.HasValue)
-                {
-                    var entry = enumEntries[existingIndex];
-                    entry.Value = syncValue.Value;
-                    enumEntries[existingIndex] = entry;
-                }
+                continue;
+            }
+
+            string typeText = GetField(fields, headerMap, TYPE_COLUMN).Trim();
+            if (string.IsNullOrEmpty(typeText))
+            {
+                continue;
+            }
+
+            // 'Name=Value' 또는 'Name' 형식 분리
+            int equalsIndex = typeText.IndexOf('=');
+            string enumName = equalsIndex >= 0 ? typeText.Substring(0, equalsIndex).Trim() : typeText;
+            string enumIndexText = equalsIndex >= 0 ? typeText.Substring(equalsIndex + 1).Trim() : string.Empty;
+
+            if (!IsValidIdentifier(enumName))
+            {
+                continue;
+            }
+
+            // CSV 내에서 동일한 Type이 여러 번 등장할 경우 중복 추가 방지
+            if (processedNames.Contains(enumName))
+            {
+                continue;
+            }
+
+            // 인덱스 값 결정 (지정값이 없으면 자동 할당)
+            long value;
+            if (!string.IsNullOrEmpty(enumIndexText) && long.TryParse(enumIndexText, out long parsedValue))
+            {
+                value = parsedValue;
             }
             else
             {
-                // 새로 추가되는 enum의 경우
-                long newValue = syncValue.HasValue ? syncValue.Value : GetNextRewardCurrencyValue(enumEntries);
-                enumEntries.Add(new RewardCurrencyEnumEntry
-                {
-                    Name = syncName,
-                    Value = newValue
-                });
+                value = GetNextRewardCurrencyValue(enumEntries);
             }
+
+            enumEntries.Add(new RewardCurrencyEnumEntry
+            {
+                Name = enumName,
+                Value = value
+            });
+            processedNames.Add(enumName);
         }
 
-        // 값(인덱스)을 기준으로 오름차순 정렬
+        // 4. 값(인덱스)을 기준으로 오름차순 정렬
         enumEntries.Sort((a, b) => a.Value.CompareTo(b.Value));
 
-        if (!EditorUtility.DisplayDialog("RewardCurrencyType 동기화 재생성", $"CSV 값을 기준으로 다음 enum 파일을 재생성합니다.\n{enumPath}\n\nUnity 컴파일 후 다시 Import를 실행하세요.", "재생성", "취소"))
+        if (!EditorUtility.DisplayDialog("RewardCurrencyType 전체 동기화 재생성", $"CSV 파일의 내용을 기반으로 enum 파일을 완전히 새로 생성합니다.\n{enumPath}\n\nUnity 컴파일 후 다시 Import를 실행하세요.", "재생성", "취소"))
         {
             return;
         }
 
+        // 5. 파일 쓰기 및 에디터 갱신
         File.WriteAllText(enumPath, BuildRewardCurrencyTypeSource(enumEntries), new UTF8Encoding(false));
+
+        // 실행 상태 및 경고창 초기화
+        ClearRunState();
+
         AssetDatabase.Refresh();
-        AddMessage("RewardCurrencyType.cs를 동기화했습니다. 스크립트 컴파일이 완료된 후 CSV 임포트를 다시 실행하세요.");
+        AddMessage("RewardCurrencyType.cs를 CSV 내용으로 완전히 대체하여 갱신했습니다. 스크립트 컴파일이 완료된 후 CSV 임포트를 다시 실행하세요.");
         FlushMessagesToConsole(true);
     }
 

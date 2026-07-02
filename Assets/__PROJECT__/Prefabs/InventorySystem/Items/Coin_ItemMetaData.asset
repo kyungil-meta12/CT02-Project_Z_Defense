@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Coin_ItemMetaData
   m_EditorClassIdentifier: Assembly-CSharp::ItemMetaDataSo
   Type: 0
-  Grade: 4
+  Grade: 0
   Createable: 0
   CountPerCraft: 0
   ItemsToCreate: []

@@ -363,6 +363,33 @@ public class NormalZombie : PoolObject, IDamageable, IAimPointProvider, IFrostSt
         }
     }
 
+    // 외부 회복 효과로 체력을 회복하고 HP UI를 갱신한다
+    public void Repair(float amount)
+    {
+        if (!IsAlive || amount <= 0.0f)
+        {
+            return;
+        }
+
+        float previousHp = CurrHp;
+        CurrHp = Mathf.Clamp(CurrHp + amount, 0.0f, TotalHp);
+        if (CurrHp <= previousHp)
+        {
+            return;
+        }
+
+        if (hpUI != null)
+        {
+            hpUI.gameObject.SetActive(true);
+            hpUI.InputCurrHp(CurrHp);
+        }
+
+        if (poisonStatusRuntime != null && poisonStatusRuntime.IsActive)
+        {
+            poisonStatusRuntime.RefreshLethalPrediction();
+        }
+    }
+
     // Frost 빔으로 전달된 누적 슬로우와 빙결 폭발 데이터를 갱신한다
     public void ApplyFrostStatus(FrostStatusPayload payload)
     {

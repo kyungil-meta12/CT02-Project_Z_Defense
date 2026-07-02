@@ -74,6 +74,8 @@ Damage rules:
 
 - Dead targets must return `IsAlive == false` before they can be selected or damaged again.
 - Damage paths should ignore null targets, dead targets, and duplicate projectile hits.
+- Boss Tank and Boomer skills use boss-position-centered AoE damage against the configured obstacle target layer, with `Physics.OverlapSphereNonAlloc` and duplicate `IDamageable` filtering per tick. Tank uses its attack-damage multiplier, while Boomer uses a configured max-HP damage ratio per tick.
+- Boss Screamer skill buffs nearby normal zombie speed and instantly restores nearby living normal zombies by a configured max-HP ratio.
 - Normal zombie death disables all cached child colliders, including hit and attack colliders, so dead pooled bodies do not block turret projectiles while waiting for death animation and pool return.
 - Normal zombie death also stops Rigidbody simulation during the death state and restores the original Rigidbody settings on spawn so the body does not sink after colliders are disabled.
 - World-space damage feedback is spawned through `DamagePopupSpawner.SpawnDamage` where visible feedback is required.

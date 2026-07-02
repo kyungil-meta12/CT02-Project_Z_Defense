@@ -14,6 +14,7 @@ public class BossZombie : PoolObject, IDamageable, IAimPointProvider, IFrostStat
 {
     private static readonly int SpeedHash = Animator.StringToHash("speed");
     private const float MinimumFrostSpeedMultiplier = 0.5f;
+    private const int DefaultBossSkillAoeBufferSize = 16;
 
     public BossZombieSpec spec;
     [Header("프리팹별 처치 보상 Override")] [SerializeField] private ZombieRewardProfileSO rewardProfileOverride;
@@ -33,8 +34,16 @@ public class BossZombie : PoolObject, IDamageable, IAimPointProvider, IFrostStat
     private float rewardMultiplier = 1.0f;
     private bool returnInstanceCoroutineRunning = false;
     private readonly List<Collider> colliders = new List<Collider>(4);
+    [Header("보스 광역 스킬")]
+    [SerializeField] private LayerMask bossSkillTargetLayerMask;
+    [SerializeField, Min(0.0f)] private float tankSkillRadius = 4.0f;
+    [SerializeField, Min(0.0f)] private float boomerSkillRadius = 3.0f;
+    [SerializeField, Range(0.0f, 1.0f)] private float boomerSkillMaxHpDamageRatioPerTick = 0.05f;
+    [SerializeField, Min(1)] private int aoeHitBufferSize = DefaultBossSkillAoeBufferSize;
+    [Header("스크리머 스킬")]
     [SerializeField] private float screamerSkillRadius = 10f;
     [SerializeField] private float screamerSkillSpeedMultiplier = 1.5f;
+    [SerializeField, Range(0.0f, 1.0f)] private float screamerSkillHealMaxHpRatio = 0.2f;
     [Header("루트모션 회전 보정")]
     [SerializeField, Min(0.0f)] private float navigationRotationSpeed = 2.5f;
     [SerializeField, Range(0.0f, 1.0f)] private float movingRootMotionRotationWeight = 0.25f;
@@ -57,6 +66,8 @@ public class BossZombie : PoolObject, IDamageable, IAimPointProvider, IFrostStat
     private IgnitionStatusRuntime ignitionStatusRuntime;
     private float electroStunRemainingDuration;
     private bool electroStunActive;
+    private Collider[] aoeHitBuffer;
+    private readonly List<IDamageable> aoeDamageTargets = new List<IDamageable>(DefaultBossSkillAoeBufferSize);
     
     public float TotalHp { get; private set; }
     public float CurrHp { get; private set; }
@@ -80,6 +91,8 @@ public class BossZombie : PoolObject, IDamageable, IAimPointProvider, IFrostStat
         CacheElectroStatusRuntime();
         CacheIgnitionStatusRuntime();
         GetComponentsInChildren(false, colliders);
+        EnsureBossSkillAoeBuffers();
+        InitializeBossSkillTargetLayerMask();
 
         ConfigureBehaviorNavigation();
         
@@ -362,11 +375,11 @@ public class BossZombie : PoolObject, IDamageable, IAimPointProvider, IFrostStat
         }
     }
 
-    //탱크 스킬 : 5배 데미지로 1회 타격
+    //탱크 스킬 : 보스 위치 중심 광역에 5배 데미지로 1회 타격
     private void TankSkill()
     {
         //todo 탱크 스킬타격 이펙트
-        TryDamageAttackTarget(attackDamage * 5f);
+        ApplyBossSkillAreaDamage(attackDamage * 5f, tankSkillRadius);
     }
 
     readonly WaitForSeconds screamerSkillWait = new WaitForSeconds(10f);
@@ -393,6 +406,7 @@ public class BossZombie : PoolObject, IDamageable, IAimPointProvider, IFrostStat
         foreach (var zombie in zombies)
         {
             ApplyScreamerSpeedBuff(zombie);
+            HealScreamerTarget(zombie);
         }
 
         yield return screamerSkillWait;
@@ -403,6 +417,17 @@ public class BossZombie : PoolObject, IDamageable, IAimPointProvider, IFrostStat
         }
 
         screamerSkillCoroutine = null;
+    }
+
+    // 스크리머 스킬 대상 일반 좀비의 체력을 회복한다
+    private void HealScreamerTarget(NormalZombie zombie)
+    {
+        if (!zombie || screamerSkillHealMaxHpRatio <= 0.0f || zombie.TotalHp <= 0.0f)
+        {
+            return;
+        }
+
+        zombie.Repair(zombie.TotalHp * screamerSkillHealMaxHpRatio);
     }
 
     //노말좀비 스피드 버프
@@ -446,7 +471,7 @@ public class BossZombie : PoolObject, IDamageable, IAimPointProvider, IFrostStat
         }
     }
 
-    //부머 스킬 : 1/2데미지로 1초마다 타격 10회 반복
+    //부머 스킬 : 보스 위치 중심 광역에 최대 체력 비례 데미지로 1초마다 타격 10회 반복
     readonly WaitForSeconds boomerSkillWait = new WaitForSeconds(1f);
     // 부머 스킬을 1초 간격으로 반복 실행한다
     private IEnumerator BoomerSkill()
@@ -455,10 +480,7 @@ public class BossZombie : PoolObject, IDamageable, IAimPointProvider, IFrostStat
         //todo 토하는 이펙트
         while (t < 10)
         {
-            if (attackTargetBV.Value)
-            {
-                TryDamageAttackTarget(attackDamage / 2f);
-            }
+            ApplyBossSkillAreaMaxHpDamage(boomerSkillMaxHpDamageRatioPerTick, boomerSkillRadius);
 
             t++;
             yield return boomerSkillWait;
@@ -798,6 +820,128 @@ public class BossZombie : PoolObject, IDamageable, IAimPointProvider, IFrostStat
         }
     }
 
+    // 보스 광역 스킬에 사용할 버퍼 크기를 보장한다
+    private void EnsureBossSkillAoeBuffers()
+    {
+        int safeBufferSize = Mathf.Max(1, aoeHitBufferSize);
+        if (aoeHitBuffer == null || aoeHitBuffer.Length != safeBufferSize)
+        {
+            aoeHitBuffer = new Collider[safeBufferSize];
+        }
+
+        if (aoeDamageTargets.Capacity < safeBufferSize)
+        {
+            aoeDamageTargets.Capacity = safeBufferSize;
+        }
+    }
+
+    // 보스 광역 스킬 대상 레이어가 비어 있으면 Obstacle 레이어로 초기화한다
+    private void InitializeBossSkillTargetLayerMask()
+    {
+        if (bossSkillTargetLayerMask.value != 0)
+        {
+            return;
+        }
+
+        int obstacleLayer = LayerMask.NameToLayer("Obstacle");
+        if (obstacleLayer >= 0)
+        {
+            bossSkillTargetLayerMask = 1 << obstacleLayer;
+        }
+    }
+
+    // 보스 위치 중심의 광역 피해를 적용한다
+    private int ApplyBossSkillAreaDamage(float damage, float radius)
+    {
+        if (damage <= 0.0f || radius <= 0.0f)
+        {
+            return 0;
+        }
+
+        EnsureBossSkillAoeBuffers();
+        aoeDamageTargets.Clear();
+
+        int hitCount = Physics.OverlapSphereNonAlloc(
+            transform.position,
+            radius,
+            aoeHitBuffer,
+            bossSkillTargetLayerMask,
+            QueryTriggerInteraction.Collide);
+
+        for (int i = 0; i < hitCount; i++)
+        {
+            Collider hitCollider = aoeHitBuffer[i];
+            if (hitCollider == null)
+            {
+                continue;
+            }
+
+            IDamageable damageable = hitCollider.GetComponentInParent<IDamageable>();
+            if (damageable == null || !damageable.IsAlive || aoeDamageTargets.Contains(damageable))
+            {
+                continue;
+            }
+
+            aoeDamageTargets.Add(damageable);
+            damageable.TakeDamage(new DamageInfo(damage));
+            RecordBossDamage(damage);
+        }
+
+        Array.Clear(aoeHitBuffer, 0, hitCount);
+        return aoeDamageTargets.Count;
+    }
+
+    // 보스 위치 중심의 최대 체력 비례 광역 피해를 적용한다
+    private int ApplyBossSkillAreaMaxHpDamage(float maxHpDamageRatio, float radius)
+    {
+        if (maxHpDamageRatio <= 0.0f || radius <= 0.0f)
+        {
+            return 0;
+        }
+
+        EnsureBossSkillAoeBuffers();
+        aoeDamageTargets.Clear();
+
+        int hitCount = Physics.OverlapSphereNonAlloc(
+            transform.position,
+            radius,
+            aoeHitBuffer,
+            bossSkillTargetLayerMask,
+            QueryTriggerInteraction.Collide);
+
+        for (int i = 0; i < hitCount; i++)
+        {
+            Collider hitCollider = aoeHitBuffer[i];
+            if (hitCollider == null)
+            {
+                continue;
+            }
+
+            IDamageable damageable = hitCollider.GetComponentInParent<IDamageable>();
+            if (damageable == null || !damageable.IsAlive || damageable.TotalHp <= 0.0f || aoeDamageTargets.Contains(damageable))
+            {
+                continue;
+            }
+
+            float damage = damageable.TotalHp * maxHpDamageRatio;
+            aoeDamageTargets.Add(damageable);
+            damageable.TakeDamage(new DamageInfo(damage));
+            RecordBossDamage(damage);
+        }
+
+        Array.Clear(aoeHitBuffer, 0, hitCount);
+        return aoeDamageTargets.Count;
+    }
+
+    // 보스 피해량을 타입별 DPS 측정기에 기록한다
+    private void RecordBossDamage(float damage)
+    {
+        if (bossZombieEnum != null && Enum.TryParse(bossZombieEnum.Value.ToString(), out BossZombieType bossType))
+        {
+            ZombieWaveDpsRuntimeRecorder.RecordBossDamage(bossType, damage);
+        }
+    }
+
     // 현재 공격 대상이 유효하면 지정한 데미지를 적용한다
     private bool TryDamageAttackTarget(float damage)
     {
@@ -820,10 +964,7 @@ public class BossZombie : PoolObject, IDamageable, IAimPointProvider, IFrostStat
         }
 
         iDmg.TakeDamage(new DamageInfo(damage));
-        if (bossZombieEnum != null && Enum.TryParse(bossZombieEnum.Value.ToString(), out BossZombieType bossType))
-        {
-            ZombieWaveDpsRuntimeRecorder.RecordBossDamage(bossType, damage);
-        }
+        RecordBossDamage(damage);
 
         return true;
     }

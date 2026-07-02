@@ -12,11 +12,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5f9efc74f895b2d48bb9a9671cba3cd2, type: 3}
   m_Name: Carbon_ItemMetaData
   m_EditorClassIdentifier: Assembly-CSharp::ItemMetaDataSo
-  Type: 8
+  Type: 7
   Grade: 4
-  Createable: 0
-  CountPerCraft: 0
-  ItemsToCreate: []
+  Createable: 1
+  CountPerCraft: 5
+  ItemsToCreate:
+  - Type: 3
+    Count: 5
+  - Type: 2
+    Count: 5
   Decomposable: 0
   ItemsFromDecompose: []
   Name: "\uC11D\uD0C4"

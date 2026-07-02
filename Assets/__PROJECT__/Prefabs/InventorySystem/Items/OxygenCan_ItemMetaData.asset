@@ -12,11 +12,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5f9efc74f895b2d48bb9a9671cba3cd2, type: 3}
   m_Name: OxygenCan_ItemMetaData
   m_EditorClassIdentifier: Assembly-CSharp::ItemMetaDataSo
-  Type: 86
+  Type: 67
   Grade: 1
-  Createable: 0
-  CountPerCraft: 0
-  ItemsToCreate: []
+  Createable: 1
+  CountPerCraft: 1
+  ItemsToCreate:
+  - Type: 68
+    Count: 1
+  - Type: 36
+    Count: 20
+  - Type: 37
+    Count: 20
+  - Type: 10
+    Count: 30
   Decomposable: 0
   ItemsFromDecompose: []
   Name: "\uC0B0\uC18C\uD1B5"

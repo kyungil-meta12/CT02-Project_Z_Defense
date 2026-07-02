@@ -12,11 +12,23 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5f9efc74f895b2d48bb9a9671cba3cd2, type: 3}
   m_Name: LidarSensor_ItemMetaData
   m_EditorClassIdentifier: Assembly-CSharp::ItemMetaDataSo
-  Type: 80
+  Type: 62
   Grade: 1
-  Createable: 0
-  CountPerCraft: 0
-  ItemsToCreate: []
+  Createable: 1
+  CountPerCraft: 1
+  ItemsToCreate:
+  - Type: 69
+    Count: 1
+  - Type: 75
+    Count: 1
+  - Type: 52
+    Count: 1
+  - Type: 74
+    Count: 1
+  - Type: 51
+    Count: 5
+  - Type: 50
+    Count: 2
   Decomposable: 0
   ItemsFromDecompose: []
   Name: "\uB77C\uC774\uB2E4 \uC13C\uC11C"

@@ -12,17 +12,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5f9efc74f895b2d48bb9a9671cba3cd2, type: 3}
   m_Name: BigPistolBullet_ItemMetaData
   m_EditorClassIdentifier: Assembly-CSharp::ItemMetaDataSo
-  Type: 20
+  Type: 17
   Grade: 4
   Createable: 0
   CountPerCraft: 0
   ItemsToCreate: []
   Decomposable: 1
   ItemsFromDecompose:
-  - Type: 16
+  - Type: 13
     Min: 1
     Max: 5
-  - Type: 10
+  - Type: 8
     Min: 1
     Max: 5
   Name: "\uB300\uAD6C\uACBD \uAD8C\uCD1D \uD0C4\uC57D"

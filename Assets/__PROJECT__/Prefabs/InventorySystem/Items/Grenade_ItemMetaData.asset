@@ -12,17 +12,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5f9efc74f895b2d48bb9a9671cba3cd2, type: 3}
   m_Name: Grenade_ItemMetaData
   m_EditorClassIdentifier: Assembly-CSharp::ItemMetaDataSo
-  Type: 17
+  Type: 14
   Grade: 4
   Createable: 0
   CountPerCraft: 0
   ItemsToCreate: []
   Decomposable: 1
   ItemsFromDecompose:
-  - Type: 11
+  - Type: 13
     Min: 1
     Max: 5
-  - Type: 16
+  - Type: 9
+    Min: 1
+    Max: 5
+  - Type: 8
     Min: 1
     Max: 5
   Name: "\uC720\uD0C4"

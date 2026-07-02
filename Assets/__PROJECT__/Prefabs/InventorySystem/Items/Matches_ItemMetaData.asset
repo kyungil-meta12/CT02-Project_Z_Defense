@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5f9efc74f895b2d48bb9a9671cba3cd2, type: 3}
   m_Name: Matches_ItemMetaData
   m_EditorClassIdentifier: Assembly-CSharp::ItemMetaDataSo
-  Type: 21
+  Type: 18
   Grade: 4
   Createable: 0
   CountPerCraft: 0
@@ -21,10 +21,7 @@ MonoBehaviour:
   ItemsFromDecompose:
   - Type: 3
     Min: 1
-    Max: 4
-  - Type: 16
-    Min: 1
-    Max: 4
+    Max: 1
   Name: "\uC131\uB0E5"
   InfoText: "\uBD88\uC744 \uBD99\uC77C \uB54C \uC0AC\uC6A9\uD55C\uB2E4. \uB180\uB78D\uAC8C\uB3C4
     \uB77C\uC774\uD130\uBCF4\uB2E4 \uB2A6\uAC8C \uBC1C\uBA85\uB418\uC5C8\uB2E4."

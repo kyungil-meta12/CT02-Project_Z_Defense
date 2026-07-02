@@ -19,7 +19,7 @@ MonoBehaviour:
   ItemsToCreate: []
   Decomposable: 1
   ItemsFromDecompose:
-  - Type: 57
+  - Type: 42
     Min: 5
     Max: 10
   Name: "\uBCF4\uB4DC\uCE74"

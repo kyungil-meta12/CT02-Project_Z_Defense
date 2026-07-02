@@ -12,11 +12,23 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5f9efc74f895b2d48bb9a9671cba3cd2, type: 3}
   m_Name: CircuitBoard_ItemMetaData
   m_EditorClassIdentifier: Assembly-CSharp::ItemMetaDataSo
-  Type: 93
+  Type: 74
   Grade: 1
-  Createable: 0
-  CountPerCraft: 0
-  ItemsToCreate: []
+  Createable: 1
+  CountPerCraft: 1
+  ItemsToCreate:
+  - Type: 57
+    Count: 1
+  - Type: 39
+    Count: 5
+  - Type: 40
+    Count: 5
+  - Type: 53
+    Count: 5
+  - Type: 9
+    Count: 5
+  - Type: 8
+    Count: 5
   Decomposable: 0
   ItemsFromDecompose: []
   Name: "\uC804\uC790 \uD68C\uB85C"

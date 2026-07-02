@@ -12,16 +12,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5f9efc74f895b2d48bb9a9671cba3cd2, type: 3}
   m_Name: ToolBox_ItemMetaData
   m_EditorClassIdentifier: Assembly-CSharp::ItemMetaDataSo
-  Type: 56
+  Type: 41
   Grade: 3
   Createable: 1
   CountPerCraft: 1
   ItemsToCreate:
-  - Type: 49
+  - Type: 33
     Count: 1
-  - Type: 48
+  - Type: 34
     Count: 1
-  - Type: 47
+  - Type: 35
     Count: 1
   Decomposable: 0
   ItemsFromDecompose: []

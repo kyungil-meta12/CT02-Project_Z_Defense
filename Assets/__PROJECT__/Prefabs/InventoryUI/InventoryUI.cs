@@ -613,8 +613,16 @@ public class InventoryUI : MonoBehaviour
         }
         if (decomposeItemData.ContainsKey(type))
         {
-            var decomposeData = decomposeItemData[type];
-            decomposeItemText[type].text = "+" + decomposeData.Min.ToString() + "~" + decomposeData.Max.ToString();
+            var decompData = decomposeItemData[type];
+            if(decompData.Min == decompData.Max)
+            {
+                decomposeItemText[type].text = "+ " + decompData.Min.ToString();
+            }
+            else
+            {
+
+                decomposeItemText[type].text = "+ " + decompData.Min.ToString() + "~" + decompData.Max.ToString();
+            }
             decomposeItemText[type].color = Color.white;
         }
     }

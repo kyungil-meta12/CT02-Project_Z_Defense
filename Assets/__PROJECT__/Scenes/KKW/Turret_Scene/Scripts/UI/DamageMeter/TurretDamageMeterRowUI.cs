@@ -11,12 +11,20 @@ public sealed class TurretDamageMeterRowUI : MonoBehaviour
     [Header("텍스트")]
     [SerializeField] private TMP_Text rankText;
     [SerializeField] private TMP_Text nameText;
+    [Tooltip("데미지와 비중을 함께 표시합니다. 예: 10.50k (32.1%)")]
     [SerializeField] private TMP_Text damageText;
+    [Tooltip("별도 비중 텍스트가 필요할 때만 연결합니다. 비워두면 Damage Text에만 표시합니다.")]
     [SerializeField] private TMP_Text percentText;
 
     [Header("이미지")]
     [SerializeField] private Image iconImage;
     [SerializeField] private Image barFillImage;
+
+    [Header("그래프 크기")]
+    [SerializeField] private RectTransform barFillRect;
+    [SerializeField] private bool resizeBarWidth = true;
+    [SerializeField, Min(1.0f)] private float maxBarWidth = 1.0f;
+    [SerializeField, Range(0.0f, 1.0f)] private float barAlphaMultiplier = 0.85f;
 
     [Header("이동 연출")]
     [SerializeField, Min(0.01f)] private float smoothTime = 0.12f;
@@ -29,6 +37,9 @@ public sealed class TurretDamageMeterRowUI : MonoBehaviour
     private void Awake()
     {
         rectTransform = transform as RectTransform;
+        CacheBarFillRect();
+        CacheMaxBarWidth();
+
         if (rectTransform != null)
         {
             targetY = rectTransform.anchoredPosition.y;
@@ -68,7 +79,7 @@ public sealed class TurretDamageMeterRowUI : MonoBehaviour
     {
         if (rankText != null)
         {
-            rankText.text = rank.ToString();
+            rankText.text = "[" + rank + "]";
         }
 
         if (nameText != null)
@@ -78,7 +89,7 @@ public sealed class TurretDamageMeterRowUI : MonoBehaviour
 
         if (damageText != null)
         {
-            damageText.text = damage.ToString("N0");
+            damageText.text = FormatDamageText(damage, totalPercent);
         }
 
         if (percentText != null)
@@ -88,8 +99,8 @@ public sealed class TurretDamageMeterRowUI : MonoBehaviour
 
         if (barFillImage != null)
         {
-            barFillImage.fillAmount = Mathf.Clamp01(barRatio);
-            barFillImage.color = barColor;
+            ApplyBarAmount(barRatio);
+            ApplyBarColor(barColor);
         }
 
         if (iconImage != null)
@@ -97,5 +108,88 @@ public sealed class TurretDamageMeterRowUI : MonoBehaviour
             iconImage.sprite = icon;
             iconImage.enabled = icon != null;
         }
+    }
+
+    // 그래프 Fill 이미지의 RectTransform을 캐시한다
+    private void CacheBarFillRect()
+    {
+        if (barFillRect == null && barFillImage != null)
+        {
+            barFillRect = barFillImage.rectTransform;
+        }
+    }
+
+    // 인스펙터 값이 비어 있으면 현재 그래프 폭을 최대 폭으로 사용한다
+    private void CacheMaxBarWidth()
+    {
+        if (barFillRect == null || maxBarWidth > 1.0f)
+        {
+            return;
+        }
+
+        maxBarWidth = Mathf.Max(1.0f, barFillRect.rect.width);
+    }
+
+    // 설정된 방식에 따라 그래프 길이를 적용한다
+    private void ApplyBarAmount(float barRatio)
+    {
+        float safeRatio = Mathf.Clamp01(barRatio);
+        if (resizeBarWidth && barFillRect != null)
+        {
+            if (barFillImage != null)
+            {
+                barFillImage.fillAmount = 1.0f;
+            }
+
+            Vector2 sizeDelta = barFillRect.sizeDelta;
+            sizeDelta.x = maxBarWidth * safeRatio;
+            barFillRect.sizeDelta = sizeDelta;
+            return;
+        }
+
+        if (barFillImage != null)
+        {
+            barFillImage.fillAmount = safeRatio;
+        }
+    }
+
+    // 색상 프로필의 RGB를 유지하고 표시용 알파 배율을 반영한다
+    private void ApplyBarColor(Color barColor)
+    {
+        if (barFillImage == null)
+        {
+            return;
+        }
+
+        barColor.a *= barAlphaMultiplier;
+        barFillImage.color = barColor;
+    }
+
+    // 데미지와 전체 비중을 한 문자열로 구성한다
+    private static string FormatDamageText(float damage, float totalPercent)
+    {
+        return FormatCompactDamage(damage) + " (" + (Mathf.Clamp01(totalPercent) * 100.0f).ToString("0.0") + "%)";
+    }
+
+    // 큰 데미지 수치를 k, m, b 단위로 축약한다
+    private static string FormatCompactDamage(float damage)
+    {
+        float safeDamage = Mathf.Max(0.0f, damage);
+        if (safeDamage < 1000.0f)
+        {
+            return Mathf.FloorToInt(safeDamage).ToString();
+        }
+
+        if (safeDamage < 1000000.0f)
+        {
+            return (safeDamage / 1000.0f).ToString("0.00") + "k";
+        }
+
+        if (safeDamage < 1000000000.0f)
+        {
+            return (safeDamage / 1000000.0f).ToString("0.00") + "m";
+        }
+
+        return (safeDamage / 1000000000.0f).ToString("0.00") + "b";
     }
 }

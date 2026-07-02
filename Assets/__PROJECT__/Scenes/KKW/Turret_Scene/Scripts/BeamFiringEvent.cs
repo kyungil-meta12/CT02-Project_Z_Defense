@@ -28,6 +28,9 @@ public class BeamFiringEvent : FiringEvent
     [Header("빔 방향")]
     [SerializeField] private BeamDirectionMode directionMode = BeamDirectionMode.TargetDirection;
     [SerializeField] private Vector3 beamRotationOffsetEuler;
+    [Header("조준 정렬")]
+    [SerializeField] private bool requireMuzzleAlignmentBeforeBeam;
+    [SerializeField, Range(0.0f, 90.0f)] private float maxMuzzleTargetAngle = 12.0f;
     [Header("데미지 적용")]
     [SerializeField] private bool applyBeamDamage = true;
     [Header("빔 프리워밍")]
@@ -152,6 +155,12 @@ public class BeamFiringEvent : FiringEvent
             damageTickTimer = 0.0f;
         }
 
+        if (!CanShowBeamAtCurrentTarget())
+        {
+            HideBeamObjectsOnly();
+            return;
+        }
+
         UpdateBeamInstances();
 
         if (!applyBeamDamage)
@@ -192,6 +201,12 @@ public class BeamFiringEvent : FiringEvent
         }
 
         invalidTargetTimer = 0.0f;
+        if (!CanShowBeamAtCurrentTarget())
+        {
+            HideBeamObjectsOnly();
+            return;
+        }
+
         UpdateBeamInstances();
         UpdateDamageTick(Time.deltaTime);
     }
@@ -343,6 +358,55 @@ public class BeamFiringEvent : FiringEvent
 
             UpdateBeamInstance(beamInstance, targetPosition);
         }
+    }
+
+    // 총구 방향이 현재 타겟을 향할 만큼 정렬되었는지 확인한다
+    private bool CanShowBeamAtCurrentTarget()
+    {
+        if (!requireMuzzleAlignmentBeforeBeam)
+        {
+            return true;
+        }
+
+        if (beamInstances == null || currentTarget == null)
+        {
+            return false;
+        }
+
+        Vector3 targetPosition = ResolveCurrentTargetPosition();
+        for (int i = 0; i < beamInstances.Length; i++)
+        {
+            BeamInstance beamInstance = beamInstances[i];
+            if (!beamInstance.IsValid)
+            {
+                continue;
+            }
+
+            if (IsMuzzleAlignedToTarget(beamInstance.MuzzleTransform, targetPosition))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    // 단일 총구 forward와 타겟 방향의 각도가 허용 범위 안인지 확인한다
+    private bool IsMuzzleAlignedToTarget(Transform muzzleTransform, Vector3 targetPosition)
+    {
+        if (muzzleTransform == null)
+        {
+            return false;
+        }
+
+        Vector3 targetDirection = targetPosition - muzzleTransform.position;
+        if (targetDirection.sqrMagnitude <= 0.0001f)
+        {
+            return true;
+        }
+
+        float angle = Vector3.Angle(muzzleTransform.forward, targetDirection.normalized);
+        return angle <= maxMuzzleTargetAngle;
     }
 
     // 단일 빔 인스턴스를 설정된 방향 정책에 맞춰 갱신한다
@@ -849,6 +913,17 @@ public class BeamFiringEvent : FiringEvent
         invalidTargetTimer = 0.0f;
         damageTickTimer = 0.0f;
 
+        if (beamInstances == null)
+        {
+            return;
+        }
+
+        HideBeamObjectsOnly();
+    }
+
+    // 현재 타겟 캐시는 유지한 채 생성된 빔 오브젝트만 숨긴다
+    private void HideBeamObjectsOnly()
+    {
         if (beamInstances == null)
         {
             return;

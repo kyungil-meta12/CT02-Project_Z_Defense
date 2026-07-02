@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
@@ -30,6 +31,9 @@ public class ObstaclePlacementController : MonoBehaviour
     private GameObject currentPreviewPrefab;
     private Material runtimeValidPreviewMaterial;
     private Material runtimeInvalidPreviewMaterial;
+
+    // 설치 항목의 배치 성공 횟수가 바뀌어 표시 비용을 다시 계산해야 할 때 발생한다
+    public event Action<ObstacleBuildEntrySO> OnPlacementCountChanged;
 
     public bool IsPlacing
     {
@@ -151,9 +155,29 @@ public class ObstaclePlacementController : MonoBehaviour
             return false;
         }
 
+        ObstacleBuildEntrySO placedBuildEntry = activeBuildEntry;
         bool placed = targetSlot.TryPlace(activeBuildEntry, out _);
         CancelPlacement();
+
+        if (placed)
+        {
+            // 설치 성공으로 다음 설치 비용이 올라갔을 수 있으므로 구독 중인 상점 UI에 알린다.
+            OnPlacementCountChanged?.Invoke(placedBuildEntry);
+        }
+
         return placed;
+    }
+
+    // 현재 설치 횟수 기준의 배치 비용을 반환한다
+    public ResourceCost[] GetCurrentPlacementCosts(ObstacleBuildEntrySO buildEntry)
+    {
+        if (buildEntry == null)
+        {
+            return Array.Empty<ResourceCost>();
+        }
+
+        int firstPlacementCount = GameManager.Inst != null ? GameManager.Inst.GetFirstPlacementCount(buildEntry) : 0;
+        return buildEntry.GetPlacementCosts(firstPlacementCount, isRebuild: false);
     }
 
     // 진행 중인 배치와 프리뷰 상태를 초기화한다
@@ -287,16 +311,16 @@ public class ObstaclePlacementController : MonoBehaviour
         return hit.collider.GetComponentInParent<ObstacleBuildSlot>();
     }
 
-    // 배치 컨트롤러 단계에서 발생한 배치 실패 사유를 콘솔에 출력한다
+    // 배치 컨트롤러 단계에서 발생한 배치 실패 사유를 콘솔에 출력하고, 플레이어에게도 경고 팝업으로 알린다
     private void LogPlacementFailed(ObstacleBuildEntrySO buildEntry, string reason)
     {
-        if (!logPlacementResults)
+        if (logPlacementResults)
         {
-            return;
+            string entryName = buildEntry == null ? "없음" : buildEntry.DisplayName;
+            Debug.LogWarning($"[ObstaclePlacementController] 배치 실패 - 항목: {entryName}, 사유: {reason}", this);
         }
 
-        string entryName = buildEntry == null ? "없음" : buildEntry.DisplayName;
-        Debug.LogWarning($"[ObstaclePlacementController] 배치 실패 - 항목: {entryName}, 사유: {reason}", this);
+        WarningPopupManager.ShowWarning(reason);
     }
 
     // 마우스 또는 첫 번째 터치의 화면 좌표를 가져온다

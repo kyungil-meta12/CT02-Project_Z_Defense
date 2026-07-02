@@ -13,11 +13,8 @@ public sealed class TurretDamageMeterRowUI : MonoBehaviour
     [SerializeField] private TMP_Text nameText;
     [Tooltip("데미지와 비중을 함께 표시합니다. 예: 10.50k (32.1%)")]
     [SerializeField] private TMP_Text damageText;
-    [Tooltip("별도 비중 텍스트가 필요할 때만 연결합니다. 비워두면 Damage Text에만 표시합니다.")]
-    [SerializeField] private TMP_Text percentText;
 
     [Header("이미지")]
-    [SerializeField] private Image iconImage;
     [SerializeField] private Image barFillImage;
 
     [Header("그래프 크기")]
@@ -75,7 +72,7 @@ public sealed class TurretDamageMeterRowUI : MonoBehaviour
     }
 
     // Row의 표시 값을 갱신한다
-    public void Refresh(int rank, string displayName, float damage, float totalPercent, float barRatio, Sprite icon, Color barColor)
+    public void Refresh(int rank, string displayName, float damage, float totalPercent, float barRatio, Color barColor)
     {
         if (rankText != null)
         {
@@ -92,21 +89,10 @@ public sealed class TurretDamageMeterRowUI : MonoBehaviour
             damageText.text = FormatDamageText(damage, totalPercent);
         }
 
-        if (percentText != null)
-        {
-            percentText.text = (Mathf.Clamp01(totalPercent) * 100.0f).ToString("0.0") + "%";
-        }
-
         if (barFillImage != null)
         {
             ApplyBarAmount(barRatio);
             ApplyBarColor(barColor);
-        }
-
-        if (iconImage != null)
-        {
-            iconImage.sprite = icon;
-            iconImage.enabled = icon != null;
         }
     }
 

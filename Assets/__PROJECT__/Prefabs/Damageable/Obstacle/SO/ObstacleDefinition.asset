@@ -20,6 +20,6 @@ MonoBehaviour:
   basePrefab: {fileID: 1242232213132576, guid: 93623804a1860b2409814746410da6bd, type: 3}
   previewPrefab: {fileID: 0}
   placementLocalEulerAngles: {x: 0, y: -90, z: 0}
-  maxLevel: 2000
+  maxLevel: 5000
   upgradeCostProfile: {fileID: 11400000, guid: e2d506428a6d0ee4f8e1af87232c8eff, type: 2}
   prefabProgression: {fileID: 11400000, guid: 40e58299b7016514b81368b01c6431d1, type: 2}

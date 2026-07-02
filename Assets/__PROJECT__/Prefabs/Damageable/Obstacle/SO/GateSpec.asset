@@ -13,5 +13,5 @@ MonoBehaviour:
   m_Name: GateSpec
   m_EditorClassIdentifier: Assembly-CSharp::ObstacleSpec
   level: 1
-  levelHpPercentPerLevel: 2
-  Hp: 2000
+  levelHpPercentPerLevel: 15
+  Hp: 15000

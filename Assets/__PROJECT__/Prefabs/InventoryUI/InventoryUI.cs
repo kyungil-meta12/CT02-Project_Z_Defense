@@ -134,6 +134,7 @@ public class InventoryUI : MonoBehaviour
     [Header("아이템 정보 이미지")] public Image itemInfoImage;
 
     [Header("아이템 표시기 객체 목록")] public GameObject[] itemViewerList;
+    [Header("아이템 표시기 테두리 객체")] public GameObject itemViewRect;
 
     [Header("패널 텍스트 객체")] public TextMeshProUGUI pannelTitletext;
 
@@ -422,6 +423,9 @@ public class InventoryUI : MonoBehaviour
 
         // 한 번 크래프트 아이템 셀을 터치하면 분해 버튼이 다시 활성화 된다.
         contentDict[ContentType.Decompose].FunctionButton.gameObject.SetActive(true);
+           
+        // 테두리 활성화
+        itemViewRect.SetActive(true);
     }
 
     /// <summary>
@@ -436,6 +440,7 @@ public class InventoryUI : MonoBehaviour
         }
         SetButtonColor(button, selectedCellColor);
         selectedCell = button;
+        itemViewRect.SetActive(true);
 
         var cell = cellDict[ContentType.Craft].Cell;
         selectedType = cell[button].Type;
@@ -464,6 +469,9 @@ public class InventoryUI : MonoBehaviour
 
         // 한 번 크래프트 아이템 셀을 터치하면 작업 버튼이 다시 활성화 된다.
         contentDict[ContentType.Craft].FunctionButton.gameObject.SetActive(true);
+
+        // 테두리 활성화
+        itemViewRect.SetActive(true);
     }
 
     public void OnInventoryTabClick()
@@ -562,7 +570,7 @@ public class InventoryUI : MonoBehaviour
         decomposeItemText.Clear();
         needItemData.Clear();
         needItemText.Clear();
-        foreach(var viwer in itemViewerList)
+        foreach (var viwer in itemViewerList)
         {
             viwer.SetActive(false);
         }
@@ -825,6 +833,7 @@ public class InventoryUI : MonoBehaviour
 
         SetTextButtonEnable(makeButton, makeButtonEvent, makeButtonText, false);
         SetTextButtonEnable(decomposeButton, decomposeButtonEvent, decomposeButtonText, false);
+        itemViewRect.SetActive(false);
 
         UpdateCells();
     }

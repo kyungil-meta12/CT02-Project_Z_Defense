@@ -14982,6 +14982,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 198725293361821432, guid: adca1c5f787b050449984aedac0cbdc5, type: 3}
+      propertyPath: CollisionModule.collidesWith.m_Bits
+      value: 32767
+      objectReference: {fileID: 0}
     - target: {fileID: 199064395508332460, guid: adca1c5f787b050449984aedac0cbdc5, type: 3}
       propertyPath: m_Materials.Array.size
       value: 1

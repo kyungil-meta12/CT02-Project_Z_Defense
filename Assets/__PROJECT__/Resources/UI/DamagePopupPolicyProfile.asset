@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f4a0c0b65c974bb982d5f5b87c6ab731, type: 3}
   m_Name: DamagePopupPolicyProfile
   m_EditorClassIdentifier: 
-  directNormalPolicy: 0
+  directNormalPolicy: 1
   directCriticalPolicy: 0
   directHeavyPolicy: 0
   highFrequencyNormalPolicy: 1

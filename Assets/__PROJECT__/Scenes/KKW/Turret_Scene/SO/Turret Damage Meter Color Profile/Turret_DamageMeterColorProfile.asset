@@ -1,4 +1,4 @@
-﻿%YAML 1.1
+%YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
 --- !u!114 &11400000
 MonoBehaviour:
@@ -113,4 +113,3 @@ MonoBehaviour:
   - turretDefinition: {fileID: 11400000, guid: 9ed0a462473ebe84e8781e5d2e8891dd, type: 2}
     turretId: 
     barColor: {r: 0.19607843, g: 0.8039216, b: 0.19607843, a: 1}
-

@@ -2,10 +2,7 @@ using IncrementalLib;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEditorInternal.Profiling.Memory.Experimental;
 using UnityEngine;
-using UnityEngine.Rendering;
-using UnityEngine.UI;
 
 /// <summary>
 /// 실제로 저장되는 아이템 정보

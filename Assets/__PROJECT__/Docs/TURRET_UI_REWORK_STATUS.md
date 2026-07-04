@@ -231,6 +231,30 @@
 - 모든 터렛의 프리뷰 영상은 `TurretTechTreeViewProfileSO`의 노드 데이터에 `VideoClip` 직접 참조로 연결한다.
 - 1차 구현은 Scroll View 탐색만 지원한다. 줌은 추후 필요 시 별도 입력 레이어로 추가한다.
 
+## 2026-07-05 Turret Tech Tree Video Clip Prep
+
+### Current Asset Location
+
+- 터렛 트리 프리뷰용 녹화/편집 영상은 `Assets/__PROJECT__/Scenes/KKW/Turret_Scene/Art/TurretVideoClip/` 아래에 둔다.
+- `TurretTechTreeViewProfileSO`의 각 노드 `Preview Clip` 필드에는 이 폴더의 `VideoClip`을 직접 참조로 연결한다.
+- 현재 확인된 영상은 28개이며 전체 용량은 약 `198.8MB`이다. 개발/연결 검증 단계에서는 허용 가능하지만 모바일 빌드 전에는 압축 검토가 필요하다.
+- `3rd Gen/Ignition_Turret.mp4`가 약 `66.7MB`로 가장 크므로, 최종 빌드 전 압축 우선순위 1순위로 본다.
+
+### Video Optimization Guideline
+
+- 우선 전체 UI 동작 검증을 위해 현재 클립을 그대로 연결한다.
+- 빌드 전 목표 총량은 대략 `50~90MB` 범위를 권장한다.
+- 팝업 내 작은 프리뷰 기준 권장 설정은 `1280x720` 또는 `960x540`, `30fps`, 오디오 제거, 6~8초 루프, `1.5~3 Mbps` 비트레이트이다.
+- 영상은 한 번에 하나만 재생하므로 런타임 메모리보다 앱 설치 용량 증가가 더 큰 리스크다.
+- 모든 노드에 영상이 준비되어 있으므로, `previewClip` 누락 fallback은 안전장치로만 유지한다.
+
+### Next Editor Work
+
+- `Turret Tech Tree View Profile SO.asset`을 열고 3세대까지 모든 노드의 `Preview Clip`을 `TurretVideoClip` 폴더의 대응 영상으로 연결한다.
+- 터렛 이름과 영상 파일명이 다를 경우, 임시로 연결표를 별도 메모한 뒤 파일명 정리는 한 번에 진행한다.
+- `Detail_Popup_Panel`의 `VideoPlayer`, `RenderTexture`, `RawImage` 연결을 먼저 검증한 뒤 전체 노드 연결로 넘어간다.
+- Play Mode에서 노드 1~2개만 먼저 클릭해 영상 루프/닫기/다른 노드 전환 시 이전 영상 정지가 정상인지 확인한다.
+
 ## Next Work Plan
 
 1. `Canvas > Turret UI` 아래 실제 오브젝트와 각 UI 스크립트의 Inspector 참조를 하나씩 대조한다.

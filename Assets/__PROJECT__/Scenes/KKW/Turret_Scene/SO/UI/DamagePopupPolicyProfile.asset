@@ -12,13 +12,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f4a0c0b65c974bb982d5f5b87c6ab731, type: 3}
   m_Name: DamagePopupPolicyProfile
   m_EditorClassIdentifier: 
-  directNormalPolicy: 3
-  directCriticalPolicy: 3
-  directHeavyPolicy: 3
-  highFrequencyNormalPolicy: 3
-  highFrequencyCriticalPolicy: 3
-  highFrequencyHeavyPolicy: 3
-  chainPolicy: 3
-  damageOverTimePolicy: 3
-  areaOfEffectPolicy: 3
-  statusBurstPolicy: 3
+  directNormalPolicy: 1
+  directCriticalPolicy: 0
+  directHeavyPolicy: 0
+  highFrequencyNormalPolicy: 1
+  highFrequencyCriticalPolicy: 1
+  highFrequencyHeavyPolicy: 1
+  chainPolicy: 1
+  damageOverTimePolicy: 1
+  areaOfEffectPolicy: 1
+  statusBurstPolicy: 1

@@ -55,8 +55,8 @@ MonoBehaviour:
   stages:
   - minWave: 1
     maxWave: 10
-    spawnInterval: 3
-    spawnCount: 10
+    spawnInterval: 0.5
+    spawnCount: 70
     spawnBossAsLastEnemy: 0
     normalZombieEntries:
     - zombieType: 0
@@ -84,7 +84,7 @@ MonoBehaviour:
       weight: 1
       minWave: 1
       maxWave: 0
-    hpMultiplier: 1
+    hpMultiplier: 40
     attackDamageMultiplier: 0
     moveAttackSpeedMultiplier: 0
     rewardMultiplier: 0

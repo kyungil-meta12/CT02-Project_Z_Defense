@@ -19,7 +19,7 @@ MonoBehaviour:
   maxStackCount: 1
   stackRefreshMode: 0
   reactionDamageMultiplier: 0
-  reactionMaxHpDamageRatioPerTick: 0.3
-  reactionTickInterval: 0.5
+  reactionMaxHpDamageRatioPerTick: 0.03
+  reactionTickInterval: 0.1
   bossDamageMultiplier: 1
   interactionFlags: -1

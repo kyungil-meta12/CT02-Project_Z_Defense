@@ -10198,6 +10198,10 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 198362934543878778, guid: cfe0c511fa8d1cf4abf31f2f48dfe4f9, type: 3}
+      propertyPath: CollisionModule.type
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 198362934543878778, guid: cfe0c511fa8d1cf4abf31f2f48dfe4f9, type: 3}
       propertyPath: CollisionModule.collidesWith.m_Bits
       value: 32767
       objectReference: {fileID: 0}

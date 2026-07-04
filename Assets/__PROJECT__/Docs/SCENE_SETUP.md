@@ -174,7 +174,7 @@ Survivor movement depends on:
 Rescue and role UI setup:
 
 - Create a `SurvivorRescueSpawnProfileSO` asset from `Project Z Defense/Survivor Rescue Spawn Profile` and configure single wave numbers plus spawn chances.
-- Add `SurvivorRescueSpawner` to a scene object and assign `survivorPrefab`, `spawnProfile`, zombie-side `spawnPoints`, `finalRearPoint`, `hospitalPoint`, and `treatmentDuration`.
+- Add `SurvivorRescueSpawner` to a scene object and assign `enableRescueSpawn`, `survivorPrefab`, `spawnProfile`, zombie-side `spawnPoints`, `finalRearPoint`, `hospitalPoint`, and `treatmentDuration`.
 - If `spawnProfile` is missing, `SurvivorRescueSpawner.spawnChancePerWave` is used as a legacy fallback.
 - Add `SurvivorInteractionController` to an editor-authored popup UI object and assign `popupPanel`, `TMP_Text` labels, and `Button` references.
 - UI button labels should be English, such as `Treat`, `Construction Worker`, and `Engineer`.

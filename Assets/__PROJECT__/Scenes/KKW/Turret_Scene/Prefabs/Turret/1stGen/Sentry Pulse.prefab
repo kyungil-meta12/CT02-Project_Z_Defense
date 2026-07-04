@@ -461,7 +461,7 @@ MonoBehaviour:
   closeRangePredictionDistance: 2
   closeRangeFireDistance: 2
   closeRangeTurretAngleAttack: 60
-  requireAimAngleBeforeFire: 1
+  requireAimAngleBeforeFire: 0
   fireTick: 0.4
   targetSearchInterval: 0.1
   aimPointLerpSpeed: 18
@@ -623,6 +623,7 @@ MonoBehaviour:
   statProfileApplier: {fileID: 5097386045517894432}
   targetTurret: {fileID: 4142411618319423439}
   targetFiringEvent: {fileID: 3801908221913826664}
+  damageMeterSource: {fileID: 0}
   currentTurretName: Sentry Pulse
   availableEvolutionNames: 
 --- !u!1001 &6362014154621867532

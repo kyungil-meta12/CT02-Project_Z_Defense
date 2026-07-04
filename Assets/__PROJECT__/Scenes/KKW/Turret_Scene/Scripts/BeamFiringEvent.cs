@@ -122,6 +122,26 @@ public class BeamFiringEvent : FiringEvent
         projectileScale = Mathf.Max(0.01f, scale);
     }
 
+    // 현재 하나 이상의 빔 VFX가 실제로 표시 중인지 확인한다
+    public bool HasActiveBeamVisual()
+    {
+        if (beamInstances == null)
+        {
+            return false;
+        }
+
+        for (int i = 0; i < beamInstances.Length; i++)
+        {
+            BeamInstance beamInstance = beamInstances[i];
+            if (beamInstance.BeamObject != null && beamInstance.BeamObject.activeInHierarchy)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     // 빔 발사 요청마다 현재 타겟과 빔 유지 상태를 갱신한다
     public override void Fire(GameObject projectilePrefab, GameObject target, float projectileSpeed, float projectileScale_, float projectileDamage, int projectilePierceCount, bool logProjectileDamage, PoisonStatusPayload poisonStatusPayload, ElectroStatusPayload electroStatusPayload, TurretDamagePolishProfileSO damagePolishProfile_, TurretDamageMeterSource damageMeterSource_)
     {

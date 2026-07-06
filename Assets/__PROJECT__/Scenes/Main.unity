@@ -46420,7 +46420,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1057609490946825435, guid: 5447a8e65cc5c35478f930cdecc0f4a8, type: 3}
       propertyPath: initialWalletCurrencies.Array.size
-      value: 2
+      value: 4
       objectReference: {fileID: 0}
     - target: {fileID: 1057609490946825435, guid: 5447a8e65cc5c35478f930cdecc0f4a8, type: 3}
       propertyPath: initialWalletCurrencies.Array.data[0].amount
@@ -46432,7 +46432,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1057609490946825435, guid: 5447a8e65cc5c35478f930cdecc0f4a8, type: 3}
       propertyPath: initialWalletCurrencies.Array.data[2].amount
-      value: 5000
+      value: 10000
+      objectReference: {fileID: 0}
+    - target: {fileID: 1057609490946825435, guid: 5447a8e65cc5c35478f930cdecc0f4a8, type: 3}
+      propertyPath: initialWalletCurrencies.Array.data[3].amount
+      value: 20
       objectReference: {fileID: 0}
     - target: {fileID: 1057609490946825435, guid: 5447a8e65cc5c35478f930cdecc0f4a8, type: 3}
       propertyPath: initialWalletCurrencies.Array.data[0].currencyType
@@ -46444,7 +46448,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1057609490946825435, guid: 5447a8e65cc5c35478f930cdecc0f4a8, type: 3}
       propertyPath: initialWalletCurrencies.Array.data[2].currencyType
-      value: 2
+      value: 4
+      objectReference: {fileID: 0}
+    - target: {fileID: 1057609490946825435, guid: 5447a8e65cc5c35478f930cdecc0f4a8, type: 3}
+      propertyPath: initialWalletCurrencies.Array.data[3].currencyType
+      value: 23
       objectReference: {fileID: 0}
     - target: {fileID: 1599074175276728605, guid: 5447a8e65cc5c35478f930cdecc0f4a8, type: 3}
       propertyPath: m_Name
@@ -83474,7 +83482,7 @@ RectTransform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
+  m_ConstrainProportionsScale: 1
   m_Children:
   - {fileID: 3437430153829094470}
   - {fileID: 5832928533123774089}

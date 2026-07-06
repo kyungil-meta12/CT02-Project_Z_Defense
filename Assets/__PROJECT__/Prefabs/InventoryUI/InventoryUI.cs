@@ -224,10 +224,10 @@ public class InventoryUI : MonoBehaviour
         decomposeButtonEvent = decomposeButton.GetComponent<EventTrigger>();
         decomposeButtonText = decomposeButton.GetComponentInChildren<TextMeshProUGUI>();
 
-        itemPopupImage = itemPopup.transform.Find("Panel/ItemImage").GetComponent<Image>();
-        itemPopupOwnCountText = itemPopup.transform.Find("Panel/ItemOwnCountText").GetComponent<TextMeshProUGUI>();
-        itemPopupNameText = itemPopup.transform.Find("Panel/ItemNameText").GetComponent <TextMeshProUGUI>();
-        itemPopupInfoText = itemPopup.transform.Find("Panel/ItemInfoText").GetComponent<TextMeshProUGUI>();
+        itemPopupImage = itemPopup.transform.Find("Popup/ItemImage").GetComponent<Image>();
+        itemPopupOwnCountText = itemPopup.transform.Find("Popup/ItemOwnCountText").GetComponent<TextMeshProUGUI>();
+        itemPopupNameText = itemPopup.transform.Find("Popup/ItemNameText").GetComponent <TextMeshProUGUI>();
+        itemPopupInfoText = itemPopup.transform.Find("Popup/ItemInfoText").GetComponent<TextMeshProUGUI>();
         itemPopup.SetActive(false);
 
         // 딕셔너리에 패널 컨텐츠 정보 저장
@@ -389,7 +389,7 @@ public class InventoryUI : MonoBehaviour
             // 팝업이 활성화 되어있을 경우 팝업에서 표시되는 보유량도 같이 업데이트
             if (itemPopup.activeInHierarchy)
             {
-                itemPopupOwnCountText.text = InventorySystem.Inst.GetCountString(data.Type);
+                itemPopupOwnCountText.text = "보유량" + InventorySystem.Inst.GetCountString(selectedType);
             }
         }
         UpdateNeedItemData(data.Type);
@@ -472,6 +472,10 @@ public class InventoryUI : MonoBehaviour
             decomposeItemData.Add(decomposeItems[i].Type, decomposeItems[i]);
             decomposeItemText.Add(decomposeItems[i].Type, text);
             UpdateDecomposeItemData(decomposeItems[i].Type);
+
+            // 버튼도 같이 활성화
+            itemViewerButtonList[i].Button.interactable = true;
+            itemViewerButtonList[i].Type = decomposeItems[i].Type;
         }
 
         // 한 번 크래프트 아이템 셀을 터치하면 분해 버튼이 다시 활성화 된다.
@@ -535,7 +539,7 @@ public class InventoryUI : MonoBehaviour
     /// 선택된 버튼이 가지는 타입을 통해 아이템 정보를 나타내는 팝업을 세팅한다.
     /// </summary>
     /// <param name="button"></param>
-    public void OnSmallItemButtonClick(Button button)
+    public void OnItemViewerButtonClick(Button button)
     {
         var selectedButton = itemViewerButtonList.Find(bt => bt.Button == button);
         var selectedType = selectedButton.Type;
@@ -545,7 +549,7 @@ public class InventoryUI : MonoBehaviour
         itemPopupImage.sprite = metaData.ItemImage;
         itemPopupInfoText.text = metaData.InfoText;
         itemPopupNameText.text = metaData.Name;
-        itemPopupOwnCountText.text = InventorySystem.Inst.GetCountString(selectedType);
+        itemPopupOwnCountText.text = "보유량" + InventorySystem.Inst.GetCountString(selectedType);
         itemPopupOwnCountText.color = hasItem ? Color.white : Color.red;
     }
 
@@ -637,7 +641,7 @@ public class InventoryUI : MonoBehaviour
 
         // 아이템 제작
         InventorySystem.Inst.AddItem(selectedType, metaData.CountPerCraft);
-        Debug.Log($"[InventoryUI] 아이템 제작 완료 |  아이템: {selectedType}");
+        Debug.Log($"[InventoryUI] 아이템 제작 완료 | 아이템: {selectedType}");
 
         // 피드백 표시
         SetImageColor(itemViewerRect, Color.green);
@@ -712,11 +716,11 @@ public class InventoryUI : MonoBehaviour
             var decompData = decomposeItemData[type];
             if(decompData.Min == decompData.Max)
             {
-                decomposeItemText[type].text = " + " + decompData.Min.ToString();
+                decomposeItemText[type].text = InventorySystem.Inst.GetCountString(type) + "+" + decompData.Min.ToString();
             }
             else
             {
-                decomposeItemText[type].text = " + " + decompData.Min.ToString() + " ~ " + decompData.Max.ToString();
+                decomposeItemText[type].text = InventorySystem.Inst.GetCountString(type) + "+" + decompData.Min.ToString() + "~" + decompData.Max.ToString();
             }
             decomposeItemText[type].color = Color.white;
         }
@@ -752,7 +756,7 @@ public class InventoryUI : MonoBehaviour
     /// 이미지의 밝기를 조정한다. // brightness가 높을수록 밝아진다.
     /// </summary>
     /// <param name="image"></param>
-    /// <param name="opacity"></param>
+    /// <param name="brightness"></param>
     private void SetImageBrightness(Image image, float brightness)
     {
         var color = image.color;

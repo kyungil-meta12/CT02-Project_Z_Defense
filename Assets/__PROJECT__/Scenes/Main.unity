@@ -9515,7 +9515,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 0.5}
   m_AnchorMax: {x: 1, y: 0.5}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 90.37}
+  m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &220413543
 MonoBehaviour:
@@ -11769,7 +11769,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: aff22fa47f38c894aab0868979a71d75, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TurretTechTreeNodeUI
-  definition: {fileID: 11400000, guid: 75ea21aabcb3d674386eda38663d41be, type: 2}
+  definition: {fileID: 11400000, guid: 00ada75978f968d48a5cbeeab1eeddd9, type: 2}
   iconImage: {fileID: 185521859}
   frameImage: {fileID: 533500608}
   pulseGraphic: {fileID: 2006695173}
@@ -11844,7 +11844,7 @@ GameObject:
   - component: {fileID: 275369824}
   - component: {fileID: 275369823}
   m_Layer: 5
-  m_Name: Line_Pulse Repeater_To_Machinegun_Blue_1_V
+  m_Name: Line_Vulcan_Node_To_Lethal_Green_1_V
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -11881,8 +11881,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8980c24a4a89d76418ac9c12e10deeb4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TurretTechTreeLineUI
-  parentDefinition: {fileID: 11400000, guid: bcc03ca370729424c90ceaa906afacad, type: 2}
-  childDefinition: {fileID: 11400000, guid: 1273db7c65a849d47afd23d6d50afdb5, type: 2}
+  parentDefinition: {fileID: 11400000, guid: 9286c83b02e9eb54fa44fe5285239739, type: 2}
+  childDefinition: {fileID: 11400000, guid: e3255630eacade14c9ea3c8e2a68ef51, type: 2}
   lineGraphic: {fileID: 275369824}
   readyPulseSpeed: 2.6
   readyPulseMinAlpha: 0.45
@@ -13019,7 +13019,7 @@ MonoBehaviour:
   quitFadeDuration: 2
   quitTitleMessage: "\uAC8C\uC784 \uC885\uB8CC"
   quitStatusMessage: 
-  startWave: 111
+  startWave: 1
   waveClearCoinBonusPercentage: 20
   startTimeScale: 1
   baseFixedDeltaTime: 0.02
@@ -14198,7 +14198,9 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Plasma_Blue_2
+  m_text: 'Plasma_Blue_3
+
+'
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 2f19c5723d5938144a3d2cff85a107c1, type: 2}
   m_sharedMaterial: {fileID: 8627694614124292958, guid: 2f19c5723d5938144a3d2cff85a107c1, type: 2}
@@ -14974,7 +14976,9 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Plasma_Yellow_1
+  m_text: 'Plasma_Yellow_2
+
+'
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 2f19c5723d5938144a3d2cff85a107c1, type: 2}
   m_sharedMaterial: {fileID: 8627694614124292958, guid: 2f19c5723d5938144a3d2cff85a107c1, type: 2}
@@ -18856,7 +18860,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &421468492
 RectTransform:
   m_ObjectHideFlags: 0
@@ -19857,7 +19861,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &444196493
 RectTransform:
   m_ObjectHideFlags: 0
@@ -25163,7 +25167,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Lethal_Red_1
+  m_text: Lethal_Red_2
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 2f19c5723d5938144a3d2cff85a107c1, type: 2}
   m_sharedMaterial: {fileID: 8627694614124292958, guid: 2f19c5723d5938144a3d2cff85a107c1, type: 2}
@@ -28080,7 +28084,7 @@ GameObject:
   - component: {fileID: 581997837}
   - component: {fileID: 581997836}
   m_Layer: 5
-  m_Name: Line_Laser_Red_2_To_Laser_Red_3_H
+  m_Name: Line_Plasma_Yellow_2_To_Plasma_Yellow_3_H
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -30725,7 +30729,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &630882008
 RectTransform:
   m_ObjectHideFlags: 0
@@ -33377,7 +33381,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &669037539
 RectTransform:
   m_ObjectHideFlags: 0
@@ -33763,7 +33767,7 @@ GameObject:
   - component: {fileID: 678148481}
   - component: {fileID: 678148480}
   m_Layer: 5
-  m_Name: Line_Laser_Blue_2_To_Laser_Blue_3_H
+  m_Name: Line_Plasma_Blue_2_To_Plasma_Blue_3_H
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -38177,7 +38181,7 @@ GameObject:
   - component: {fileID: 771931323}
   - component: {fileID: 771931322}
   m_Layer: 5
-  m_Name: Line_Machinegun_Red_2_To_Machinegun_Red_3_H
+  m_Name: Line_Lethal_Red_2_To_Lethal_Red_3_H
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -44881,7 +44885,7 @@ GameObject:
   - component: {fileID: 900103437}
   - component: {fileID: 900103436}
   m_Layer: 5
-  m_Name: Line_Machinegun_Blue_2_To_Machinegun_Blue_3_H
+  m_Name: Line_Lethal_Green_2_To_Lethal_Green_3_H
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -48366,7 +48370,9 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Plasma_Blue_1
+  m_text: 'Plasma_Blue_2
+
+'
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 2f19c5723d5938144a3d2cff85a107c1, type: 2}
   m_sharedMaterial: {fileID: 8627694614124292958, guid: 2f19c5723d5938144a3d2cff85a107c1, type: 2}
@@ -54885,7 +54891,7 @@ GameObject:
   - component: {fileID: 1090350787}
   - component: {fileID: 1090350786}
   m_Layer: 5
-  m_Name: Line_Machinegun_Red_1_To_Machinegun_Red_2_H
+  m_Name: Line_Lethal_Red_1_To_Lethal_Red_2_H
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -63830,7 +63836,7 @@ GameObject:
   - component: {fileID: 1273353466}
   - component: {fileID: 1273353465}
   m_Layer: 5
-  m_Name: Line_Pulse Repeater_To_Laser_Blue_1_V
+  m_Name: Line_Vulcan_Node_To_Plasma_Blue_1_V
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -63867,8 +63873,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8980c24a4a89d76418ac9c12e10deeb4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TurretTechTreeLineUI
-  parentDefinition: {fileID: 11400000, guid: bcc03ca370729424c90ceaa906afacad, type: 2}
-  childDefinition: {fileID: 11400000, guid: bb9773d7cb329194a9ba37840394d17c, type: 2}
+  parentDefinition: {fileID: 11400000, guid: 9286c83b02e9eb54fa44fe5285239739, type: 2}
+  childDefinition: {fileID: 11400000, guid: 092e2d5f247fdfc41ae6add565260b8a, type: 2}
   lineGraphic: {fileID: 1273353466}
   readyPulseSpeed: 2.6
   readyPulseMinAlpha: 0.45
@@ -73151,9 +73157,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 'Lethal_Green_1
-
-'
+  m_text: Lethal_Green_2
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 2f19c5723d5938144a3d2cff85a107c1, type: 2}
   m_sharedMaterial: {fileID: 8627694614124292958, guid: 2f19c5723d5938144a3d2cff85a107c1, type: 2}
@@ -74140,7 +74144,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &1452723724
 RectTransform:
   m_ObjectHideFlags: 0
@@ -74609,19 +74613,19 @@ RectTransform:
   - {fileID: 616867118}
   - {fileID: 1129384509}
   - {fileID: 568267855}
-  - {fileID: 287273543}
-  - {fileID: 659954861}
-  - {fileID: 1571073808}
   - {fileID: 42566693}
-  - {fileID: 822210668}
-  - {fileID: 842672773}
-  - {fileID: 182861267}
   - {fileID: 998562362}
+  - {fileID: 287273543}
+  - {fileID: 822210668}
   - {fileID: 1411181997}
+  - {fileID: 659954861}
+  - {fileID: 842672773}
   - {fileID: 179508598}
+  - {fileID: 1571073808}
+  - {fileID: 182861267}
   - {fileID: 1993197443}
-  - {fileID: 1807712734}
   - {fileID: 1838491877}
+  - {fileID: 1807712734}
   m_Father: {fileID: 450645548}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
@@ -74647,7 +74651,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &1477565005
 RectTransform:
   m_ObjectHideFlags: 0
@@ -77264,7 +77268,7 @@ GameObject:
   - component: {fileID: 1532444754}
   - component: {fileID: 1532444753}
   m_Layer: 5
-  m_Name: Line_Laser_Blue_1_To_Laser_Blue_2_H
+  m_Name: Line_Plasma_Blue_1_To_Plasma_Blue_2_H
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -77395,7 +77399,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8980c24a4a89d76418ac9c12e10deeb4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TurretTechTreeLineUI
-  parentDefinition: {fileID: 11400000, guid: fb3a01d2afec206479d7f4f009796f03, type: 2}
+  parentDefinition: {fileID: 11400000, guid: 18c253335f774cc429bcd672178a747b, type: 2}
   childDefinition: {fileID: 11400000, guid: 2762d9636628f4a498fd2c6d73057418, type: 2}
   lineGraphic: {fileID: 1534593281}
   readyPulseSpeed: 2.6
@@ -77927,10 +77931,10 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 838471487}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 1}
-  m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 461.60187, y: -1039}
-  m_SizeDelta: {x: 827.20374, y: 50}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1542115095
 MonoBehaviour:
@@ -78733,7 +78737,7 @@ GameObject:
   - component: {fileID: 1560295439}
   - component: {fileID: 1560295438}
   m_Layer: 5
-  m_Name: Line_Pulse Repeater_To_Laser_Red_1_V
+  m_Name: Line_Vulcan_Node_To_Plasme_Yellow_1_V
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -78770,8 +78774,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8980c24a4a89d76418ac9c12e10deeb4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TurretTechTreeLineUI
-  parentDefinition: {fileID: 11400000, guid: bcc03ca370729424c90ceaa906afacad, type: 2}
-  childDefinition: {fileID: 11400000, guid: 6695fa1da961ac6439d54235bf64ac91, type: 2}
+  parentDefinition: {fileID: 11400000, guid: 9286c83b02e9eb54fa44fe5285239739, type: 2}
+  childDefinition: {fileID: 11400000, guid: a2449861c7d0bc0489813683948de1c0, type: 2}
   lineGraphic: {fileID: 1560295439}
   readyPulseSpeed: 2.6
   readyPulseMinAlpha: 0.45
@@ -85312,7 +85316,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &1710973825
 RectTransform:
   m_ObjectHideFlags: 0
@@ -85979,7 +85983,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &1722935818
 RectTransform:
   m_ObjectHideFlags: 0
@@ -86641,7 +86645,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: aff22fa47f38c894aab0868979a71d75, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TurretTechTreeNodeUI
-  definition: {fileID: 11400000, guid: 073e9f52d86e1bd4e95f9de5ec8f9e98, type: 2}
+  definition: {fileID: 11400000, guid: 8bd64e3106b9773428d74f44ebda12f8, type: 2}
   iconImage: {fileID: 941704465}
   frameImage: {fileID: 1344871612}
   pulseGraphic: {fileID: 2031903715}
@@ -88799,10 +88803,10 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 838471487}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 1}
-  m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 461.60187, y: -960.99994}
-  m_SizeDelta: {x: 827.20374, y: 50}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1777306864
 MonoBehaviour:
@@ -92074,11 +92078,93 @@ MonoBehaviour:
   - {fileID: 1395665345}
   - {fileID: 767821889}
   - {fileID: 616867119}
+  - {fileID: 1129384511}
+  - {fileID: 1030885289}
+  - {fileID: 603399727}
+  - {fileID: 623448232}
+  - {fileID: 272361516}
+  - {fileID: 994632768}
+  - {fileID: 968358410}
+  - {fileID: 1215477817}
+  - {fileID: 1352066982}
+  - {fileID: 2006654760}
+  - {fileID: 601124750}
+  - {fileID: 1427280559}
+  - {fileID: 246203455}
+  - {fileID: 1137872339}
+  - {fileID: 568267857}
+  - {fileID: 42566695}
+  - {fileID: 998562364}
+  - {fileID: 287273545}
+  - {fileID: 822210670}
+  - {fileID: 1411181999}
+  - {fileID: 659954863}
+  - {fileID: 842672775}
+  - {fileID: 179508600}
+  - {fileID: 1571073810}
+  - {fileID: 182861269}
+  - {fileID: 1993197445}
+  - {fileID: 1838491879}
+  - {fileID: 1807712736}
+  - {fileID: 1735782181}
+  - {fileID: 1959524228}
   lineViews:
   - {fileID: 809599771}
+  - {fileID: 364489005}
+  - {fileID: 1035004484}
+  - {fileID: 1639866050}
+  - {fileID: 93467561}
+  - {fileID: 986065517}
+  - {fileID: 1957355477}
+  - {fileID: 1601592389}
+  - {fileID: 455697007}
+  - {fileID: 1044914510}
   - {fileID: 1025406067}
+  - {fileID: 1444155248}
+  - {fileID: 1701023783}
+  - {fileID: 1087131819}
+  - {fileID: 2019577873}
+  - {fileID: 1613103779}
+  - {fileID: 1858758036}
+  - {fileID: 226939912}
+  - {fileID: 385836842}
+  - {fileID: 1591265766}
+  - {fileID: 183400204}
+  - {fileID: 1766487121}
+  - {fileID: 372725489}
+  - {fileID: 1067280882}
+  - {fileID: 351415668}
+  - {fileID: 906242088}
+  - {fileID: 1534980944}
+  - {fileID: 186106445}
   - {fileID: 1659775811}
+  - {fileID: 425887769}
+  - {fileID: 2093328662}
+  - {fileID: 275369823}
+  - {fileID: 1560295438}
+  - {fileID: 1273353465}
+  - {fileID: 1910748274}
+  - {fileID: 1696923707}
+  - {fileID: 780603011}
+  - {fileID: 1718323963}
   - {fileID: 2070458841}
+  - {fileID: 645771916}
+  - {fileID: 1333847195}
+  - {fileID: 1688214949}
+  - {fileID: 279349167}
+  - {fileID: 558435242}
+  - {fileID: 1090350786}
+  - {fileID: 2074208882}
+  - {fileID: 2112460524}
+  - {fileID: 1532444753}
+  - {fileID: 771931322}
+  - {fileID: 900103436}
+  - {fileID: 581997836}
+  - {fileID: 678148480}
+  - {fileID: 1534593280}
+  - {fileID: 1990997437}
+  - {fileID: 89251859}
+  - {fileID: 1551233719}
   detailPopup: {fileID: 0}
   refreshWhenOpened: 1
   pauseGameWhileOpen: 0
@@ -96090,7 +96176,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &1920560383
 RectTransform:
   m_ObjectHideFlags: 0
@@ -98094,7 +98180,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &1946592245
 RectTransform:
   m_ObjectHideFlags: 0
@@ -98244,7 +98330,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 0.5}
   m_AnchorMax: {x: 1, y: 0.5}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 77.92}
+  m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1954812615
 MonoBehaviour:
@@ -98746,7 +98832,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: aff22fa47f38c894aab0868979a71d75, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TurretTechTreeNodeUI
-  definition: {fileID: 11400000, guid: 073e9f52d86e1bd4e95f9de5ec8f9e98, type: 2}
+  definition: {fileID: 11400000, guid: 9ed0a462473ebe84e8781e5d2e8891dd, type: 2}
   iconImage: {fileID: 524767354}
   frameImage: {fileID: 107499119}
   pulseGraphic: {fileID: 1468246359}
@@ -100609,7 +100695,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &2001546178
 RectTransform:
   m_ObjectHideFlags: 0
@@ -105485,7 +105571,7 @@ GameObject:
   - component: {fileID: 2074208883}
   - component: {fileID: 2074208882}
   m_Layer: 5
-  m_Name: Line_Machinegun_Blue_1_To_Machinegun_Blue_2_H
+  m_Name: Line_Lethal_Green_1_To_Lethal_Green_2_H
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -106530,7 +106616,7 @@ GameObject:
   - component: {fileID: 2093328663}
   - component: {fileID: 2093328662}
   m_Layer: 5
-  m_Name: Line_Pulse Repeater_To_Machinegun_Red_1_V
+  m_Name: Line_Vulcan_Node_To_Lethal_Red_1_V
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -106567,8 +106653,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8980c24a4a89d76418ac9c12e10deeb4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TurretTechTreeLineUI
-  parentDefinition: {fileID: 11400000, guid: bcc03ca370729424c90ceaa906afacad, type: 2}
-  childDefinition: {fileID: 11400000, guid: 2b1501f0ff64271439a419503ca3bffb, type: 2}
+  parentDefinition: {fileID: 11400000, guid: 9286c83b02e9eb54fa44fe5285239739, type: 2}
+  childDefinition: {fileID: 11400000, guid: fb3a01d2afec206479d7f4f009796f03, type: 2}
   lineGraphic: {fileID: 2093328663}
   readyPulseSpeed: 2.6
   readyPulseMinAlpha: 0.45
@@ -107968,7 +108054,7 @@ GameObject:
   - component: {fileID: 2112460525}
   - component: {fileID: 2112460524}
   m_Layer: 5
-  m_Name: Line_Laser_Red_1_To_Laser_Red_2_H
+  m_Name: Line_Plasma_Yellow_1_To_Plasma_Yellow_2_H
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -109225,7 +109311,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 0.5}
   m_AnchorMax: {x: 1, y: 0.5}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 90.37}
+  m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &582588851639801553
 MonoBehaviour:
@@ -110340,7 +110426,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!1001 &4222903993691843861
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -111018,10 +111104,10 @@ RectTransform:
   - {fileID: 1230219070}
   m_Father: {fileID: 1512312315}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 1}
-  m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 310, y: -200}
-  m_SizeDelta: {x: 200, y: 100}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 1}
 --- !u!224 &5038259859878765224
 RectTransform:
@@ -111040,10 +111126,10 @@ RectTransform:
   - {fileID: 416670344}
   m_Father: {fileID: 1512312315}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 1}
-  m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 0, y: -100}
-  m_SizeDelta: {x: 200, y: 100}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 1}
 --- !u!224 &5038259859973875361
 RectTransform:
@@ -111062,10 +111148,10 @@ RectTransform:
   - {fileID: 1282135280}
   m_Father: {fileID: 1512312315}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 1}
-  m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 310, y: 0}
-  m_SizeDelta: {x: 200, y: 100}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 1}
 --- !u!224 &5038259860707327902
 RectTransform:
@@ -111084,10 +111170,10 @@ RectTransform:
   - {fileID: 1590362822}
   m_Father: {fileID: 1512312315}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 1}
-  m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 310, y: -100}
-  m_SizeDelta: {x: 200, y: 100}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 1}
 --- !u!224 &5038259860810944636
 RectTransform:
@@ -111106,10 +111192,10 @@ RectTransform:
   - {fileID: 1667472647}
   m_Father: {fileID: 1512312315}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 1}
-  m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 0, y: -200}
-  m_SizeDelta: {x: 200, y: 100}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 1}
 --- !u!224 &5038259861396047704
 RectTransform:
@@ -111128,10 +111214,10 @@ RectTransform:
   - {fileID: 857734090}
   m_Father: {fileID: 1512312315}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 1}
-  m_AnchorMax: {x: 0, y: 1}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 200, y: 100}
+  m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 1}
 --- !u!114 &5698107986152294329
 MonoBehaviour:

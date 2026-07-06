@@ -9768,14 +9768,14 @@ MonoBehaviour:
     - {fileID: 966472972}
     retreatPoint: {fileID: 799809137}
     restoredPoint: {fileID: 1930416908}
-  keepTurretBasesActiveWhenObstacleBroken: 1
+  keepTurretBasesActiveWhenObstacleBroken: 0
   gameOverPanelUI: {fileID: 1722935819}
   gameOverFadeInDuration: 5
   gameOverFadeOutDuration: 3
   quitFadeDuration: 2
   quitTitleMessage: "\uAC8C\uC784 \uC885\uB8CC"
   quitStatusMessage: 
-  startWave: 55
+  startWave: 1
   waveClearCoinBonusPercentage: 20
   startTimeScale: 1
   baseFixedDeltaTime: 0.02
@@ -45693,11 +45693,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1057609490946825435, guid: 5447a8e65cc5c35478f930cdecc0f4a8, type: 3}
       propertyPath: initialWalletCurrencies.Array.size
-      value: 2
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 1057609490946825435, guid: 5447a8e65cc5c35478f930cdecc0f4a8, type: 3}
       propertyPath: initialWalletCurrencies.Array.data[0].amount
-      value: 1000000000
+      value: 500
       objectReference: {fileID: 0}
     - target: {fileID: 1057609490946825435, guid: 5447a8e65cc5c35478f930cdecc0f4a8, type: 3}
       propertyPath: initialWalletCurrencies.Array.data[1].amount
@@ -54572,7 +54572,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3263897777155056172, guid: 731f73d525804824280ad76a9a994940, type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8393658750695723579, guid: 731f73d525804824280ad76a9a994940, type: 3}
       propertyPath: m_LocalPosition.x
@@ -73648,6 +73648,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SaveManager
   autoSaveIntervalSeconds: 30
+  resetSaveDataOnLoad: 1
 --- !u!4 &1993325456
 Transform:
   m_ObjectHideFlags: 0

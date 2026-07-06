@@ -17,6 +17,10 @@ public class SaveManager : MonoBehaviour
     [Tooltip("변경된 뒤 이 주기(초)마다, 변경 사항이 있을 때만 저장 파일을 갱신한다.")]
     [SerializeField, Min(1.0f)] private float autoSaveIntervalSeconds = 30.0f;
 
+    [Header("디버그")]
+    [Tooltip("체크한 상태로 실행하면 기존 저장 파일을 삭제하고 초기화한다. 초기화 후 자동으로 체크가 해제된다.")]
+    [SerializeField] private bool resetSaveDataOnLoad = false;
+
     private const string SAVE_FILE_NAME = "game_save.json";
     private string SaveFilePath => Path.Combine(Application.persistentDataPath, SAVE_FILE_NAME);
 
@@ -52,6 +56,12 @@ public class SaveManager : MonoBehaviour
 
         Inst = this;
         DontDestroyOnLoad(gameObject);
+
+        if (resetSaveDataOnLoad)
+        {
+            ResetSaveData();
+            resetSaveDataOnLoad = false;
+        }
     }
 
     void Start()
@@ -179,6 +189,26 @@ public class SaveManager : MonoBehaviour
         {
             Debug.LogWarning($"[SaveManager] 저장에 실패했습니다: {exception.Message}");
         }
+    }
+
+    // 저장 파일과 캐시된 데이터를 모두 삭제해 초기 상태로 되돌린다
+    private void ResetSaveData()
+    {
+        if (File.Exists(SaveFilePath))
+        {
+            try
+            {
+                File.Delete(SaveFilePath);
+            }
+            catch (IOException exception)
+            {
+                Debug.LogWarning($"[SaveManager] 저장 파일 삭제에 실패했습니다: {exception.Message}");
+            }
+        }
+
+        loadedSections.Clear();
+        isFileLoaded = true;
+        isDirty = false;
     }
 
     // 저장 파일을 한 번만 읽어 구간별 JSON을 캐시에 올려둔다

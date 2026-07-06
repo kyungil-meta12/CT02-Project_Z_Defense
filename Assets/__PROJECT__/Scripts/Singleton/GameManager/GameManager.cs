@@ -911,6 +911,7 @@ public class GameManager : MonoBehaviour
         DespawnAllZombies();
         RebuildAllDefenseLines();
         ReassignAllEngineers();
+        ResetConstructionWorkersForWaveRestart();
         PreparePreviousWaveRestart();
         
         yield return fadeWait;
@@ -1029,6 +1030,50 @@ public class GameManager : MonoBehaviour
 
             survivor.TryReassignEngineerToStoredTurret();
         }
+    }
+
+    // 웨이브 재시작 시 건축노동자의 후퇴 방어선 상태를 복구한다
+    private void ResetConstructionWorkersForWaveRestart()
+    {
+        Transform restoredPoint = GetRearDefenseLineRestoredPoint();
+        if (restoredPoint == null)
+        {
+            Debug.LogWarning("[GameManager] 웨이브 재시작 복귀 포인트가 없어 건축노동자 방어선 상태만 초기화합니다.", this);
+        }
+
+        for (int i = survivors.Count - 1; i >= 0; i--)
+        {
+            Survivor survivor = survivors[i];
+            if (survivor == null)
+            {
+                survivors.RemoveAt(i);
+                continue;
+            }
+
+            survivor.ResetDefenseLineStateForWaveRestart(restoredPoint);
+        }
+    }
+
+    // 등록된 방어선 중 가장 뒤쪽 방어선의 복귀 지점을 반환한다
+    private Transform GetRearDefenseLineRestoredPoint()
+    {
+        if (defenseLines == null)
+        {
+            return null;
+        }
+
+        for (int i = defenseLines.Count - 1; i >= 0; i--)
+        {
+            DefenseLineEntry defenseLine = defenseLines[i];
+            if (defenseLine == null || !HasRegisteredDefenseLineSlots(defenseLine))
+            {
+                continue;
+            }
+
+            return defenseLine.restoredPoint;
+        }
+
+        return null;
     }
 
     // 현재 웨이브의 이전 웨이브를 처음부터 다시 시작할 수 있도록 준비한다

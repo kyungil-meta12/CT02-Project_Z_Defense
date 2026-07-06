@@ -288,6 +288,26 @@ public class Survivor : MonoBehaviour
         ChangeState(SurvivorState.ReturningToDefensePoint);
     }
 
+    // 웨이브 재시작 시 후퇴 상태를 정리하고 방어선 복귀를 준비한다
+    public void ResetDefenseLineStateForWaveRestart(Transform restoredPoint)
+    {
+        if (role != SurvivorRole.constructionWorker)
+        {
+            return;
+        }
+
+        ClearRepairTarget();
+
+        if (restoredPoint == null || agent == null || !agent.enabled || !agent.isOnNavMesh)
+        {
+            ResetDefenseLineStateImmediatelyForWaveRestart();
+            return;
+        }
+
+        defenseMoveTarget = restoredPoint;
+        ChangeState(SurvivorState.ReturningToDefensePoint);
+    }
+
     // 구출 생존자의 이동 기준 지점과 치료 시간을 설정한다
     public void ConfigureRescueFlow(Transform hospitalPoint_, Transform finalRearPoint_, float treatmentDuration)
     {
@@ -1517,6 +1537,24 @@ public class Survivor : MonoBehaviour
         }
 
         repairTargetDefenseLineIndex = NO_DEFENSE_LINE;
+    }
+
+    // 웨이브 재시작 복귀 이동이 불가능할 때 방어선 상태를 즉시 초기화한다
+    private void ResetDefenseLineStateImmediatelyForWaveRestart()
+    {
+        activeDefenseLineIndex = NO_DEFENSE_LINE;
+        defenseMoveTarget = null;
+        searchTimer = 0f;
+        destinationRefreshTimer = 0f;
+        moveTimer = 0f;
+
+        if (agent != null && agent.enabled)
+        {
+            ChangeState(GetIdleStateForRole());
+            return;
+        }
+
+        state = GetIdleStateForRole();
     }
 
     // 애니메이터에 지정한 파라미터가 있는지 확인한다

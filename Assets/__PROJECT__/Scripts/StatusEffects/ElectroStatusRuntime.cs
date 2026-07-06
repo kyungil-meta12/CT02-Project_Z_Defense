@@ -215,7 +215,7 @@ public sealed class ElectroStatusRuntime : MonoBehaviour
             return;
         }
 
-        damageable.TakeDamage(new DamageInfo(overloadDamage, DamagePopupType.Normal, DamagePopupPolicyResolver.ResolveStatusBurst()));
+        damageable.TakeDamage(new DamageInfo(overloadDamage, DamagePopupType.Normal, DamagePopupPolicyResolver.ResolveStatusBurst(), payload.damageSource));
     }
 
     // 과부하 긴 기절 시간을 보스 배율까지 반영해 계산한다

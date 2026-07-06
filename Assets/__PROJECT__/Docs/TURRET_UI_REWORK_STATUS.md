@@ -195,6 +195,66 @@
 - 터렛 업그레이드 후 사거리 표시 갱신, 선택 팝업 값 갱신, 하위 팝업 값 갱신이 모두 같은 타이밍에 맞는지 검증이 필요하다.
 - `Legacy Pointer Bridge`와 `InputSystemUIInputModule` 기본 포인터 이벤트가 동시에 살아날 경우 같은 입력이 중복 전달될 수 있으므로, 추후 Input System 경로 복구 시 중복 입력 여부를 먼저 확인해야 한다.
 
+## 2026-07-04 Turret Tech Tree Info UI First Pass
+
+### Goal
+
+- BottomBar에 별도 터렛 트리 버튼을 배치하고, 버튼 클릭 시 전체 터렛 계보를 Scroll View 기반 정보 화면으로 표시한다.
+- 이 화면은 정보 전용이며 실제 진화 실행은 기존 설치 터렛 더블클릭 후 `TurretUpgradePopupUI` / `TurretEvolutionPopupUI` 경로에서만 처리한다.
+- 잠금 상태 노드도 클릭 가능하며, 노드 클릭 시 터렛 1레벨 기준 상세 스펙과 `VideoClip` 프리뷰를 표시한다.
+
+### Runtime Structure
+
+- `TurretTechTreeViewProfileSO`는 터렛별 UI 표시 데이터와 프리뷰 `VideoClip`, 상태별 노드/라인 색상, 기본 해금 루트 터렛을 소유한다.
+- `TurretTechTreeUIController`는 창 열기/닫기, 설치된 터렛 스캔, 노드 상태 계산, 수동 배치된 노드/라인 갱신을 담당한다.
+- `TurretTechTreeNodeUI`는 에디터에서 배치한 노드 오브젝트에 붙이고, 각 노드의 `TurretDefinitionSO`와 아이콘/프레임/TMP/Button 참조를 연결한다.
+- `TurretTechTreeLineUI`는 에디터에서 배치한 라인 오브젝트에 붙이고, 부모/자식 `TurretDefinitionSO`를 연결한다.
+- `TurretTechTreeDetailPopupUI`는 상세 팝업에 있는 단일 `VideoPlayer`를 재사용해 선택 노드의 `VideoClip`만 교체 재생한다.
+- `TurretTechTreeOpenButton`은 BottomBar의 터렛 트리 버튼에 붙여 `TurretTechTreeUIController.Show` 또는 `Toggle`을 호출한다.
+
+### State Policy
+
+- 내부 상태 우선순위는 `Unlocked > Ready > BlockedByCost > BlockedByLevel > Locked`이다.
+- 현재 씬에 설치된 모든 활성 `TurretDefinitionRuntimeController`를 스캔하고, 동일 노드에 여러 상태 후보가 있으면 가장 높은 우선순위를 표시한다.
+- 설치된 터렛의 모든 가능한 조상 경로는 `Unlocked`로 표시한다. 현재 런타임에는 실제 진화 경로 기록이 없으므로 3세대처럼 다중 부모를 가진 터렛은 가능한 부모 경로가 모두 조상으로 처리될 수 있다.
+- 설치된 부모 터렛의 현재 티어 레벨이 진화 요구 레벨보다 낮으면 자식 노드는 `BlockedByLevel`이다.
+- 부모 레벨 조건은 만족했지만 `TurretEvolutionEntry.evolutionCosts`를 현재 `InventorySystem`으로 지불할 수 없으면 `BlockedByCost`이다.
+- 부모 레벨 조건과 비용 조건을 모두 만족하면 자식 노드는 `Ready`이다.
+- 부모-자식 라인은 연결별로 따로 계산하며, 자식이 `Ready`이면 해당 라인만 Pulse 대상이 된다.
+
+### Editor Setup Recommendation
+
+- `Canvas > Turret Tech Tree Popup` 루트에는 `TurretTechTreeUIController`를 붙이고, 내부에 양방향 `ScrollRect`와 수동 배치 노드/라인을 둔다.
+- 모든 노드 오브젝트에는 `TurretTechTreeNodeUI`를 붙이고 해당 `TurretDefinitionSO`를 지정한다.
+- 모든 라인 오브젝트에는 `TurretTechTreeLineUI`를 붙이고 부모/자식 `TurretDefinitionSO`를 지정한다.
+- 상세 팝업에는 `TurretTechTreeDetailPopupUI`, `VideoPlayer`, `RawImage`, 닫기 버튼, 스탯 TMP들을 연결한다.
+- 모든 터렛의 프리뷰 영상은 `TurretTechTreeViewProfileSO`의 노드 데이터에 `VideoClip` 직접 참조로 연결한다.
+- 1차 구현은 Scroll View 탐색만 지원한다. 줌은 추후 필요 시 별도 입력 레이어로 추가한다.
+
+## 2026-07-05 Turret Tech Tree Video Clip Prep
+
+### Current Asset Location
+
+- 터렛 트리 프리뷰용 녹화/편집 영상은 `Assets/__PROJECT__/Scenes/KKW/Turret_Scene/Art/TurretVideoClip/` 아래에 둔다.
+- `TurretTechTreeViewProfileSO`의 각 노드 `Preview Clip` 필드에는 이 폴더의 `VideoClip`을 직접 참조로 연결한다.
+- 현재 확인된 영상은 28개이며 전체 용량은 약 `198.8MB`이다. 개발/연결 검증 단계에서는 허용 가능하지만 모바일 빌드 전에는 압축 검토가 필요하다.
+- `3rd Gen/Ignition_Turret.mp4`가 약 `66.7MB`로 가장 크므로, 최종 빌드 전 압축 우선순위 1순위로 본다.
+
+### Video Optimization Guideline
+
+- 우선 전체 UI 동작 검증을 위해 현재 클립을 그대로 연결한다.
+- 빌드 전 목표 총량은 대략 `50~90MB` 범위를 권장한다.
+- 팝업 내 작은 프리뷰 기준 권장 설정은 `1280x720` 또는 `960x540`, `30fps`, 오디오 제거, 6~8초 루프, `1.5~3 Mbps` 비트레이트이다.
+- 영상은 한 번에 하나만 재생하므로 런타임 메모리보다 앱 설치 용량 증가가 더 큰 리스크다.
+- 모든 노드에 영상이 준비되어 있으므로, `previewClip` 누락 fallback은 안전장치로만 유지한다.
+
+### Next Editor Work
+
+- `Turret Tech Tree View Profile SO.asset`을 열고 3세대까지 모든 노드의 `Preview Clip`을 `TurretVideoClip` 폴더의 대응 영상으로 연결한다.
+- 터렛 이름과 영상 파일명이 다를 경우, 임시로 연결표를 별도 메모한 뒤 파일명 정리는 한 번에 진행한다.
+- `Detail_Popup_Panel`의 `VideoPlayer`, `RenderTexture`, `RawImage` 연결을 먼저 검증한 뒤 전체 노드 연결로 넘어간다.
+- Play Mode에서 노드 1~2개만 먼저 클릭해 영상 루프/닫기/다른 노드 전환 시 이전 영상 정지가 정상인지 확인한다.
+
 ## Next Work Plan
 
 1. `Canvas > Turret UI` 아래 실제 오브젝트와 각 UI 스크립트의 Inspector 참조를 하나씩 대조한다.

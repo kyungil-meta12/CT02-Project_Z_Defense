@@ -295,11 +295,11 @@ MonoBehaviour:
   targetSearchInterval: 0.1
   aimPointLerpSpeed: 18
   targetVelocityLerpSpeed: 10
-  maxPredictionLeadTime: 0.25
+  maxPredictionLeadTime: 0
   useInterceptPrediction: 1
   useProjectileSpeedBasedPrediction: 1
-  slowProjectileSpeedThreshold: 40
-  fastProjectileSpeedThreshold: 120
+  slowProjectileSpeedThreshold: 0
+  fastProjectileSpeedThreshold: 0
   slowProjectileMaxLeadTime: 0.85
   fastProjectileMaxLeadTime: 0.2
   ignoreVerticalPrediction: 1
@@ -385,6 +385,7 @@ MonoBehaviour:
   statProfileApplier: {fileID: 5767384991507708237}
   targetTurret: {fileID: 5892086502144586968}
   targetFiringEvent: {fileID: 3543793305527923347}
+  damageMeterSource: {fileID: 0}
   currentTurretName: 
   availableEvolutionNames: 
 --- !u!114 &3543793305527923347
@@ -413,6 +414,8 @@ MonoBehaviour:
   useTargetAimPoint: 1
   directionMode: 0
   beamRotationOffsetEuler: {x: 0, y: 0, z: 0}
+  requireMuzzleAlignmentBeforeBeam: 1
+  maxMuzzleTargetAngle: 30
   applyBeamDamage: 1
   prewarmBeamOnEnable: 1
 --- !u!114 &8538779154782827799
@@ -445,6 +448,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::FrostFreezeSuppressedTargetCandidateFilter
   excludeFrozenTargets: 1
   excludeFreezeCooldownTargets: 1
+  retainActiveFrostTargetUntilFreeze: 1
 --- !u!4 &8961221714325612455 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: d1617184f4f0cc54abbd8c37633531db, type: 3}

@@ -6,6 +6,7 @@ using UnityEngine;
 public class SurvivorRescueSpawner : MonoBehaviour
 {
     [Header("생존자 스폰")]
+    [SerializeField, InspectorName("구출 생존자 스폰 활성화")] private bool enableRescueSpawn = true;
     [SerializeField] private Survivor survivorPrefab;
     [SerializeField] private SurvivorRescueSpawnProfileSO spawnProfile;
     [SerializeField, Range(0f, 1f)] private float spawnChancePerWave = 0.2f;
@@ -16,6 +17,26 @@ public class SurvivorRescueSpawner : MonoBehaviour
     [SerializeField] private Transform finalRearPoint;
     [SerializeField] private Transform hospitalPoint;
     [SerializeField, Min(0f)] private float treatmentDuration = 8f;
+
+    public bool IsRescueSpawnEnabled => enableRescueSpawn;
+
+    // 구출 생존자 웨이브 스폰 활성 상태를 변경한다
+    public void SetRescueSpawnEnabled(bool isEnabled)
+    {
+        enableRescueSpawn = isEnabled;
+    }
+
+    // 구출 생존자 웨이브 스폰을 활성화한다
+    public void EnableRescueSpawn()
+    {
+        SetRescueSpawnEnabled(true);
+    }
+
+    // 구출 생존자 웨이브 스폰을 비활성화한다
+    public void DisableRescueSpawn()
+    {
+        SetRescueSpawnEnabled(false);
+    }
 
     // 시작 시 웨이브 이벤트를 구독하고 필요하면 현재 웨이브 스폰을 시도한다
     private void Start()
@@ -47,10 +68,10 @@ public class SurvivorRescueSpawner : MonoBehaviour
         TrySpawnSurvivor(wave);
     }
 
-    // 스폰 확률과 참조 유효성을 확인한 뒤 생존자를 생성한다
+    // 활성 상태와 스폰 확률 및 참조 유효성을 확인한 뒤 생존자를 생성한다
     private void TrySpawnSurvivor(int wave)
     {
-        if (survivorPrefab == null || finalRearPoint == null || !ShouldSpawnSurvivor(wave))
+        if (!enableRescueSpawn || survivorPrefab == null || finalRearPoint == null || !ShouldSpawnSurvivor(wave))
         {
             return;
         }

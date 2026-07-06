@@ -28,6 +28,9 @@ public class BeamFiringEvent : FiringEvent
     [Header("빔 방향")]
     [SerializeField] private BeamDirectionMode directionMode = BeamDirectionMode.TargetDirection;
     [SerializeField] private Vector3 beamRotationOffsetEuler;
+    [Header("조준 정렬")]
+    [SerializeField] private bool requireMuzzleAlignmentBeforeBeam;
+    [SerializeField, Range(0.0f, 90.0f)] private float maxMuzzleTargetAngle = 12.0f;
     [Header("데미지 적용")]
     [SerializeField] private bool applyBeamDamage = true;
     [Header("빔 프리워밍")]
@@ -48,6 +51,7 @@ public class BeamFiringEvent : FiringEvent
     private float projectileScale = 1.0f;
     private float currentProjectileDamage;
     private bool currentLogProjectileDamage;
+    private TurretDamageMeterSource damageMeterSource;
     private int frostStatusLevel = 1;
     private Quaternion beamRotationOffset = Quaternion.identity;
     private bool hasBeamRotationOffset;
@@ -118,8 +122,28 @@ public class BeamFiringEvent : FiringEvent
         projectileScale = Mathf.Max(0.01f, scale);
     }
 
+    // 현재 하나 이상의 빔 VFX가 실제로 표시 중인지 확인한다
+    public bool HasActiveBeamVisual()
+    {
+        if (beamInstances == null)
+        {
+            return false;
+        }
+
+        for (int i = 0; i < beamInstances.Length; i++)
+        {
+            BeamInstance beamInstance = beamInstances[i];
+            if (beamInstance.BeamObject != null && beamInstance.BeamObject.activeInHierarchy)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     // 빔 발사 요청마다 현재 타겟과 빔 유지 상태를 갱신한다
-    public override void Fire(GameObject projectilePrefab, GameObject target, float projectileSpeed, float projectileScale_, float projectileDamage, int projectilePierceCount, bool logProjectileDamage, PoisonStatusPayload poisonStatusPayload, ElectroStatusPayload electroStatusPayload, TurretDamagePolishProfileSO damagePolishProfile_)
+    public override void Fire(GameObject projectilePrefab, GameObject target, float projectileSpeed, float projectileScale_, float projectileDamage, int projectilePierceCount, bool logProjectileDamage, PoisonStatusPayload poisonStatusPayload, ElectroStatusPayload electroStatusPayload, TurretDamagePolishProfileSO damagePolishProfile_, TurretDamageMeterSource damageMeterSource_)
     {
         if (beamPrefab == null || target == null || !target.activeInHierarchy)
         {
@@ -129,6 +153,7 @@ public class BeamFiringEvent : FiringEvent
 
         SetProjectileScale(projectileScale_);
         SetDamagePolishProfile(damagePolishProfile_);
+        damageMeterSource = damageMeterSource_;
         EnsureBeamInstances();
         bool targetChanged = currentTarget != target;
         if (targetChanged)
@@ -148,6 +173,12 @@ public class BeamFiringEvent : FiringEvent
         if (targetChanged)
         {
             damageTickTimer = 0.0f;
+        }
+
+        if (!CanShowBeamAtCurrentTarget())
+        {
+            HideBeamObjectsOnly();
+            return;
         }
 
         UpdateBeamInstances();
@@ -190,6 +221,12 @@ public class BeamFiringEvent : FiringEvent
         }
 
         invalidTargetTimer = 0.0f;
+        if (!CanShowBeamAtCurrentTarget())
+        {
+            HideBeamObjectsOnly();
+            return;
+        }
+
         UpdateBeamInstances();
         UpdateDamageTick(Time.deltaTime);
     }
@@ -341,6 +378,55 @@ public class BeamFiringEvent : FiringEvent
 
             UpdateBeamInstance(beamInstance, targetPosition);
         }
+    }
+
+    // 총구 방향이 현재 타겟을 향할 만큼 정렬되었는지 확인한다
+    private bool CanShowBeamAtCurrentTarget()
+    {
+        if (!requireMuzzleAlignmentBeforeBeam)
+        {
+            return true;
+        }
+
+        if (beamInstances == null || currentTarget == null)
+        {
+            return false;
+        }
+
+        Vector3 targetPosition = ResolveCurrentTargetPosition();
+        for (int i = 0; i < beamInstances.Length; i++)
+        {
+            BeamInstance beamInstance = beamInstances[i];
+            if (!beamInstance.IsValid)
+            {
+                continue;
+            }
+
+            if (IsMuzzleAlignedToTarget(beamInstance.MuzzleTransform, targetPosition))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    // 단일 총구 forward와 타겟 방향의 각도가 허용 범위 안인지 확인한다
+    private bool IsMuzzleAlignedToTarget(Transform muzzleTransform, Vector3 targetPosition)
+    {
+        if (muzzleTransform == null)
+        {
+            return false;
+        }
+
+        Vector3 targetDirection = targetPosition - muzzleTransform.position;
+        if (targetDirection.sqrMagnitude <= 0.0001f)
+        {
+            return true;
+        }
+
+        float angle = Vector3.Angle(muzzleTransform.forward, targetDirection.normalized);
+        return angle <= maxMuzzleTargetAngle;
     }
 
     // 단일 빔 인스턴스를 설정된 방향 정책에 맞춰 갱신한다
@@ -512,7 +598,7 @@ public class BeamFiringEvent : FiringEvent
         TurretDamagePolishResult damageResult = RollDamage(safeDamage);
         NotifyNonElectroDamageReceived(damageable, damageResult.Damage);
         DamagePopupPolicy popupPolicy = DamagePopupPolicyResolver.ResolveHighFrequencyTick(damageResult.PopupType);
-        damageable.TakeDamage(new DamageInfo(damageResult.Damage, damageResult.PopupType, popupPolicy));
+        damageable.TakeDamage(new DamageInfo(damageResult.Damage, damageResult.PopupType, popupPolicy, damageMeterSource));
         ApplyFrostStatus(damageable);
 
         if (logProjectileDamage)
@@ -574,7 +660,9 @@ public class BeamFiringEvent : FiringEvent
             return;
         }
 
-        frostReceiver.ApplyFrostStatus(frostStatusProfile.CreatePayload(frostStatusLevel, GetDamageTickInterval()));
+        FrostStatusPayload payload = frostStatusProfile.CreatePayload(frostStatusLevel, GetDamageTickInterval());
+        payload.damageSource = damageMeterSource;
+        frostReceiver.ApplyFrostStatus(payload);
     }
 
     // 관통 판정에 사용할 버퍼 배열을 준비한다
@@ -845,6 +933,17 @@ public class BeamFiringEvent : FiringEvent
         invalidTargetTimer = 0.0f;
         damageTickTimer = 0.0f;
 
+        if (beamInstances == null)
+        {
+            return;
+        }
+
+        HideBeamObjectsOnly();
+    }
+
+    // 현재 타겟 캐시는 유지한 채 생성된 빔 오브젝트만 숨긴다
+    private void HideBeamObjectsOnly()
+    {
         if (beamInstances == null)
         {
             return;

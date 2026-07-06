@@ -171,8 +171,11 @@ public class Obstacle : MonoBehaviour, IDamageable
         {
             return;
         }
+        float beforeHp = CurrHp;
         CurrHp -= Mathf.Max(0f, damageInfo.Damage);
         CurrHp = Mathf.Clamp(CurrHp, 0f, TotalHp);
+        float appliedDamage = Mathf.Max(0f, beforeHp - CurrHp);
+        TurretDamageMeterManager.ReportDamage(damageInfo.DamageSource, appliedDamage);
         if (hpUI != null)
         {
             hpUI.gameObject.SetActive(true);

@@ -96,6 +96,20 @@ Do not use display names as stable IDs.
 19. `DamagePopupPolicyResolver` reads `DamagePopupPolicyProfile.asset` through `DamagePopupSettings.asset` when the profile is assigned, so popup policy tuning does not require code changes.
 20. `ProjectileHitDetector` handles tracked target, trigger/collision, and movement raycast hit paths.
 21. Damage receivers spawn damage popups where appropriate.
+22. `TurretDamageMeterSource` is attached per turret instance and is carried through `DamageInfo` plus Poison, Electro, Ignition, and Frost payloads so delayed damage stays credited to the original turret.
+23. Damage receivers report only actual HP loss (`beforeHp - afterHp`) to `TurretDamageMeterManager`, so overkill is excluded from the damage meter.
+
+## Runtime Damage Meter
+
+- `TurretDamageMeterManager` owns wave-scoped turret damage totals and keeps previous-wave values visible until the first damage of the next wave is reported.
+- The first damage in a new wave resets all currently installed turret entries to `0` and then applies that first actual damage.
+- Removed, sold, disabled, or evolved-away turret instances unregister their source and disappear from the meter. Evolved turrets register as new separate entries.
+- Ranking is sorted every `0.25` seconds, while text and bar UI refresh is intended for `0.15` second cadence.
+- Row movement is handled by `TurretDamageMeterRowUI` with `Mathf.SmoothDamp` in `Update`; do not add `Vertical Layout Group` to the row root.
+- Bars use first-place-relative fill ratio, while percent text uses total installed turret damage share.
+- `TurretDamageMeterColorProfileSO` maps turret definitions or stable `turretId` values to bar colors. Direct `TurretDefinitionSO` reference rules take priority, then `turretId`, then fallback color.
+- Create the color profile from `Project Z Defense/UI/Turret Damage Meter Color Profile` and assign it to `TurretDamageMeterUI.colorProfile`.
+- If the install cap ever exceeds eight, the manager can keep all entries and the UI can display only the configured top row limit.
 
 ## Beam Attack Runtime Flow
 
@@ -120,6 +134,7 @@ Current implementation:
 - Uses `Gun.muzzleObject` as the start point. If this reference is wrong, the beam starts from the turret base or mesh instead of the real muzzle.
 - Keeps the beam VFX active between fire requests while the current target remains alive and in range.
 - Updates beam start, direction, length, beam target, and hit effect every frame.
+- Can require muzzle-to-target alignment before showing the beam and applying beam damage. Use this for beam turrets whose visual beam should not appear before the rotating head has caught up to a new target. Current Frost_Turret enables this gate.
 - Uses `TargetFinder.radius` and `TargetFinder.useHorizontalDistance` to validate whether the current beam target is still in range.
 - Applies damage ticks through `BeamAttackProfileSO`.
 - Uses non-alloc physics buffers for pierce-line damage checks.
@@ -150,7 +165,7 @@ Frost status handling:
 - `BossZombie.ApplyFrostSpeedMultiplier` clamps the applied Frost speed multiplier to at least `0.5`, so Frost can slow bosses by up to 50% but cannot fully stop their movement or attack animation.
 - `BossZombie.UpdateMoveAnimatorSpeed` must not write `agent.speed` back into the Animator `speed` parameter. `agent.speed` is only an indirect navigation value from `NavigateToTargetAction`; using it as the root-motion speed source disconnects runtime Frost multipliers from actual movement.
 - `FrostStatusRuntime.IsFreezeRetargetSuppressed` becomes true only for freeze-capable targets after freeze starts or while the per-target freeze cooldown remains. Slow buildup alone does not suppress targeting.
-- `FrostFreezeSuppressedTargetCandidateFilter` lets `Frost_Turret` stop retargeting enemies that are already frozen or waiting for their next freeze eligibility window. Bosses are not excluded because Boss Frost is slow-only.
+- `FrostFreezeSuppressedTargetCandidateFilter` lets `Frost_Turret` keep an actively Frost-slowed current target until freeze triggers, then release enemies that are already frozen or waiting for their next freeze eligibility window on the next fire/search tick. Bosses are not excluded because Boss Frost is slow-only.
 - `FrostStatusEffectUtility` owns freeze effect spawning and non-alloc overlap explosion damage so future Frost skills can reuse the same explosion behavior.
 - `FrostFreezeExplosionDamageTimer` keeps `Ice_Cubes_Explosion` following the original frozen target while it is alive and delays explosion damage so the damage lands at the current effect position when the visual burst happens.
 - `FrostStatusRuntime` keeps the active `Ice_Cubes_Explosion` handle and cancels the effect plus pending explosion damage when the original frozen target dies or is reset for pooling.
@@ -199,8 +214,8 @@ Enemy Frost visual setup:
 - `freezeEffectPrefab` is owned by the attack/status profile, not by every zombie prefab. Zombies only provide receiver logic and effect position.
 - `freezeDeathEffectPrefab` is also owned by the Frost status profile and should be assigned when frozen-target deaths need an extra visual burst after `Ice_Cubes_Explosion` is cancelled.
 - Frost timers are updated by `FrostStatusRuntime.Tick` from each zombie's existing `Update` path and reset on spawn, despawn, and death.
-- Current `Frost_Turret.prefab` connects `FrostFreezeSuppressedTargetCandidateFilter` to `TargetFinder.targetCandidateFilterBehaviours` so it looks for a new freeze candidate after a normal zombie has already triggered freeze.
-- `FrostFreezeSuppressedTargetCandidateFilter` exposes its exclude conditions in the Inspector (`excludeFrozenTargets`, `excludeFreezeCooldownTargets`) so designers can verify the Frost targeting policy directly on the turret prefab.
+- Current `Frost_Turret.prefab` connects `FrostFreezeSuppressedTargetCandidateFilter` to `TargetFinder.targetCandidateFilterBehaviours` so it keeps a partially frozen current target until freeze, then forces the current target to be released on the next fire/search tick after a normal zombie has already triggered freeze.
+- `FrostFreezeSuppressedTargetCandidateFilter` exposes its retain/exclude conditions in the Inspector (`retainActiveFrostTargetUntilFreeze`, `excludeFrozenTargets`, `excludeFreezeCooldownTargets`) so designers can verify the Frost targeting policy directly on the turret prefab.
 
 Poison status handling:
 
@@ -417,7 +432,7 @@ Poison performance notes:
 - Target exclusion filters are checked only during `TargetFinder.FindNearestTarget`, not every frame for every zombie.
 - Area Poison uses a fixed collider buffer and does not allocate via `Physics.OverlapSphere`.
 - Burst VFX should be backed by `PoolObject`/`MemoryPool` when the chain setting is enabled for production waves.
-- Avoid enabling verbose target debug logs in normal play because candidate loops can produce many messages.
+- `TargetFinder.showDebug` is intended for scene debug lines. Candidate-loop console logs should stay disabled or one-shot only because repeated target scans can otherwise produce many messages.
 
 ## Poison Projectile Setup
 
@@ -677,8 +692,9 @@ Ignition status handling:
 - `IgnitionStatusProfileSO` stores Ignition base burn values (`damageMultiplier`, `maxHpDamageRatioPerTick`, `tickInterval`, `duration`, `maxStackCount`, `stackRefreshMode`, reaction burn values, `bossDamageMultiplier`, `interactionFlags`).
 - `Ignition_Turret_Stat Growth Profile SO` uses `IgnitionTurretStatGrowthProfileSO` and owns Ignition-specific scaling for max-HP burn ratio, burn duration, reaction max-HP burn ratio, and reaction tick interval. Common `targetDamageAtMaxLevel`, `rangePerLevel`, and `fireIntervalReductionPerLevel` can stay flat when Ignition DPS is driven by max-HP burn instead of `damage / fireInterval`.
 - `Ignition_Turret_Definition.ignitionStatusProfile` points to the active Ignition status profile. The runtime `IgnitionDamageApplier` receives the profile, level, and growth profile through `ITurretStatusProfileReceiver`; the prefab-local `IgnitionDamageApplier.ignitionStatusProfile` field can stay empty.
-- `IgnitionConeDetector` owns the cone overlap check using non-alloc physics. `IgnitionDamageApplier` applies the resulting payload to targets implementing `ProjectZDefense.StatusEffects.IIgnitionStatusEffectReceiver`.
+- `IgnitionConeDetector` owns the cone overlap check using non-alloc physics. `IgnitionDamageApplier` applies the resulting payload to targets implementing `ProjectZDefense.StatusEffects.IIgnitionStatusEffectReceiver`, but only while `BeamFiringEvent.HasActiveBeamVisual()` reports that the flame VFX is actually visible.
 - `IgnitionConeDetector.range` is fixed at `18` for Ignition_Turret. `TurretStatProfileSO.range` is also set to `18` only for targeting/selection consistency; range growth does not drive the flame cone.
+- `IgnitionBurningTargetCandidateFilter` is assigned to `Ignition_Turret` so enemies that are not currently burning are preferred. Burning enemies remain fallback targets when no non-burning target is available.
 - `NormalZombie` and `BossZombie` implement `ProjectZDefense.StatusEffects.IIgnitionStatusEffectReceiver` and delegate duration, tick timer, and stack count to `IgnitionStatusRuntime`.
 - `IgnitionStatusRuntime` reports burn active/inactive state to `StatusEffectVisualController`; zombies do not directly instantiate or configure mesh fire VFX.
 - Ignition tick damage prefers `maxHpDamageRatioPerTick` when it is greater than `0`. If it is `0`, the runtime falls back to `damagePerSecond * tickInterval`.
@@ -893,7 +909,7 @@ Engineer buff policy:
 - `TargetFinder` can ignore `ObstacleBuildSlot` helper colliders, placed `Obstacle` colliders, and an additional ignore layer mask during line-of-sight checks so defense-line barricades do not hide zombies from turret targeting.
 - `TargetFinder.aimHeightRatio` controls where inside the target collider height the turret aims and runs line-of-sight checks. Keep the default `0.35` for existing turrets. Current `Poison_Turret` intentionally uses `0` because play-mode testing showed the projectile firing angle is more stable with that value.
 - `IAimPointProvider` lets zombie roots return cached aim points, avoiding repeated child-collider searches from turret aim/prediction paths.
-- `TargetFinder.targetCandidateFilterBehaviours` can connect project-owned `ITargetCandidateFilter` components. `PoisonLethalTargetCandidateFilter` is intended for `Poison_Turret` only and skips targets whose remaining Poison ticks already guarantee death. `FrostFreezeSuppressedTargetCandidateFilter` is intended for `Frost_Turret` only and skips freeze-capable targets that are already frozen or still inside their per-target freeze cooldown.
+- `TargetFinder.targetCandidateFilterBehaviours` can connect project-owned `ITargetCandidateFilter` components. `PoisonLethalTargetCandidateFilter` is intended for `Poison_Turret` only and skips targets whose remaining Poison ticks already guarantee death. `FrostFreezeSuppressedTargetCandidateFilter` is intended for `Frost_Turret` only and retains actively Frost-slowed current targets until freeze while skipping and releasing freeze-capable targets that are already frozen or still inside their per-target freeze cooldown.
 - `Turret` smooths target aim point and target velocity prediction, ignores vertical prediction by default, and uses `TurretLeadPredictionUtility` to aim at an estimated projectile/target intercept point.
 - Prediction lead time can scale from slow-projectile long lead to fast-projectile short lead, improving low-speed projectile hit rate without making laser-speed shots over-lead visibly.
 - `Turret` staggers its first target search within `targetSearchInterval` so many turrets do not all run physics target scans on the same frame.
@@ -955,7 +971,7 @@ Engineer buff policy:
 | Electro_Turret | `PS_Lightining_Impac`, `Stun 1` | `ElectroStatusRuntime` Overload branch | Global `MemoryPool` effects. Prefab roots should keep `PoolObject` and `PooledEffectReturner`; prewarm for expected simultaneous Overload bursts. |
 | Electro_Turret | `Volt Sphere 1` | `ElectroStatusRuntime` on the target | Target-owned Shock stack orbit visual. Do not register in global `MemoryPool`; assign an Electro visual prewarm profile on enemy prefabs so up to three inactive instances are created on enemy initialization. |
 | Electro_Turret | `FX_Electricity_02 1` | Enemy `StatusEffectVisualController` | Target-owned stun visual slot. Do not register in global `MemoryPool`; prewarm through `StatusEffectVisualController.prewarmVisualTypes`. |
-| Ignition_Turret | Ignition beam prefab from `VFX_Ignition_Turret` | `BeamFiringEvent` under the three flame nozzles | Not registered in global `MemoryPool`. `prewarmBeamOnEnable` creates one beam instance per configured gun/muzzle, currently three total, before the first flame attack. |
+| Ignition_Turret | Ignition beam prefab from `VFX_Ignition_Turret` | `BeamFiringEvent` under the three flame nozzles | Not registered in global `MemoryPool`. `prewarmBeamOnEnable` creates one beam instance per configured gun/muzzle, currently three total, before the first flame attack. `IgnitionDamageApplier` gates cone burn damage through active flame VFX visibility. |
 | Ignition_Turret | `MeshFX_Fire 1`, `Fire_cartoon_fire 1` | Enemy `StatusEffectVisualController` | Target-owned burn visuals. Do not register in global `MemoryPool`; prewarm through `StatusEffectVisualController.prewarmVisualTypes`. `MeshFX_Fire 1` stays active during reaction burn. |
 | Ignition_Turret | `Fire_cartoon_electric 1`, `Fire_cartoon_frost 1`, `Fire_cartoon_poison 1` | Enemy `StatusEffectVisualController` | Target-owned reaction visuals. Do not register in global `MemoryPool`; prewarm through `StatusEffectVisualController.prewarmVisualTypes` and activate only the fixed reaction type. |
 | Ignition_Turret | `Effect_02/03/04_deathvfx 1` | None | Deprecated unused assets. They were moved under the Ignition status-effect `Unused` folder and are not part of the active pooling policy. |

@@ -37,6 +37,10 @@ public class GameManager : MonoBehaviour
     [Header("방어선")]
     [SerializeField] private List<DefenseLineEntry> defenseLines = new List<DefenseLineEntry>(DEFAULT_DEFENSE_LINE_COUNT);
 
+    [Header("터렛 베이스 테스트")]
+    [Tooltip("테스트 중 장애물이 파괴되어 방어선이 붕괴되어도 연결된 터렛 베이스를 비활성화하지 않습니다.")]
+    [SerializeField] private bool keepTurretBasesActiveWhenObstacleBroken;
+
     [Header("게임오버")]
     [SerializeField] private GameOverPanelUI gameOverPanelUI;
     [SerializeField, Min(0.0f)] private float gameOverFadeInDuration = 10.0f;
@@ -72,6 +76,7 @@ public class GameManager : MonoBehaviour
     public float StartTimeScale => startTimeScale;
     public float CurrentTimeScale => Time.timeScale;
     public bool IsWaveProgressionPaused => isWaveProgressionPaused;
+    public bool KeepTurretBasesActiveWhenObstacleBroken => keepTurretBasesActiveWhenObstacleBroken;
 
     // 인스펙터 값이 유효 범위를 벗어나지 않도록 보정한다
     private void OnValidate()
@@ -172,6 +177,27 @@ public class GameManager : MonoBehaviour
         baseFixedDeltaTime = Mathf.Max(MIN_FIXED_DELTA_TIME, baseFixedDeltaTime);
         Time.timeScale = startTimeScale;
         Time.fixedDeltaTime = baseFixedDeltaTime * startTimeScale;
+    }
+
+    [ContextMenu("테스트/장애물 파괴 시 터렛 베이스 유지 켜기")]
+    // 테스트 중 장애물 파괴에도 터렛 베이스가 유지되도록 설정한다
+    public void EnableKeepTurretBasesActiveWhenObstacleBroken()
+    {
+        SetKeepTurretBasesActiveWhenObstacleBroken(true);
+    }
+
+    [ContextMenu("테스트/장애물 파괴 시 터렛 베이스 유지 끄기")]
+    // 테스트 중 장애물 파괴 시 터렛 베이스 비활성화를 다시 허용한다
+    public void DisableKeepTurretBasesActiveWhenObstacleBroken()
+    {
+        SetKeepTurretBasesActiveWhenObstacleBroken(false);
+    }
+
+    // 장애물 파괴 시 터렛 베이스 유지 옵션을 변경하고 현재 방어선 상태에 즉시 반영한다
+    public void SetKeepTurretBasesActiveWhenObstacleBroken(bool isEnabled)
+    {
+        keepTurretBasesActiveWhenObstacleBroken = isEnabled;
+        RefreshTurretBaseStatesAfterTestPolicyChanged();
     }
 
     // 생존자를 방어선 이벤트 수신 대상으로 등록한다
@@ -703,6 +729,7 @@ public class GameManager : MonoBehaviour
             return;
         }
 
+        bool targetAvailable = isAvailable || keepTurretBasesActiveWhenObstacleBroken;
         for (int i = defenseLine.turretBaseSlots.Count - 1; i >= 0; i--)
         {
             TurretBaseSlot turretBaseSlot = defenseLine.turretBaseSlots[i];
@@ -712,7 +739,27 @@ public class GameManager : MonoBehaviour
                 continue;
             }
 
-            turretBaseSlot.SetDefenseLineAvailable(isAvailable);
+            turretBaseSlot.SetDefenseLineAvailable(targetAvailable);
+        }
+    }
+
+    // 테스트 정책 변경 후 현재 방어선 붕괴 상태에 맞춰 터렛 베이스 표시를 다시 계산한다
+    private void RefreshTurretBaseStatesAfterTestPolicyChanged()
+    {
+        if (defenseLines == null)
+        {
+            return;
+        }
+
+        for (int i = 0; i < defenseLines.Count; i++)
+        {
+            DefenseLineEntry defenseLine = defenseLines[i];
+            if (defenseLine == null)
+            {
+                continue;
+            }
+
+            ApplyDefenseLineTurretBaseState(i, !defenseLine.isBreached);
         }
     }
 

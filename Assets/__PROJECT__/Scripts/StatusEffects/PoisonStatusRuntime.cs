@@ -142,7 +142,7 @@ public sealed class PoisonStatusRuntime : MonoBehaviour
             poisonStatusPayload.maxHpDamageRatioPerTick,
             poisonStackCount,
             GetDamageMultiplier());
-        damageable.TakeDamage(new DamageInfo(damage, DamagePopupType.Normal, DamagePopupPolicyResolver.ResolveDamageOverTime()));
+        damageable.TakeDamage(new DamageInfo(damage, DamagePopupType.Normal, DamagePopupPolicyResolver.ResolveDamageOverTime(), poisonStatusPayload.damageSource));
     }
 
     // 남은 Poison 틱데미지 총합이 현재 체력을 넘는지 확인한다

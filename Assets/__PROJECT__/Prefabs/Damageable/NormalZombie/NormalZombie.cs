@@ -338,9 +338,12 @@ public class NormalZombie : PoolObject, IDamageable, IAimPointProvider, IFrostSt
             return;
         }
 
-        float appliedDamage = Mathf.Max(0f, damageInfo.Damage);
-        CurrHp -= appliedDamage;
+        float beforeHp = CurrHp;
+        float requestedDamage = Mathf.Max(0f, damageInfo.Damage);
+        CurrHp -= requestedDamage;
         CurrHp = Mathf.Clamp(CurrHp, 0f, TotalHp);
+        float appliedDamage = Mathf.Max(0f, beforeHp - CurrHp);
+        TurretDamageMeterManager.ReportDamage(damageInfo.DamageSource, appliedDamage);
         hpUI.gameObject.SetActive(true);
         hpUI.InputCurrHp(CurrHp);
 
@@ -349,7 +352,7 @@ public class NormalZombie : PoolObject, IDamageable, IAimPointProvider, IFrostSt
             //Debug.Log($"[NormalZombie] Damage:{appliedDamage:0.###}, HP:{CurrHp:0.###}/{TotalHp:0.###}", this);
         }
 
-        DamagePopupSpawner.SpawnDamage(transform, new DamageInfo(appliedDamage, damageInfo.PopupType, damageInfo.PopupPolicy), DamagePopupTargetType.NormalZombie);
+        DamagePopupSpawner.SpawnDamage(transform, new DamageInfo(appliedDamage, damageInfo.PopupType, damageInfo.PopupPolicy, damageInfo.DamageSource), DamagePopupTargetType.NormalZombie);
 
         if (CurrHp > 0f && poisonStatusRuntime != null && poisonStatusRuntime.IsActive)
         {

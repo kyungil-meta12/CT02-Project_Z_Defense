@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 public enum ContentType
@@ -27,7 +28,7 @@ public struct ContentData
 public class CellData {
     public RewardCurrencyType Type;
     public Image CellImage;
-    public TextMeshProUGUI CellCountText;
+    public TextMeshProUGUI CellText;
 }
 
 // 각 셀 버튼이 가지는 정보를 다루는 클래스
@@ -124,22 +125,33 @@ public class InventoryUI : MonoBehaviour
     [Header("분해 아이템 셀 프리펩")] public GameObject decomposeCellPrefab;
     [Header("크래프트 필요 아이템 표시기 프리펩")] public GameObject craftCellNeedInfoPrefab;
 
+    [Header("제작 버튼 객체")] public Button makeButton;
+    [Header("분해 버튼 객체")] public Button decomposeButton;
+
     [Header("아이템 보유량 텍스트 객체")] public TextMeshProUGUI itemCountText;
     [Header("아이템 이름 텍스트 객체")] public TextMeshProUGUI itemNameText;
     [Header("아이템 정보 텍스트 객체")] public TextMeshProUGUI itemInfoText;
     [Header("아이템 정보 이미지")] public Image itemInfoImage;
 
     [Header("아이템 표시기 객체 목록")] public GameObject[] itemViewerList;
+    [Header("아이템 표시기 테두리 객체")] public Image itemViewerRect;
 
     [Header("패널 텍스트 객체")] public TextMeshProUGUI pannelTitletext;
 
     [Header("선택된 탭 색상")] public Color selectedTabColor;
     [Header("선택된 셀 색상")] public Color selectedCellColor;
+    [Header("비활성화 버튼 색상")] public Color disableButtonColor;
 
     [Header("절전 전환 버튼")] public GameObject powerSavingSwitchButton;
 
     [Header("자동 실행 진입 시간")] public float autoExecuteEnterTime;
     [Header("자동 실행 간격")] public float autoExecuteInterval;
+
+    private EventTrigger makeButtonEvent;
+    private TextMeshProUGUI makeButtonText;
+    private EventTrigger decomposeButtonEvent;
+    private TextMeshProUGUI decomposeButtonText;
+
 
     // 현재 패널 콘텐츠
     private ContentType currentContent;
@@ -165,9 +177,13 @@ public class InventoryUI : MonoBehaviour
     // 원본 셀 버튼 색상
     private Color originCellColor;
 
+    // 현재  아이템 뷰어 테두리 색상 값
+    private Color currRectColor = Color.white;
+
     // 열려있는가?
     private bool openState = false;
 
+    // 제작/분해 버튼 자동 실행
     ButtonAutoExecute makeAutoExecute = new();
     ButtonAutoExecute decompAutoExecute = new();
 
@@ -181,6 +197,17 @@ public class InventoryUI : MonoBehaviour
         decompAutoExecute.SetExecuteEnterTime(autoExecuteEnterTime);
         decompAutoExecute.SetExecuteInterval(autoExecuteInterval);
         decompAutoExecute.RegisterAction(DecomposeItem);
+
+        var buttonColor = makeButton.colors;
+        buttonColor.disabledColor = disableButtonColor;
+
+        makeButton.colors = buttonColor;
+        makeButtonEvent = makeButton.GetComponent<EventTrigger>();
+        makeButtonText = makeButton.GetComponentInChildren<TextMeshProUGUI>();
+
+        decomposeButton.colors = buttonColor;
+        decomposeButtonEvent = decomposeButton.GetComponent<EventTrigger>();
+        decomposeButtonText = decomposeButton.GetComponentInChildren<TextMeshProUGUI>();
 
         // 딕셔너리에 패널 컨텐츠 정보 저장
         foreach (var c in contentList)
@@ -215,7 +242,7 @@ public class InventoryUI : MonoBehaviour
             var cellData = invenDict.Cell[buttonComp];
             cellData.Type = type;
             cellData.CellImage = imageComp;
-            cellData.CellCountText = textComp;
+            cellData.CellText = textComp;
         }
 
         // 분해 셀 생성
@@ -245,7 +272,7 @@ public class InventoryUI : MonoBehaviour
             var cellData = decompDict.Cell[buttonComp];
             cellData.Type = type;
             cellData.CellImage = imageComp;
-            cellData.CellCountText = textComp;
+            cellData.CellText = textComp;
         }
 
         // 아이템 중에서 제작 가능한 아이템 종류 개수 만큼 크래프트 셀을 생성한다.
@@ -277,7 +304,8 @@ public class InventoryUI : MonoBehaviour
             craftDict.Cell.Add(buttonComp, new CellData());
             var cellData = craftDict.Cell[buttonComp];
             cellData.Type = type;
-            // 크래프트 셀은 수량에 상관없이 항상 같은 이미지 상태를 유지하고 보유량을 표시하지 않기 때문에 타입을 제외한 나머지 데이터는 저장하지 않는다.
+            cellData.CellImage = imageComp;
+            cellData.CellText = buttonComp.transform.Find("ItemName").GetComponent<TextMeshProUGUI>();
         }
 
         // 제작 아이템 표시기 초기화
@@ -302,6 +330,19 @@ public class InventoryUI : MonoBehaviour
     {
         makeAutoExecute.Update();
         decompAutoExecute.Update();
+
+        // 아이템 뷰어 테두리 색상 피드백 업데이트
+        currRectColor.r += Time.deltaTime * 2f;
+        currRectColor.g += Time.deltaTime * 2f;
+        currRectColor.b += Time.deltaTime * 2f;
+        Mathf.Clamp(currRectColor.r, 0f, 1f);
+        Mathf.Clamp(currRectColor.g, 0f, 1f);
+        Mathf.Clamp(currRectColor.b, 0f, 1f);
+
+        if (itemViewerRect.gameObject.activeInHierarchy)
+        {
+            SetImageColor(itemViewerRect, currRectColor);
+        }
     }
 
     // 아이템 개수가 변경 될 때마다 아이템에 해당하는 인덱스의 정보를 업데이트 한다.
@@ -400,6 +441,9 @@ public class InventoryUI : MonoBehaviour
 
         // 한 번 크래프트 아이템 셀을 터치하면 분해 버튼이 다시 활성화 된다.
         contentDict[ContentType.Decompose].FunctionButton.gameObject.SetActive(true);
+           
+        // 테두리 활성화
+        itemViewerRect.gameObject.SetActive(true);
     }
 
     /// <summary>
@@ -414,6 +458,7 @@ public class InventoryUI : MonoBehaviour
         }
         SetButtonColor(button, selectedCellColor);
         selectedCell = button;
+        itemViewerRect.gameObject.SetActive(true);
 
         var cell = cellDict[ContentType.Craft].Cell;
         selectedType = cell[button].Type;
@@ -434,6 +479,7 @@ public class InventoryUI : MonoBehaviour
             SetImageVisibility(image, true);
 
             // 각 필요 아이템에 대해서도 실시간으로 보유량을 표시하기 위해 딕셔너리에 데이터 추가 후 반영
+            // 하나라도 아이템 개수가 모자라면 제작 버튼 비활성화
             needItemData.Add(needItems[i].Type, needItems[i]);
             needItemText.Add(needItems[i].Type, text);
             UpdateNeedItemData(needItems[i].Type);
@@ -441,6 +487,9 @@ public class InventoryUI : MonoBehaviour
 
         // 한 번 크래프트 아이템 셀을 터치하면 작업 버튼이 다시 활성화 된다.
         contentDict[ContentType.Craft].FunctionButton.gameObject.SetActive(true);
+
+        // 테두리 활성화
+        itemViewerRect.gameObject.SetActive(true);
     }
 
     public void OnInventoryTabClick()
@@ -500,32 +549,21 @@ public class InventoryUI : MonoBehaviour
     /// </summary>
     public void DecomposeItem()
     {
-        if(!selectedCell)
-        {
-            Debug.LogWarning("[InventoryUI] 아이템이 선택되지 않음");
-            WarningPopupManager.ShowWarningForDuration("선택된 아이템이 없습니다.", 1f);
-            return;
-        }
-        if (InventorySystem.Inst.GetCount(selectedType) == 0)
-        {
-            Debug.LogWarning("[InventoryUI] 아이템이 부족함");
-            WarningPopupManager.ShowWarningForDuration("아이템 보유량이 부족합니다.", 1f);
-            return;
-        }
-
         var metaData = InventorySystem.Inst.GetMetaData(selectedType);
         var decompItems = metaData.ItemsFromDecompose;
-
-        // 분해 시 각 아이템마다 랜덤 개수를 인벤토리에 추가하고, 분해 대상 아이템을 1 소모한다.
         foreach(var item in decompItems)
         {
             var randomCount = UnityEngine.Random.Range(item.Min, item.Max + 1);
             InventorySystem.Inst.AddItem(item.Type, randomCount);
         }
-
+        
+        // 분해된 아이템 획득
         InventorySystem.Inst.UseItem(selectedType, 1);
-
         print("[InventoryUI] 아이템 분해 완료");
+
+        // 피드백 표시
+        SetImageColor(itemViewerRect, Color.green);
+        currRectColor = Color.green;
     }
 
     /// <summary>
@@ -533,28 +571,8 @@ public class InventoryUI : MonoBehaviour
     /// </summary>
     private void MakeItem()
     {
-        // 가장 최근에 선택된 타입으로 제작 실행
-        if (!selectedCell)
-        {
-            Debug.LogWarning("[InventoryUI] 아이템이 선택되지 않음");
-            WarningPopupManager.ShowWarningForDuration("선택된 아이템이 없습니다.", 1f);
-            return;
-        }
         var metaData = InventorySystem.Inst.GetMetaData(selectedType);
         var needItems = metaData.ItemsToCreate;
-
-        // 각 필요 아이템마다 보유량이 충분한지 검사
-        foreach (var item in needItems)
-        {
-            if (!InventorySystem.Inst.CanUseItem(item.Type, item.Count))
-            {
-                Debug.LogWarning($"[InvectoryUI] 아이템이 부족하여 제작할 수 없음 | 부족한 아이템: {item.Type} | 필요 개수: {item.Count} | 현재 개수: {InventorySystem.Inst.GetCount(item.Type)}");
-                WarningPopupManager.ShowWarningForDuration("아이템 보유량이 부족합니다.", 1f);
-                return;
-            }
-        }
-
-        // 여기까지 도달하면 최종적으로 아이템을 제작할 수 있다는 의미이므로 검사 없이 아이템 소모 실행
         foreach(var item in needItems)
         {
             InventorySystem.Inst.UseItem(item.Type, item.Count);
@@ -563,6 +581,10 @@ public class InventoryUI : MonoBehaviour
         // 아이템 제작
         InventorySystem.Inst.AddItem(selectedType, metaData.CountPerCraft);
         Debug.Log($"[InventoryUI] 아이템 제작 완료 |  아이템: {selectedType}");
+
+        // 피드백 표시
+        SetImageColor(itemViewerRect, Color.green);
+        currRectColor = Color.green;
     }
 
     /// <summary>
@@ -574,7 +596,7 @@ public class InventoryUI : MonoBehaviour
         decomposeItemText.Clear();
         needItemData.Clear();
         needItemText.Clear();
-        foreach(var viwer in itemViewerList)
+        foreach (var viwer in itemViewerList)
         {
             viwer.SetActive(false);
         }
@@ -586,7 +608,7 @@ public class InventoryUI : MonoBehaviour
     /// <param name="type"></param>
     private void UpdateNeedItemData(RewardCurrencyType type)
     {
-        if(needItemData.Count == 0)
+        if(needItemData.Count == 0 || currentContent != ContentType.Craft)
         {
             return;
         }
@@ -598,6 +620,18 @@ public class InventoryUI : MonoBehaviour
 
             // 개수가 부족하면 빨간색으로 표시한다.
             needItemText[type].color = hadItemEnough ? Color.white : Color.softRed;
+
+            bool itemEnough = true;
+            foreach (var need in needItemData)
+            {
+                if (need.Value.Count > InventorySystem.Inst.GetCount(need.Key))
+                {
+                    itemEnough = false;
+                }
+            }
+
+            // 필요 아이템 중에 하나라도 부족하면 제작 버튼 비활성화
+            SetTextButtonEnable(makeButton, makeButtonEvent, makeButtonText, itemEnough);
         }
     }
 
@@ -616,15 +650,28 @@ public class InventoryUI : MonoBehaviour
             var decompData = decomposeItemData[type];
             if(decompData.Min == decompData.Max)
             {
-                decomposeItemText[type].text = "+ " + decompData.Min.ToString();
+                decomposeItemText[type].text = " + " + decompData.Min.ToString();
             }
             else
             {
-
-                decomposeItemText[type].text = "+ " + decompData.Min.ToString() + "~" + decompData.Max.ToString();
+                decomposeItemText[type].text = " + " + decompData.Min.ToString() + " ~ " + decompData.Max.ToString();
             }
             decomposeItemText[type].color = Color.white;
         }
+
+        // 아이템을 소지하고 있지 않다면 분해 버튼을 비활성화 한다.
+        SetTextButtonEnable(decomposeButton, decomposeButtonEvent, decomposeButtonText, InventorySystem.Inst.HasItem(type));
+    }
+
+    /// <summary>
+    /// 텍스트가 있는 버튼의 상호작용 상태를 변경한다.
+    /// </summary>
+    /// <param name="flag"></param>
+    private void SetTextButtonEnable(Button button, EventTrigger event_, TextMeshProUGUI text, bool flag)
+    {
+        button.interactable = flag;
+        event_.enabled = button.interactable;
+        text.color = button.interactable ? Color.white : button.colors.disabledColor;
     }
 
     /// <summary>
@@ -651,6 +698,16 @@ public class InventoryUI : MonoBehaviour
         color.g = brightness;
         color.b = brightness;
         image.color = color;
+    }
+
+    /// <summary>
+    /// 이미지 색상을 설정한다.
+    /// </summary>
+    /// <param name="image"></param>
+    /// <param name="color_"></param>
+    private void SetImageColor(Image image, Color color_)
+    {
+        image.color = color_;
     }
 
     /// <summary>
@@ -810,26 +867,49 @@ public class InventoryUI : MonoBehaviour
         pannelTitletext.text = pannelTitle;
         currentContent = type;
 
+        SetTextButtonEnable(makeButton, makeButtonEvent, makeButtonText, false);
+        SetTextButtonEnable(decomposeButton, decomposeButtonEvent, decomposeButtonText, false);
+        itemViewerRect.gameObject.SetActive(false);
+
         UpdateCells();
     }
 
     private void UpdateCells()
     {
-        if(currentContent == ContentType.Craft) //크래프트 셀은 보유량을 표시하지 않기 때문에 생략한다.
-        {
-            return;
-        }
-
         // 보유하고 있지 않은 아이템은 어둡게 처리한다.
         // 보유하고 있지 않은 아이템은 보유량 텍스트를 빨강색으로 표시한다.
         // 보유량 텍스트를 업데이트 한다.
         var cellData = cellDict[currentContent].Cell;
-        foreach (var cell in cellData)
+        if(currentContent != ContentType.Craft)
         {
-            bool hasItem = InventorySystem.Inst.HasItem(cell.Value.Type);
-            SetImageBrightness(cell.Value.CellImage, hasItem ? HAS_ITEM_BRIGHTNESS : NO_ITEM_BRIGHTNESS);
-            cell.Value.CellCountText.text = InventorySystem.Inst.GetCountString(cell.Value.Type);
-            cell.Value.CellCountText.color = hasItem ? Color.white : Color.softRed;
+            foreach (var cell in cellData)
+            {
+                bool hasItem = InventorySystem.Inst.HasItem(cell.Value.Type);
+                SetImageBrightness(cell.Value.CellImage, hasItem ? HAS_ITEM_BRIGHTNESS : NO_ITEM_BRIGHTNESS);
+                cell.Value.CellText.text = InventorySystem.Inst.GetCountString(cell.Value.Type);
+                cell.Value.CellText.color = hasItem ? Color.white : Color.softRed;
+            }
+        }
+        else
+        {
+            foreach(var cell in cellData)
+            {
+                var metaData = InventorySystem.Inst.GetMetaData(cell.Value.Type);
+                var needItems = metaData.ItemsToCreate;
+                bool itemEnough = true;
+                foreach (var items in needItems) // 아이템이 부족해서 제작이 불가능한 아이템은 아이콘을 어둡게 표시하고 텍스트를 빨간색으로 표시한다.
+                {
+                    if(InventorySystem.Inst.GetCount(items.Type) < items.Count)
+                    {
+                        itemEnough = false;
+                        break;
+                    }
+                }
+
+                cell.Value.CellText.color = itemEnough ? Color.white : Color.softRed;
+                SetImageBrightness(cell.Value.CellImage, itemEnough ? HAS_ITEM_BRIGHTNESS : NO_ITEM_BRIGHTNESS);
+            }
+
         }
     }
 }

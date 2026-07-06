@@ -51,6 +51,10 @@ public class CameraTouchHandler : MonoBehaviour, IPointerDownHandler, IPointerUp
         }
 
         Inst = this;
+    }
+
+    void Start()
+    {
         cam = Camera.main;
     }
 
@@ -90,11 +94,11 @@ public class CameraTouchHandler : MonoBehaviour, IPointerDownHandler, IPointerUp
             return;
         }
 
-        // if (IsBlockedByOtherUI(eventData))
-        // {
-        //     LogTouchDiagnostic("다른 UI가 포인터를 받고 있어 월드 터치를 처리하지 않습니다.");
-        //     return;
-        // }
+        if (float.IsInfinity(eventData.position.x) || float.IsInfinity(eventData.position.y) ||
+            float.IsNaN(eventData.position.x) || float.IsNaN(eventData.position.y))
+        {
+            return;
+        }
 
         Ray ray = cam.ScreenPointToRay(eventData.position);
         int hitCount = Physics.RaycastNonAlloc(ray, hitResult, Mathf.Infinity, raycastTargetLayer);

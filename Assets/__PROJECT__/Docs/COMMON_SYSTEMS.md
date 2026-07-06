@@ -26,6 +26,7 @@ Rules:
 - Repeated death handling must be guarded.
 - Implementations own their mutable HP state; external systems read state and call `TakeDamage(DamageInfo)` only.
 - `DamageInfo` carries the applied damage value, popup display type, and popup display policy used by damage feedback.
+- `DamageInfo.DamageSource` optionally carries the turret instance source used by the damage meter. Damage receivers should report actual HP loss to `TurretDamageMeterManager` only when this source is present.
 
 ## Status Effect Receivers
 

@@ -19,3 +19,12 @@ public interface ITargetCandidateFallbackFilter
     // 지정한 제외 후보를 일반 후보가 없을 때 fallback 타겟으로 사용할 수 있는지 확인한다
     bool ShouldAllowFallbackTarget(Transform targetTransform, IDamageable damageable);
 }
+
+/// <summary>
+/// 현재 타겟이 특정 상태일 때 더 가까운 후보가 있어도 타겟 전환을 미룰지 판단하는 선택 계약이다.
+/// </summary>
+public interface ITargetCandidateRetentionFilter
+{
+    // 지정한 현재 타겟을 계속 유지해야 하는지 확인한다
+    bool ShouldRetainCurrentTarget(Transform targetTransform, IDamageable damageable);
+}

@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 28db854c229931b498137181f212c559, type: 3}
-  m_Name: sentinel_01_Definition
+  m_Name: Sentinel_01_Definition
   m_EditorClassIdentifier: Assembly-CSharp::TurretDefinitionSO
   turretId: sentinel_01
   displayName: Sentinel-01

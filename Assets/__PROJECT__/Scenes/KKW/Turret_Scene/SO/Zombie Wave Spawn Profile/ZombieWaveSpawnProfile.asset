@@ -55,7 +55,7 @@ MonoBehaviour:
   stages:
   - minWave: 1
     maxWave: 10
-    spawnInterval: 3
+    spawnInterval: 2.5
     spawnCount: 10
     spawnBossAsLastEnemy: 0
     normalZombieEntries:

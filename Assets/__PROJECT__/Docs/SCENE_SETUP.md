@@ -85,6 +85,7 @@ Rules:
 - Existing scene obstacles should be moved under the correct `BuildPoint` or assigned through the slot's runtime reference.
 - `GameManager` should reference all seven slots through defense-line `obstacleSlots`.
 - `GameManager` should reference each line's matching turret bases through defense-line `turretBaseSlots`; disabling a base root also disables any installed turret under its `BuildPoint`.
+- For play-test sessions where obstacle destruction should not disable installed turrets, enable `GameManager.keepTurretBasesActiveWhenObstacleBroken`; keep it disabled for normal defense-line rules.
 - Startup defense-line initialization keeps turret bases enabled so players can place turrets before rebuilding or completing obstacle lines; explicit breach/restore events still toggle linked turret bases.
 
 ## Obstacle Placement UI Setup
@@ -173,7 +174,7 @@ Survivor movement depends on:
 Rescue and role UI setup:
 
 - Create a `SurvivorRescueSpawnProfileSO` asset from `Project Z Defense/Survivor Rescue Spawn Profile` and configure single wave numbers plus spawn chances.
-- Add `SurvivorRescueSpawner` to a scene object and assign `survivorPrefab`, `spawnProfile`, zombie-side `spawnPoints`, `finalRearPoint`, `hospitalPoint`, and `treatmentDuration`.
+- Add `SurvivorRescueSpawner` to a scene object and assign `enableRescueSpawn`, `survivorPrefab`, `spawnProfile`, zombie-side `spawnPoints`, `finalRearPoint`, `hospitalPoint`, and `treatmentDuration`.
 - If `spawnProfile` is missing, `SurvivorRescueSpawner.spawnChancePerWave` is used as a legacy fallback.
 - Add `SurvivorInteractionController` to an editor-authored popup UI object and assign `popupPanel`, `TMP_Text` labels, and `Button` references.
 - UI button labels should be English, such as `Treat`, `Construction Worker`, and `Engineer`.

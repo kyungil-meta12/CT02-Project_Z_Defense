@@ -1,0 +1,142 @@
+using System;
+using UnityEngine;
+using UnityEngine.Video;
+
+/// <summary>
+/// 터렛 트리 UI의 노드 표시 데이터, 프리뷰 영상, 상태별 색상을 관리한다.
+/// </summary>
+[CreateAssetMenu(menuName = "Project Z Defense/UI/Turret Tech Tree View Profile")]
+public class TurretTechTreeViewProfileSO : ScriptableObject
+{
+    [Header("기본 해금 루트")]
+    [SerializeField] private TurretDefinitionSO[] defaultUnlockedDefinitions = Array.Empty<TurretDefinitionSO>();
+
+    [Header("노드 표시 데이터")]
+    [SerializeField] private TurretTechTreeNodeViewData[] nodes = Array.Empty<TurretTechTreeNodeViewData>();
+
+    [Header("노드 색상")]
+    [SerializeField] private Color lockedNodeColor = new Color(0.35f, 0.37f, 0.42f, 0.38f);
+    [SerializeField] private Color blockedByLevelNodeColor = new Color(0.48f, 0.62f, 0.78f, 0.68f);
+    [SerializeField] private Color blockedByCostNodeColor = new Color(1.0f, 0.66f, 0.22f, 0.78f);
+    [SerializeField] private Color readyNodeColor = Color.white;
+    [SerializeField] private Color unlockedNodeColor = Color.white;
+
+    [Header("라인 색상")]
+    [SerializeField] private Color lockedLineColor = new Color(0.24f, 0.26f, 0.30f, 0.35f);
+    [SerializeField] private Color blockedByLevelLineColor = new Color(0.42f, 0.58f, 0.76f, 0.62f);
+    [SerializeField] private Color blockedByCostLineColor = new Color(1.0f, 0.66f, 0.22f, 0.66f);
+    [SerializeField] private Color readyLineColor = new Color(0.2f, 0.95f, 1.0f, 0.95f);
+    [SerializeField] private Color unlockedLineColor = new Color(0.75f, 0.95f, 1.0f, 0.9f);
+
+    [Header("상태 문구")]
+    [SerializeField] private string lockedText = "이전 터렛 필요";
+    [SerializeField] private string blockedByLevelText = "레벨 부족";
+    [SerializeField] private string blockedByCostText = "재료 부족";
+    [SerializeField] private string readyText = "진화 가능";
+    [SerializeField] private string unlockedText = "해금 완료";
+
+    public TurretDefinitionSO[] DefaultUnlockedDefinitions => defaultUnlockedDefinitions;
+    public TurretTechTreeNodeViewData[] Nodes => nodes;
+
+    // 지정 터렛 정의에 맞는 노드 표시 데이터를 찾는다
+    public TurretTechTreeNodeViewData FindNodeData(TurretDefinitionSO definition)
+    {
+        if (definition == null || nodes == null)
+        {
+            return null;
+        }
+
+        for (int i = 0; i < nodes.Length; i++)
+        {
+            TurretTechTreeNodeViewData node = nodes[i];
+            if (node != null && node.Definition == definition)
+            {
+                return node;
+            }
+        }
+
+        return null;
+    }
+
+    // 상태에 맞는 노드 색상을 반환한다
+    public Color GetNodeColor(TurretTechTreeNodeState state)
+    {
+        switch (state)
+        {
+            case TurretTechTreeNodeState.Unlocked:
+                return unlockedNodeColor;
+            case TurretTechTreeNodeState.Ready:
+                return readyNodeColor;
+            case TurretTechTreeNodeState.BlockedByCost:
+                return blockedByCostNodeColor;
+            case TurretTechTreeNodeState.BlockedByLevel:
+                return blockedByLevelNodeColor;
+            default:
+                return lockedNodeColor;
+        }
+    }
+
+    // 상태에 맞는 연결선 색상을 반환한다
+    public Color GetLineColor(TurretTechTreeNodeState state)
+    {
+        switch (state)
+        {
+            case TurretTechTreeNodeState.Unlocked:
+                return unlockedLineColor;
+            case TurretTechTreeNodeState.Ready:
+                return readyLineColor;
+            case TurretTechTreeNodeState.BlockedByCost:
+                return blockedByCostLineColor;
+            case TurretTechTreeNodeState.BlockedByLevel:
+                return blockedByLevelLineColor;
+            default:
+                return lockedLineColor;
+        }
+    }
+
+    // 상태에 맞는 안내 문구를 반환한다
+    public string GetStateText(TurretTechTreeNodeState state)
+    {
+        switch (state)
+        {
+            case TurretTechTreeNodeState.Unlocked:
+                return unlockedText;
+            case TurretTechTreeNodeState.Ready:
+                return readyText;
+            case TurretTechTreeNodeState.BlockedByCost:
+                return blockedByCostText;
+            case TurretTechTreeNodeState.BlockedByLevel:
+                return blockedByLevelText;
+            default:
+                return lockedText;
+        }
+    }
+
+    // 인스펙터 배열을 안전한 기본값으로 보정한다
+    private void OnValidate()
+    {
+        defaultUnlockedDefinitions = defaultUnlockedDefinitions ?? Array.Empty<TurretDefinitionSO>();
+        nodes = nodes ?? Array.Empty<TurretTechTreeNodeViewData>();
+    }
+}
+
+/// <summary>
+/// 터렛 트리 노드 하나의 표시용 에셋 참조와 보조 텍스트를 정의한다.
+/// </summary>
+[Serializable]
+public class TurretTechTreeNodeViewData
+{
+    [Header("터렛")]
+    [SerializeField] private TurretDefinitionSO definition;
+    [SerializeField] private Sprite overrideIcon;
+
+    [Header("미리보기")]
+    [SerializeField] private VideoClip previewClip;
+    [TextArea(2, 4)]
+    [SerializeField] private string previewDescription;
+
+    public TurretDefinitionSO Definition => definition;
+    public Sprite OverrideIcon => overrideIcon;
+    public VideoClip PreviewClip => previewClip;
+    public string PreviewDescription => previewDescription;
+}

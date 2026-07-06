@@ -8,11 +8,14 @@ public sealed class IgnitionDamageApplier : MonoBehaviour, ITurretRuntimeStatRec
 {
     [Header("감지 참조")]
     [SerializeField] private IgnitionConeDetector detector;
+    [SerializeField] private BeamFiringEvent beamFiringEvent;
 
     [Header("데미지")]
     [SerializeField, Min(0.0f)] private float damagePerSecond = 10.0f;
     [SerializeField, Min(0.01f)] private float damageTickInterval = 0.2f;
     [SerializeField, Min(1)] private int targetBufferSize = 16;
+    [Tooltip("켜면 화염 빔 VFX가 실제로 표시 중일 때만 연소와 데미지를 적용합니다.")]
+    [SerializeField] private bool requireActiveBeamVisual = true;
     [Tooltip("테스트 대상처럼 Ignition 수신자가 없는 대상에게만 직접 데미지를 적용합니다. 실전 좀비는 꺼둡니다.")]
     [SerializeField] private bool useDirectDamageFallback;
     [SerializeField] private bool logDamage;
@@ -27,6 +30,7 @@ public sealed class IgnitionDamageApplier : MonoBehaviour, ITurretRuntimeStatRec
     private float damageTickTimer;
     private IgnitionStatusPayload ignitionStatusPayload;
     private TurretStatGrowthProfileSO statGrowthProfile;
+    private TurretDamageMeterSource damageMeterSource;
     private bool hasLoggedMissingDamagePath;
 
     // 시작 시 감지 이벤트를 구독하고 첫 데미지 틱을 준비한다
@@ -89,6 +93,11 @@ public sealed class IgnitionDamageApplier : MonoBehaviour, ITurretRuntimeStatRec
         {
             detector = GetComponent<IgnitionConeDetector>();
         }
+
+        if (beamFiringEvent == null)
+        {
+            beamFiringEvent = GetComponent<BeamFiringEvent>();
+        }
     }
 
     // 데미지 적용에 사용할 대상 버퍼를 준비한다
@@ -108,6 +117,11 @@ public sealed class IgnitionDamageApplier : MonoBehaviour, ITurretRuntimeStatRec
             return;
         }
 
+        if (!CanApplyDamageByBeamVisual())
+        {
+            return;
+        }
+
         EnsureBuffers();
         if (TryApplyIgnitionStatus(target, detectedCollider))
         {
@@ -123,6 +137,22 @@ public sealed class IgnitionDamageApplier : MonoBehaviour, ITurretRuntimeStatRec
         AddPendingTarget(target);
     }
 
+    // 화염 빔 VFX 표시 상태 기준으로 연소와 데미지 적용 가능 여부를 판단한다
+    private bool CanApplyDamageByBeamVisual()
+    {
+        if (!requireActiveBeamVisual)
+        {
+            return true;
+        }
+
+        if (beamFiringEvent == null)
+        {
+            CacheReferences();
+        }
+
+        return beamFiringEvent != null && beamFiringEvent.HasActiveBeamVisual();
+    }
+
     // 외부 스탯 시스템에서 전달한 초당 화염 데미지를 적용한다
     public void SetDamagePerSecond(float damagePerSecond_)
     {
@@ -136,6 +166,13 @@ public sealed class IgnitionDamageApplier : MonoBehaviour, ITurretRuntimeStatRec
         ignitionStatusProfile = ignitionStatusProfile_;
         ignitionStatusLevel = Mathf.Max(1, level);
         statGrowthProfile = growthProfile;
+        RefreshIgnitionStatusPayload();
+    }
+
+    // 외부 터렛 정의에서 딜 미터기 출처를 설정한다
+    public void SetDamageMeterSource(TurretDamageMeterSource damageMeterSource_)
+    {
+        damageMeterSource = damageMeterSource_;
         RefreshIgnitionStatusPayload();
     }
 
@@ -178,6 +215,7 @@ public sealed class IgnitionDamageApplier : MonoBehaviour, ITurretRuntimeStatRec
         }
 
         ignitionStatusPayload = ignitionStatusProfile.CreatePayload(ignitionStatusLevel, damagePerSecond, statGrowthProfile);
+        ignitionStatusPayload.damageSource = damageMeterSource;
         hasLoggedMissingDamagePath = false;
     }
 
@@ -228,7 +266,7 @@ public sealed class IgnitionDamageApplier : MonoBehaviour, ITurretRuntimeStatRec
                 continue;
             }
 
-            target.TakeDamage(new DamageInfo(damage, DamagePopupType.Normal, DamagePopupPolicyResolver.ResolveAreaOfEffect()));
+            target.TakeDamage(new DamageInfo(damage, DamagePopupType.Normal, DamagePopupPolicyResolver.ResolveAreaOfEffect(), damageMeterSource));
 
             if (logDamage)
             {

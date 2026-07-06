@@ -167,6 +167,7 @@ GameObject:
   - component: {fileID: 198517130586790854}
   - component: {fileID: 199599457033925654}
   - component: {fileID: 108560659361369872}
+  - component: {fileID: 4664156051407566749}
   m_Layer: 12
   m_Name: Glow
   m_TagString: Untagged
@@ -5136,6 +5137,35 @@ Light:
   m_LightUnit: 1
   m_LuxAtDistance: 1
   m_EnableSpotReflector: 1
+--- !u!114 &4664156051407566749
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1523578673615170}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 474bcb49853aa07438625e644c072ee6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.RenderPipelines.Universal.Runtime::UnityEngine.Rendering.Universal.UniversalAdditionalLightData
+  m_UsePipelineSettings: 1
+  m_AdditionalLightsShadowResolutionTier: 2
+  m_CustomShadowLayers: 0
+  m_LightCookieSize: {x: 1, y: 1}
+  m_LightCookieOffset: {x: 0, y: 0}
+  m_SoftShadowQuality: 0
+  m_RenderingLayersMask:
+    serializedVersion: 0
+    m_Bits: 1
+  m_ShadowRenderingLayersMask:
+    serializedVersion: 0
+    m_Bits: 1
+  m_Version: 4
+  m_LightLayerMask: 1
+  m_ShadowLayerMask: 1
+  m_RenderingLayers: 1
+  m_ShadowRenderingLayers: 1
 --- !u!1 &1529489953163882
 GameObject:
   m_ObjectHideFlags: 0
@@ -25033,6 +25063,10 @@ PrefabInstance:
       propertyPath: playOnAwake
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 198206002626611804, guid: d7d554880214e644bbbbfc89aa884b26, type: 3}
+      propertyPath: CollisionModule.collidesWith.m_Bits
+      value: 32767
+      objectReference: {fileID: 0}
     - target: {fileID: 198240612083481418, guid: d7d554880214e644bbbbfc89aa884b26, type: 3}
       propertyPath: playOnAwake
       value: 0
@@ -25045,21 +25079,41 @@ PrefabInstance:
       propertyPath: playOnAwake
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 198307579040221678, guid: d7d554880214e644bbbbfc89aa884b26, type: 3}
+      propertyPath: CollisionModule.collidesWith.m_Bits
+      value: 32767
+      objectReference: {fileID: 0}
     - target: {fileID: 198381262805928172, guid: d7d554880214e644bbbbfc89aa884b26, type: 3}
       propertyPath: playOnAwake
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 198381262805928172, guid: d7d554880214e644bbbbfc89aa884b26, type: 3}
+      propertyPath: CollisionModule.collidesWith.m_Bits
+      value: 32767
       objectReference: {fileID: 0}
     - target: {fileID: 198515743762173924, guid: d7d554880214e644bbbbfc89aa884b26, type: 3}
       propertyPath: playOnAwake
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 198515743762173924, guid: d7d554880214e644bbbbfc89aa884b26, type: 3}
+      propertyPath: CollisionModule.collidesWith.m_Bits
+      value: 32767
+      objectReference: {fileID: 0}
     - target: {fileID: 198622425018554280, guid: d7d554880214e644bbbbfc89aa884b26, type: 3}
       propertyPath: playOnAwake
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 198622425018554280, guid: d7d554880214e644bbbbfc89aa884b26, type: 3}
+      propertyPath: CollisionModule.collidesWith.m_Bits
+      value: 32767
+      objectReference: {fileID: 0}
     - target: {fileID: 198857028510835276, guid: d7d554880214e644bbbbfc89aa884b26, type: 3}
       propertyPath: playOnAwake
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 198857028510835276, guid: d7d554880214e644bbbbfc89aa884b26, type: 3}
+      propertyPath: CollisionModule.collidesWith.m_Bits
+      value: 32767
       objectReference: {fileID: 0}
     - target: {fileID: 199162241270183454, guid: d7d554880214e644bbbbfc89aa884b26, type: 3}
       propertyPath: m_Materials.Array.size

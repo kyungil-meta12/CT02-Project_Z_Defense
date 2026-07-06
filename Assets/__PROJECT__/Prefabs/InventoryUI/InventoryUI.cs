@@ -37,6 +37,12 @@ public class CellDictionary
     public Dictionary<Button, CellData> Cell = new();
 }
 
+public class SmallButtonData
+{
+    public Button Button;
+    public RewardCurrencyType Type;
+}
+
 /// <summary>
 /// 버튼을 길게 누르고 있으면 자동으로 일정 간격마다 콜벡을 호출하는 클래스
 /// </summary>
@@ -138,6 +144,8 @@ public class InventoryUI : MonoBehaviour
 
     [Header("패널 텍스트 객체")] public TextMeshProUGUI pannelTitletext;
 
+    [Header("아이템 정보 팝업 객체")] public GameObject itemPopup;
+
     [Header("선택된 탭 색상")] public Color selectedTabColor;
     [Header("선택된 셀 색상")] public Color selectedCellColor;
     [Header("비활성화 버튼 색상")] public Color disableButtonColor;
@@ -169,6 +177,13 @@ public class InventoryUI : MonoBehaviour
     // 분해하면 얻는 아이템 관련 데이터 딕셔너리
     private Dictionary<RewardCurrencyType, ItemDecomposeData> decomposeItemData = new();
     private Dictionary<RewardCurrencyType, TextMeshProUGUI> decomposeItemText = new();
+
+    // 아이템 표시기 버튼 딕셔너리
+    private List<SmallButtonData> itemViewerButtonList = new();
+    private Image itemPopupImage;
+    private TextMeshProUGUI itemPopupOwnCountText;
+    private TextMeshProUGUI itemPopupNameText;
+    private TextMeshProUGUI itemPopupInfoText;
 
     // 마지막으로 선택된 아이템 타입 및 셀
     private RewardCurrencyType selectedType = 0;
@@ -208,6 +223,12 @@ public class InventoryUI : MonoBehaviour
         decomposeButton.colors = buttonColor;
         decomposeButtonEvent = decomposeButton.GetComponent<EventTrigger>();
         decomposeButtonText = decomposeButton.GetComponentInChildren<TextMeshProUGUI>();
+
+        itemPopupImage = itemPopup.transform.Find("Panel/ItemImage").GetComponent<Image>();
+        itemPopupOwnCountText = itemPopup.transform.Find("Panel/ItemOwnCountText").GetComponent<TextMeshProUGUI>();
+        itemPopupNameText = itemPopup.transform.Find("Panel/ItemNameText").GetComponent <TextMeshProUGUI>();
+        itemPopupInfoText = itemPopup.transform.Find("Panel/ItemInfoText").GetComponent<TextMeshProUGUI>();
+        itemPopup.SetActive(false);
 
         // 딕셔너리에 패널 컨텐츠 정보 저장
         foreach (var c in contentList)
@@ -308,6 +329,14 @@ public class InventoryUI : MonoBehaviour
             cellData.CellText = buttonComp.transform.Find("ItemName").GetComponent<TextMeshProUGUI>();
         }
 
+        // 왼쪽 상단부터 순서대로 아이템 버튼 참조를 추가
+        foreach(var viewer in itemViewerList)
+        {
+            var buttonComp = viewer.GetComponentInChildren<Button>();
+            buttonComp.interactable = false;
+            itemViewerButtonList.Add(new SmallButtonData{ Button = buttonComp, Type = 0 });
+        }
+
         // 제작 아이템 표시기 초기화
         ResetItemViewer();
 
@@ -356,6 +385,12 @@ public class InventoryUI : MonoBehaviour
         if(selectedCell && selectedType == data.Type)
         {
             SetItemInfoCountText(data.Type);
+
+            // 팝업이 활성화 되어있을 경우 팝업에서 표시되는 보유량도 같이 업데이트
+            if (itemPopup.activeInHierarchy)
+            {
+                itemPopupOwnCountText.text = InventorySystem.Inst.GetCountString(data.Type);
+            }
         }
         UpdateNeedItemData(data.Type);
         UpdateCells();
@@ -483,6 +518,10 @@ public class InventoryUI : MonoBehaviour
             needItemData.Add(needItems[i].Type, needItems[i]);
             needItemText.Add(needItems[i].Type, text);
             UpdateNeedItemData(needItems[i].Type);
+
+            // 버튼도 같이 활성화
+            itemViewerButtonList[i].Button.interactable = true;
+            itemViewerButtonList[i].Type = needItems[i].Type;
         }
 
         // 한 번 크래프트 아이템 셀을 터치하면 작업 버튼이 다시 활성화 된다.
@@ -490,6 +529,24 @@ public class InventoryUI : MonoBehaviour
 
         // 테두리 활성화
         itemViewerRect.gameObject.SetActive(true);
+    }
+
+    /// <summary>
+    /// 선택된 버튼이 가지는 타입을 통해 아이템 정보를 나타내는 팝업을 세팅한다.
+    /// </summary>
+    /// <param name="button"></param>
+    public void OnSmallItemButtonClick(Button button)
+    {
+        var selectedButton = itemViewerButtonList.Find(bt => bt.Button == button);
+        var selectedType = selectedButton.Type;
+        var metaData = InventorySystem.Inst.GetMetaData(selectedType);
+        bool hasItem = InventorySystem.Inst.HasItem(selectedType);
+        itemPopup.SetActive(true);
+        itemPopupImage.sprite = metaData.ItemImage;
+        itemPopupInfoText.text = metaData.InfoText;
+        itemPopupNameText.text = metaData.Name;
+        itemPopupOwnCountText.text = InventorySystem.Inst.GetCountString(selectedType);
+        itemPopupOwnCountText.color = hasItem ? Color.white : Color.red;
     }
 
     public void OnInventoryTabClick()
@@ -596,6 +653,11 @@ public class InventoryUI : MonoBehaviour
         decomposeItemText.Clear();
         needItemData.Clear();
         needItemText.Clear();
+
+        foreach(var button in itemViewerButtonList)
+        {
+            button.Button.interactable = false;
+        }
         foreach (var viwer in itemViewerList)
         {
             viwer.SetActive(false);
@@ -909,7 +971,6 @@ public class InventoryUI : MonoBehaviour
                 cell.Value.CellText.color = itemEnough ? Color.white : Color.softRed;
                 SetImageBrightness(cell.Value.CellImage, itemEnough ? HAS_ITEM_BRIGHTNESS : NO_ITEM_BRIGHTNESS);
             }
-
         }
     }
 }

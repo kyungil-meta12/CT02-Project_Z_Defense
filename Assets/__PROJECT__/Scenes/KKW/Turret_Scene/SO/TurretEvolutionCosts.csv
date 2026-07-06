@@ -1,0 +1,37 @@
+﻿EvolutionProfilePath(임포트 매칭용 진화 프로필 경로),SourceDisplayName(현재 터렛 이름),TargetDisplayName(진화 대상 터렛 이름),RequiredLevel(진화 요구 티어 레벨),EvolutionCosts(진화 재료: Coin:100;Stone:5)
+Assets/__PROJECT__/Scenes/KKW/Turret_Scene/SO/TurretEvolutionProgressionSO/1stGen/Sentinel-01_Evolution Progression SO.asset,Sentinel-01,Vector MG,100,Coin:10000
+Assets/__PROJECT__/Scenes/KKW/Turret_Scene/SO/TurretEvolutionProgressionSO/1stGen/Sentinel-01_Evolution Progression SO.asset,Sentinel-01,Sentry Pulse,100,Coin:10000
+Assets/__PROJECT__/Scenes/KKW/Turret_Scene/SO/TurretEvolutionProgressionSO/1stGen/Vector MG_Evolution Progression SO.asset,Vector MG,Vulcan Node,100,Coin:60000
+Assets/__PROJECT__/Scenes/KKW/Turret_Scene/SO/TurretEvolutionProgressionSO/1stGen/Sentry Pulse_Evolution Progression SO.asset,Sentry Pulse,Pulse Repeater,100,Coin:60000
+Assets/__PROJECT__/Scenes/KKW/Turret_Scene/SO/TurretEvolutionProgressionSO/1stGen/Vulcan Node_Evolution Progression SO.asset,Vulcan Node,Lethal_Green_1,100,Coin:180000
+Assets/__PROJECT__/Scenes/KKW/Turret_Scene/SO/TurretEvolutionProgressionSO/1stGen/Vulcan Node_Evolution Progression SO.asset,Vulcan Node,Lethal_Red_1,100,Coin:180000
+Assets/__PROJECT__/Scenes/KKW/Turret_Scene/SO/TurretEvolutionProgressionSO/1stGen/Vulcan Node_Evolution Progression SO.asset,Vulcan Node,Plasma_Blue_1,100,Coin:180000
+Assets/__PROJECT__/Scenes/KKW/Turret_Scene/SO/TurretEvolutionProgressionSO/1stGen/Vulcan Node_Evolution Progression SO.asset,Vulcan Node,Plasma_Yellow_1,100,Coin:180000
+Assets/__PROJECT__/Scenes/KKW/Turret_Scene/SO/TurretEvolutionProgressionSO/1stGen/Pulse Repeater_Evolution Progression SO.asset,Pulse Repeater,Machinegun_Blue_1,100,Coin:180000
+Assets/__PROJECT__/Scenes/KKW/Turret_Scene/SO/TurretEvolutionProgressionSO/1stGen/Pulse Repeater_Evolution Progression SO.asset,Pulse Repeater,Machinegun_Red_1,100,Coin:180000
+Assets/__PROJECT__/Scenes/KKW/Turret_Scene/SO/TurretEvolutionProgressionSO/1stGen/Pulse Repeater_Evolution Progression SO.asset,Pulse Repeater,Laser_Blue_1,100,Coin:180000
+Assets/__PROJECT__/Scenes/KKW/Turret_Scene/SO/TurretEvolutionProgressionSO/1stGen/Pulse Repeater_Evolution Progression SO.asset,Pulse Repeater,Laser_Red_1,100,Coin:180000
+Assets/__PROJECT__/Scenes/KKW/Turret_Scene/SO/TurretEvolutionProgressionSO/2ndGen/Lethal_Green1_Evolution Progression SO.asset,Lethal_Green_1,Lethal_Green_2,100,Coin:300000
+Assets/__PROJECT__/Scenes/KKW/Turret_Scene/SO/TurretEvolutionProgressionSO/2ndGen/Lethal_Red1_Evolution Progression SO.asset,Lethal_Red_1,Lethal_Red_2,100,Coin:300000
+Assets/__PROJECT__/Scenes/KKW/Turret_Scene/SO/TurretEvolutionProgressionSO/2ndGen/Plasma_Blue1_Evolution Progression SO.asset,Plasma_Blue_1,Plasma_Blue_2,100,Coin:300000
+Assets/__PROJECT__/Scenes/KKW/Turret_Scene/SO/TurretEvolutionProgressionSO/2ndGen/Plasma_Yellow1_Evolution Progression SO.asset,Plasma_Yellow_1,Plasma_Yellow_2,100,Coin:300000
+Assets/__PROJECT__/Scenes/KKW/Turret_Scene/SO/TurretEvolutionProgressionSO/2ndGen/Machinegun_Blue1_Evolution Progression SO.asset,Machinegun_Blue_1,Machinegun_Blue_2,100,Coin:300000
+Assets/__PROJECT__/Scenes/KKW/Turret_Scene/SO/TurretEvolutionProgressionSO/2ndGen/Machinegun_Red1_Evolution Progression SO.asset,Machinegun_Red_1,Machinegun_Red_2,100,Coin:300000
+Assets/__PROJECT__/Scenes/KKW/Turret_Scene/SO/TurretEvolutionProgressionSO/2ndGen/Laser_Blue1_Evolution Progression SO.asset,Laser_Blue_1,Laser_Blue_2,100,Coin:300000
+Assets/__PROJECT__/Scenes/KKW/Turret_Scene/SO/TurretEvolutionProgressionSO/2ndGen/Laser_Red1_Evolution Progression SO.asset,Laser_Red_1,Laser_Red_2,100,Coin:300000
+Assets/__PROJECT__/Scenes/KKW/Turret_Scene/SO/TurretEvolutionProgressionSO/2ndGen/Lethal_Green2_Evolution Progression SO.asset,Lethal_Green_2,Lethal_Green_3,100,Coin:450000
+Assets/__PROJECT__/Scenes/KKW/Turret_Scene/SO/TurretEvolutionProgressionSO/2ndGen/Lethal_Red2_Evolution Progression SO.asset,Lethal_Red_2,Lethal_Red_3,100,Coin:450000
+Assets/__PROJECT__/Scenes/KKW/Turret_Scene/SO/TurretEvolutionProgressionSO/2ndGen/Plasma_Blue2_Evolution Progression SO.asset,Plasma_Blue_2,Plasma_Blue_3,100,Coin:450000
+Assets/__PROJECT__/Scenes/KKW/Turret_Scene/SO/TurretEvolutionProgressionSO/2ndGen/Plasma_Yellow2_Evolution Progression SO.asset,Plasma_Yellow_2,Plasma_Yellow_3,100,Coin:450000
+Assets/__PROJECT__/Scenes/KKW/Turret_Scene/SO/TurretEvolutionProgressionSO/2ndGen/Machinegun_Blue2_Evolution Progression SO.asset,Machinegun_Blue_2,Machinegun_Blue_3,100,Coin:450000
+Assets/__PROJECT__/Scenes/KKW/Turret_Scene/SO/TurretEvolutionProgressionSO/2ndGen/Machinegun_Red2_Evolution Progression SO.asset,Machinegun_Red_2,Machinegun_Red_3,100,Coin:450000
+Assets/__PROJECT__/Scenes/KKW/Turret_Scene/SO/TurretEvolutionProgressionSO/2ndGen/Laser_Blue2_Evolution Progression SO.asset,Laser_Blue_2,Laser_Blue_3,100,Coin:450000
+Assets/__PROJECT__/Scenes/KKW/Turret_Scene/SO/TurretEvolutionProgressionSO/2ndGen/Laser_Red2_Evolution Progression SO.asset,Laser_Red_2,Laser_Red_3,100,Coin:450000
+Assets/__PROJECT__/Scenes/KKW/Turret_Scene/SO/TurretEvolutionProgressionSO/3rdGen/Lethal_Green3_Evolution Progression SO.asset,Lethal_Green_3,Ignition_Turret,100,Coin:450000
+Assets/__PROJECT__/Scenes/KKW/Turret_Scene/SO/TurretEvolutionProgressionSO/3rdGen/Lethal_Red3_Evolution Progression SO.asset,Lethal_Red_3,Ignition_Turret,100,Coin:450000
+Assets/__PROJECT__/Scenes/KKW/Turret_Scene/SO/TurretEvolutionProgressionSO/3rdGen/Plasma_Blue3_Evolution Progression SO.asset,Plasma_Blue_3,Electro_Turret,100,Coin:450000
+Assets/__PROJECT__/Scenes/KKW/Turret_Scene/SO/TurretEvolutionProgressionSO/3rdGen/Plasma_Yellow3_Evolution Progression SO.asset,Plasma_Yellow_3,Electro_Turret,100,Coin:450000
+Assets/__PROJECT__/Scenes/KKW/Turret_Scene/SO/TurretEvolutionProgressionSO/3rdGen/Machinegun_Blue3_Evolution Progression SO.asset,Machinegun_Blue_3,Poison_Turret,100,Coin:450000
+Assets/__PROJECT__/Scenes/KKW/Turret_Scene/SO/TurretEvolutionProgressionSO/3rdGen/Machinegun_Red3_Evolution Progression SO.asset,Machinegun_Red_3,Poison_Turret,100,Coin:450000
+Assets/__PROJECT__/Scenes/KKW/Turret_Scene/SO/TurretEvolutionProgressionSO/3rdGen/Laser_Blue3_Evolution Progression SO.asset,Laser_Blue_3,Frost_Turret,100,Coin:450000
+Assets/__PROJECT__/Scenes/KKW/Turret_Scene/SO/TurretEvolutionProgressionSO/3rdGen/Laser_Red3_Evolution Progression SO.asset,Laser_Red_3,Frost_Turret,100,Coin:450000

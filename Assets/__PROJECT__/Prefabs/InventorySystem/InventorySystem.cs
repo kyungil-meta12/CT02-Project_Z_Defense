@@ -596,8 +596,14 @@ public class InventorySystem : MonoBehaviour, ISaveable
     /// </summary>
     /// <param name="cost"></param>
     /// <returns></returns>
+    // 단일 비용을 현재 보유 재화로 지불할 수 있는지 확인한다
     public bool CanAfford(ResourceCost cost)
     {
+        if (cost == null || cost.amount <= 0)
+        {
+            return true;
+        }
+
         return CanUseItem(cost.currencyType, cost.amount);
     }
 
@@ -606,19 +612,29 @@ public class InventorySystem : MonoBehaviour, ISaveable
     /// 여러 비용 데이터에 대해 모두 사용할 수 있는지 확인한다.
     /// </summary>
     /// <returns></returns>
+    // 여러 비용을 재화 종류별로 합산해 지불 가능 여부를 확인한다
     public bool CanAfford(ResourceCost[] costArray)
     {
-        // 아이템이 사용 가능하다면 trueCount를 1씩 올린다.
-        int trueCount = 0;
-        foreach(var cost in costArray)
+        if (costArray == null)
         {
-            if(CanAfford(cost))
+            return true;
+        }
+
+        ProcessTotalCosts(costArray);
+        foreach (var pair in itemCostDict)
+        {
+            if (pair.Value <= 0)
             {
-                trueCount++;
+                continue;
+            }
+
+            if (!CanUseItem(pair.Key, pair.Value))
+            {
+                return false;
             }
         }
-        // costArray의 모든 아이템들이 사용 가능하다면 trueCount가 costArray.Length와 동일해지므로 결과적으로 true를 리턴하게 된다.
-        return trueCount == costArray.Length;
+
+        return true;
     }
 
 
@@ -627,8 +643,14 @@ public class InventorySystem : MonoBehaviour, ISaveable
     /// </summary>
     /// <param name="cost"></param>
     /// <returns></returns>
+    // 단일 비용을 실제로 소비한다
     public bool TrySpend(ResourceCost cost)
     {
+        if (cost == null || cost.amount <= 0)
+        {
+            return true;
+        }
+
         return UseItem(cost.currencyType, cost.amount);
     }
 
@@ -638,27 +660,44 @@ public class InventorySystem : MonoBehaviour, ISaveable
     /// </summary>
     /// <param name="costArray"></param>
     /// <returns></returns>
+    // 여러 비용을 지불 가능할 때만 재화 종류별 합산 금액으로 소비한다
     public bool TrySpend(ResourceCost[] costArray)
     {
         if(costArray == null)
         {
-            return false;
+            return true;
         }
 
         // 각 재화 종류별로 비용을 계산하여 딕셔너리에 저장
         ProcessTotalCosts(costArray);
 
-        // 아이템 사용에 성공했다면 trueCount를 1씩 증가시킨다.
-        int trueCount = 0;
-        foreach (var cost in costArray)
+        foreach (var pair in itemCostDict)
         {
-            if (UseItem(cost.currencyType, itemCostDict[cost.currencyType]))
+            if (pair.Value <= 0)
             {
-                trueCount++;
+                continue;
+            }
+
+            if (!CanUseItem(pair.Key, pair.Value))
+            {
+                return false;
             }
         }
-        // costArray의 모든 아이템들을 사용하는 것에 성공했다면 trueCount가 costArray.Length와 동일해지므로 결과적으로 true를 리턴하게 된다.
-        return trueCount == costArray.Length;
+
+        foreach (var pair in itemCostDict)
+        {
+            if (pair.Value <= 0)
+            {
+                continue;
+            }
+
+            if (!UseItem(pair.Key, pair.Value))
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 
 
@@ -667,29 +706,24 @@ public class InventorySystem : MonoBehaviour, ISaveable
     ///  최종적으로 itemCostDict에 저장된다.
     /// </summary>
     /// <param name="costs"></param>
+    // 비용 배열을 재화 종류별 총합으로 정리한다
     private void ProcessTotalCosts(ResourceCost[] costs)
     {
+        itemCostDict.Clear();
+
         if(costs == null)
         {
             return;
         }
 
-        // 현재 딕셔너리에 저장된 비용들을 초기화한다.
-        foreach(var cost in costs)
-        {
-            if(!itemCostDict.ContainsKey(cost.currencyType))
-            {
-                itemCostDict.Add(cost.currencyType, 0);
-            }
-            else
-            {
-                itemCostDict[cost.currencyType] = 0;
-            }
-        }
-
         // 딕셔너리에 총 비용을 재화 종류별로 저장한다.
         foreach (var costData in costs)
         {
+            if (costData == null || costData.amount <= 0)
+            {
+                continue;
+            }
+
             if(!itemCostDict.ContainsKey(costData.currencyType))
             {
                 itemCostDict.Add(costData.currencyType, costData.amount);

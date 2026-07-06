@@ -13,42 +13,54 @@ MonoBehaviour:
   m_Name: Vulcan Node_Evolution Progression SO
   m_EditorClassIdentifier: Assembly-CSharp::TurretEvolutionProgressionSO
   evolutionEntries:
-  - requiredLevel: 100
+  - requiredLevel: 30
     targetDefinition: {fileID: 11400000, guid: e3255630eacade14c9ea3c8e2a68ef51, type: 2}
     displayName: Lethal_Green_1
     evolutionCosts:
     - currencyType: 0
       amount: 180000
+    - currencyType: 7
+      amount: 1
+    - currencyType: 20
+      amount: 4
+    - currencyType: 41
+      amount: 1
     evolutionIcon: {fileID: 21300000, guid: 28a5d9c4d48dbfb4e9f781a2782d745e, type: 3}
     evolutionEffectPrefab: {fileID: 640602461530948004, guid: 938be4f127f81d348a60fe4019a9422c, type: 3}
     evolutionEffectLocalOffset: {x: 0, y: 0, z: 0}
     evolutionEffectDuration: 2
-  - requiredLevel: 100
+  - requiredLevel: 30
     targetDefinition: {fileID: 11400000, guid: fb3a01d2afec206479d7f4f009796f03, type: 2}
     displayName: Lethal_Red_1
     evolutionCosts:
     - currencyType: 0
       amount: 180000
+    - currencyType: 7
+      amount: 1
     evolutionIcon: {fileID: 21300000, guid: 714d7395e9b34c646950d3e98494197b, type: 3}
     evolutionEffectPrefab: {fileID: 640602461530948004, guid: 938be4f127f81d348a60fe4019a9422c, type: 3}
     evolutionEffectLocalOffset: {x: 0, y: 0, z: 0}
     evolutionEffectDuration: 2
-  - requiredLevel: 100
+  - requiredLevel: 30
     targetDefinition: {fileID: 11400000, guid: 092e2d5f247fdfc41ae6add565260b8a, type: 2}
     displayName: Plasma_Blue_1
     evolutionCosts:
     - currencyType: 0
       amount: 180000
+    - currencyType: 7
+      amount: 1
     evolutionIcon: {fileID: 21300000, guid: 58578cc65efdc67469798e8b94c381e9, type: 3}
     evolutionEffectPrefab: {fileID: 640602461530948004, guid: 938be4f127f81d348a60fe4019a9422c, type: 3}
     evolutionEffectLocalOffset: {x: 0, y: 0, z: 0}
     evolutionEffectDuration: 2
-  - requiredLevel: 100
+  - requiredLevel: 30
     targetDefinition: {fileID: 11400000, guid: a2449861c7d0bc0489813683948de1c0, type: 2}
     displayName: Plasma_Yellow_1
     evolutionCosts:
     - currencyType: 0
       amount: 180000
+    - currencyType: 7
+      amount: 1
     evolutionIcon: {fileID: 21300000, guid: 3205d44b1d1d1054081519e747ce64f3, type: 3}
     evolutionEffectPrefab: {fileID: 640602461530948004, guid: 938be4f127f81d348a60fe4019a9422c, type: 3}
     evolutionEffectLocalOffset: {x: 0, y: 0, z: 0}

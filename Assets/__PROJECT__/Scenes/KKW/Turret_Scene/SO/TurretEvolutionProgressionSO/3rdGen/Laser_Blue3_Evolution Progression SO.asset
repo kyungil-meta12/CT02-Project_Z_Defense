@@ -13,12 +13,24 @@ MonoBehaviour:
   m_Name: Laser_Blue3_Evolution Progression SO
   m_EditorClassIdentifier: Assembly-CSharp::TurretEvolutionProgressionSO
   evolutionEntries:
-  - requiredLevel: 100
+  - requiredLevel: 200
     targetDefinition: {fileID: 11400000, guid: 8bd64e3106b9773428d74f44ebda12f8, type: 2}
     displayName: Forst_Turret
     evolutionCosts:
     - currencyType: 0
       amount: 450000
+    - currencyType: 62
+      amount: 1
+    - currencyType: 67
+      amount: 1
+    - currencyType: 71
+      amount: 1
+    - currencyType: 72
+      amount: 1
+    - currencyType: 73
+      amount: 1
+    - currencyType: 77
+      amount: 1
     evolutionIcon: {fileID: 21300000, guid: 86912a2d7e87be448a96e8ab522497d0, type: 3}
     evolutionEffectPrefab: {fileID: 640602461530948004, guid: 938be4f127f81d348a60fe4019a9422c, type: 3}
     evolutionEffectLocalOffset: {x: 0, y: 0, z: 0}

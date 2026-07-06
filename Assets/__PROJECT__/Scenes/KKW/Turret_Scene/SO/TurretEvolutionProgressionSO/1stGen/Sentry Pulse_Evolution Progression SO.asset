@@ -13,12 +13,22 @@ MonoBehaviour:
   m_Name: Sentry Pulse_Evolution Progression SO
   m_EditorClassIdentifier: Assembly-CSharp::TurretEvolutionProgressionSO
   evolutionEntries:
-  - requiredLevel: 100
+  - requiredLevel: 20
     targetDefinition: {fileID: 11400000, guid: bcc03ca370729424c90ceaa906afacad, type: 2}
     displayName: Pulse Repeater
     evolutionCosts:
     - currencyType: 0
       amount: 60000
+    - currencyType: 20
+      amount: 4
+    - currencyType: 31
+      amount: 6
+    - currencyType: 32
+      amount: 30
+    - currencyType: 41
+      amount: 1
+    - currencyType: 47
+      amount: 2
     evolutionIcon: {fileID: 21300000, guid: 81af4025f5ced134ca17c65720216c04, type: 3}
     evolutionEffectPrefab: {fileID: 640602461530948004, guid: 938be4f127f81d348a60fe4019a9422c, type: 3}
     evolutionEffectLocalOffset: {x: 0, y: 0, z: 0}

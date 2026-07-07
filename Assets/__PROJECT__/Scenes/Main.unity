@@ -13018,7 +13018,7 @@ MonoBehaviour:
   quitFadeDuration: 2
   quitTitleMessage: "\uAC8C\uC784 \uC885\uB8CC"
   quitStatusMessage: 
-  startWave: 11
+  startWave: 1
   waveClearCoinBonusPercentage: 20
   startTimeScale: 1
   baseFixedDeltaTime: 0.02
@@ -54775,7 +54775,7 @@ MonoBehaviour:
   InScriptDrivenPause: 0
   FeedbacksList:
   - rid: 8430879399149568105
-  - rid: 8430879399149568107
+  - rid: 8430879399149568108
   KeepPlayModeChanges: 0
   PerformanceMode: 0
   RestoreInitialValuesOnDisable: 0
@@ -55006,13 +55006,13 @@ MonoBehaviour:
           ButtonText: Debug Stop Sound
         ResetSequentialIndexButton:
           ButtonText: Reset Sequential Index
-    - rid: 8430879399149568107
-      type: {class: MMF_Particles, ns: MoreMountains.Feedbacks, asm: MoreMountains.Tools}
+    - rid: 8430879399149568108
+      type: {class: MMF_ParticlesInstantiation, ns: MoreMountains.Feedbacks, asm: MoreMountains.Tools}
       data:
         Active: 1
-        UniqueID: 1241094002
-        Label: Particles Play
-        OriginalLabel: Particles Play
+        UniqueID: -1698527577
+        Label: Particles Instantiation
+        OriginalLabel: Particles Instantiation
         ChannelMode: 0
         Channel: 0
         MMChannelDefinition: {fileID: 0}
@@ -55080,16 +55080,27 @@ MonoBehaviour:
           ButtonText: 
         Owner: {fileID: 1067577014}
         DebugActive: 0
-        Mode: 0
-        EmitCount: 100
-        BoundParticleSystem: {fileID: 198199498142640322, guid: 61400dcd69108c64b970eb523f3d1783, type: 3}
-        RandomParticleSystems: []
-        MoveToPosition: 1
-        ActivateOnPlay: 0
-        StopSystemOnInit: 1
-        StopSystemOnReset: 1
-        StopSystemOnStopFeedback: 1
-        DeclaredDuration: 5
+        Mode: 2
+        ObjectPoolSize: 5
+        MutualizePools: 1
+        ParentTransform: {fileID: 0}
+        CachedRecycle: 1
+        ParticlesPrefab: {fileID: 198199498142640322, guid: 61400dcd69108c64b970eb523f3d1783, type: 3}
+        RandomParticlePrefabs: []
+        MainParticlesPrefabWeight: 1
+        RandomParticleWeights: 
+        ForceSetActiveOnPlay: 0
+        StopOnReset: 1
+        DeclaredDuration: 0
+        ForceStopAction: 1
+        StopAction: 1
+        PositionMode: 3
+        InstantiateParticlesPosition: {fileID: 0}
+        TargetWorldPosition: {x: 0, y: 0, z: 0}
+        Offset: {x: 0, y: 0, z: 0}
+        NestParticles: 1
+        ApplyRotation: 0
+        ApplyScale: 0
         ForceSimulationSpeed: 0
         ForcedSimulationSpeed: {x: 0.1, y: 1}
 --- !u!1 &1070153360
@@ -59848,7 +59859,7 @@ MonoBehaviour:
         Offset: {x: 0, y: 0, z: 0}
         NestParticles: 1
         ApplyRotation: 0
-        ApplyScale: 1
+        ApplyScale: 0
         ForceSimulationSpeed: 0
         ForcedSimulationSpeed: {x: 0.1, y: 1}
 --- !u!1 &1179027223
@@ -62883,7 +62894,7 @@ MonoBehaviour:
         Offset: {x: 0, y: 0, z: 0}
         NestParticles: 1
         ApplyRotation: 0
-        ApplyScale: 1
+        ApplyScale: 0
         ForceSimulationSpeed: 0
         ForcedSimulationSpeed: {x: 0.1, y: 1}
 --- !u!1001 &1223236567
@@ -97109,7 +97120,7 @@ MonoBehaviour:
         Offset: {x: 0, y: 0, z: 0}
         NestParticles: 1
         ApplyRotation: 0
-        ApplyScale: 1
+        ApplyScale: 0
         ForceSimulationSpeed: 0
         ForcedSimulationSpeed: {x: 0.1, y: 1}
 --- !u!1 &1894913679
@@ -105582,7 +105593,7 @@ MonoBehaviour:
         Offset: {x: 0, y: 0, z: 0}
         NestParticles: 1
         ApplyRotation: 0
-        ApplyScale: 1
+        ApplyScale: 0
         ForceSimulationSpeed: 0
         ForcedSimulationSpeed: {x: 0.1, y: 1}
 --- !u!1 &2024979091

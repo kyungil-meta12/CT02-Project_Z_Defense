@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 64086bcb185c80947a81b76bc4479622, type: 3}
   m_Name: Vulcan Node
   m_EditorClassIdentifier: Assembly-CSharp::TurretStatProfileSO
-  damage: 700
+  damage: 200
   range: 30
   fireInterval: 3
   projectileSpeed: 35

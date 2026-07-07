@@ -255,6 +255,76 @@
 - `Detail_Popup_Panel`의 `VideoPlayer`, `RenderTexture`, `RawImage` 연결을 먼저 검증한 뒤 전체 노드 연결로 넘어간다.
 - Play Mode에서 노드 1~2개만 먼저 클릭해 영상 루프/닫기/다른 노드 전환 시 이전 영상 정지가 정상인지 확인한다.
 
+## 2026-07-07 Turret Tech Tree Detail Popup Setup
+
+### Current Scene Status
+
+- `Main` 씬의 `TurretTechTreePanel` 아래에 `Detail_Popup_Panel`을 생성했다.
+- 현재 계층 순서는 `Scroll View` 다음에 `Detail_Popup_Panel`이 오므로, 상세 팝업이 트리 Scroll View 위에 렌더링되는 방향이 맞다.
+- `Detail_Popup_Panel`에는 `TurretTechTreeDetailPopupUI`가 붙어 있으며, `popupRoot`는 자기 자신으로 연결되어 있다.
+- `Popup_Background`, `Header`, `TurretNameText`, `StateText`, `PreviewArea`, `PreviewFrame`, `PreviewRawImage`, `FallbackIconImage`, `DescriptionText`, `StatPanel`, `PreviewVideoPlayer` 등 상세 팝업용 기본 오브젝트 일부를 구성했다.
+- `TurretNameText`는 UI용 `TextMeshProUGUI`로 다시 만든 상태다. 3D `TextMeshPro`를 쓰면 Canvas UI에서 보이지 않을 수 있으므로 새 텍스트는 반드시 `UI > Text - TextMeshPro`로 만든다.
+- `FallbackIconImage`는 `Image`와 `Preserve Aspect` 설정이 되어 있고, `PreviewRawImage`는 `RawImage` 컴포넌트가 붙어 있다.
+- `Line_Lethal_Red_3_To_Ignition_Turret_H`의 `parentDefinition`은 현재 GUID 기준 `Lethal_Red_Definition 3.asset`을 가리키므로 `Lethal_Red_3 -> Ignition_Turret` 연결로 확인됐다.
+
+### Known Incomplete Items
+
+- `TurretTechTreeDetailPopupUI`의 Inspector 필드는 대부분 아직 비어 있다. `closeButton`, `nameText`, `stateText`, `descriptionText`, 모든 스탯 TMP, `videoPlayer`, `videoImage`, `fallbackIconImage`, `missingVideoMessageRoot`를 연결해야 한다.
+- `TurretTechTreeUIController.detailPopup`도 아직 명시 연결이 필요하다. 상세 팝업 하위 구성이 끝나면 컨텍스트 메뉴 `참조 다시 연결`을 실행하고 씬을 저장한다.
+- `PreviewVideoPlayer`에는 `VideoPlayer` 컴포넌트를 추가해야 한다.
+- 세로형 프리뷰 영상 기준 RenderTexture를 하나 만들어 `PreviewVideoPlayer.targetTexture`와 `PreviewRawImage.texture`에 함께 연결해야 한다. 권장 시작값은 `540x960` 또는 `720x1280`이다.
+- `PreviewArea`, `DescriptionText`, `Dim_Background` 등 상세 팝업 자식 오브젝트는 기본 활성 상태로 저장해야 한다. 루트인 `Detail_Popup_Panel`은 `TurretTechTreeDetailPopupUI.Awake()`에서 숨겨지므로, 자식이 비활성으로 저장되면 팝업 표시 때도 보이지 않을 수 있다.
+- `DescriptionText`, `StateText`, `DamageText`, `RangeText`, `FireRateText`, `ProjectileSpeedText`, `ProjectileCountText`, `PierceCountText`, `MissingVideoMessage`가 모두 UI용 `TextMeshProUGUI`인지 확인해야 한다.
+- `CloseButton`은 `Button` 컴포넌트와 클릭 가능한 `Image`를 가져야 하며, `TurretTechTreeDetailPopupUI.closeButton`에 연결해야 한다.
+- `TurretTechTreeViewProfileSO`의 각 노드 `Preview Clip` 연결은 아직 별도 확인이 필요하다.
+
+### Recommended Detail Popup Hierarchy
+
+```text
+Detail_Popup_Panel
+- Dim_Background
+- Popup_Background
+  - Header
+    - TurretNameText
+    - StateText
+    - CloseButton
+  - PreviewArea
+    - PreviewFrame
+      - PreviewRawImage
+      - FallbackIconImage
+      - MissingVideoMessage
+  - DescriptionText
+  - StatPanel
+    - DamageText
+    - RangeText
+    - FireRateText
+    - ProjectileSpeedText
+    - ProjectileCountText
+    - PierceCountText
+- PreviewVideoPlayer
+```
+
+### Next Editor Work
+
+1. `PreviewVideoPlayer`에 `VideoPlayer`를 추가하고 `Play On Awake`는 끄고 `Render Mode`는 `Render Texture`, `Audio Output Mode`는 `None`으로 둔다.
+2. `RT_TurretTechTreePreview` RenderTexture를 만들고 `PreviewVideoPlayer.targetTexture`와 `PreviewRawImage.texture`에 연결한다.
+3. `TurretTechTreeDetailPopupUI`의 모든 필드를 실제 하위 오브젝트에 연결한다.
+4. `TurretTechTreeUIController.detailPopup`에 `Detail_Popup_Panel`의 `TurretTechTreeDetailPopupUI`를 연결하거나 컨텍스트 메뉴 `참조 다시 연결`을 실행한다.
+5. `PreviewArea`, `DescriptionText`, `Dim_Background`, `StatPanel` 등 상세 팝업 자식이 비활성으로 저장되어 있지 않은지 확인한다.
+6. `Detail_Popup_Panel`을 기본 활성으로 저장해도 런타임에서는 `Awake()`에서 숨겨진다. 배치 중 미리보기가 필요하면 일시적으로 `TurretTechTreeDetailPopupUI` 컴포넌트를 꺼두고 확인한다.
+7. Play Mode에서 노드 하나를 클릭해 이름, 상태, 설명, 스탯, fallback 아이콘, 닫기 버튼 동작을 먼저 확인한다.
+8. RenderTexture와 실제 `PreviewClip`을 연결한 뒤 영상 재생, 루프, 닫기 시 정지, 다른 노드 클릭 시 클립 교체를 확인한다.
+
+### Suggested Restart Prompt
+
+```text
+터렛 트리 상세 팝업 UI 이어서 하자.
+33개 노드/56개 라인 연결은 끝났고, Detail_Popup_Panel 기본 계층은 만들었다.
+현재 남은 일은 PreviewVideoPlayer에 VideoPlayer 추가, 세로형 RenderTexture 생성/연결,
+TurretTechTreeDetailPopupUI와 TurretTechTreeUIController.detailPopup Inspector 참조 연결,
+비활성 자식 오브젝트 확인, 노드 클릭 시 텍스트/아이콘/영상 프리뷰 Play Mode 검증이다.
+```
+
 ## Next Work Plan
 
 1. `Canvas > Turret UI` 아래 실제 오브젝트와 각 UI 스크립트의 Inspector 참조를 하나씩 대조한다.

@@ -27,6 +27,12 @@ public class TurretTechTreeDetailPopupUI : MonoBehaviour
     [SerializeField] private TMP_Text pierceCountText;
     [SerializeField] private TMP_Text criticalChanceText;
     [SerializeField] private TMP_Text heavyHitChanceText;
+    [SerializeField] private TMP_Text damageNumberText;
+    [SerializeField] private TMP_Text rangeNumberText;
+    [SerializeField] private TMP_Text fireRateNumberText;
+    [SerializeField] private TMP_Text pierceCountNumberText;
+    [SerializeField] private TMP_Text criticalChanceNumberText;
+    [SerializeField] private TMP_Text heavyHitChanceNumberText;
 
     [Header("영상")]
     [SerializeField] private VideoPlayer videoPlayer;
@@ -111,12 +117,12 @@ public class TurretTechTreeDetailPopupUI : MonoBehaviour
         SetText(nameText, ApplyNameTemplate(nameTextTemplate, GetDisplayName(definition)));
         SetText(stateText, profile == null ? string.Empty : profile.GetStateText(state));
         HideDescriptionText();
-        SetText(damageText, ApplyTemplate(damageTextTemplate, FormatValue(stat.damage)));
-        SetText(rangeText, ApplyTemplate(rangeTextTemplate, FormatValue(stat.range)));
-        SetText(fireRateText, ApplyTemplate(fireRateTextTemplate, FormatValue(stat.fireInterval)));
-        SetText(pierceCountText, ApplyTemplate(pierceCountTextTemplate, stat.pierceCount.ToString()));
-        SetText(criticalChanceText, ApplyTemplate(criticalChanceTextTemplate, FormatChance(GetCriticalChance(damagePolishProfile))));
-        SetText(heavyHitChanceText, ApplyTemplate(heavyHitChanceTextTemplate, FormatChance(GetHeavyHitChance(damagePolishProfile))));
+        SetStatText(damageText, damageNumberText, damageTextTemplate, FormatValue(stat.damage));
+        SetStatText(rangeText, rangeNumberText, rangeTextTemplate, FormatValue(stat.range));
+        SetStatText(fireRateText, fireRateNumberText, fireRateTextTemplate, FormatValue(stat.fireInterval));
+        SetStatText(pierceCountText, pierceCountNumberText, pierceCountTextTemplate, stat.pierceCount.ToString());
+        SetStatText(criticalChanceText, criticalChanceNumberText, criticalChanceTextTemplate, FormatChance(GetCriticalChance(damagePolishProfile)));
+        SetStatText(heavyHitChanceText, heavyHitChanceNumberText, heavyHitChanceTextTemplate, FormatChance(GetHeavyHitChance(damagePolishProfile)));
     }
 
     // 노드 데이터의 영상 클립을 VideoPlayer에 연결해 루프 재생한다
@@ -203,6 +209,12 @@ public class TurretTechTreeDetailPopupUI : MonoBehaviour
         pierceCountText = pierceCountText != null ? pierceCountText : FindComponentByName<TMP_Text>("PierceCountText");
         criticalChanceText = criticalChanceText != null ? criticalChanceText : FindComponentByName<TMP_Text>("CriticalChance");
         heavyHitChanceText = heavyHitChanceText != null ? heavyHitChanceText : FindFirstComponentByName<TMP_Text>("HeavyHitChance", "HeavtHitChance");
+        damageNumberText = damageNumberText != null ? damageNumberText : FindStatNumberText(damageText);
+        rangeNumberText = rangeNumberText != null ? rangeNumberText : FindStatNumberText(rangeText);
+        fireRateNumberText = fireRateNumberText != null ? fireRateNumberText : FindStatNumberText(fireRateText);
+        pierceCountNumberText = pierceCountNumberText != null ? pierceCountNumberText : FindStatNumberText(pierceCountText);
+        criticalChanceNumberText = criticalChanceNumberText != null ? criticalChanceNumberText : FindStatNumberText(criticalChanceText);
+        heavyHitChanceNumberText = heavyHitChanceNumberText != null ? heavyHitChanceNumberText : FindStatNumberText(heavyHitChanceText);
         videoPlayer = videoPlayer != null ? videoPlayer : GetComponentInChildren<VideoPlayer>(true);
         videoImage = videoImage != null ? videoImage : FindComponentByName<RawImage>("PreviewRawImage");
         fallbackIconImage = fallbackIconImage != null ? fallbackIconImage : FindComponentByName<Image>("FallbackIconImage");
@@ -346,6 +358,49 @@ public class TurretTechTreeDetailPopupUI : MonoBehaviour
         {
             text.text = value;
         }
+    }
+
+    // 스탯 숫자 전용 TMP가 있으면 숫자만 적용하고 없으면 기존 템플릿 치환을 사용한다
+    private static void SetStatText(TMP_Text labelText, TMP_Text numberText, string labelTemplate, string value)
+    {
+        if (numberText != null)
+        {
+            numberText.text = value;
+            SetText(labelText, RemoveTemplatePlaceholder(labelTemplate));
+            return;
+        }
+
+        SetText(labelText, ApplyTemplate(labelTemplate, value));
+    }
+
+    // 라벨 템플릿에 남아 있는 중괄호 자리표시자를 제거한다
+    private static string RemoveTemplatePlaceholder(string template)
+    {
+        if (string.IsNullOrEmpty(template))
+        {
+            return string.Empty;
+        }
+
+        int openIndex = template.IndexOf('{');
+        int closeIndex = template.IndexOf('}', openIndex + 1);
+        if (openIndex < 0 || closeIndex < 0 || closeIndex <= openIndex)
+        {
+            return template;
+        }
+
+        return (template.Substring(0, openIndex) + template.Substring(closeIndex + 1)).TrimEnd();
+    }
+
+    // 라벨 TMP 하위의 숫자 표시 TMP를 반환한다
+    private static TMP_Text FindStatNumberText(TMP_Text labelText)
+    {
+        if (labelText == null)
+        {
+            return null;
+        }
+
+        Transform numberTransform = FindChildByName(labelText.transform, "StatNumber");
+        return numberTransform == null ? null : numberTransform.GetComponent<TMP_Text>();
     }
 
     // 여러 이름 후보 중 처음 찾은 자식 컴포넌트를 반환한다

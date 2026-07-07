@@ -433,6 +433,7 @@ public class InventoryUI : MonoBehaviour
         mainController.SetActive(true);
         background.gameObject.SetActive(true);
         SetToInventoryTab();
+        UIManager.Inst.HideGameUI();
         openState = true;
     }
 
@@ -443,6 +444,7 @@ public class InventoryUI : MonoBehaviour
     {
         mainController.SetActive(false);
         background.gameObject.SetActive(false);
+        UIManager.Inst.RevertGameUI();
         openState = false;
     }
 

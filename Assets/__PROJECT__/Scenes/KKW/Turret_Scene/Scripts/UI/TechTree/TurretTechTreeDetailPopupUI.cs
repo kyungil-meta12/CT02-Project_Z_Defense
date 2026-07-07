@@ -33,6 +33,7 @@ public class TurretTechTreeDetailPopupUI : MonoBehaviour
     [SerializeField] private RawImage videoImage;
     [SerializeField] private Image fallbackIconImage;
     [SerializeField] private GameObject missingVideoMessageRoot;
+    [SerializeField] private Rect videoUvRect = new Rect(0.34f, 0.0f, 0.32f, 1.0f);
 
     private string nameTextTemplate;
     private string damageTextTemplate;
@@ -80,14 +81,14 @@ public class TurretTechTreeDetailPopupUI : MonoBehaviour
             return;
         }
 
-        CacheTextTemplates();
-        RefreshTexts(definition, nodeData, state, profile);
-        RefreshVideo(definition, nodeData);
-
         if (popupRoot != null)
         {
             popupRoot.SetActive(true);
         }
+
+        CacheTextTemplates();
+        RefreshTexts(definition, state, profile);
+        RefreshVideo(definition, nodeData);
     }
 
     // 상세 팝업을 닫고 재생 중인 영상을 정지한다
@@ -102,13 +103,13 @@ public class TurretTechTreeDetailPopupUI : MonoBehaviour
     }
 
     // 텍스트 참조에 터렛 기본 정보와 1레벨 스탯을 반영한다
-    private void RefreshTexts(TurretDefinitionSO definition, TurretTechTreeNodeViewData nodeData, TurretTechTreeNodeState state, TurretTechTreeViewProfileSO profile)
+    private void RefreshTexts(TurretDefinitionSO definition, TurretTechTreeNodeState state, TurretTechTreeViewProfileSO profile)
     {
         TurretRuntimeStat stat = TurretStatCalculator.Calculate(definition, PREVIEW_LEVEL);
         TurretDamagePolishProfileSO damagePolishProfile = definition.damagePolishProfile;
         SetText(nameText, ApplyNameTemplate(nameTextTemplate, GetDisplayName(definition)));
         SetText(stateText, profile == null ? string.Empty : profile.GetStateText(state));
-        SetText(descriptionText, GetDescription(definition, nodeData));
+        HideDescriptionText();
         SetText(damageText, ApplyTemplate(damageTextTemplate, FormatValue(stat.damage)));
         SetText(rangeText, ApplyTemplate(rangeTextTemplate, FormatValue(stat.range)));
         SetText(fireRateText, ApplyTemplate(fireRateTextTemplate, FormatValue(stat.fireInterval)));
@@ -126,6 +127,8 @@ public class TurretTechTreeDetailPopupUI : MonoBehaviour
         if (videoImage != null)
         {
             videoImage.gameObject.SetActive(hasClip);
+            videoImage.color = Color.white;
+            videoImage.uvRect = videoUvRect;
         }
 
         if (fallbackIconImage != null)
@@ -147,12 +150,14 @@ public class TurretTechTreeDetailPopupUI : MonoBehaviour
             return;
         }
 
+        videoPlayer.prepareCompleted -= OnVideoPrepared;
         videoPlayer.Stop();
         videoPlayer.clip = clip;
         videoPlayer.isLooping = true;
         videoPlayer.playOnAwake = false;
+        videoPlayer.aspectRatio = VideoAspectRatio.FitInside;
+        videoPlayer.prepareCompleted += OnVideoPrepared;
         videoPlayer.Prepare();
-        videoPlayer.Play();
     }
 
     // 현재 VideoPlayer 재생을 멈추고 클립 참조를 비운다
@@ -163,12 +168,24 @@ public class TurretTechTreeDetailPopupUI : MonoBehaviour
             return;
         }
 
+        videoPlayer.prepareCompleted -= OnVideoPrepared;
         if (videoPlayer.isPlaying)
         {
             videoPlayer.Stop();
         }
 
         videoPlayer.clip = null;
+    }
+
+    // 영상 준비가 끝나면 현재 클립을 재생한다
+    private void OnVideoPrepared(VideoPlayer preparedPlayer)
+    {
+        if (preparedPlayer == null || preparedPlayer.clip == null)
+        {
+            return;
+        }
+
+        preparedPlayer.Play();
     }
 
     [ContextMenu("참조 다시 연결")]
@@ -217,6 +234,18 @@ public class TurretTechTreeDetailPopupUI : MonoBehaviour
         }
     }
 
+    // 상세 설명 텍스트는 현재 팝업에서 사용하지 않으므로 숨긴다
+    private void HideDescriptionText()
+    {
+        if (descriptionText == null)
+        {
+            return;
+        }
+
+        descriptionText.text = string.Empty;
+        descriptionText.gameObject.SetActive(false);
+    }
+
     // 닫기 버튼 클릭 이벤트를 등록한다
     private void BindButton()
     {
@@ -236,17 +265,6 @@ public class TurretTechTreeDetailPopupUI : MonoBehaviour
         {
             closeButton.onClick.RemoveListener(Hide);
         }
-    }
-
-    // 터렛 정의와 노드 데이터에서 설명 문구를 결정한다
-    private static string GetDescription(TurretDefinitionSO definition, TurretTechTreeNodeViewData nodeData)
-    {
-        if (nodeData != null && !string.IsNullOrWhiteSpace(nodeData.PreviewDescription))
-        {
-            return nodeData.PreviewDescription;
-        }
-
-        return definition == null ? string.Empty : definition.shortDescription;
     }
 
     // 터렛 정의의 표시 이름을 반환한다

@@ -19,7 +19,7 @@ public class ZombieSpawner : MonoBehaviour
     private int currSpawnCount; // 현재 누적 스폰 횟수
     private int currMaxSpawnCount; // 현재 최대 스폰 횟수
     private bool spawnEnabled = true; // 스폰 활성화 상태
-    private bool currentSpawnBossAsLastEnemy = true; // 현재 웨이브 마지막 스폰 보스 여부
+    private bool currentSpawnBossAsFirstEnemy = true; // 현재 웨이브 첫 스폰 보스 여부
     private ZombieSpawnRuntimeModifiers currentRuntimeModifiers = ZombieSpawnRuntimeModifiers.Default; // 현재 웨이브 좀비 배율
     private Coroutine waveWaitCoroutine;
     private readonly List<PoolObject> spawnedZombies = new List<PoolObject>(64);
@@ -120,7 +120,7 @@ public class ZombieSpawner : MonoBehaviour
             currSpawnInterval = 1.0f;
             currMaxSpawnCount = 1;
             spawnEnabled = false;
-            currentSpawnBossAsLastEnemy = false;
+            currentSpawnBossAsFirstEnemy = false;
             currentRuntimeModifiers = ZombieSpawnRuntimeModifiers.Default;
             return;
         }
@@ -128,7 +128,7 @@ public class ZombieSpawner : MonoBehaviour
         spawnEnabled = true;
         currSpawnInterval = waveSpawnProfile.GetSpawnInterval(safeWave, 1.0f);
         currMaxSpawnCount = waveSpawnProfile.GetSpawnCount(safeWave, 0);
-        currentSpawnBossAsLastEnemy = waveSpawnProfile.ShouldSpawnBossAsLastEnemy(safeWave, false);
+        currentSpawnBossAsFirstEnemy = waveSpawnProfile.ShouldSpawnBossAsLastEnemy(safeWave, false);
         currentRuntimeModifiers = waveSpawnProfile.GetRuntimeModifiers(safeWave).Sanitized();
     }
 
@@ -150,7 +150,7 @@ public class ZombieSpawner : MonoBehaviour
     // 현재 스폰 순서에 맞춰 일반 좀비 또는 보스를 스폰한다
     private void SpawnNextZombie()
     {
-        bool shouldSpawnBoss = currentSpawnBossAsLastEnemy && currMaxSpawnCount - currSpawnCount == 1;
+        bool shouldSpawnBoss = currentSpawnBossAsFirstEnemy && currSpawnCount == 0;
         if (shouldSpawnBoss && TryGetBossZombiePrefab(out PoolObject bossPrefab))
         {
             SpawnBossZombie(bossPrefab);

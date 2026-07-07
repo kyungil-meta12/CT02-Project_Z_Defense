@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using MoreMountains.Feedbacks;
 using Unity.Behavior;
 using UnityEngine;
 using UnityEngine.AI;
@@ -15,6 +16,8 @@ public class BossZombie : PoolObject, IDamageable, IAimPointProvider, IFrostStat
     private static readonly int SpeedHash = Animator.StringToHash("speed");
     private const float MinimumFrostSpeedMultiplier = 0.5f;
     private const int DefaultBossSkillAoeBufferSize = 16;
+
+    public Transform headPosition;
 
     public BossZombieSpec spec;
     [Header("프리팹별 처치 보상 Override")] [SerializeField] private ZombieRewardProfileSO rewardProfileOverride;
@@ -378,7 +381,8 @@ public class BossZombie : PoolObject, IDamageable, IAimPointProvider, IFrostStat
     //탱크 스킬 : 보스 위치 중심 광역에 5배 데미지로 1회 타격
     private void TankSkill()
     {
-        //todo 탱크 스킬타격 이펙트
+        //탱크 스킬타격 이펙트
+        FeelManager.Inst.tankSkillFeedback?.PlayFeedbacks(transform.position);
         ApplyBossSkillAreaDamage(attackDamage * 5f, tankSkillRadius);
     }
 
@@ -386,7 +390,8 @@ public class BossZombie : PoolObject, IDamageable, IAimPointProvider, IFrostStat
     //스크리머 스킬 : 주변 좀비 속도 버프
     private IEnumerator ScreamerSkill()
     {
-        //todo 스크림 이펙트
+        //스크림 이펙트
+        FeelManager.Inst.screamerSkillFeedback?.PlayFeedbacks(transform.position);
         var colliders = Physics.OverlapSphere(transform.position, screamerSkillRadius);
         //List대신 HashSet으로 중복방지
         var zombies = new HashSet<NormalZombie>();
@@ -477,7 +482,8 @@ public class BossZombie : PoolObject, IDamageable, IAimPointProvider, IFrostStat
     private IEnumerator BoomerSkill()
     {
         int t = 0;
-        //todo 토하는 이펙트
+        //토하는 이펙트
+        PlayBoomerSkillFeedback();
         while (t < 10)
         {
             ApplyBossSkillAreaMaxHpDamage(boomerSkillMaxHpDamageRatioPerTick, boomerSkillRadius);
@@ -485,6 +491,33 @@ public class BossZombie : PoolObject, IDamageable, IAimPointProvider, IFrostStat
             t++;
             yield return boomerSkillWait;
         }
+    }
+
+    // 부머 스킬 이펙트를 머리 하위의 입 위치 기준으로 재생한다
+    private void PlayBoomerSkillFeedback()
+    {
+        if (FeelManager.Inst == null || FeelManager.Inst.boomerSkillFeedback == null)
+        {
+            return;
+        }
+
+        Transform effectParent = headPosition != null ? headPosition : transform;
+        Vector3 mouthOffset = effectParent.forward * 5f;
+        Vector3 mouthPosition = effectParent.position + mouthOffset;
+
+        if (FeelManager.Inst.boomerSkillFeedback is MMF_Player boomerSkillPlayer)
+        {
+            MMF_ParticlesInstantiation particles = boomerSkillPlayer.GetFeedbackOfType<MMF_ParticlesInstantiation>();
+            if (particles != null)
+            {
+                particles.PositionMode = MMF_ParticlesInstantiation.PositionModes.Transform;
+                particles.InstantiateParticlesPosition = effectParent;
+                particles.Offset = mouthOffset;
+                particles.NestParticles = true;
+            }
+        }
+
+        FeelManager.Inst.boomerSkillFeedback.PlayFeedbacks(mouthPosition);
     }
     
     // 외부 공격으로 받은 데미지를 체력에 반영하고 사망 여부를 확인한다
@@ -966,6 +999,7 @@ public class BossZombie : PoolObject, IDamageable, IAimPointProvider, IFrostStat
             return false;
         }
 
+        FeelManager.Inst.attackFeedback?.PlayFeedbacks(attackTargetBV.Value.transform.position);
         iDmg.TakeDamage(new DamageInfo(damage));
         RecordBossDamage(damage);
 

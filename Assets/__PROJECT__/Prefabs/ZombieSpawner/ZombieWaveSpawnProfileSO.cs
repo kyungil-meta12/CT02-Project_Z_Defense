@@ -139,7 +139,7 @@ public class ZombieWaveSpawnProfileSO : ScriptableObject
         return Mathf.Max(0, stage.SpawnCount);
     }
 
-    // 현재 웨이브에서 마지막 스폰을 보스로 대체할지 반환한다
+    // 현재 웨이브에서 첫 스폰을 보스로 대체할지 반환한다
     public bool ShouldSpawnBossAsLastEnemy(int wave, bool fallbackValue)
     {
         ZombieWaveSpawnStage stage = GetStageForWave(wave);
@@ -210,7 +210,8 @@ public class ZombieWaveSpawnStage
     [Header("Spawn")]
     [SerializeField, Min(0.01f)] private float spawnInterval = 1.0f;
     [SerializeField, Min(0)] private int spawnCount = 10;
-    [SerializeField] private bool spawnBossAsLastEnemy = true;
+    [SerializeField, InspectorName("Spawn Boss As First Enemy"), Tooltip("현재 웨이브의 첫 스폰을 보스로 대체할지 여부입니다. 기존 직렬화 이름은 에셋 호환을 위해 유지합니다.")]
+    private bool spawnBossAsLastEnemy = true;
 
     [Header("Normal Zombies")]
     [SerializeField] private NormalZombieSpawnEntry[] normalZombieEntries;

@@ -192,6 +192,8 @@ public class Obstacle : MonoBehaviour, IDamageable
             IsAlive = false; // 생존 상태 비활성화
             ReservedRepairer = null;
 
+            FeelManager.Inst.obstacleBrokenFeedback?.PlayFeedbacks(transform.position);
+
             Fracture(); //DinoFracture 파편 효과
         }
     }

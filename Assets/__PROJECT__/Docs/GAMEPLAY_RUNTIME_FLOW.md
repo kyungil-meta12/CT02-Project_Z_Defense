@@ -12,7 +12,7 @@ This document summarizes the current runtime flow for waves, zombies, obstacles,
 4. `ZombieSpawner` sends the target kill count to `GameManager.InputDestKillCount`.
 5. During runtime, `ZombieSpawner` spawns normal zombies from pooled prefabs by interval.
 6. With `ZombieWaveSpawnProfileSO`, normal and boss prefab candidates can be weighted and restricted by wave range.
-7. The last spawn in the wave can be a boss zombie when the active profile stage enables it.
+7. The first spawn in the wave can be a boss zombie when the active profile stage enables it.
 8. Spawn profile runtime multipliers can adjust spawned zombie HP, attack damage, move/attack speed, and reward amount.
 9. Zombies notify kill progress through `GameManager.IncreaseKillCount` when their death flow completes.
 10. `GameManager.Update` increases `Wave` when `KillCount == DestKillCount` and invokes `OnWaveIncrease`.
@@ -43,7 +43,7 @@ Use `ZombieWaveSpawnProfileSO` for:
 - Wave ranges and stage segmentation.
 - Spawn count and spawn interval.
 - Weighted normal and boss prefab entries.
-- Final-spawn boss toggle.
+- First-spawn boss toggle.
 - Runtime HP, attack damage, move/attack speed, and reward multipliers.
 
 Current first-pass campaign balancing uses wave `1~500`, with the final `451~500` stage using `hpMultiplier = 280`. With current role specs this puts late normal elite zombies around `79,800~100,800` HP before future turret DPS rebalancing.

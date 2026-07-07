@@ -42,7 +42,7 @@ Before editing `Main.unity`:
 Rules:
 
 - Obstacle slot lists define which defense line is breached when an obstacle fractures.
-- Turret base slot lists define which turret bases are disabled while that defense line is breached.
+- Turret base slot lists define which turret bases are locked before initial line completion and re-enabled when that defense line is fully built.
 - Retreat and restored points must be on reachable NavMesh or near valid NavMesh sampling positions.
 - Defense-line index order matters. Lower index means earlier/front line.
 - A survivor that retreated behind line `N` must not repair obstacles with index `<= N` until return completes.
@@ -84,9 +84,9 @@ Rules:
 - `BuildPoint` should hold the installed obstacle or gate as a child.
 - Existing scene obstacles should be moved under the correct `BuildPoint` or assigned through the slot's runtime reference.
 - `GameManager` should reference all seven slots through defense-line `obstacleSlots`.
-- `GameManager` should reference each line's matching turret bases through defense-line `turretBaseSlots`; disabling a base root also disables any installed turret under its `BuildPoint`.
-- For play-test sessions where obstacle destruction should not disable installed turrets, enable `GameManager.keepTurretBasesActiveWhenObstacleBroken`; keep it disabled for normal defense-line rules.
-- Startup defense-line initialization keeps turret bases enabled so players can place turrets before rebuilding or completing obstacle lines; explicit breach/restore events still toggle linked turret bases.
+- `GameManager` should reference each line's matching turret bases through defense-line `turretBaseSlots`; these bases are inactive until the linked obstacle or gate line is fully built.
+- Obstacle or gate destruction marks the defense line as breached and triggers survivor retreat, but it does not disable already active turret bases or installed turrets.
+- Startup defense-line initialization disables turret bases for empty or incomplete lines, and obstacle placement restores turret base activation when the line becomes fully built.
 
 ## Obstacle Placement UI Setup
 

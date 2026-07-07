@@ -222,7 +222,7 @@ Breach flow:
 1. An obstacle fractures.
 2. `GameManager.NotifyObstacleFractured` marks the matching line breached.
 3. `Gate` slot breaches are marked separately from normal obstacle breaches.
-4. The linked turret bases are disabled while the line is breached unless `GameManager.keepTurretBasesActiveWhenObstacleBroken` is enabled for testing.
+4. Linked turret bases and installed turrets stay active after the line is breached; only initial empty-line and rebuild-complete states control turret base activation.
 5. Normal obstacle breaches are only followed by `constructionWorker` survivors.
 6. `Gate` breaches force every survivor role to clear current work and move to the retreat point.
 7. Survivors clear repair targets and move to the retreat point.

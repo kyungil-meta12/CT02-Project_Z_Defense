@@ -33,6 +33,7 @@ public class TurretTechTreeDetailPopupUI : MonoBehaviour
     [SerializeField] private RawImage videoImage;
     [SerializeField] private Image fallbackIconImage;
     [SerializeField] private GameObject missingVideoMessageRoot;
+    [SerializeField] private bool useVideoUvRect;
     [SerializeField] private Rect videoUvRect = new Rect(0.34f, 0.0f, 0.32f, 1.0f);
 
     private string nameTextTemplate;
@@ -128,7 +129,7 @@ public class TurretTechTreeDetailPopupUI : MonoBehaviour
         {
             videoImage.gameObject.SetActive(hasClip);
             videoImage.color = Color.white;
-            videoImage.uvRect = videoUvRect;
+            videoImage.uvRect = useVideoUvRect ? videoUvRect : new Rect(0.0f, 0.0f, 1.0f, 1.0f);
         }
 
         if (fallbackIconImage != null)

@@ -1,7 +1,6 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using MoreMountains.Feedbacks;
 using Unity.Behavior;
 using UnityEngine;
 using UnityEngine.AI;
@@ -502,20 +501,7 @@ public class BossZombie : PoolObject, IDamageable, IAimPointProvider, IFrostStat
         }
 
         Transform effectParent = headPosition != null ? headPosition : transform;
-        Vector3 mouthOffset = effectParent.forward * 5f;
-        Vector3 mouthPosition = effectParent.position + mouthOffset;
-
-        if (FeelManager.Inst.boomerSkillFeedback is MMF_Player boomerSkillPlayer)
-        {
-            MMF_ParticlesInstantiation particles = boomerSkillPlayer.GetFeedbackOfType<MMF_ParticlesInstantiation>();
-            if (particles != null)
-            {
-                particles.PositionMode = MMF_ParticlesInstantiation.PositionModes.Transform;
-                particles.InstantiateParticlesPosition = effectParent;
-                particles.Offset = mouthOffset;
-                particles.NestParticles = true;
-            }
-        }
+        Vector3 mouthPosition = effectParent.position + effectParent.forward * 5f;
 
         FeelManager.Inst.boomerSkillFeedback.PlayFeedbacks(mouthPosition);
     }
@@ -999,7 +985,6 @@ public class BossZombie : PoolObject, IDamageable, IAimPointProvider, IFrostStat
             return false;
         }
 
-        FeelManager.Inst.attackFeedback?.PlayFeedbacks(attackTargetBV.Value.transform.position);
         iDmg.TakeDamage(new DamageInfo(damage));
         RecordBossDamage(damage);
 

@@ -19,7 +19,7 @@ MonoBehaviour:
   AttackDamage: 100
   MinAttackDamage: 0.8
   MaxAttackDamage: 1.2
-  AttackDistance: 10
+  AttackDistance: 5
   Hp: 1000
   MinHp: 0.9
   MaxHp: 1.1

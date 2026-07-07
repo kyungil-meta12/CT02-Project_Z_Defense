@@ -52,8 +52,6 @@ public class GameManager : MonoBehaviour
     [SerializeField] private string quitTitleMessage = "게임 종료";
     [SerializeField] private string quitStatusMessage = "";
 
-    [Header("메인 메뉴 객체")] public GameObject mainMenu;
-
     public event Action<int> OnWaveIncrease; // 웨이브 증가 이벤트
     public event Action<int> OnWaveDecrease; // 웨이브 감소 이벤트
     private readonly List<Survivor> survivors = new List<Survivor>(16);
@@ -82,27 +80,6 @@ public class GameManager : MonoBehaviour
     public bool KeepTurretBasesActiveWhenObstacleBroken => keepTurretBasesActiveWhenObstacleBroken;
 
     public InputAction backAction;
-
-    private void OnEnable()
-    {
-        backAction.Enable();
-        backAction.performed += OnBackPressed;
-    }
-
-    private void OnDisable()
-    {
-        backAction.Disable();
-        backAction.performed -= OnBackPressed;
-    }
-
-    /// <summary>
-    /// 뒤로가기 버튼 누를 시 메인메뉴 활성화
-    /// </summary>
-    /// <param name="context"></param>
-    public void OnBackPressed(InputAction.CallbackContext context)
-    {
-        mainMenu.SetActive(true);
-    }
 
     // 인스펙터 값이 유효 범위를 벗어나지 않도록 보정한다
     private void OnValidate()
@@ -174,6 +151,15 @@ public class GameManager : MonoBehaviour
             OnWaveIncrease?.Invoke(Wave);
             BeginZombieDpsMeasurementWave();
         }
+    }
+
+    /// <summary>
+    /// 뒤로가기키가 눌렸는지 확인한다
+    /// </summary>
+    /// <returns></returns>
+    public bool IsTouchBack()
+    {
+        return Keyboard.current != null && Keyboard.current.escapeKey.wasPressedThisFrame;
     }
 
     /// <summary>
@@ -491,12 +477,18 @@ public class GameManager : MonoBehaviour
     // 페이드 인 후 게임을 종료한다(에디터: 플레이 모드 중지, 빌드: 애플리케이션 종료)
     public void QuitGame()
     {
-        if (quitGameCoroutine != null)
-        {
-            return;
-        }
+        //if (quitGameCoroutine != null)
+        //{
+        //    return;
+        //}
 
-        quitGameCoroutine = StartCoroutine(QuitGameSequence());
+        //quitGameCoroutine = StartCoroutine(QuitGameSequence());
+
+#if UNITY_EDITOR
+        UnityEditor.EditorApplication.isPlaying = false;
+#else
+        Application.Quit();
+#endif
     }
 
     // 페이드 패널을 불투명하게 만든 뒤 실행 환경에 맞춰 게임을 종료한다

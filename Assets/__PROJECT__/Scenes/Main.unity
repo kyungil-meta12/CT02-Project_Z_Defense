@@ -12686,6 +12686,15 @@ MonoBehaviour:
   baseFixedDeltaTime: 0.02
   enableZombieDpsMeasurement: 0
   zombieDpsMeasurementProfile: {fileID: 11400000, guid: d7142c55a9dd48d4e807823c3f68bfa4, type: 2}
+  backAction:
+    m_Name: Back
+    m_Type: 0
+    m_ExpectedControlType: 
+    m_Id: 334f24ed-c6c9-4dca-ac20-60fcae303e14
+    m_Processors: 
+    m_Interactions: 
+    m_SingletonActionBindings: []
+    m_Flags: 0
 --- !u!4 &293100234
 Transform:
   m_ObjectHideFlags: 0

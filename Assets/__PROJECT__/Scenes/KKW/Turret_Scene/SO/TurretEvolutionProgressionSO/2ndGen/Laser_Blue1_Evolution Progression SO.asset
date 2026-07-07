@@ -13,12 +13,16 @@ MonoBehaviour:
   m_Name: Laser_Blue1_Evolution Progression SO
   m_EditorClassIdentifier: Assembly-CSharp::TurretEvolutionProgressionSO
   evolutionEntries:
-  - requiredLevel: 100
+  - requiredLevel: 50
     targetDefinition: {fileID: 11400000, guid: 21cbd98a84130b14b954c6358ceb8bd7, type: 2}
     displayName: Laser_Blue_2
     evolutionCosts:
     - currencyType: 0
       amount: 300000
+    - currencyType: 28
+      amount: 1
+    - currencyType: 71
+      amount: 1
     evolutionIcon: {fileID: 21300000, guid: b6ad2a89d3bcb074895edcb1082c4d81, type: 3}
     evolutionEffectPrefab: {fileID: 640602461530948004, guid: 938be4f127f81d348a60fe4019a9422c, type: 3}
     evolutionEffectLocalOffset: {x: 0, y: 0, z: 0}

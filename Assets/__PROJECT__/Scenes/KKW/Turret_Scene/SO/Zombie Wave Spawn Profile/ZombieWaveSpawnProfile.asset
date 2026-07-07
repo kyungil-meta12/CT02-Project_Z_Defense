@@ -85,9 +85,9 @@ MonoBehaviour:
       minWave: 1
       maxWave: 0
     hpMultiplier: 1
-    attackDamageMultiplier: 0
-    moveAttackSpeedMultiplier: 0
-    rewardMultiplier: 0
+    attackDamageMultiplier: 1
+    moveAttackSpeedMultiplier: 1
+    rewardMultiplier: 1
   - minWave: 11
     maxWave: 25
     spawnInterval: 2.2
@@ -137,7 +137,7 @@ MonoBehaviour:
       maxWave: 0
     hpMultiplier: 3
     attackDamageMultiplier: 2.5
-    moveAttackSpeedMultiplier: 0
+    moveAttackSpeedMultiplier: 1
     rewardMultiplier: 1.2
   - minWave: 26
     maxWave: 50

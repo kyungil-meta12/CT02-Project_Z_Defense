@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5e18c5f48204fa04fb0e390cc01c28bf, type: 3}
   m_Name: Laser_Blue_1_Stat Growth Profile SO
   m_EditorClassIdentifier: Assembly-CSharp::TurretStatGrowthProfileSO
-  targetDamageAtMaxLevel: 111.98707
+  targetDamageAtMaxLevel: 111.9871
   damageLogCurveStrength: 4
   damagePercentPerLevel: 0.801
   rangePerLevel: 0.1111111

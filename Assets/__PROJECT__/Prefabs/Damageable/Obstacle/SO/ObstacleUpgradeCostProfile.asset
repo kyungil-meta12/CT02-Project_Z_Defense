@@ -15,4 +15,6 @@ MonoBehaviour:
   baseCostsPerLevel:
   - currencyType: 0
     amount: 100
+  - currencyType: 21
+    amount: 1
   additionalCostPercentPerLevel: 2

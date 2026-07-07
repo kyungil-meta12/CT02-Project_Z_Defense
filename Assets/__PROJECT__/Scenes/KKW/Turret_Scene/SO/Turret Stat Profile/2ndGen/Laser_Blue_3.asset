@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 64086bcb185c80947a81b76bc4479622, type: 3}
   m_Name: Laser_Blue_3
   m_EditorClassIdentifier: Assembly-CSharp::TurretStatProfileSO
-  damage: 185.33333
+  damage: 185.3333
   range: 63
   fireInterval: 0.0556
   projectileSpeed: 130

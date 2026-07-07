@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 /// <summary>
 /// 전체 터렛 트리 팝업의 열기/닫기, 노드 상태 계산, 노드/라인 갱신을 조율한다.
@@ -15,6 +16,7 @@ public class TurretTechTreeUIController : MonoBehaviour
     [SerializeField] private TurretTechTreeViewProfileSO viewProfile;
 
     [Header("수동 배치 UI")]
+    [SerializeField] private ScrollRect treeScrollRect;
     [SerializeField] private TurretTechTreeNodeUI[] nodeViews = Array.Empty<TurretTechTreeNodeUI>();
     [SerializeField] private TurretTechTreeLineUI[] lineViews = Array.Empty<TurretTechTreeLineUI>();
     [SerializeField] private TurretTechTreeDetailPopupUI detailPopup;
@@ -22,6 +24,7 @@ public class TurretTechTreeUIController : MonoBehaviour
     [Header("동작")]
     [SerializeField] private bool refreshWhenOpened = true;
     [SerializeField] private bool pauseGameWhileOpen;
+    [SerializeField] private Vector2 openedScrollNormalizedPosition = new Vector2(0.5f, 0.0f);
 
     private readonly Dictionary<TurretDefinitionSO, TurretTechTreeNodeState> nodeStates = new Dictionary<TurretDefinitionSO, TurretTechTreeNodeState>(64);
     private readonly Dictionary<TechTreeEdgeKey, TurretTechTreeNodeState> edgeStates = new Dictionary<TechTreeEdgeKey, TurretTechTreeNodeState>(128);
@@ -60,6 +63,7 @@ public class TurretTechTreeUIController : MonoBehaviour
     // 하위 노드, 라인, 상세 팝업 참조를 다시 수집한다
     public void BindChildReferences()
     {
+        treeScrollRect = treeScrollRect != null ? treeScrollRect : GetComponentInChildren<ScrollRect>(true);
         nodeViews = GetComponentsInChildren<TurretTechTreeNodeUI>(true);
         lineViews = GetComponentsInChildren<TurretTechTreeLineUI>(true);
         detailPopup = detailPopup != null ? detailPopup : GetComponentInChildren<TurretTechTreeDetailPopupUI>(true);
@@ -74,11 +78,25 @@ public class TurretTechTreeUIController : MonoBehaviour
         }
 
         PauseGameIfNeeded();
+        ResetScrollPosition();
 
         if (refreshWhenOpened)
         {
             Refresh();
         }
+    }
+
+    // 터렛 트리 팝업을 열 때 루트 노드가 중앙 하단에서 보이도록 스크롤 위치를 초기화한다
+    private void ResetScrollPosition()
+    {
+        if (treeScrollRect == null)
+        {
+            return;
+        }
+
+        Canvas.ForceUpdateCanvases();
+        treeScrollRect.StopMovement();
+        treeScrollRect.normalizedPosition = openedScrollNormalizedPosition;
     }
 
     // 터렛 트리 팝업을 숨기고 상세 팝업과 일시정지를 정리한다

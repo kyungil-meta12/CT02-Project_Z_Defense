@@ -389,9 +389,27 @@ Detail_Popup_Panel
 
 ### Remaining Follow-Up
 
-- Scroll View 이동/드래그 안정화와 모바일 입력 검증은 다음 작업으로 이어간다.
+- 모바일 최종 입력 환경에서 Scroll View 드래그, 닫기 버튼, 상세 팝업 열기/닫기를 한 번 더 검증한다.
 - 모바일 최종 빌드 전에는 33개 영상 총량 `180.16MB`를 다시 압축 검토한다. 목표 총량은 기존 가이드처럼 대략 `50~90MB` 범위를 권장한다.
 - `Electro_Turret .mp4`, `Frost_Turret .mp4`, `Poison_Turret .mp4`처럼 파일명에 확장자 앞 공백이 있는 영상은 Unity Editor에서 GUID를 유지한 채 이름 정리를 검토한다.
+
+## 2026-07-08 Turret Tech Tree Scroll View Completion
+
+### Completed
+
+- `TurretTechTreePanel > Scroll View > Viewport`의 RectTransform을 Scroll View 전체에 맞게 Stretch로 정리했다.
+- `Scroll View > Viewport > Content`의 높이를 `3600`으로 늘려 트리 하단까지 확인할 수 있는 스크롤 여유를 확보했다.
+- `Content`의 X 위치를 `0`으로 맞춰 루트 노드 `Node_Sentinel01`이 가로 중앙 기준에서 시작하도록 정리했다.
+- `TurretTechTreeUIController`에 `treeScrollRect`와 `openedScrollNormalizedPosition`을 추가했다.
+- 터렛 트리 팝업을 열 때 `ScrollRect.normalizedPosition`을 `(0.5, 0)`으로 초기화해 중앙 하단에서 시작하도록 했다.
+- `Canvas > TurretTechTreePanel > CloseButton`을 추가하고 `Button.OnClick`을 `TurretTechTreeUIController.Hide()`에 연결했다.
+
+### Current Setup Rule
+
+- 터렛 트리 닫기 버튼은 `Scroll View > Viewport > Content` 안에 두지 않는다. Content 안에 두면 스크롤과 함께 이동해 접근성이 떨어진다.
+- 닫기 버튼은 `TurretTechTreePanel`의 직접 자식으로 두고, Hierarchy에서 Scroll View보다 뒤쪽에 배치해 화면 위에 렌더링되도록 한다.
+- 터렛 트리 시작 위치는 씬에 저장된 Content 위치와 `TurretTechTreeUIController.openedScrollNormalizedPosition`이 함께 담당한다. 루트 노드 중앙 하단 시작이 필요하면 기본값 `(0.5, 0)`을 유지한다.
+- 수동으로 마지막 스크롤 위치를 유지하는 UX가 필요해지기 전까지는 팝업을 열 때마다 중앙 하단으로 초기화한다.
 
 ## 2026-07-08 Legacy Turret Upgrade Popup Cleanup
 

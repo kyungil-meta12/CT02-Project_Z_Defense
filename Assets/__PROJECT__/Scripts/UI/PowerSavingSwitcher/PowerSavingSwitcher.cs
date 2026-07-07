@@ -1,4 +1,3 @@
-using NUnit.Framework.Internal;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -33,23 +32,28 @@ public class PowerSavingSwitcher : MonoBehaviour
     {
         if(darkState)
         {
-            imgColor.a = Mathf.Lerp(imgColor.a, 1f, Time.deltaTime * 10f);
-            textColor.a = Mathf.Lerp(textColor.a, 1f, Time.deltaTime * 10f);
-            if(imgColor.a >= 0.998f && !DisplayManager.Inst.PowerSavingState)
+            imgColor.a += Time.deltaTime * 2f;
+            textColor.a += Time.deltaTime * 2f;
+            if(imgColor.a >= 1f)
             {
                 imgColor.a = 1f;
                 textColor.a = 1f;
-                DisplayManager.Inst.SetPowerSavingMode(true);
+                if(!DisplayManager.Inst.PowerSavingState)
+                {
+                    img.raycastTarget = true;
+                    DisplayManager.Inst.SetPowerSavingMode(true);
+                }
             }
         }
         else
         {
-              textColor.a = Mathf.Lerp(textColor.a, 0f, Time.deltaTime * 10f);
-            imgColor.a = Mathf.Lerp(imgColor.a, 0f, Time.deltaTime * 10f);
-            if(imgColor.a <= 0.002f)
+            imgColor.a -= Time.deltaTime * 2f;
+            textColor.a -= Time.deltaTime * 2f;
+            if (imgColor.a <= 0f)
             {
                 imgColor.a = 0f;
                 textColor.a = 0f;
+                img.raycastTarget = false;
             }
         }
 
@@ -57,12 +61,14 @@ public class PowerSavingSwitcher : MonoBehaviour
         img.color = imgColor;
     }
 
-    public void TogglePowerSavingMode()
+    public void EnablePowerSavingMode()
     {
-        darkState = !darkState;
-        if(!darkState && DisplayManager.Inst.PowerSavingState)
-        {
-            DisplayManager.Inst.SetPowerSavingMode(false);
-        }
+        darkState = true;
+    }
+
+    public void DisablePowerSavingMode()
+    {
+        darkState = false;
+        DisplayManager.Inst.SetPowerSavingMode(false);
     }
 }

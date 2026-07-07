@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 /// <summary>
 /// 웨이브 진행, 게임 배속, 방어선 상태, 생존자/장애물 등록을 관리한다.
@@ -51,6 +52,8 @@ public class GameManager : MonoBehaviour
     [SerializeField] private string quitTitleMessage = "게임 종료";
     [SerializeField] private string quitStatusMessage = "";
 
+    [Header("메인 메뉴 객체")] public GameObject mainMenu;
+
     public event Action<int> OnWaveIncrease; // 웨이브 증가 이벤트
     public event Action<int> OnWaveDecrease; // 웨이브 감소 이벤트
     private readonly List<Survivor> survivors = new List<Survivor>(16);
@@ -77,6 +80,29 @@ public class GameManager : MonoBehaviour
     public float CurrentTimeScale => Time.timeScale;
     public bool IsWaveProgressionPaused => isWaveProgressionPaused;
     public bool KeepTurretBasesActiveWhenObstacleBroken => keepTurretBasesActiveWhenObstacleBroken;
+
+    public InputAction backAction;
+
+    private void OnEnable()
+    {
+        backAction.Enable();
+        backAction.performed += OnBackPressed;
+    }
+
+    private void OnDisable()
+    {
+        backAction.Disable();
+        backAction.performed -= OnBackPressed;
+    }
+
+    /// <summary>
+    /// 뒤로가기 버튼 누를 시 메인메뉴 활성화
+    /// </summary>
+    /// <param name="context"></param>
+    public void OnBackPressed(InputAction.CallbackContext context)
+    {
+        mainMenu.SetActive(true);
+    }
 
     // 인스펙터 값이 유효 범위를 벗어나지 않도록 보정한다
     private void OnValidate()

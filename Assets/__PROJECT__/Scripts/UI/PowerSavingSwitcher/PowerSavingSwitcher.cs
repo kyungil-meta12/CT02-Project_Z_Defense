@@ -4,27 +4,22 @@ using UnityEngine.UI;
 
 public class PowerSavingSwitcher : MonoBehaviour
 {
-    private Image img;
-    private TextMeshProUGUI text;
-    private Color imgColor;
-    private Color textColor;
+    public Image panel;
+    public TextMeshProUGUI text;
+    private CanvasGroup canvasGroup;
     private bool powerSavingEnabled = false;
 
     void Awake()
     {
-        img = GetComponent<Image>();
-        text = img.GetComponentInChildren<TextMeshProUGUI>();
+        canvasGroup = GetComponent<CanvasGroup>();
     }
 
     void Start()
     {
         powerSavingEnabled = DisplayManager.Inst.PowerSavingState;
-        imgColor = img.color;
-        textColor = text.color;
-        imgColor.a = powerSavingEnabled ? 1f : 0f;
-        textColor.a = powerSavingEnabled ? 1f : 0f;
-        img.color = imgColor;
-        text.color = textColor;
+        canvasGroup.alpha = powerSavingEnabled ? 1f : 0f;
+        panel.raycastTarget = powerSavingEnabled;
+        text.gameObject.SetActive(powerSavingEnabled);
     }
 
     //  화면이 완전히 어두워지면 절전 모드로 전환하고, 다시 밝아질 때는 밝아지기 전에 바로 절전 모드를 해제한다.
@@ -32,33 +27,27 @@ public class PowerSavingSwitcher : MonoBehaviour
     {
         if(powerSavingEnabled)
         {
-            imgColor.a += Time.deltaTime * 2f;
-            textColor.a += Time.deltaTime * 2f;
-            if(imgColor.a >= 1f)
+            canvasGroup.alpha += Time.deltaTime * 2f;
+            if (canvasGroup.alpha >= 1f)
             {
-                imgColor.a = 1f;
-                textColor.a = 1f;
-                if(!DisplayManager.Inst.PowerSavingState)
+                canvasGroup.alpha = 1f;
+                if (!DisplayManager.Inst.PowerSavingState)
                 {
-                    img.raycastTarget = true;
+                    panel.raycastTarget = true;
+                    text.gameObject.SetActive(true);
                     DisplayManager.Inst.SetPowerSavingMode(true);
                 }
             }
         }
         else
         {
-            imgColor.a -= Time.deltaTime * 2f;
-            textColor.a -= Time.deltaTime * 2f;
-            if (imgColor.a <= 0f)
+            canvasGroup.alpha -= 1f * Time.deltaTime * 2f;
+            if (canvasGroup.alpha <= 0f)
             {
-                imgColor.a = 0f;
-                textColor.a = 0f;
-                img.raycastTarget = false;
+                canvasGroup.alpha = 0f;
+                panel.raycastTarget = false;
             }
         }
-
-        text.color = textColor;
-        img.color = imgColor;
     }
 
     public void EnablePowerSavingMode()
@@ -69,6 +58,7 @@ public class PowerSavingSwitcher : MonoBehaviour
     public void DisablePowerSavingMode()
     {
         powerSavingEnabled = false;
+        text.gameObject.SetActive(false);
         DisplayManager.Inst.SetPowerSavingMode(false);
     }
 }

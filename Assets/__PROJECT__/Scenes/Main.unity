@@ -23145,7 +23145,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 0, y: -200}
+  m_AnchoredPosition: {x: 1240, y: 0}
   m_SizeDelta: {x: 200, y: 100}
   m_Pivot: {x: 0, y: 1}
 --- !u!1001 &483623029
@@ -33078,7 +33078,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 310, y: -200}
+  m_AnchoredPosition: {x: 0, y: -100}
   m_SizeDelta: {x: 200, y: 100}
   m_Pivot: {x: 0, y: 1}
 --- !u!1 &659954860
@@ -45769,7 +45769,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 0, y: -100}
+  m_AnchoredPosition: {x: 620, y: 0}
   m_SizeDelta: {x: 200, y: 100}
   m_Pivot: {x: 0, y: 1}
 --- !u!1001 &879999054
@@ -82069,14 +82069,14 @@ MonoBehaviour:
   nameText: {fileID: 1904372800}
   stateText: {fileID: 2071527746}
   descriptionText: {fileID: 0}
-  damageText: {fileID: 0}
-  rangeText: {fileID: 0}
-  fireRateText: {fileID: 0}
-  pierceCountText: {fileID: 0}
-  criticalChanceText: {fileID: 0}
-  heavyHitChanceText: {fileID: 0}
-  videoPlayer: {fileID: 0}
-  videoImage: {fileID: 0}
+  damageText: {fileID: 22134417}
+  rangeText: {fileID: 847880373}
+  fireRateText: {fileID: 1605540094}
+  pierceCountText: {fileID: 531123156}
+  criticalChanceText: {fileID: 737350416}
+  heavyHitChanceText: {fileID: 771233230}
+  videoPlayer: {fileID: 2138561789}
+  videoImage: {fileID: 1664753487}
   fallbackIconImage: {fileID: 2059645774}
   missingVideoMessageRoot: {fileID: 1302511081}
 --- !u!1001 &1525908078
@@ -83040,8 +83040,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 461.60187, y: -1039}
-  m_SizeDelta: {x: 827.20374, y: 50}
+  m_AnchoredPosition: {x: 892.4783, y: -1039}
+  m_SizeDelta: {x: 1688.9565, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1542115095
 MonoBehaviour:
@@ -91319,7 +91319,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 310, y: -100}
+  m_AnchoredPosition: {x: 930, y: 0}
   m_SizeDelta: {x: 200, y: 100}
   m_Pivot: {x: 0, y: 1}
 --- !u!1 &1710973824
@@ -95251,8 +95251,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 461.60187, y: -960.99994}
-  m_SizeDelta: {x: 827.20374, y: 50}
+  m_AnchoredPosition: {x: 892.4783, y: -960.99994}
+  m_SizeDelta: {x: 1688.9565, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1777306864
 MonoBehaviour:
@@ -96438,6 +96438,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f85c52382d6ac9143a2d631cda87fbf0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::FeelManager
+  enableAttackFeedback: 1
   attackFeedback: {fileID: 1177937658}
   tankSkillFeedback: {fileID: 1218842725}
   boomerSkillFeedback: {fileID: 1067577014}

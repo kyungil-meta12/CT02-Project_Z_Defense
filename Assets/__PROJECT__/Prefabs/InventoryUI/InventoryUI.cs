@@ -116,7 +116,7 @@ public class ButtonAutoExecute
     }
 }
 
-public class InventoryUI : MonoBehaviour
+public class InventoryUI : TouchBackHandler
 {
     const float NO_ITEM_BRIGHTNESS = 0.4f;
     const float HAS_ITEM_BRIGHTNESS = 1f;
@@ -244,6 +244,22 @@ public class InventoryUI : MonoBehaviour
     void Start()
     {
         InventorySystem.Inst.OnItemCountChange += OnItemValueChanged;
+
+        // 뒤로가기 이벤트 추가
+        OnTouchBackAction += () =>
+        {
+            if(openState)
+            {
+                if (itemPopup.activeInHierarchy)
+                {
+                    itemPopup.SetActive(false);
+                }
+                else
+                {
+                    OnCloseInventory();
+                }
+            }
+        };
 
         // 인벤토리 셀 생성
         var invenContent = GetContentObject(ContentType.Inventory);
@@ -394,6 +410,8 @@ public class InventoryUI : MonoBehaviour
                 }
             }
         }
+
+        UpdateTouchBackHandler();
     }
 
     // 아이템 개수가 변경 될 때마다 아이템에 해당하는 인덱스의 정보를 업데이트 한다.

@@ -4,6 +4,7 @@ public class UIManager : MonoBehaviour
 {
     public static UIManager Inst;
     public CanvasGroup[] GamePlayUI;
+    public bool hideState = false;
 
     void Awake()
     {
@@ -31,6 +32,7 @@ public class UIManager : MonoBehaviour
             renderer.alpha = 0f;
             renderer.interactable = false;
         }
+        hideState = true;
     }
 
     /// <summary>
@@ -43,5 +45,6 @@ public class UIManager : MonoBehaviour
             renderer.alpha = 1f;
             renderer.interactable = true;
         }
+        hideState = false;
     }
 }

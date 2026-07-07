@@ -2,7 +2,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class PowerSavingSwitcher : MonoBehaviour
+public class PowerSavingSwitcher : TouchBackHandler
 {
     public Image panel;
     public TextMeshProUGUI text;
@@ -20,6 +20,15 @@ public class PowerSavingSwitcher : MonoBehaviour
         canvasGroup.alpha = powerSavingEnabled ? 1f : 0f;
         panel.raycastTarget = powerSavingEnabled;
         text.gameObject.SetActive(powerSavingEnabled);
+
+        // 뒤로가기 이벤트 추가
+        OnTouchBackAction += () =>
+        {
+            if(DisplayManager.Inst.PowerSavingState)
+            {
+                DisablePowerSavingMode();
+            }
+        };
     }
 
     //  화면이 완전히 어두워지면 절전 모드로 전환하고, 다시 밝아질 때는 밝아지기 전에 바로 절전 모드를 해제한다.
@@ -48,6 +57,8 @@ public class PowerSavingSwitcher : MonoBehaviour
                 panel.raycastTarget = false;
             }
         }
+
+        UpdateTouchBackHandler();
     }
 
     public void EnablePowerSavingMode()

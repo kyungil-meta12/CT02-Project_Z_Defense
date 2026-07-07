@@ -9,7 +9,7 @@ public class TouchBackHandler : MonoBehaviour
     /// <summary>
     /// 핸들러 업데이트
     /// </summary>
-    public void UpdateHandler()
+    public void UpdateTouchBackHandler()
     {
         if(Keyboard.current != null && Keyboard.current.escapeKey.wasPressedThisFrame) {
             OnTouchBackAction?.Invoke();

@@ -8,7 +8,7 @@ public class PowerSavingSwitcher : MonoBehaviour
     private TextMeshProUGUI text;
     private Color imgColor;
     private Color textColor;
-    private bool darkState = false;
+    private bool powerSavingEnabled = false;
 
     void Awake()
     {
@@ -18,11 +18,11 @@ public class PowerSavingSwitcher : MonoBehaviour
 
     void Start()
     {
-        darkState = DisplayManager.Inst.PowerSavingState;
+        powerSavingEnabled = DisplayManager.Inst.PowerSavingState;
         imgColor = img.color;
         textColor = text.color;
-        imgColor.a = darkState ? 1f : 0f;
-        textColor.a = darkState ? 1f : 0f;
+        imgColor.a = powerSavingEnabled ? 1f : 0f;
+        textColor.a = powerSavingEnabled ? 1f : 0f;
         img.color = imgColor;
         text.color = textColor;
     }
@@ -30,7 +30,7 @@ public class PowerSavingSwitcher : MonoBehaviour
     //  화면이 완전히 어두워지면 절전 모드로 전환하고, 다시 밝아질 때는 밝아지기 전에 바로 절전 모드를 해제한다.
     void Update()
     {
-        if(darkState)
+        if(powerSavingEnabled)
         {
             imgColor.a += Time.deltaTime * 2f;
             textColor.a += Time.deltaTime * 2f;
@@ -63,12 +63,12 @@ public class PowerSavingSwitcher : MonoBehaviour
 
     public void EnablePowerSavingMode()
     {
-        darkState = true;
+        powerSavingEnabled = true;
     }
 
     public void DisablePowerSavingMode()
     {
-        darkState = false;
+        powerSavingEnabled = false;
         DisplayManager.Inst.SetPowerSavingMode(false);
     }
 }

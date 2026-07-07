@@ -171,7 +171,7 @@ public class Obstacle : MonoBehaviour, IDamageable
         {
             return;
         }
-        FeelManager.Inst.attackFeedback?.PlayFeedbacks(transform.position);
+        FeelManager.Inst?.PlayAttackFeedback(transform.position);
         float beforeHp = CurrHp;
         CurrHp -= Mathf.Max(0f, damageInfo.Damage);
         CurrHp = Mathf.Clamp(CurrHp, 0f, TotalHp);

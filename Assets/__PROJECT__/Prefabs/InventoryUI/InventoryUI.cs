@@ -151,8 +151,6 @@ public class InventoryUI : MonoBehaviour
     [Header("선택된 셀 색상")] public Color selectedCellColor;
     [Header("비활성화 버튼 색상")] public Color disableButtonColor;
 
-    [Header("절전 전환 버튼")] public GameObject powerSavingSwitchButton;
-
     [Header("자동 실행 진입 시간")] public float autoExecuteEnterTime;
     [Header("자동 실행 간격")] public float autoExecuteInterval;
 
@@ -434,7 +432,6 @@ public class InventoryUI : MonoBehaviour
     {
         mainController.SetActive(true);
         background.gameObject.SetActive(true);
-        powerSavingSwitchButton.SetActive(false);
         SetToInventoryTab();
         openState = true;
     }
@@ -446,7 +443,6 @@ public class InventoryUI : MonoBehaviour
     {
         mainController.SetActive(false);
         background.gameObject.SetActive(false);
-        powerSavingSwitchButton.SetActive(true);
         openState = false;
     }
 

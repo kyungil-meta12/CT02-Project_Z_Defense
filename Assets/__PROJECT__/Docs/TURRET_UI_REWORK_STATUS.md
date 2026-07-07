@@ -191,7 +191,7 @@
 - `EvolutionPopup`은 후보 선택 후 하단 `Evolution` 버튼이 선택된 후보 인덱스로 진화하는지 회귀 검증이 필요하다.
 - `SkillPopup`은 아직 기능 없음 상태이며, 버튼 비활성/준비 중 문구 정책을 나중에 확정해야 한다.
 - Main 씬 기준 `SkillPopup` 오브젝트와 `TurretSelectionUIController.skillPopup` 참조가 아직 없다.
-- 기존 옛날 터렛 UI 프리팹/오브젝트가 남아 있으면 더블클릭 또는 업그레이드 입력과 충돌할 수 있다.
+- Canvas-level 레거시 `TurretUpgradePopup`은 2026-07-08에 제거했다. 이후 새 UI 회귀 검증은 `Canvas > Turret UI` 아래 팝업 기준으로만 수행한다.
 - 터렛 업그레이드 후 사거리 표시 갱신, 선택 팝업 값 갱신, 하위 팝업 값 갱신이 모두 같은 타이밍에 맞는지 검증이 필요하다.
 - `Legacy Pointer Bridge`와 `InputSystemUIInputModule` 기본 포인터 이벤트가 동시에 살아날 경우 같은 입력이 중복 전달될 수 있으므로, 추후 Input System 경로 복구 시 중복 입력 여부를 먼저 확인해야 한다.
 
@@ -237,8 +237,10 @@
 
 - 터렛 트리 프리뷰용 녹화/편집 영상은 `Assets/__PROJECT__/Scenes/KKW/Turret_Scene/Art/TurretVideoClip/` 아래에 둔다.
 - `TurretTechTreeViewProfileSO`의 각 노드 `Preview Clip` 필드에는 이 폴더의 `VideoClip`을 직접 참조로 연결한다.
-- 현재 확인된 영상은 28개이며 전체 용량은 약 `198.8MB`이다. 개발/연결 검증 단계에서는 허용 가능하지만 모바일 빌드 전에는 압축 검토가 필요하다.
-- `3rd Gen/Ignition_Turret.mp4`가 약 `66.7MB`로 가장 크므로, 최종 빌드 전 압축 우선순위 1순위로 본다.
+- 2026-07-08 기준 현재 확인된 영상은 33개이며 전체 용량은 약 `180.16MB`이다.
+- 2026-07-05에 확인했던 기존 28개 영상 총량 약 `198.8MB`보다 영상 수는 늘었지만 전체 용량은 줄었다.
+- 현재 가장 큰 파일은 `Ignition_Turret.mp4` 약 `13.43MB`이다. 이전 `3rd Gen/Ignition_Turret.mp4` 약 `66.7MB` 대비 크게 줄었다.
+- 개발/연결 검증 단계에서는 허용 가능하지만 모바일 빌드 전에는 압축 검토가 필요하다.
 
 ### Video Optimization Guideline
 
@@ -256,6 +258,8 @@
 - Play Mode에서 노드 1~2개만 먼저 클릭해 영상 루프/닫기/다른 노드 전환 시 이전 영상 정지가 정상인지 확인한다.
 
 ## 2026-07-07 Turret Tech Tree Detail Popup Setup
+
+> This section is the setup history. The current completed state is tracked in `2026-07-08 Turret Tech Tree Detail Popup Completion`.
 
 ### Current Scene Status
 
@@ -324,6 +328,86 @@ Detail_Popup_Panel
 TurretTechTreeDetailPopupUI와 TurretTechTreeUIController.detailPopup Inspector 참조 연결,
 비활성 자식 오브젝트 확인, 노드 클릭 시 텍스트/아이콘/영상 프리뷰 Play Mode 검증이다.
 ```
+
+## 2026-07-08 Turret Tech Tree Detail Popup Completion
+
+### Completed
+
+- `TurretTechTreeViewProfileSO`의 33개 노드 모두 `Preview Clip`이 연결된 상태로 확인했다.
+- `Preview Clip` 누락, 깨진 참조, 중복 연결, 미사용 영상 파일은 없는 상태로 확인했다.
+- `Detail_Popup_Panel`은 노드 클릭 시 터렛 이름, 상태 문구, 1레벨 기준 스탯, 프리뷰 영상을 표시한다.
+- `TurretNameText`는 템플릿의 `{}` 안에 터렛 표시 이름만 넣는다.
+- `StateText`는 `TurretTechTreeViewProfileSO.GetStateText` 기준으로 잠금, 레벨 부족, 재료 부족, 준비 가능, 해금 상태 문구를 표시한다.
+- 프리뷰 영상은 단일 `VideoPlayer`를 재사용하고, 노드 전환 시 `VideoClip`만 교체한다.
+- 영상은 `Prepare` 완료 후 재생하며, 팝업 닫기 시 재생을 멈추고 클립 참조를 비운다.
+- `PreviewRawImage`는 영상이 있을 때만 표시하고, 영상이 없으면 `FallbackIconImage`와 `MissingVideoMessage`를 표시한다.
+- `useVideoUvRect` 옵션을 추가했다. 새로 녹화한 정상 비율 영상은 꺼두고, 레거시 영상처럼 검은 여백이 큰 클립을 임시로 잘라야 할 때만 켠다.
+- 상세 설명 텍스트는 현재 상세 팝업에서 사용하지 않는다. `DescriptionText`가 남아 있더라도 런타임에서 비우고 숨긴다.
+- 스탯 표시는 공격력, 사거리, 공격속도, 관통횟수, 치명타 확률, 강타 확률 6개만 사용한다.
+- 스탯 라벨 TMP와 숫자 TMP를 분리했다. 각 라벨 TMP의 자식 `StatNumber`가 있으면 숫자는 해당 자식 TMP에만 표시한다.
+- `StatNumber`가 없는 구형 구조에서는 기존처럼 라벨 TMP의 `{}` 구간을 값으로 치환하는 fallback을 유지한다.
+- 강타 확률 오브젝트 이름 오타 `HeavtHitChance`는 `HeavyHitChance`로 정리했다. 스크립트는 기존 씬 호환을 위해 두 이름 모두 fallback으로 찾는다.
+
+### Current Detail Popup Hierarchy Rule
+
+```text
+Detail_Popup_Panel
+- Popup_Background
+  - Header
+    - TurretNameText
+    - StateText
+    - ExitButton
+  - PreviewArea
+    - PreviewFrame
+      - PreviewRawImage
+      - FallbackIconImage
+      - MissingVideoMessage
+  - StatPanel
+    - DamageText
+      - StatNumber
+    - RangeText
+      - StatNumber
+    - FireRateText
+      - StatNumber
+    - PierceCountText
+      - StatNumber
+    - CriticalChance
+      - StatNumber
+    - HeavyHitChance
+      - StatNumber
+- PreviewVideoPlayer
+```
+
+### Inspector Rules
+
+- `DamageText`, `RangeText`, `FireRateText`, `PierceCountText`, `CriticalChance`, `HeavyHitChance`는 라벨 전용 TMP로 둔다.
+- 각 라벨 TMP의 자식 `StatNumber`는 숫자 전용 TMP로 둔다. Text Input은 임시값이어도 되며 런타임에서 숫자로 덮어쓴다.
+- 숫자 크기, 정렬, 위치는 각 `StatNumber`의 TMP Inspector에서 조정한다. 스크립트는 `StatNumber.text`만 갱신하고 폰트 크기는 건드리지 않는다.
+- 새 정상 비율 영상 기준 `useVideoUvRect`는 꺼둔다.
+- `RenderTexture`는 세로 프리뷰 기준으로 `540x960` 또는 `720x1280`을 권장한다.
+- `VideoPlayer.Audio Output Mode`는 `None`을 권장한다. 현재 프리뷰는 영상 확인용이며 사운드가 필요 없다.
+
+### Remaining Follow-Up
+
+- Scroll View 이동/드래그 안정화와 모바일 입력 검증은 다음 작업으로 이어간다.
+- 모바일 최종 빌드 전에는 33개 영상 총량 `180.16MB`를 다시 압축 검토한다. 목표 총량은 기존 가이드처럼 대략 `50~90MB` 범위를 권장한다.
+- `Electro_Turret .mp4`, `Frost_Turret .mp4`, `Poison_Turret .mp4`처럼 파일명에 확장자 앞 공백이 있는 영상은 Unity Editor에서 GUID를 유지한 채 이름 정리를 검토한다.
+
+## 2026-07-08 Legacy Turret Upgrade Popup Cleanup
+
+### Removed
+
+- Main 씬의 Canvas 직속 레거시 `TurretUpgradePopup` 프리팹 인스턴스를 제거했다.
+- `UIManager.GamePlayUI`에 남아 있던 해당 레거시 팝업의 `CanvasGroup` 참조를 제거했다.
+- 레거시 프리팹 원본 `Assets/__PROJECT__/Scenes/KKW/Turret_Scene/Prefabs/UI/TurretUpgradePopup.prefab`을 삭제했다.
+- 임시 업그레이드/진화 UI 경로인 `TurretTemporaryUpgradePopupUI`, `TurretEngineerSeatButton`, `TurretUICreator`를 삭제했다.
+
+### Current Upgrade Popup Source Of Truth
+
+- 현재 터렛 업그레이드는 `Canvas > Turret UI > UpgradePopup`의 `TurretUpgradePopupUI`가 담당한다.
+- `TurretSelectionUIController.upgradePopup`은 `UpgradePopup`의 `TurretUpgradePopupUI`를 참조해야 한다.
+- 진화 후보 선택과 실행은 `EvolutionPopup`의 `TurretEvolutionPopupUI`가 담당한다.
+- 레거시 `TurretUpgradePopup` 프리팹 또는 `TurretTemporaryUpgradePopupUI` 경로를 다시 만들지 않는다.
 
 ## Next Work Plan
 

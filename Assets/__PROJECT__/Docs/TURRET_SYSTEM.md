@@ -882,11 +882,15 @@ Placement input note:
 
 ## Turret Upgrade UI Setup
 
-The turret upgrade/evolution popup is manually maintained in the scene. The legacy `Project Z Defense/UI/Create Turret Upgrade Popup UI` creator menu is disabled by default.
+The active turret popup flow is manually maintained under `Canvas > Turret UI`.
 
-The editable `TurretUpgradePopupCanvas` and `TurretUpgradePopup` hierarchy should wire the serialized references on `TurretTemporaryUpgradePopupUI`. The popup uses a full-screen transparent `BackgroundButton` as the show/hide root, with the visible `Panel` as its child, matching the survivor interaction UI outside-click pattern. The runtime component does not create Canvas, popup panels, or evolution buttons. Add more `EvolutionButton_*` children in the editor if a turret can expose more evolution choices than the default buttons.
+- `TurretSelectionUIController` owns selected turret context, range display, and routing.
+- `TurretSelectPopupUI` is the action hub for Upgrade, Detail, Skill, and close.
+- `UpgradePopup` owns `TurretUpgradePopupUI` and handles level-up plus routing to `TurretEvolutionPopupUI`.
+- `EvolutionPopup` owns `TurretEvolutionPopupUI` and handles candidate selection, cost display, and final evolution execution.
+- `DescriptionPopup` owns `TurretDetailPopupUI` and handles read-only current turret stats.
 
-The popup also includes an `EngineerSeatTriggers` row above the upgrade content. `TurretTemporaryUpgradePopupUI.engineerSeatTriggerCount` controls how many prebuilt seat trigger buttons are considered. Active buttons are shown only for engineers that have fully reached and mounted the selected turret. Clicking a seat trigger dismounts that engineer, removes the `TurretEngineerBuffReceiver` stack, restores the survivor object, and sends the engineer back to the rear gathering point when available. If a seat button has a manually assigned `TurretEngineerSeatButton.buffValueText`, it displays the per-engineer damage bonus with `+10%` style formatting.
+The old Canvas-level `TurretUpgradePopup` prefab instance, `TurretTemporaryUpgradePopupUI`, `TurretEngineerSeatButton`, and `TurretUICreator` editor helper were removed on 2026-07-08. Do not reintroduce that temporary popup path unless a new migration plan explicitly requires it.
 
 Turret selection uses direct pointer input only when `EventSystem.current.IsPointerOverGameObject()` is false. Outside-click dismissal is handled by the transparent background button's `OnClick`, so clicks inside the visible panel stay in UI space and do not run world selection.
 

@@ -249,11 +249,8 @@ Minimum scene requirements:
 - `TurretPlacementController` has a target camera or `Camera.main` exists.
 - Place `TurretPlacementSlotUI` buttons manually and assign `placementController` plus `TurretShopEntrySO`. The legacy `Project Z Defense > UI > Create Turret Placement UI` menu is disabled by default.
 - Keep `TurretPlacementUI.rebuildOnStart` disabled unless runtime-generated legacy buttons are intentionally needed.
-- Maintain the turret upgrade/evolution popup manually; the legacy `Project Z Defense > UI > Create Turret Upgrade Popup UI` menu is disabled by default. The runtime popup controller expects serialized scene UI references and a full-screen transparent `BackgroundButton`.
-- The transparent `BackgroundButton` should cover the screen, have an alpha-0 `Image` with `raycastTarget` enabled, and call `TurretTemporaryUpgradePopupUI.OnBackgroundButtonClicked`.
-- The popup includes `EngineerSeatTriggers` above the main upgrade content. Keep the desired number of `TurretEngineerSeatButton` children in that container and match `engineerSeatTriggerCount` on `TurretTemporaryUpgradePopupUI`.
-- `engineerSeatTriggerCount` is only the prepared popup button pool size; actual mount limits come from each selected turret's `TurretDefinitionSO.maxEngineerSeatCount`.
-- If a seat button has a right-side buff text, assign it to `TurretEngineerSeatButton.buffValueText`; mounted engineers display their per-engineer damage bonus as `+10%` style text.
+- Maintain turret selection, upgrade, detail, and evolution popups under `Canvas > Turret UI`. The old Canvas-level `TurretUpgradePopup` prefab instance and `TurretTemporaryUpgradePopupUI` flow were removed on 2026-07-08.
+- `TurretSelectionUIController.upgradePopup` should reference the active `UpgradePopup` object that owns `TurretUpgradePopupUI`, not any legacy prefab instance.
 - `turretBaseLayerMask` includes only intended turret base hit areas.
 - Each `TurretBaseSlot` has `BuildPoint` and `PlacementHitArea`.
 - `PlacementHitArea` collider is on the expected layer.

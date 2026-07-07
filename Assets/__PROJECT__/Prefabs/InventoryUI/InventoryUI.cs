@@ -116,7 +116,7 @@ public class ButtonAutoExecute
     }
 }
 
-public class InventoryUI : MonoBehaviour
+public class InventoryUI : TouchBackHandler
 {
     const float NO_ITEM_BRIGHTNESS = 0.4f;
     const float HAS_ITEM_BRIGHTNESS = 1f;
@@ -150,8 +150,6 @@ public class InventoryUI : MonoBehaviour
     [Header("선택된 탭 색상")] public Color selectedTabColor;
     [Header("선택된 셀 색상")] public Color selectedCellColor;
     [Header("비활성화 버튼 색상")] public Color disableButtonColor;
-
-    [Header("절전 전환 버튼")] public GameObject powerSavingSwitchButton;
 
     [Header("자동 실행 진입 시간")] public float autoExecuteEnterTime;
     [Header("자동 실행 간격")] public float autoExecuteInterval;
@@ -246,6 +244,22 @@ public class InventoryUI : MonoBehaviour
     void Start()
     {
         InventorySystem.Inst.OnItemCountChange += OnItemValueChanged;
+
+        // 뒤로가기 이벤트 추가
+        OnTouchBackAction += () =>
+        {
+            if(openState)
+            {
+                if (itemPopup.activeInHierarchy)
+                {
+                    itemPopup.SetActive(false);
+                }
+                else
+                {
+                    OnCloseInventory();
+                }
+            }
+        };
 
         // 인벤토리 셀 생성
         var invenContent = GetContentObject(ContentType.Inventory);
@@ -396,6 +410,8 @@ public class InventoryUI : MonoBehaviour
                 }
             }
         }
+
+        UpdateTouchBackHandler();
     }
 
     // 아이템 개수가 변경 될 때마다 아이템에 해당하는 인덱스의 정보를 업데이트 한다.
@@ -434,8 +450,8 @@ public class InventoryUI : MonoBehaviour
     {
         mainController.SetActive(true);
         background.gameObject.SetActive(true);
-        powerSavingSwitchButton.SetActive(false);
         SetToInventoryTab();
+        UIManager.Inst.HideGameUI();
         openState = true;
     }
 
@@ -446,7 +462,7 @@ public class InventoryUI : MonoBehaviour
     {
         mainController.SetActive(false);
         background.gameObject.SetActive(false);
-        powerSavingSwitchButton.SetActive(true);
+        UIManager.Inst.RevertGameUI();
         openState = false;
     }
 

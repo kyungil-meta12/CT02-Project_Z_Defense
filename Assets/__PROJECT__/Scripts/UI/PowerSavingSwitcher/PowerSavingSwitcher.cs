@@ -1,68 +1,75 @@
-using NUnit.Framework.Internal;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class PowerSavingSwitcher : MonoBehaviour
+public class PowerSavingSwitcher : TouchBackHandler
 {
-    private Image img;
-    private TextMeshProUGUI text;
-    private Color imgColor;
-    private Color textColor;
-    private bool darkState = false;
+    public Image panel;
+    public TextMeshProUGUI text;
+    private CanvasGroup canvasGroup;
+    private bool powerSavingEnabled = false;
 
     void Awake()
     {
-        img = GetComponent<Image>();
-        text = img.GetComponentInChildren<TextMeshProUGUI>();
+        canvasGroup = GetComponent<CanvasGroup>();
     }
 
     void Start()
     {
-        darkState = DisplayManager.Inst.PowerSavingState;
-        imgColor = img.color;
-        textColor = text.color;
-        imgColor.a = darkState ? 1f : 0f;
-        textColor.a = darkState ? 1f : 0f;
-        img.color = imgColor;
-        text.color = textColor;
+        powerSavingEnabled = DisplayManager.Inst.PowerSavingState;
+        canvasGroup.alpha = powerSavingEnabled ? 1f : 0f;
+        panel.raycastTarget = powerSavingEnabled;
+        text.gameObject.SetActive(powerSavingEnabled);
+
+        // 뒤로가기 이벤트 추가
+        OnTouchBackAction += () =>
+        {
+            if(DisplayManager.Inst.PowerSavingState)
+            {
+                DisablePowerSavingMode();
+            }
+        };
     }
 
     //  화면이 완전히 어두워지면 절전 모드로 전환하고, 다시 밝아질 때는 밝아지기 전에 바로 절전 모드를 해제한다.
     void Update()
     {
-        if(darkState)
+        if(powerSavingEnabled)
         {
-            imgColor.a = Mathf.Lerp(imgColor.a, 1f, Time.deltaTime * 10f);
-            textColor.a = Mathf.Lerp(textColor.a, 1f, Time.deltaTime * 10f);
-            if(imgColor.a >= 0.998f && !DisplayManager.Inst.PowerSavingState)
+            canvasGroup.alpha += Time.deltaTime * 2f;
+            if (canvasGroup.alpha >= 1f)
             {
-                imgColor.a = 1f;
-                textColor.a = 1f;
-                DisplayManager.Inst.SetPowerSavingMode(true);
+                canvasGroup.alpha = 1f;
+                if (!DisplayManager.Inst.PowerSavingState)
+                {
+                    panel.raycastTarget = true;
+                    text.gameObject.SetActive(true);
+                    DisplayManager.Inst.SetPowerSavingMode(true);
+                }
             }
         }
         else
         {
-              textColor.a = Mathf.Lerp(textColor.a, 0f, Time.deltaTime * 10f);
-            imgColor.a = Mathf.Lerp(imgColor.a, 0f, Time.deltaTime * 10f);
-            if(imgColor.a <= 0.002f)
+            canvasGroup.alpha -= 1f * Time.deltaTime * 2f;
+            if (canvasGroup.alpha <= 0f)
             {
-                imgColor.a = 0f;
-                textColor.a = 0f;
+                canvasGroup.alpha = 0f;
+                panel.raycastTarget = false;
             }
         }
 
-        text.color = textColor;
-        img.color = imgColor;
+        UpdateTouchBackHandler();
     }
 
-    public void TogglePowerSavingMode()
+    public void EnablePowerSavingMode()
     {
-        darkState = !darkState;
-        if(!darkState && DisplayManager.Inst.PowerSavingState)
-        {
-            DisplayManager.Inst.SetPowerSavingMode(false);
-        }
+        powerSavingEnabled = true;
+    }
+
+    public void DisablePowerSavingMode()
+    {
+        powerSavingEnabled = false;
+        text.gameObject.SetActive(false);
+        DisplayManager.Inst.SetPowerSavingMode(false);
     }
 }

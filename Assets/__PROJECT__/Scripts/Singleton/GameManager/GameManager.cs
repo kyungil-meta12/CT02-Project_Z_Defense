@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 /// <summary>
 /// 웨이브 진행, 게임 배속, 방어선 상태, 생존자/장애물 등록을 관리한다.
@@ -73,6 +74,8 @@ public class GameManager : MonoBehaviour
     public float CurrentTimeScale => Time.timeScale;
     public bool IsWaveProgressionPaused => isWaveProgressionPaused;
 
+    public InputAction backAction;
+
     // 인스펙터 값이 유효 범위를 벗어나지 않도록 보정한다
     private void OnValidate()
     {
@@ -143,6 +146,15 @@ public class GameManager : MonoBehaviour
             OnWaveIncrease?.Invoke(Wave);
             BeginZombieDpsMeasurementWave();
         }
+    }
+
+    /// <summary>
+    /// 뒤로가기키가 눌렸는지 확인한다
+    /// </summary>
+    /// <returns></returns>
+    public bool IsTouchBack()
+    {
+        return Keyboard.current != null && Keyboard.current.escapeKey.wasPressedThisFrame;
     }
 
     /// <summary>
@@ -438,12 +450,18 @@ public class GameManager : MonoBehaviour
     // 페이드 인 후 게임을 종료한다(에디터: 플레이 모드 중지, 빌드: 애플리케이션 종료)
     public void QuitGame()
     {
-        if (quitGameCoroutine != null)
-        {
-            return;
-        }
+        //if (quitGameCoroutine != null)
+        //{
+        //    return;
+        //}
 
-        quitGameCoroutine = StartCoroutine(QuitGameSequence());
+        //quitGameCoroutine = StartCoroutine(QuitGameSequence());
+
+#if UNITY_EDITOR
+        UnityEditor.EditorApplication.isPlaying = false;
+#else
+        Application.Quit();
+#endif
     }
 
     // 페이드 패널을 불투명하게 만든 뒤 실행 환경에 맞춰 게임을 종료한다

@@ -1,6 +1,7 @@
 using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.Serialization;
 using UnityEngine.UI;
 using UnityEngine.Events;
 
@@ -24,19 +25,22 @@ public class TurretUpgradePopupUI : TurretPopupPageUI
     [SerializeField] private TMP_Text nextTurretLevelText;
 
     [Header("현재 수치")]
-    [SerializeField] private TMP_Text currentDpsText;
+    [FormerlySerializedAs("currentDpsText")]
+    [SerializeField] private TMP_Text currentDamageText;
     [SerializeField] private TMP_Text currentFireRateText;
     [SerializeField] private TMP_Text currentRangeText;
     [SerializeField] private TMP_Text currentPierceText;
 
     [Header("다음 수치")]
-    [SerializeField] private TMP_Text nextDpsText;
+    [FormerlySerializedAs("nextDpsText")]
+    [SerializeField] private TMP_Text nextDamageText;
     [SerializeField] private TMP_Text nextFireRateText;
     [SerializeField] private TMP_Text nextRangeText;
     [SerializeField] private TMP_Text nextPierceText;
 
     [Header("변화량")]
-    [SerializeField] private TMP_Text dpsDeltaText;
+    [FormerlySerializedAs("dpsDeltaText")]
+    [SerializeField] private TMP_Text damageDeltaText;
     [SerializeField] private TMP_Text fireRateDeltaText;
     [SerializeField] private TMP_Text rangeDeltaText;
     [SerializeField] private TMP_Text pierceDeltaText;
@@ -57,15 +61,15 @@ public class TurretUpgradePopupUI : TurretPopupPageUI
     private string currentTurretNameTextTemplate;
     private string currentLevelTextTemplate;
     private string nextLevelTextTemplate;
-    private string currentDpsTextTemplate;
+    private string currentDamageTextTemplate;
     private string currentFireRateTextTemplate;
     private string currentRangeTextTemplate;
     private string currentPierceTextTemplate;
-    private string nextDpsTextTemplate;
+    private string nextDamageTextTemplate;
     private string nextFireRateTextTemplate;
     private string nextRangeTextTemplate;
     private string nextPierceTextTemplate;
-    private string dpsDeltaTextTemplate;
+    private string damageDeltaTextTemplate;
     private string fireRateDeltaTextTemplate;
     private string rangeDeltaTextTemplate;
     private string pierceDeltaTextTemplate;
@@ -170,15 +174,15 @@ public class TurretUpgradePopupUI : TurretPopupPageUI
         currentTurretNameText = currentTurretNameText != null ? currentTurretNameText : FindFirstPopupComponent<TMP_Text>(searchRoot, "HighPanel/CurrentTurretFrame/CurrentTurretName");
         currentTurretLevelText = currentTurretLevelText != null ? currentTurretLevelText : FindFirstPopupComponent<TMP_Text>(searchRoot, "HighPanel/CurrentTurretFrame/CurrentTurretLevel");
         nextTurretLevelText = nextTurretLevelText != null ? nextTurretLevelText : FindFirstPopupComponent<TMP_Text>(searchRoot, "HighPanel/NextTurretFrame/NextTurretLevel");
-        currentDpsText = currentDpsText != null ? currentDpsText : FindFirstPopupComponent<TMP_Text>(searchRoot, "MiddlePanel/DeltaDetailInfoPanel/Damage", "MiddlePanel/DeltaDetailInfoPanel/DPS");
+        currentDamageText = currentDamageText != null ? currentDamageText : FindFirstPopupComponent<TMP_Text>(searchRoot, "MiddlePanel/DeltaDetailInfoPanel/Damage", "MiddlePanel/DeltaDetailInfoPanel/DPS");
         currentFireRateText = currentFireRateText != null ? currentFireRateText : FindFirstPopupComponent<TMP_Text>(searchRoot, "MiddlePanel/DeltaDetailInfoPanel/FireRate");
         currentRangeText = currentRangeText != null ? currentRangeText : FindFirstPopupComponent<TMP_Text>(searchRoot, "MiddlePanel/DeltaDetailInfoPanel/Range");
         currentPierceText = currentPierceText != null ? currentPierceText : FindFirstPopupComponent<TMP_Text>(searchRoot, "MiddlePanel/DeltaDetailInfoPanel/Pierce");
-        nextDpsText = nextDpsText != null ? nextDpsText : FindFirstPopupComponent<TMP_Text>(searchRoot, "MiddlePanel/DeltaDetailInfoPanel/NextDamage", "MiddlePanel/DeltaDetailInfoPanel/NextDPS");
+        nextDamageText = nextDamageText != null ? nextDamageText : FindFirstPopupComponent<TMP_Text>(searchRoot, "MiddlePanel/DeltaDetailInfoPanel/NextDamage", "MiddlePanel/DeltaDetailInfoPanel/NextDPS");
         nextFireRateText = nextFireRateText != null ? nextFireRateText : FindFirstPopupComponent<TMP_Text>(searchRoot, "MiddlePanel/DeltaDetailInfoPanel/NextFireRate");
         nextRangeText = nextRangeText != null ? nextRangeText : FindFirstPopupComponent<TMP_Text>(searchRoot, "MiddlePanel/DeltaDetailInfoPanel/NextRange");
         nextPierceText = nextPierceText != null ? nextPierceText : FindFirstPopupComponent<TMP_Text>(searchRoot, "MiddlePanel/DeltaDetailInfoPanel/NextPierce");
-        dpsDeltaText = dpsDeltaText != null ? dpsDeltaText : FindFirstPopupComponent<TMP_Text>(searchRoot, "MiddlePanel/DeltaDetailInfoPanel/DamageDelta", "MiddlePanel/DeltaDetailInfoPanel/DPSDelta");
+        damageDeltaText = damageDeltaText != null ? damageDeltaText : FindFirstPopupComponent<TMP_Text>(searchRoot, "MiddlePanel/DeltaDetailInfoPanel/DamageDelta", "MiddlePanel/DeltaDetailInfoPanel/DPSDelta");
         fireRateDeltaText = fireRateDeltaText != null ? fireRateDeltaText : FindFirstPopupComponent<TMP_Text>(searchRoot, "MiddlePanel/DeltaDetailInfoPanel/FireRateDelta");
         rangeDeltaText = rangeDeltaText != null ? rangeDeltaText : FindFirstPopupComponent<TMP_Text>(searchRoot, "MiddlePanel/DeltaDetailInfoPanel/RangeDelta");
         pierceDeltaText = pierceDeltaText != null ? pierceDeltaText : FindFirstPopupComponent<TMP_Text>(searchRoot, "MiddlePanel/DeltaDetailInfoPanel/PierceDelta");
@@ -253,9 +257,9 @@ public class TurretUpgradePopupUI : TurretPopupPageUI
             nextLevelTextTemplate = nextTurretLevelText.text;
         }
 
-        if (currentDpsText != null && string.IsNullOrEmpty(currentDpsTextTemplate))
+        if (currentDamageText != null && string.IsNullOrEmpty(currentDamageTextTemplate))
         {
-            currentDpsTextTemplate = currentDpsText.text;
+            currentDamageTextTemplate = currentDamageText.text;
         }
 
         if (currentFireRateText != null && string.IsNullOrEmpty(currentFireRateTextTemplate))
@@ -273,9 +277,9 @@ public class TurretUpgradePopupUI : TurretPopupPageUI
             currentPierceTextTemplate = currentPierceText.text;
         }
 
-        if (nextDpsText != null && string.IsNullOrEmpty(nextDpsTextTemplate))
+        if (nextDamageText != null && string.IsNullOrEmpty(nextDamageTextTemplate))
         {
-            nextDpsTextTemplate = nextDpsText.text;
+            nextDamageTextTemplate = nextDamageText.text;
         }
 
         if (nextFireRateText != null && string.IsNullOrEmpty(nextFireRateTextTemplate))
@@ -293,9 +297,9 @@ public class TurretUpgradePopupUI : TurretPopupPageUI
             nextPierceTextTemplate = nextPierceText.text;
         }
 
-        if (dpsDeltaText != null && string.IsNullOrEmpty(dpsDeltaTextTemplate))
+        if (damageDeltaText != null && string.IsNullOrEmpty(damageDeltaTextTemplate))
         {
-            dpsDeltaTextTemplate = dpsDeltaText.text;
+            damageDeltaTextTemplate = damageDeltaText.text;
         }
 
         if (fireRateDeltaText != null && string.IsNullOrEmpty(fireRateDeltaTextTemplate))
@@ -317,7 +321,7 @@ public class TurretUpgradePopupUI : TurretPopupPageUI
     // 델타 텍스트의 색상 태그가 표시되도록 Rich Text를 켠다
     private void EnableDeltaRichText()
     {
-        EnableRichText(dpsDeltaText);
+        EnableRichText(damageDeltaText);
         EnableRichText(fireRateDeltaText);
         EnableRichText(rangeDeltaText);
         EnableRichText(pierceDeltaText);
@@ -335,11 +339,11 @@ public class TurretUpgradePopupUI : TurretPopupPageUI
     // 현재와 다음 스탯 수치를 각각 텍스트에 반영한다
     private void SetStatTexts(TurretRuntimeStat currentStat, TurretRuntimeStat nextStat)
     {
-        SetText(currentDpsText, ApplyTemplate(currentDpsTextTemplate, FormatValue(currentStat.damage)));
+        SetText(currentDamageText, ApplyTemplate(currentDamageTextTemplate, FormatValue(currentStat.damage)));
         SetText(currentFireRateText, ApplyTemplate(currentFireRateTextTemplate, FormatValue(currentStat.fireInterval)));
         SetText(currentRangeText, ApplyTemplate(currentRangeTextTemplate, FormatValue(currentStat.range)));
         SetText(currentPierceText, ApplyTemplate(currentPierceTextTemplate, currentStat.pierceCount.ToString()));
-        SetText(nextDpsText, ApplyTemplate(nextDpsTextTemplate, FormatValue(nextStat.damage)));
+        SetText(nextDamageText, ApplyTemplate(nextDamageTextTemplate, FormatValue(nextStat.damage)));
         SetText(nextFireRateText, ApplyTemplate(nextFireRateTextTemplate, FormatValue(nextStat.fireInterval)));
         SetText(nextRangeText, ApplyTemplate(nextRangeTextTemplate, FormatValue(nextStat.range)));
         SetText(nextPierceText, ApplyTemplate(nextPierceTextTemplate, nextStat.pierceCount.ToString()));
@@ -350,14 +354,14 @@ public class TurretUpgradePopupUI : TurretPopupPageUI
     {
         if (!canShowUpgrade)
         {
-            SetText(dpsDeltaText, "-");
+            SetText(damageDeltaText, "-");
             SetText(fireRateDeltaText, "-");
             SetText(rangeDeltaText, "-");
             SetText(pierceDeltaText, "-");
             return;
         }
 
-        SetText(dpsDeltaText, FormatDeltaPercentText(dpsDeltaTextTemplate, currentStat.damage, nextStat.damage));
+        SetText(damageDeltaText, FormatDeltaPercentText(damageDeltaTextTemplate, currentStat.damage, nextStat.damage));
         SetText(fireRateDeltaText, FormatDeltaPercentText(fireRateDeltaTextTemplate, currentStat.fireInterval, nextStat.fireInterval));
         SetText(rangeDeltaText, FormatDeltaPercentText(rangeDeltaTextTemplate, currentStat.range, nextStat.range));
         SetText(pierceDeltaText, FormatDeltaIntegerText(pierceDeltaTextTemplate, currentStat.pierceCount, nextStat.pierceCount));
@@ -570,6 +574,7 @@ public class TurretUpgradePopupUI : TurretPopupPageUI
         }
 
         RefreshUpgradeTexts();
+        RequestSelectionContextUpdate(CurrentContext);
         return true;
     }
 
@@ -839,17 +844,17 @@ public class TurretUpgradePopupUI : TurretPopupPageUI
             Debug.LogWarning("[TurretUpgradePopupUI] 레벨 표시 TMP 참조가 일부 비어 있습니다.", this);
         }
 
-        if (currentDpsText == null || currentFireRateText == null || currentRangeText == null || currentPierceText == null)
+        if (currentDamageText == null || currentFireRateText == null || currentRangeText == null || currentPierceText == null)
         {
             Debug.LogWarning("[TurretUpgradePopupUI] 현재 수치 TMP 참조가 일부 비어 있습니다.", this);
         }
 
-        if (nextDpsText == null || nextFireRateText == null || nextRangeText == null || nextPierceText == null)
+        if (nextDamageText == null || nextFireRateText == null || nextRangeText == null || nextPierceText == null)
         {
             Debug.LogWarning("[TurretUpgradePopupUI] 다음 수치 TMP 참조가 일부 비어 있습니다.", this);
         }
 
-        if (dpsDeltaText == null || fireRateDeltaText == null || rangeDeltaText == null || pierceDeltaText == null)
+        if (damageDeltaText == null || fireRateDeltaText == null || rangeDeltaText == null || pierceDeltaText == null)
         {
             Debug.LogWarning("[TurretUpgradePopupUI] 변화량 TMP 참조가 일부 비어 있습니다.", this);
         }

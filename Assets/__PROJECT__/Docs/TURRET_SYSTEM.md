@@ -102,10 +102,12 @@ Do not use display names as stable IDs.
 ## Runtime Damage Meter
 
 - `TurretDamageMeterManager` owns wave-scoped turret damage totals and keeps previous-wave values visible until the first damage of the next wave is reported.
+- `TurretDamageMeterManager.meterUI` is an explicit Inspector reference to the scene `TurretDamageMeterUI`; runtime `GetComponent` fallback is not used for normal play.
 - The first damage in a new wave resets all currently installed turret entries to `0` and then applies that first actual damage.
 - Removed, sold, disabled, or evolved-away turret instances unregister their source and disappear from the meter. Evolved turrets register as new separate entries.
 - Ranking is sorted every `0.25` seconds, while text and bar UI refresh is intended for `0.15` second cadence.
 - Row movement is handled by `TurretDamageMeterRowUI` with `Mathf.SmoothDamp` in `Update`; do not add `Vertical Layout Group` to the row root.
+- `TurretDamageMeterRowUI` requires a `CanvasGroup` on each row object; do not rely on runtime component creation for fold alpha animation.
 - Bars use first-place-relative fill ratio, while percent text uses total installed turret damage share.
 - `TurretDamageMeterColorProfileSO` maps turret definitions or stable `turretId` values to bar colors. Direct `TurretDefinitionSO` reference rules take priority, then `turretId`, then fallback color.
 - Create the color profile from `Project Z Defense/UI/Turret Damage Meter Color Profile` and assign it to `TurretDamageMeterUI.colorProfile`.

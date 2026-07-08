@@ -1,6 +1,7 @@
 using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.Serialization;
 using UnityEngine.UI;
 
 /// <summary>
@@ -17,7 +18,8 @@ public class TurretDetailPopupUI : TurretPopupPageUI
 
     [Header("상세 수치")]
     [SerializeField] private TMP_Text levelText;
-    [SerializeField] private TMP_Text dpsText;
+    [FormerlySerializedAs("dpsText")]
+    [SerializeField] private TMP_Text damageText;
     [SerializeField] private TMP_Text fireRateText;
     [SerializeField] private TMP_Text bulletSpeedText;
     [SerializeField] private TMP_Text pierceCountText;
@@ -27,11 +29,10 @@ public class TurretDetailPopupUI : TurretPopupPageUI
 
     [Header("버튼")]
     [SerializeField] private Button detailUpgradeButton;
-    [SerializeField] private GameObject detailUpgradeFrame;
 
     private string currentTurretNameTextTemplate;
     private string levelTextTemplate;
-    private string dpsTextTemplate;
+    private string damageTextTemplate;
     private string fireRateTextTemplate;
     private string bulletSpeedTextTemplate;
     private string pierceCountTextTemplate;
@@ -102,7 +103,7 @@ public class TurretDetailPopupUI : TurretPopupPageUI
         currentTurretNameText = currentTurretNameText != null ? currentTurretNameText : FindFirstDescriptionComponent<TMP_Text>(searchRoot, "HighPanel/CurrentTurretNameFrame/CurrentTurretName", "CurrentTurretNameFrame/CurrentTurretName");
         turretImage = ResolveTurretIconImage(searchRoot, turretImage);
         levelText = levelText != null ? levelText : FindDescriptionComponent<TMP_Text>("MiddlePanel/DetailInfoPanel/Level", searchRoot);
-        dpsText = dpsText != null ? dpsText : FindFirstDescriptionComponent<TMP_Text>(searchRoot, "MiddlePanel/DetailInfoPanel/Damage", "MiddlePanel/DetailInfoPanel/DPS");
+        damageText = damageText != null ? damageText : FindFirstDescriptionComponent<TMP_Text>(searchRoot, "MiddlePanel/DetailInfoPanel/Damage", "MiddlePanel/DetailInfoPanel/DPS");
         fireRateText = fireRateText != null ? fireRateText : FindDescriptionComponent<TMP_Text>("MiddlePanel/DetailInfoPanel/FireRate", searchRoot);
         bulletSpeedText = bulletSpeedText != null ? bulletSpeedText : FindDescriptionComponent<TMP_Text>("MiddlePanel/DetailInfoPanel/BulletSpeed", searchRoot);
         pierceCountText = pierceCountText != null ? pierceCountText : FindDescriptionComponent<TMP_Text>("MiddlePanel/DetailInfoPanel/PierceCount", searchRoot);
@@ -110,7 +111,6 @@ public class TurretDetailPopupUI : TurretPopupPageUI
         criticalChanceText = criticalChanceText != null ? criticalChanceText : FindDescriptionComponent<TMP_Text>("MiddlePanel/DetailInfoPanel/CriticalChance", searchRoot);
         heavyHitChanceText = heavyHitChanceText != null ? heavyHitChanceText : FindDescriptionComponent<TMP_Text>("MiddlePanel/DetailInfoPanel/HeavyHitChance", searchRoot);
         detailUpgradeButton = detailUpgradeButton != null ? detailUpgradeButton : FindFirstDescriptionComponent<Button>(searchRoot, "LowPanel/UpgradeFrame/Upgrade", "LowPanel/UpgradeButton", "LowPanel/Upgrade");
-        detailUpgradeFrame = detailUpgradeFrame != null ? detailUpgradeFrame : FindDescriptionGameObject("LowPanel/UpgradeFrame", searchRoot);
     }
 
     // 상세 팝업의 업그레이드 버튼 입력을 상위 컨트롤러에 알린다
@@ -166,9 +166,9 @@ public class TurretDetailPopupUI : TurretPopupPageUI
             levelTextTemplate = levelText.text;
         }
 
-        if (dpsText != null && string.IsNullOrEmpty(dpsTextTemplate))
+        if (damageText != null && string.IsNullOrEmpty(damageTextTemplate))
         {
-            dpsTextTemplate = dpsText.text;
+            damageTextTemplate = damageText.text;
         }
 
         if (fireRateText != null && string.IsNullOrEmpty(fireRateTextTemplate))
@@ -262,7 +262,7 @@ public class TurretDetailPopupUI : TurretPopupPageUI
     private void SetDetailStatTexts(int currentLevel, TurretRuntimeStat stat, TurretDamagePolishProfileSO damagePolishProfile)
     {
         SetText(levelText, ApplyTemplate(levelTextTemplate, currentLevel.ToString()));
-        SetText(dpsText, ApplyTemplate(dpsTextTemplate, FormatValue(stat.damage)));
+        SetText(damageText, ApplyTemplate(damageTextTemplate, FormatValue(stat.damage)));
         SetText(fireRateText, ApplyTemplate(fireRateTextTemplate, FormatValue(stat.fireInterval)));
         SetText(bulletSpeedText, ApplyTemplate(bulletSpeedTextTemplate, FormatValue(stat.projectileSpeed)));
         SetText(pierceCountText, ApplyTemplate(pierceCountTextTemplate, stat.pierceCount.ToString()));
@@ -275,7 +275,7 @@ public class TurretDetailPopupUI : TurretPopupPageUI
     private void ClearDetailStatTexts()
     {
         SetText(levelText, ApplyTemplate(levelTextTemplate, "-"));
-        SetText(dpsText, ApplyTemplate(dpsTextTemplate, "-"));
+        SetText(damageText, ApplyTemplate(damageTextTemplate, "-"));
         SetText(fireRateText, ApplyTemplate(fireRateTextTemplate, "-"));
         SetText(bulletSpeedText, ApplyTemplate(bulletSpeedTextTemplate, "-"));
         SetText(pierceCountText, ApplyTemplate(pierceCountTextTemplate, "-"));
@@ -424,7 +424,7 @@ public class TurretDetailPopupUI : TurretPopupPageUI
     // 상세 팝업에 필요한 수동 연결 참조를 검증한다
     private void ValidateRequiredReferences()
     {
-        if (currentTurretNameText == null || levelText == null || dpsText == null || fireRateText == null || bulletSpeedText == null || pierceCountText == null || rangeText == null)
+        if (currentTurretNameText == null || levelText == null || damageText == null || fireRateText == null || bulletSpeedText == null || pierceCountText == null || rangeText == null)
         {
             Debug.LogWarning("[TurretDetailPopupUI] 상세 스탯 TMP 참조가 일부 비어 있습니다.", this);
         }
@@ -448,13 +448,9 @@ public class TurretDetailPopupUI : TurretPopupPageUI
     // 미리보기 모드에서 업그레이드 진입 버튼을 비활성화한다
     private void SetPreviewButtonState(bool isPreview)
     {
-        if (detailUpgradeFrame != null)
-        {
-            detailUpgradeFrame.SetActive(!isPreview);
-        }
-
         if (detailUpgradeButton != null)
         {
+            detailUpgradeButton.gameObject.SetActive(!isPreview);
             detailUpgradeButton.interactable = !isPreview;
         }
     }
@@ -480,18 +476,6 @@ public class TurretDetailPopupUI : TurretPopupPageUI
 
         Transform child = searchRoot.Find(DESCRIPTION_BACKGROUND_PATH + "/" + relativePath);
         return child == null ? null : child.GetComponent<T>();
-    }
-
-    // 상세 팝업 배경명 기준으로 하위 게임 오브젝트를 찾는다
-    private static GameObject FindDescriptionGameObject(string relativePath, Transform searchRoot)
-    {
-        if (searchRoot == null || string.IsNullOrWhiteSpace(relativePath))
-        {
-            return null;
-        }
-
-        Transform child = searchRoot.Find(DESCRIPTION_BACKGROUND_PATH + "/" + relativePath);
-        return child == null ? null : child.gameObject;
     }
 
     // 여러 상세 팝업 경로 중 처음 발견되는 하위 컴포넌트를 반환한다

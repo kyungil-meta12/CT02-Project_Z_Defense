@@ -57,11 +57,11 @@ MonoBehaviour:
     firstWave: 10
     waveInterval: 5
   - bossType: 1
-    firstWave: 15
-    waveInterval: 5
-  - bossType: 2
     firstWave: 20
-    waveInterval: 5
+    waveInterval: 10
+  - bossType: 2
+    firstWave: 30
+    waveInterval: 15
   stages:
   - minWave: 1
     maxWave: 9

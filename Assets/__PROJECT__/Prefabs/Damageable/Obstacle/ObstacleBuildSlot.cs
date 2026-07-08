@@ -317,7 +317,7 @@ public class ObstacleBuildSlot : MonoBehaviour
             Debug.LogWarning($"[ObstacleBuildSlot] 배치 실패 - 슬롯: {name}, 항목: {GetBuildEntryName(buildEntry)}, 사유: {reason}", this);
         }
 
-        WarningPopupManager.ShowWarning(reason);
+        WarningPopupManager.ShowWarning("장애물 설치 실패");
     }
 
     // 장애물 배치 성공 결과를 콘솔에 출력하고, 플레이어에게도 완료 팝업으로 알린다
@@ -328,7 +328,7 @@ public class ObstacleBuildSlot : MonoBehaviour
             Debug.Log($"[ObstacleBuildSlot] 배치 성공 - 슬롯: {name}, 항목: {GetBuildEntryName(buildEntry)}, 설치 대상: {GetObstacleName(placedObstacle)}, 비용: {FormatCosts(buildCosts)}, 남은 재화: {FormatWallet()}", this);
         }
 
-        WarningPopupManager.ShowWarning($"{GetBuildEntryName(buildEntry)} 설치 완료");
+        WarningPopupManager.ShowWarning("장애물 설치 성공");
     }
 
     // 빌드 항목의 로그용 이름을 반환한다

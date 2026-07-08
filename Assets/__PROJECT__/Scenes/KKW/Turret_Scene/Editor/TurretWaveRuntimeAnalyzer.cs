@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using UnityEngine;
@@ -46,7 +47,7 @@ internal sealed class TurretWaveRuntimeAnalyzer
             int maxWave = stage.MaxWave;
             if (maxWave <= 0)
             {
-                waveRows.Add(CreateWaveRow(stage, profile.Path, i, minWave, true, warnings));
+                waveRows.Add(CreateWaveRow(profile, stage, profile.Path, i, minWave, true, warnings));
                 ReportWarning.Add(warnings, ReportWarningSeverity.Info, "ZombieWaveSpawnProfileSO", profile.Path, $"{i + 1}번째 스테이지의 MaxWave가 0 이하라 {minWave} 웨이브 대표 행만 표시합니다.");
                 continue;
             }
@@ -54,35 +55,46 @@ internal sealed class TurretWaveRuntimeAnalyzer
             int normalizedMaxWave = Mathf.Max(minWave, maxWave);
             for (int wave = minWave; wave <= normalizedMaxWave; wave++)
             {
-                waveRows.Add(CreateWaveRow(stage, profile.Path, i, wave, false, warnings));
+                waveRows.Add(CreateWaveRow(profile, stage, profile.Path, i, wave, false, warnings));
             }
         }
     }
 
     // 스폰 스테이지 하나를 런타임 의미의 웨이브 계산 행으로 변환한다
-    private WaveSummaryRow CreateWaveRow(WaveStageInput stage, string path, int stageIndex, int wave, bool isOpenEndedWave, List<ReportWarning> warnings)
+    private WaveSummaryRow CreateWaveRow(WaveProfileInput profile, WaveStageInput stage, string path, int stageIndex, int wave, bool isOpenEndedWave, List<ReportWarning> warnings)
     {
         int spawnCount = Mathf.Max(0, stage.SpawnCount);
-        bool spawnBossAsLastEnemy = stage.SpawnBossAsLastEnemy;
+        bool usesScheduledBosses = profile.BossSchedules.Count > 0;
+        bool spawnBossAsLastEnemy = !usesScheduledBosses && stage.SpawnBossAsLastEnemy;
         float hpMultiplier = stage.HpMultiplier;
         float attackDamageMultiplier = stage.AttackDamageMultiplier;
         float moveAttackSpeedMultiplier = stage.MoveAttackSpeedMultiplier;
         float rewardMultiplier = stage.RewardMultiplier;
         int bossSpawnCount = spawnBossAsLastEnemy && spawnCount > 0 ? 1 : 0;
-        int normalSpawnCount = Mathf.Max(0, spawnCount - bossSpawnCount);
+        List<BossScheduleInput> scheduledBosses = usesScheduledBosses ? CollectScheduledBosses(profile.BossSchedules, wave) : null;
+        if (usesScheduledBosses)
+        {
+            bossSpawnCount = CountValidScheduledBosses(scheduledBosses);
+        }
+
+        int normalSpawnCount = usesScheduledBosses ? spawnCount : Mathf.Max(0, spawnCount - bossSpawnCount);
 
         WeightedZombieSummary normalSummary = CalculateWeightedZombieSummary(stage.NormalEntries, wave, hpMultiplier, attackDamageMultiplier, moveAttackSpeedMultiplier, rewardMultiplier, path, stageIndex, "일반", false, warnings);
-        WeightedZombieSummary bossSummary = CalculateWeightedZombieSummary(stage.BossEntries, wave, hpMultiplier, attackDamageMultiplier, moveAttackSpeedMultiplier, rewardMultiplier, path, stageIndex, "보스", true, warnings);
+        WeightedZombieSummary bossSummary = usesScheduledBosses
+            ? CalculateScheduledBossSummary(scheduledBosses, wave, hpMultiplier, attackDamageMultiplier, moveAttackSpeedMultiplier, rewardMultiplier, path, stageIndex, warnings)
+            : CalculateWeightedZombieSummary(stage.BossEntries, wave, hpMultiplier, attackDamageMultiplier, moveAttackSpeedMultiplier, rewardMultiplier, path, stageIndex, "보스", true, warnings);
         AddMissingCandidateWarning(path, stageIndex, wave, normalSpawnCount, normalSummary.CandidateCount, "일반", warnings);
         AddMissingCandidateWarning(path, stageIndex, wave, bossSpawnCount, bossSummary.CandidateCount, "보스", warnings);
 
-        float totalHp = normalSummary.AverageHp * normalSpawnCount + bossSummary.AverageHp * bossSpawnCount;
+        List<ZombieHpStackSegment> hpStackSegments = BuildHpStackSegments(stage, scheduledBosses, usesScheduledBosses, wave, normalSpawnCount, hpMultiplier);
+        float totalHp = hpStackSegments.Count > 0 ? hpStackSegments[hpStackSegments.Count - 1].CumulativeHp : 0.0f;
         float averageNormalZombieDps = normalSummary.AverageDps;
         string dpsDataNote = BuildDpsDataNote(normalSpawnCount, bossSpawnCount, normalSummary, bossSummary);
         Dictionary<RewardCurrencyType, float> averageRewardPerWave = new Dictionary<RewardCurrencyType, float>();
         AddScaledRewards(averageRewardPerWave, normalSummary.AverageRewardPerKill, normalSpawnCount);
         AddScaledRewards(averageRewardPerWave, bossSummary.AverageRewardPerKill, bossSpawnCount);
         int candidateCount = normalSummary.CandidateCount + bossSummary.CandidateCount;
+        int totalSpawnUnits = normalSpawnCount + bossSpawnCount;
 
         return new WaveSummaryRow
         {
@@ -97,14 +109,111 @@ internal sealed class TurretWaveRuntimeAnalyzer
             HpMultiplier = hpMultiplier,
             RewardMultiplier = rewardMultiplier,
             CandidateCount = candidateCount,
-            AverageZombieHp = spawnCount <= 0 ? 0.0f : totalHp / spawnCount,
+            AverageZombieHp = totalSpawnUnits <= 0 ? 0.0f : totalHp / totalSpawnUnits,
             AverageNormalZombieHp = normalSummary.AverageHp,
             AverageBossZombieHp = bossSummary.AverageHp,
             TotalWaveHp = totalHp,
             AverageRewardPerWave = averageRewardPerWave,
             AverageNormalZombieDps = averageNormalZombieDps,
-            DpsDataNote = dpsDataNote
+            DpsDataNote = dpsDataNote,
+            HpStackSegments = hpStackSegments
         };
+    }
+
+    // 현재 웨이브에 해당하는 보스 스케줄 목록을 반환한다
+    private static List<BossScheduleInput> CollectScheduledBosses(List<BossScheduleInput> schedules, int wave)
+    {
+        List<BossScheduleInput> results = new List<BossScheduleInput>();
+        if (schedules == null || schedules.Count <= 0)
+        {
+            return results;
+        }
+
+        int safeWave = Mathf.Max(1, wave);
+        for (int i = 0; i < schedules.Count; i++)
+        {
+            BossScheduleInput schedule = schedules[i];
+            int firstWave = Mathf.Max(1, schedule.FirstWave);
+            int interval = Mathf.Max(1, schedule.WaveInterval);
+            if (safeWave >= firstWave && (safeWave - firstWave) % interval == 0)
+            {
+                results.Add(schedule);
+            }
+        }
+
+        return results;
+    }
+
+    // 유효한 보스 프리팹을 가진 스케줄 수를 센다
+    private static int CountValidScheduledBosses(List<BossScheduleInput> schedules)
+    {
+        int count = 0;
+        if (schedules == null)
+        {
+            return count;
+        }
+
+        for (int i = 0; i < schedules.Count; i++)
+        {
+            if (schedules[i].BossZombie != null)
+            {
+                count++;
+            }
+        }
+
+        return count;
+    }
+
+    // 보스 스케줄 목록의 HP와 보상 평균을 계산한다
+    private WeightedZombieSummary CalculateScheduledBossSummary(List<BossScheduleInput> schedules, int wave, float hpMultiplier, float attackDamageMultiplier, float moveAttackSpeedMultiplier, float rewardMultiplier, string profilePath, int stageIndex, List<ReportWarning> warnings)
+    {
+        WeightedZombieSummary summary = new WeightedZombieSummary
+        {
+            AverageRewardPerKill = new Dictionary<RewardCurrencyType, float>()
+        };
+
+        if (schedules == null || schedules.Count <= 0)
+        {
+            return summary;
+        }
+
+        Dictionary<RewardCurrencyType, float> totalRewards = new Dictionary<RewardCurrencyType, float>();
+        float totalHp = 0.0f;
+        float totalDps = 0.0f;
+        for (int i = 0; i < schedules.Count; i++)
+        {
+            BossScheduleInput schedule = schedules[i];
+            if (schedule.BossZombie == null)
+            {
+                ReportWarning.Add(warnings, ReportWarningSeverity.Warning, "ZombieWaveSpawnProfileSO", profilePath, $"{stageIndex + 1}번째 스테이지 {wave}웨이브 보스 스케줄 {schedule.BossType}의 프리팹 데이터를 읽을 수 없습니다.");
+                continue;
+            }
+
+            float bossHp = GetAverageBossZombieHp(schedule.BossZombie) * hpMultiplier;
+            totalHp += bossHp;
+            if (TryResolveBossZombieDps(wave, schedule.BossType, attackDamageMultiplier, moveAttackSpeedMultiplier, out float bossDps))
+            {
+                totalDps += bossDps;
+            }
+            else
+            {
+                summary.HasMissingDpsData = true;
+            }
+
+            Dictionary<RewardCurrencyType, float> rewards = rewardCalculator.CalculateExpectedRewards(schedule.RewardProfileOverride, schedule.BossZombie.spec, wave, true, rewardMultiplier);
+            AddScaledRewards(totalRewards, rewards, 1.0f);
+            summary.CandidateCount++;
+        }
+
+        if (summary.CandidateCount <= 0)
+        {
+            return summary;
+        }
+
+        summary.AverageHp = totalHp / summary.CandidateCount;
+        summary.AverageDps = totalDps / summary.CandidateCount;
+        AddScaledRewards(summary.AverageRewardPerKill, totalRewards, 1.0f / summary.CandidateCount);
+        return summary;
     }
 
     // 스폰 그룹별 DPS 데이터 누락 비고를 만든다
@@ -197,6 +306,166 @@ internal sealed class TurretWaveRuntimeAnalyzer
         summary.AverageDps = weightedDps / totalWeight;
         AddScaledRewards(summary.AverageRewardPerKill, weightedRewards, 1.0f / totalWeight);
         return summary;
+    }
+
+    // 웨이브의 좀비 HP 스택 세그먼트를 일반 enum 순서와 보스 enum 순서로 만든다
+    private List<ZombieHpStackSegment> BuildHpStackSegments(WaveStageInput stage, List<BossScheduleInput> scheduledBosses, bool usesScheduledBosses, int wave, int normalSpawnCount, float hpMultiplier)
+    {
+        List<ZombieHpStackSegment> segments = new List<ZombieHpStackSegment>();
+        float cumulativeHp = 0.0f;
+        AddNormalHpStackSegments(segments, stage.NormalEntries, wave, normalSpawnCount, hpMultiplier, ref cumulativeHp);
+
+        if (usesScheduledBosses)
+        {
+            AddScheduledBossHpStackSegments(segments, scheduledBosses, hpMultiplier, ref cumulativeHp);
+        }
+        else
+        {
+            int legacyBossSpawnCount = stage.SpawnBossAsLastEnemy && stage.SpawnCount > 0 ? 1 : 0;
+            AddLegacyBossHpStackSegments(segments, stage.BossEntries, wave, legacyBossSpawnCount, hpMultiplier, ref cumulativeHp);
+        }
+
+        return segments;
+    }
+
+    // 일반 좀비 enum 순서대로 가중치 기반 기대 HP 세그먼트를 추가한다
+    private static void AddNormalHpStackSegments(List<ZombieHpStackSegment> segments, List<SpawnEntryInput> entries, int wave, int spawnCount, float hpMultiplier, ref float cumulativeHp)
+    {
+        int safeSpawnCount = Mathf.Max(0, spawnCount);
+        int totalWeight = CalculateAvailableWeight(entries, wave);
+        if (safeSpawnCount <= 0 || totalWeight <= 0)
+        {
+            return;
+        }
+
+        Array normalTypes = Enum.GetValues(typeof(NormalZombieType));
+        for (int typeIndex = 0; typeIndex < normalTypes.Length; typeIndex++)
+        {
+            NormalZombieType normalType = (NormalZombieType)normalTypes.GetValue(typeIndex);
+            float typeHp = 0.0f;
+            float typeExpectedCount = 0.0f;
+            for (int i = 0; i < entries.Count; i++)
+            {
+                SpawnEntryInput entry = entries[i];
+                if (entry.IsBoss || entry.NormalType != normalType || !IsSpawnEntryAvailable(entry, wave))
+                {
+                    continue;
+                }
+
+                float averageHp = GetAverageNormalZombieHp(entry.NormalZombie) * hpMultiplier;
+                float expectedCount = safeSpawnCount * Mathf.Max(0, entry.Weight) / (float)totalWeight;
+                typeExpectedCount += expectedCount;
+                typeHp += averageHp * expectedCount;
+            }
+
+            AddHpStackSegment(segments, normalType.ToString(), false, normalType, default, typeExpectedCount, typeHp, ref cumulativeHp);
+        }
+    }
+
+    // 스케줄된 보스 타입을 보스 enum 순서대로 HP 세그먼트에 추가한다
+    private static void AddScheduledBossHpStackSegments(List<ZombieHpStackSegment> segments, List<BossScheduleInput> schedules, float hpMultiplier, ref float cumulativeHp)
+    {
+        if (schedules == null || schedules.Count <= 0)
+        {
+            return;
+        }
+
+        Array bossTypes = Enum.GetValues(typeof(BossZombieType));
+        for (int typeIndex = 0; typeIndex < bossTypes.Length; typeIndex++)
+        {
+            BossZombieType bossType = (BossZombieType)bossTypes.GetValue(typeIndex);
+            float typeHp = 0.0f;
+            float typeExpectedCount = 0.0f;
+            for (int i = 0; i < schedules.Count; i++)
+            {
+                BossScheduleInput schedule = schedules[i];
+                if (schedule.BossType != bossType || schedule.BossZombie == null)
+                {
+                    continue;
+                }
+
+                typeExpectedCount += 1.0f;
+                typeHp += GetAverageBossZombieHp(schedule.BossZombie) * hpMultiplier;
+            }
+
+            AddHpStackSegment(segments, bossType.ToString(), true, default, bossType, typeExpectedCount, typeHp, ref cumulativeHp);
+        }
+    }
+
+    // 레거시 보스 후보를 보스 enum 순서대로 가중치 기반 HP 세그먼트에 추가한다
+    private static void AddLegacyBossHpStackSegments(List<ZombieHpStackSegment> segments, List<SpawnEntryInput> entries, int wave, int bossSpawnCount, float hpMultiplier, ref float cumulativeHp)
+    {
+        int safeBossSpawnCount = Mathf.Max(0, bossSpawnCount);
+        int totalWeight = CalculateAvailableWeight(entries, wave);
+        if (safeBossSpawnCount <= 0 || totalWeight <= 0)
+        {
+            return;
+        }
+
+        Array bossTypes = Enum.GetValues(typeof(BossZombieType));
+        for (int typeIndex = 0; typeIndex < bossTypes.Length; typeIndex++)
+        {
+            BossZombieType bossType = (BossZombieType)bossTypes.GetValue(typeIndex);
+            float typeHp = 0.0f;
+            float typeExpectedCount = 0.0f;
+            for (int i = 0; i < entries.Count; i++)
+            {
+                SpawnEntryInput entry = entries[i];
+                if (!entry.IsBoss || entry.BossType != bossType || !IsSpawnEntryAvailable(entry, wave))
+                {
+                    continue;
+                }
+
+                float averageHp = GetAverageBossZombieHp(entry.BossZombie) * hpMultiplier;
+                float expectedCount = safeBossSpawnCount * Mathf.Max(0, entry.Weight) / (float)totalWeight;
+                typeExpectedCount += expectedCount;
+                typeHp += averageHp * expectedCount;
+            }
+
+            AddHpStackSegment(segments, bossType.ToString(), true, default, bossType, typeExpectedCount, typeHp, ref cumulativeHp);
+        }
+    }
+
+    // 사용할 수 있는 스폰 후보의 총 가중치를 계산한다
+    private static int CalculateAvailableWeight(List<SpawnEntryInput> entries, int wave)
+    {
+        int totalWeight = 0;
+        if (entries == null)
+        {
+            return totalWeight;
+        }
+
+        for (int i = 0; i < entries.Count; i++)
+        {
+            SpawnEntryInput entry = entries[i];
+            if (IsSpawnEntryAvailable(entry, wave))
+            {
+                totalWeight += Mathf.Max(0, entry.Weight);
+            }
+        }
+
+        return totalWeight;
+    }
+
+    // HP가 있는 타입만 스택 세그먼트에 추가한다
+    private static void AddHpStackSegment(List<ZombieHpStackSegment> segments, string label, bool isBoss, NormalZombieType normalType, BossZombieType bossType, float expectedCount, float hp, ref float cumulativeHp)
+    {
+        if (hp <= 0.0f)
+        {
+            return;
+        }
+
+        cumulativeHp += hp;
+        segments.Add(new ZombieHpStackSegment
+        {
+            Label = label,
+            IsBoss = isBoss,
+            NormalType = normalType,
+            BossType = bossType,
+            ExpectedCount = expectedCount,
+            Hp = hp,
+            CumulativeHp = cumulativeHp
+        });
     }
 
     // 스폰 후보가 현재 웨이브에서 런타임 선택 대상인지 확인한다

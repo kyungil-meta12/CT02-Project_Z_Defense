@@ -18,7 +18,7 @@ MonoBehaviour:
     displayName: Pulse Repeater
     evolutionCosts:
     - currencyType: 0
-      amount: 60000
+      amount: 30000
     - currencyType: 20
       amount: 4
     - currencyType: 31

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using UnityEditor;
@@ -7,6 +8,7 @@ using UnityEngine;
 internal sealed class TurretBalanceReportGraphState
 {
     public bool ShowTotalWaveHp;
+    public bool ShowAverageZombieHp;
     public bool ShowCumulativeCurrency;
     public bool ShowTopRankDps;
     public bool ShowAllTurretDps;
@@ -15,6 +17,9 @@ internal sealed class TurretBalanceReportGraphState
     public bool ShowZombieArrivalRatio;
     public float HpAxisScaleMultiplier = 1.0f;
     public readonly Dictionary<RewardCurrencyType, bool> CurrencyVisibility = new Dictionary<RewardCurrencyType, bool>();
+    public readonly Dictionary<NormalZombieType, bool> NormalZombieVisibility = new Dictionary<NormalZombieType, bool>();
+    public readonly Dictionary<BossZombieType, bool> BossZombieVisibility = new Dictionary<BossZombieType, bool>();
+    public readonly Dictionary<string, bool> TurretVisibility = new Dictionary<string, bool>();
 
     // 재화별 표시 상태가 없으면 기본값으로 등록한다
     public bool GetCurrencyVisible(RewardCurrencyType currencyType)
@@ -33,6 +38,61 @@ internal sealed class TurretBalanceReportGraphState
     {
         CurrencyVisibility[currencyType] = visible;
     }
+
+    // 일반 좀비 타입별 표시 상태가 없으면 기본값으로 등록한다
+    public bool GetNormalZombieVisible(NormalZombieType zombieType)
+    {
+        if (!NormalZombieVisibility.TryGetValue(zombieType, out bool visible))
+        {
+            visible = true;
+            NormalZombieVisibility[zombieType] = visible;
+        }
+
+        return visible;
+    }
+
+    // 일반 좀비 타입별 표시 상태를 갱신한다
+    public void SetNormalZombieVisible(NormalZombieType zombieType, bool visible)
+    {
+        NormalZombieVisibility[zombieType] = visible;
+    }
+
+    // 보스 좀비 타입별 표시 상태가 없으면 기본값으로 등록한다
+    public bool GetBossZombieVisible(BossZombieType bossType)
+    {
+        if (!BossZombieVisibility.TryGetValue(bossType, out bool visible))
+        {
+            visible = true;
+            BossZombieVisibility[bossType] = visible;
+        }
+
+        return visible;
+    }
+
+    // 보스 좀비 타입별 표시 상태를 갱신한다
+    public void SetBossZombieVisible(BossZombieType bossType, bool visible)
+    {
+        BossZombieVisibility[bossType] = visible;
+    }
+
+    // 터렛별 표시 상태가 없으면 기본값으로 등록한다
+    public bool GetTurretVisible(string turretName)
+    {
+        string safeName = turretName ?? string.Empty;
+        if (!TurretVisibility.TryGetValue(safeName, out bool visible))
+        {
+            visible = true;
+            TurretVisibility[safeName] = visible;
+        }
+
+        return visible;
+    }
+
+    // 터렛별 표시 상태를 갱신한다
+    public void SetTurretVisible(string turretName, bool visible)
+    {
+        TurretVisibility[turretName ?? string.Empty] = visible;
+    }
 }
 
 // 터렛 웨이브 밸런스 리포트 결과를 웨이브 기준 선 그래프로 그린다.
@@ -44,9 +104,11 @@ internal static class TurretBalanceReportGraphRenderer
     private const float GRAPH_TOP_PADDING = 14.0f;
     private const float GRAPH_BOTTOM_PADDING = 38.0f;
     private const float HOVER_DISTANCE = 7.0f;
-    private const float HP_AXIS_MIN_SCALE = 0.001f;
+    private const float HP_AXIS_MIN_SCALE = 0.0001f;
     private const float HP_AXIS_MAX_SCALE = 20.0f;
     private const float HP_AXIS_ZOOM_STEP = 1.12f;
+    private const int ZOMBIE_TOGGLE_COLUMNS = 4;
+    private const int TURRET_TOGGLE_COLUMNS = 4;
 
     private static readonly Color[] SeriesColors =
     {
@@ -80,7 +142,7 @@ internal static class TurretBalanceReportGraphRenderer
         }
 
         List<RewardCurrencyType> currencyTypes = BuildCurrencyTypeList(report);
-        DrawSeriesToggles(state, currencyTypes);
+        DrawSeriesToggles(report, state, currencyTypes);
 
         Rect graphRect = GUILayoutUtility.GetRect(0.0f, GRAPH_MIN_HEIGHT, GUILayout.ExpandWidth(true), GUILayout.ExpandHeight(true));
         DrawGraph(report, state, currencyTypes, graphRect, Mathf.Max(1.0f, targetClearSeconds), Mathf.Max(0.0f, targetClearSecondsIncrement), Mathf.Max(0.1f, obstacleTargetTimeMultiplier), Mathf.Max(0.0f, zombieArrivalSeconds), Mathf.Max(0.01f, zombieArrivalTimeMultiplier), obstacleRows);
@@ -112,13 +174,14 @@ internal static class TurretBalanceReportGraphRenderer
     }
 
     // 그래프 선 표시 토글을 그린다
-    private static void DrawSeriesToggles(TurretBalanceReportGraphState state, List<RewardCurrencyType> currencyTypes)
+    private static void DrawSeriesToggles(TurretBalanceReportResult report, TurretBalanceReportGraphState state, List<RewardCurrencyType> currencyTypes)
     {
         EditorGUILayout.BeginVertical(EditorStyles.helpBox);
         EditorGUILayout.LabelField("표시 조건", EditorStyles.boldLabel);
 
         EditorGUILayout.BeginHorizontal();
-        state.ShowTotalWaveHp = EditorGUILayout.ToggleLeft("좀비 총 HP", state.ShowTotalWaveHp, GUILayout.Width(120.0f));
+        state.ShowTotalWaveHp = EditorGUILayout.ToggleLeft("좀비 HP 스택", state.ShowTotalWaveHp, GUILayout.Width(120.0f));
+        state.ShowAverageZombieHp = EditorGUILayout.ToggleLeft("일반 좀비 1마리 평균 HP", state.ShowAverageZombieHp, GUILayout.Width(170.0f));
         bool nextShowTopRankDps = EditorGUILayout.ToggleLeft("1순위 터렛 DPS", state.ShowTopRankDps, GUILayout.Width(140.0f));
         if (nextShowTopRankDps)
         {
@@ -161,7 +224,106 @@ internal static class TurretBalanceReportGraphRenderer
             EditorGUILayout.EndHorizontal();
         }
 
+        if (state.ShowTotalWaveHp)
+        {
+            DrawZombieVisibilityToggles(report, state);
+        }
+
+        if (state.ShowAllTurretDps)
+        {
+            DrawTurretVisibilityToggles(report, state);
+        }
+
         EditorGUILayout.EndVertical();
+    }
+
+    // 좀비 타입별 HP 스택 표시 토글을 그린다
+    private static void DrawZombieVisibilityToggles(TurretBalanceReportResult report, TurretBalanceReportGraphState state)
+    {
+        Array normalTypes = Enum.GetValues(typeof(NormalZombieType));
+        int normalColumn = 0;
+        for (int i = 0; i < normalTypes.Length; i++)
+        {
+            NormalZombieType normalType = (NormalZombieType)normalTypes.GetValue(i);
+            if (!HasHpStackSegment(report, false, normalType, default))
+            {
+                continue;
+            }
+
+            if (normalColumn % ZOMBIE_TOGGLE_COLUMNS == 0)
+            {
+                EditorGUILayout.BeginHorizontal();
+                EditorGUILayout.LabelField(normalColumn == 0 ? "일반" : string.Empty, GUILayout.Width(36.0f));
+            }
+
+            bool visible = EditorGUILayout.ToggleLeft(normalType.ToString(), state.GetNormalZombieVisible(normalType), GUILayout.Width(136.0f));
+            state.SetNormalZombieVisible(normalType, visible);
+            normalColumn++;
+            if (normalColumn % ZOMBIE_TOGGLE_COLUMNS == 0)
+            {
+                GUILayout.FlexibleSpace();
+                EditorGUILayout.EndHorizontal();
+            }
+        }
+
+        if (normalColumn > 0 && normalColumn % ZOMBIE_TOGGLE_COLUMNS != 0)
+        {
+            GUILayout.FlexibleSpace();
+            EditorGUILayout.EndHorizontal();
+        }
+
+        EditorGUILayout.BeginHorizontal();
+        EditorGUILayout.LabelField("보스", GUILayout.Width(36.0f));
+        Array bossTypes = Enum.GetValues(typeof(BossZombieType));
+        for (int i = 0; i < bossTypes.Length; i++)
+        {
+            BossZombieType bossType = (BossZombieType)bossTypes.GetValue(i);
+            if (!HasHpStackSegment(report, true, default, bossType))
+            {
+                continue;
+            }
+
+            bool visible = EditorGUILayout.ToggleLeft(bossType.ToString(), state.GetBossZombieVisible(bossType), GUILayout.Width(120.0f));
+            state.SetBossZombieVisible(bossType, visible);
+        }
+
+        EditorGUILayout.EndHorizontal();
+    }
+
+    // 터렛별 DPS 표시 토글을 그린다
+    private static void DrawTurretVisibilityToggles(TurretBalanceReportResult report, TurretBalanceReportGraphState state)
+    {
+        List<TurretGraphEntry> turretEntries = BuildTurretGraphEntries(report);
+        int turretColumn = 0;
+        for (int i = 0; i < turretEntries.Count; i++)
+        {
+            string turretName = turretEntries[i].TurretName;
+            if (string.IsNullOrEmpty(turretName))
+            {
+                continue;
+            }
+
+            if (turretColumn % TURRET_TOGGLE_COLUMNS == 0)
+            {
+                EditorGUILayout.BeginHorizontal();
+                EditorGUILayout.LabelField(turretColumn == 0 ? "터렛" : string.Empty, GUILayout.Width(36.0f));
+            }
+
+            bool visible = EditorGUILayout.ToggleLeft(turretName, state.GetTurretVisible(turretName), GUILayout.Width(136.0f));
+            state.SetTurretVisible(turretName, visible);
+            turretColumn++;
+            if (turretColumn % TURRET_TOGGLE_COLUMNS == 0)
+            {
+                GUILayout.FlexibleSpace();
+                EditorGUILayout.EndHorizontal();
+            }
+        }
+
+        if (turretColumn > 0 && turretColumn % TURRET_TOGGLE_COLUMNS != 0)
+        {
+            GUILayout.FlexibleSpace();
+            EditorGUILayout.EndHorizontal();
+        }
     }
 
     // 그래프 영역 안에 배경, 축, 선, 툴팁을 그린다
@@ -211,15 +373,12 @@ internal static class TurretBalanceReportGraphRenderer
         float hpAxisMax = CalculateHpAxisMax(report, targetClearSeconds, targetClearSecondsIncrement) * Mathf.Clamp(state.HpAxisScaleMultiplier, HP_AXIS_MIN_SCALE, HP_AXIS_MAX_SCALE);
         if (state.ShowTotalWaveHp)
         {
-            GraphSeries series = CreateSeries("좀비 총 HP", "HP", SeriesColors[colorIndex++ % SeriesColors.Length], report.WaveRows.Count);
-            SetFixedScale(series, 0.0f, hpAxisMax);
-            for (int i = 0; i < report.WaveRows.Count; i++)
-            {
-                series.Values.Add(Mathf.Max(0.0f, report.WaveRows[i].TotalWaveHp));
-                series.PointNotes.Add(string.Empty);
-            }
+            AddZombieHpStackSeries(report, state, seriesList, ref colorIndex, hpAxisMax);
+        }
 
-            seriesList.Add(series);
+        if (state.ShowAverageZombieHp)
+        {
+            seriesList.Add(CreateAverageZombieHpSeries(report, SeriesColors[colorIndex++ % SeriesColors.Length], hpAxisMax));
         }
 
         if (state.ShowCumulativeCurrency)
@@ -234,7 +393,7 @@ internal static class TurretBalanceReportGraphRenderer
 
         if (state.ShowAllTurretDps)
         {
-            AddAllTurretDpsSeries(report, seriesList, ref colorIndex, hpAxisMax, targetClearSeconds, targetClearSecondsIncrement);
+            AddAllTurretDpsSeries(report, state, seriesList, ref colorIndex, hpAxisMax, targetClearSeconds, targetClearSecondsIncrement);
         }
 
         bool showAnyRatio = state.ShowClearTimeRatio || state.ShowObstacleDestructionRatio || state.ShowZombieArrivalRatio;
@@ -304,6 +463,125 @@ internal static class TurretBalanceReportGraphRenderer
         }
 
         return seriesList;
+    }
+
+    // 웨이브별 일반 좀비 1마리 평균 HP 그래프 선을 만든다
+    private static GraphSeries CreateAverageZombieHpSeries(TurretBalanceReportResult report, Color color, float hpAxisMax)
+    {
+        GraphSeries series = CreateSeries("일반 좀비 1마리 평균 HP", "HP", color, report.WaveRows.Count);
+        SetFixedScale(series, 0.0f, hpAxisMax);
+        for (int i = 0; i < report.WaveRows.Count; i++)
+        {
+            WaveSummaryRow row = report.WaveRows[i];
+            int normalSpawnCount = Mathf.Max(0, row.NormalSpawnCount);
+            float averageNormalHp = normalSpawnCount <= 0 ? 0.0f : Mathf.Max(0.0f, row.AverageNormalZombieHp);
+            float totalNormalHp = averageNormalHp * normalSpawnCount;
+            series.Values.Add(averageNormalHp);
+            series.PointNotes.Add($"일반 평균 {FormatFloat(averageNormalHp)} HP / 일반 총 {FormatFloat(totalNormalHp)} HP / 일반 {normalSpawnCount}마리");
+        }
+
+        return series;
+    }
+
+    // 좀비 타입별 누적 HP 스택 그래프 선을 추가한다
+    private static void AddZombieHpStackSeries(TurretBalanceReportResult report, TurretBalanceReportGraphState state, List<GraphSeries> seriesList, ref int colorIndex, float hpAxisMax)
+    {
+        Array normalTypes = Enum.GetValues(typeof(NormalZombieType));
+        for (int i = 0; i < normalTypes.Length; i++)
+        {
+            NormalZombieType normalType = (NormalZombieType)normalTypes.GetValue(i);
+            if (!state.GetNormalZombieVisible(normalType))
+            {
+                continue;
+            }
+
+            AddZombieHpStackSeriesForType(report, seriesList, ref colorIndex, hpAxisMax, normalType.ToString(), false, normalType, default);
+        }
+
+        Array bossTypes = Enum.GetValues(typeof(BossZombieType));
+        for (int i = 0; i < bossTypes.Length; i++)
+        {
+            BossZombieType bossType = (BossZombieType)bossTypes.GetValue(i);
+            if (!state.GetBossZombieVisible(bossType))
+            {
+                continue;
+            }
+
+            AddZombieHpStackSeriesForType(report, seriesList, ref colorIndex, hpAxisMax, bossType.ToString(), true, default, bossType);
+        }
+    }
+
+    // 특정 좀비 타입의 누적 HP 스택 그래프 선을 추가한다
+    private static void AddZombieHpStackSeriesForType(TurretBalanceReportResult report, List<GraphSeries> seriesList, ref int colorIndex, float hpAxisMax, string label, bool isBoss, NormalZombieType normalType, BossZombieType bossType)
+    {
+        GraphSeries series = CreateSeries("HP 스택 - " + label, "HP", SeriesColors[colorIndex % SeriesColors.Length], report.WaveRows.Count);
+        SetFixedScale(series, 0.0f, hpAxisMax);
+        bool hasValue = false;
+        for (int waveIndex = 0; waveIndex < report.WaveRows.Count; waveIndex++)
+        {
+            WaveSummaryRow row = report.WaveRows[waveIndex];
+            if (TryGetHpStackSegment(row, isBoss, normalType, bossType, out ZombieHpStackSegment segment))
+            {
+                series.Values.Add(Mathf.Max(0.0f, segment.CumulativeHp));
+                string countNote = segment.IsBoss ? string.Empty : $" / 기대 {FormatFloat(segment.ExpectedCount)}마리";
+                series.PointNotes.Add($"{segment.Label}: +{FormatFloat(segment.Hp)} HP{countNote} / 누적 {FormatFloat(segment.CumulativeHp)} HP");
+                hasValue = true;
+                continue;
+            }
+
+            series.Values.Add(float.NaN);
+            series.PointNotes.Add(string.Empty);
+        }
+
+        if (hasValue)
+        {
+            seriesList.Add(series);
+            colorIndex++;
+        }
+    }
+
+    // 웨이브 행에서 특정 좀비 타입의 HP 스택 세그먼트를 찾는다
+    private static bool TryGetHpStackSegment(WaveSummaryRow row, bool isBoss, NormalZombieType normalType, BossZombieType bossType, out ZombieHpStackSegment segment)
+    {
+        if (row.HpStackSegments != null)
+        {
+            for (int i = 0; i < row.HpStackSegments.Count; i++)
+            {
+                ZombieHpStackSegment candidate = row.HpStackSegments[i];
+                if (candidate.IsBoss != isBoss)
+                {
+                    continue;
+                }
+
+                if ((!isBoss && candidate.NormalType == normalType) || (isBoss && candidate.BossType == bossType))
+                {
+                    segment = candidate;
+                    return true;
+                }
+            }
+        }
+
+        segment = default;
+        return false;
+    }
+
+    // 리포트에 특정 좀비 타입의 HP 스택 데이터가 있는지 확인한다
+    private static bool HasHpStackSegment(TurretBalanceReportResult report, bool isBoss, NormalZombieType normalType, BossZombieType bossType)
+    {
+        if (report == null)
+        {
+            return false;
+        }
+
+        for (int i = 0; i < report.WaveRows.Count; i++)
+        {
+            if (TryGetHpStackSegment(report.WaveRows[i], isBoss, normalType, bossType, out _))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     // 클리어 시간 배율과 장애물 파괴시간 배율을 합산한 축 최대값을 계산한다
@@ -378,7 +656,18 @@ internal static class TurretBalanceReportGraphRenderer
         float maxValue = 0.0f;
         for (int i = 0; i < report.WaveRows.Count; i++)
         {
-            maxValue = Mathf.Max(maxValue, report.WaveRows[i].TotalWaveHp);
+            WaveSummaryRow row = report.WaveRows[i];
+            if (row.HpStackSegments != null && row.HpStackSegments.Count > 0)
+            {
+                for (int j = 0; j < row.HpStackSegments.Count; j++)
+                {
+                    maxValue = Mathf.Max(maxValue, row.HpStackSegments[j].CumulativeHp);
+                }
+            }
+            else
+            {
+                maxValue = Mathf.Max(maxValue, row.TotalWaveHp);
+            }
         }
 
         for (int i = 0; i < report.WaveClearRows.Count; i++)
@@ -395,13 +684,18 @@ internal static class TurretBalanceReportGraphRenderer
     }
 
     // 모든 터렛 종류의 웨이브별 최적 총 DPS 그래프 선을 추가한다
-    private static void AddAllTurretDpsSeries(TurretBalanceReportResult report, List<GraphSeries> seriesList, ref int colorIndex, float hpAxisMax, float targetClearSeconds, float targetClearSecondsIncrement)
+    private static void AddAllTurretDpsSeries(TurretBalanceReportResult report, TurretBalanceReportGraphState state, List<GraphSeries> seriesList, ref int colorIndex, float hpAxisMax, float targetClearSeconds, float targetClearSecondsIncrement)
     {
         List<TurretGraphEntry> turretEntries = BuildTurretGraphEntries(report);
         int maxTier = GetMaxTurretTier(turretEntries);
         for (int turretIndex = 0; turretIndex < turretEntries.Count; turretIndex++)
         {
             TurretGraphEntry turretEntry = turretEntries[turretIndex];
+            if (!state.GetTurretVisible(turretEntry.TurretName))
+            {
+                continue;
+            }
+
             GraphSeries series = CreateSeries("처리 가능 HP - " + turretEntry.TurretName, "HP", GetTurretEvolutionColor(turretEntry.Tier, maxTier, turretIndex), report.WaveRows.Count);
             SetFixedScale(series, 0.0f, hpAxisMax);
             for (int waveIndex = 0; waveIndex < report.WaveRows.Count; waveIndex++)

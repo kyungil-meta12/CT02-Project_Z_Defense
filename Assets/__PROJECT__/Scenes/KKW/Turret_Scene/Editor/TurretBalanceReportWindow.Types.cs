@@ -17,6 +17,7 @@ internal sealed class WaveProfileInput
 {
     public string Path = string.Empty;
     public readonly List<WaveStageInput> Stages = new List<WaveStageInput>();
+    public readonly List<BossScheduleInput> BossSchedules = new List<BossScheduleInput>();
 }
 
 // 웨이브 스폰 스테이지 입력 데이터.
@@ -50,6 +51,29 @@ internal struct SpawnEntryInput
     public BossZombie BossZombie;
     public ScriptableObject SourceSpec;
     public ZombieRewardProfileSO RewardProfileOverride;
+}
+
+// 보스 좀비 스케줄 입력 데이터.
+internal struct BossScheduleInput
+{
+    public BossZombieType BossType;
+    public int FirstWave;
+    public int WaveInterval;
+    public GameObject Prefab;
+    public BossZombie BossZombie;
+    public ZombieRewardProfileSO RewardProfileOverride;
+}
+
+// 좀비 타입별 HP 스택 그래프 세그먼트 데이터.
+internal struct ZombieHpStackSegment
+{
+    public string Label;
+    public bool IsBoss;
+    public NormalZombieType NormalType;
+    public BossZombieType BossType;
+    public float ExpectedCount;
+    public float Hp;
+    public float CumulativeHp;
 }
 
 // 계산 완료된 터렛 웨이브 밸런스 리포트 결과.
@@ -160,6 +184,7 @@ internal struct WaveSummaryRow
     public float AvailableBudgetCoin;
     public float AverageNormalZombieDps;
     public string DpsDataNote;
+    public List<ZombieHpStackSegment> HpStackSegments;
 }
 
 // 웨이브 클리어 시뮬레이션 표 한 순위 항목의 터렛/설치 수/레벨/총 DPS.

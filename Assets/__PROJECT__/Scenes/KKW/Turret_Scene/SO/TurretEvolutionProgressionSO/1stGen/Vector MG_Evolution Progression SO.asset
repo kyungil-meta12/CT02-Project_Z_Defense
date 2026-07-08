@@ -18,7 +18,7 @@ MonoBehaviour:
     displayName: Vulcan Node
     evolutionCosts:
     - currencyType: 0
-      amount: 60000
+      amount: 30000
     - currencyType: 20
       amount: 4
     - currencyType: 31

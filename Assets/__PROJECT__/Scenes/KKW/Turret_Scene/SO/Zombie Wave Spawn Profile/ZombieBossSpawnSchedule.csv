@@ -1,4 +1,4 @@
-ï»¿BossType(ë³´ìŠ¤ íƒ€ì…),FirstWave(ìµœì´ˆ ì¶œí˜„ ì›¨ì´ë¸Œ),WaveInterval(ì›¨ì´ë¸Œ ê°„ê²©)
-Boomer,10,5
-Screamer,15,5
-Tank,20,5
+BossType(º¸½º Å¸ÀÔ)	FirstWave(ÃÖÃÊ ÃâÇö ¿şÀÌºê)	WaveInterval(¿şÀÌºê °£°İ)
+Boomer	10	5
+Screamer	20	10
+Tank	30	15

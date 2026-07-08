@@ -320,7 +320,7 @@ public class ObstaclePlacementController : MonoBehaviour
             Debug.LogWarning($"[ObstaclePlacementController] 배치 실패 - 항목: {entryName}, 사유: {reason}", this);
         }
 
-        WarningPopupManager.ShowWarning(reason);
+        WarningPopupManager.ShowWarning("장애물 설치 실패");
     }
 
     // 마우스 또는 첫 번째 터치의 화면 좌표를 가져온다

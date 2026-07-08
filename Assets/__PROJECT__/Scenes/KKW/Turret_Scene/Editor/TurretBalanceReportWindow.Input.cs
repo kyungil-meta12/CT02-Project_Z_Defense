@@ -8,6 +8,7 @@ using UnityEngine;
 internal sealed class TurretBalanceReportInputCollector
 {
     private const string STAGES_PROPERTY = "stages";
+    private const string BOSS_SPAWN_SCHEDULES_PROPERTY = "bossSpawnSchedules";
     private const string NORMAL_ZOMBIE_ENTRIES_PROPERTY = "normalZombieEntries";
     private const string BOSS_ZOMBIE_ENTRIES_PROPERTY = "bossZombieEntries";
     private const string WEIGHT_PROPERTY = "weight";
@@ -388,6 +389,7 @@ internal sealed class TurretBalanceReportInputCollector
         };
 
         SerializedObject serializedProfile = new SerializedObject(profile);
+        AddBossSchedules(serializedProfile.FindProperty(BOSS_SPAWN_SCHEDULES_PROPERTY), input.BossSchedules, profile);
         SerializedProperty stages = serializedProfile.FindProperty(STAGES_PROPERTY);
         if (stages == null || !stages.isArray)
         {
@@ -407,6 +409,44 @@ internal sealed class TurretBalanceReportInputCollector
         }
 
         return input;
+    }
+
+    // 직렬화된 보스 스폰 스케줄 배열을 계산 입력 DTO로 변환한다
+    private static void AddBossSchedules(SerializedProperty schedules, List<BossScheduleInput> target, ZombieWaveSpawnProfileSO profile)
+    {
+        if (schedules == null || !schedules.isArray)
+        {
+            return;
+        }
+
+        for (int i = 0; i < schedules.arraySize; i++)
+        {
+            SerializedProperty schedule = schedules.GetArrayElementAtIndex(i);
+            if (schedule == null)
+            {
+                continue;
+            }
+
+            BossZombieType bossType = (BossZombieType)schedule.FindPropertyRelative("bossType").enumValueIndex;
+            profile.TryGetBossPrefabForType(bossType, out PoolObject prefab);
+            GameObject prefabObject = prefab == null ? null : prefab.gameObject;
+            BossZombie bossZombie = prefabObject == null ? null : prefabObject.GetComponent<BossZombie>();
+            ZombieRewardProfileSO rewardProfileOverride = null;
+            if (bossZombie != null)
+            {
+                TryGetRewardProfile(bossZombie, out rewardProfileOverride);
+            }
+
+            target.Add(new BossScheduleInput
+            {
+                BossType = bossType,
+                FirstWave = Mathf.Max(1, GetRelativeInt(schedule, "firstWave", 1)),
+                WaveInterval = Mathf.Max(1, GetRelativeInt(schedule, "waveInterval", 1)),
+                Prefab = prefabObject,
+                BossZombie = bossZombie,
+                RewardProfileOverride = rewardProfileOverride
+            });
+        }
     }
 
     // 직렬화된 스테이지 값을 계산 입력 DTO로 변환한다

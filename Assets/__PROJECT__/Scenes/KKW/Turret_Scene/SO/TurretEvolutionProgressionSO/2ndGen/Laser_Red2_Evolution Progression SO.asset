@@ -21,6 +21,8 @@ MonoBehaviour:
       amount: 450000
     - currencyType: 52
       amount: 1
+    - currencyType: 60
+      amount: 1
     - currencyType: 71
       amount: 1
     - currencyType: 72

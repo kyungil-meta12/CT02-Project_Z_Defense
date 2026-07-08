@@ -18,7 +18,7 @@ MonoBehaviour:
     displayName: Vector MG
     evolutionCosts:
     - currencyType: 0
-      amount: 10000
+      amount: 5000
     - currencyType: 20
       amount: 3
     - currencyType: 31
@@ -36,7 +36,7 @@ MonoBehaviour:
     displayName: Sentry Pulse
     evolutionCosts:
     - currencyType: 0
-      amount: 10000
+      amount: 5000
     - currencyType: 20
       amount: 3
     - currencyType: 31

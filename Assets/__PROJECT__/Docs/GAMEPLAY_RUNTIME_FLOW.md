@@ -108,12 +108,13 @@ Important policy:
 4. Preview snaps to the slot `BuildPoint`.
 5. If the slot has stored destroyed-obstacle progress for the same `ObstacleDefinitionSO`, preview and placement use the inherited level's prefab.
 6. Placement is valid only when the slot is empty, the entry type matches the slot type, and `ItemManager` can afford the entry's `ResourceCost[] buildCosts`.
-7. `ObstacleBuildSlot.CanPlaceEntry` checks slot availability, type match, and build cost availability through `ItemManager.CanAfford`.
-8. `ObstacleBuildSlot.TryPlace` deducts the build costs using `ItemManager.TrySpend` before instantiating the obstacle under `BuildPoint`.
-9. If the obstacle prefab is invalid and placement fails after spending, the deducted costs are refunded.
-10. The placed obstacle receives its `ObstacleDefinitionSO` and inherited or initial level through `ObstacleUpgradeRuntimeController`.
-11. The placed obstacle is assigned to the slot and `GameManager.NotifyObstaclePlaced` is called.
-12. If the line was breached and all registered slots on that defense line are occupied again, `GameManager.NotifyDefenseLineRestored` restores that defense line.
+7. Placement is allowed only on the defense line directly in front of the contiguous restored defense-line block from the rear. For example, if only the rear gate line at index `3` is restored, obstacles can be placed only on line `2`; once line `2` is fully restored, placement advances to line `1`.
+8. `ObstacleBuildSlot.CanPlaceEntry` checks slot availability, type match, defense-line placement order, and build cost availability through `ItemManager.CanAfford`.
+9. `ObstacleBuildSlot.TryPlace` deducts the build costs using `ItemManager.TrySpend` before instantiating the obstacle under `BuildPoint`.
+10. If the obstacle prefab is invalid and placement fails after spending, the deducted costs are refunded.
+11. The placed obstacle receives its `ObstacleDefinitionSO` and inherited or initial level through `ObstacleUpgradeRuntimeController`.
+12. The placed obstacle is assigned to the slot and `GameManager.NotifyObstaclePlaced` is called.
+13. If the line was breached and all registered slots on that defense line are occupied again, `GameManager.NotifyDefenseLineRestored` restores that defense line.
 
 `ObstaclePlacementUI` remains available as an optional runtime rebuild helper, but manual scene buttons are the default setup.
 
@@ -246,16 +247,18 @@ Gate breach flow:
 4. `GameOverPanelUI` fades in from transparent to opaque.
 5. After fade-in, registered spawners return their tracked active zombies to `MemoryPool`.
 6. `GameManager` rebuilds registered defense-line slots from stored obstacle definition/level and restores surviving obstacles to full HP.
-7. Engineer survivors attempt to re-register their buff to the last stored turret slot.
-8. `GameManager` prepares the rollback wave, resets kill count, asks spawners to prepare that wave from the beginning, and invokes `OnWaveDecrease` for display updates.
-9. `GameOverPanelUI` fades out from opaque to transparent.
-10. Registered spawners resume spawning.
+7. After rebuild attempts, each defense line re-evaluates whether all registered slots are occupied; only fully built lines are marked restored and have linked turret bases enabled.
+8. Engineer survivors attempt to re-register their buff to the last stored turret slot.
+9. `GameManager` prepares the rollback wave, resets kill count, asks spawners to prepare that wave from the beginning, and invokes `OnWaveDecrease` for display updates.
+10. `GameOverPanelUI` fades out from opaque to transparent.
+11. Registered spawners resume spawning.
 
 Runtime policy:
 
 - Game-over reset must not award zombie kill rewards or increase kill count.
 - `ZombieSpawner` despawns only zombies it spawned and tracks, avoiding full-scene searches during reset.
 - Defense-line rebuild is cost-free and uses `ObstacleBuildSlot` stored progress.
+- Defense-line turret bases are enabled only for fully rebuilt lines; empty or partially rebuilt lines remain breached and keep their linked turret bases disabled.
 - Gate breach can still issue survivor retreat, but the restart sequence is responsible for restoring obstacles and engineer buffs.
 
 ## Edge Cases To Check

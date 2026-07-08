@@ -581,6 +581,41 @@ public class GameManager : MonoBehaviour
         return defenseLineIndex >= 0;
     }
 
+    // 현재 복구된 방어선 바로 앞 방어선에만 장애물을 설치할 수 있는지 확인한다
+    public bool CanPlaceObstacleAtDefenseLine(int defenseLineIndex)
+    {
+        int restoredDefenseLineIndex = GetFrontMostContiguousRestoredDefenseLineIndex();
+        if (restoredDefenseLineIndex <= 0)
+        {
+            return false;
+        }
+
+        return defenseLineIndex == restoredDefenseLineIndex - 1;
+    }
+
+    // 뒤쪽에서 이어진 복구 구간의 가장 앞쪽 방어선 인덱스를 찾는다
+    private int GetFrontMostContiguousRestoredDefenseLineIndex()
+    {
+        if (defenseLines == null)
+        {
+            return -1;
+        }
+
+        int restoredDefenseLineIndex = -1;
+        for (int i = defenseLines.Count - 1; i >= 0; i--)
+        {
+            DefenseLineEntry defenseLine = defenseLines[i];
+            if (defenseLine == null || defenseLine.isBreached || !IsDefenseLineFullyBuilt(i))
+            {
+                break;
+            }
+
+            restoredDefenseLineIndex = i;
+        }
+
+        return restoredDefenseLineIndex;
+    }
+
     // 지정 방어선의 등록된 슬롯이 모두 점유되었는지 확인한다
     public bool IsDefenseLineFullyBuilt(int defenseLineIndex)
     {
@@ -1009,11 +1044,10 @@ public class GameManager : MonoBehaviour
                 continue;
             }
 
-            defenseLine.isBreached = false;
-            ApplyDefenseLineTurretBaseState(i, true);
-
             if (defenseLine.obstacleSlots == null)
             {
+                defenseLine.isBreached = true;
+                ApplyDefenseLineTurretBaseState(i, false);
                 continue;
             }
 
@@ -1028,6 +1062,10 @@ public class GameManager : MonoBehaviour
 
                 slot.TryRebuildStoredObstacleWithoutCost(out _);
             }
+
+            bool isFullyBuilt = IsDefenseLineFullyBuilt(i);
+            defenseLine.isBreached = !isFullyBuilt;
+            ApplyDefenseLineTurretBaseState(i, isFullyBuilt);
         }
 
         suppressDefenseLineRestore = false;

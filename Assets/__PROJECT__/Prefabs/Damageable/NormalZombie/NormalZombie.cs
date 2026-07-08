@@ -15,6 +15,8 @@ public class NormalZombie : PoolObject, IDamageable, IAimPointProvider, IFrostSt
     [Header("보상 파티클 스케일")] public float rewardParticleScale;
     [Space(10)]
     [SerializeField] private bool logReceivedDamage = true;
+
+    [Header("버프 이펙트")] public GameObject buffVFX;
     
     public HpUI hpUI;
     public Collider hitCollider;

@@ -1112,7 +1112,7 @@ MonoBehaviour:
   electroVisualPrewarmProfile: {fileID: 11400000, guid: f79572648aaf0d940933779f5082ab23, type: 2}
   bossSkillTargetLayerMask:
     serializedVersion: 2
-    m_Bits: 0
+    m_Bits: 512
   tankSkillRadius: 4
   boomerSkillRadius: 3
   boomerSkillMaxHpDamageRatioPerTick: 0.05

@@ -258,6 +258,11 @@ public class ObstacleBuildSlot : MonoBehaviour
             return "BuildPoint가 없어 배치 위치를 결정할 수 없습니다.";
         }
 
+        if (GameManager.Inst != null && !GameManager.Inst.CanPlaceObstacleAtDefenseLine(defenseLineIndex))
+        {
+            return $"현재 복구된 방어선 바로 앞 방어선에만 설치할 수 있습니다. 슬롯 방어선: {defenseLineIndex}";
+        }
+
         Obstacle obstacle = CurrentObstacle;
         if (obstacle != null)
         {
@@ -295,6 +300,11 @@ public class ObstacleBuildSlot : MonoBehaviour
         }
 
         if (buildEntry.SlotType != slotType || buildPoint == null)
+        {
+            return false;
+        }
+
+        if (GameManager.Inst != null && !GameManager.Inst.CanPlaceObstacleAtDefenseLine(defenseLineIndex))
         {
             return false;
         }

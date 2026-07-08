@@ -451,6 +451,8 @@ public class BossZombie : PoolObject, IDamageable, IAimPointProvider, IFrostStat
         zombie.SetRuntimeBaseSpeeds(
             originalSpeeds.x * screamerSkillSpeedMultiplier,
             originalSpeeds.y * screamerSkillSpeedMultiplier);
+        
+        if(zombie.buffVFX != null) zombie.buffVFX.SetActive(true);
     }
 
     //노말좀비 버프 해제
@@ -460,7 +462,7 @@ public class BossZombie : PoolObject, IDamageable, IAimPointProvider, IFrostStat
         {
             zombie.SetRuntimeBaseSpeeds(originalSpeeds.x, originalSpeeds.y);
         }
-
+        if(zombie.buffVFX != null) zombie.buffVFX.SetActive(false);
         screamerOriginalSpeeds.Remove(zombie);
     }
 

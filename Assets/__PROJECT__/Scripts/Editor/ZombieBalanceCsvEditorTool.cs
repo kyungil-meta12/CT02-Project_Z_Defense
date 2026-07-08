@@ -14,6 +14,7 @@ public class ZombieBalanceCsvEditorTool : EditorWindow
 {
     private const string WAVE_PROFILE_PATH = "Assets/__PROJECT__/Scenes/KKW/Turret_Scene/SO/Zombie Wave Spawn Profile/ZombieWaveSpawnProfile.asset";
     private const string WAVE_CSV_PATH = "Assets/__PROJECT__/Scenes/KKW/Turret_Scene/SO/Zombie Wave Spawn Profile/ZombieWaveSpawnProfile.csv";
+    private const string BOSS_SCHEDULE_CSV_PATH = "Assets/__PROJECT__/Scenes/KKW/Turret_Scene/SO/Zombie Wave Spawn Profile/ZombieBossSpawnSchedule.csv";
     private const string REWARD_ROOT_PATH = "Assets/__PROJECT__/Scenes/KKW/Turret_Scene/SO/Rewards";
     private const string REWARD_CSV_PATH = "Assets/__PROJECT__/Scenes/KKW/Turret_Scene/SO/Rewards/ZombieRewardProfiles.csv";
     private const string SURVIVOR_RESCUE_PROFILE_PATH = "Assets/__PROJECT__/Prefabs/Survivor/SurvivorRescueSpawnProfile.asset";
@@ -39,6 +40,7 @@ public class ZombieBalanceCsvEditorTool : EditorWindow
         EditorGUILayout.Space();
 
         DrawWaveButtons();
+        DrawBossScheduleButtons();
         DrawRewardButtons();
         DrawSurvivorRescueButtons();
         DrawMessages();
@@ -49,6 +51,7 @@ public class ZombieBalanceCsvEditorTool : EditorWindow
     {
         EditorGUILayout.LabelField("웨이브 프로필", WAVE_PROFILE_PATH);
         EditorGUILayout.LabelField("웨이브 CSV", WAVE_CSV_PATH);
+        EditorGUILayout.LabelField("보스 스케줄 CSV", BOSS_SCHEDULE_CSV_PATH);
         EditorGUILayout.LabelField("보상 폴더", REWARD_ROOT_PATH);
         EditorGUILayout.LabelField("보상 CSV", REWARD_CSV_PATH);
         EditorGUILayout.LabelField("생존자 구출 프로필", SURVIVOR_RESCUE_PROFILE_PATH);
@@ -73,6 +76,29 @@ public class ZombieBalanceCsvEditorTool : EditorWindow
         if (GUILayout.Button("웨이브 CSV 열기", GUILayout.Height(32)))
         {
             ExecuteSafely(OpenWaveCsv);
+        }
+        EditorGUILayout.EndHorizontal();
+    }
+
+    // 보스 스폰 스케줄 CSV 버튼을 그린다
+    private void DrawBossScheduleButtons()
+    {
+        EditorGUILayout.Space();
+        EditorGUILayout.LabelField("Boss Zombie Spawn Schedule", EditorStyles.boldLabel);
+        EditorGUILayout.BeginHorizontal();
+        if (GUILayout.Button("보스 스케줄 CSV 익스포트", GUILayout.Height(32)))
+        {
+            ExecuteSafely(ExportBossSpawnSchedule);
+        }
+
+        if (GUILayout.Button("보스 스케줄 CSV 임포트", GUILayout.Height(32)))
+        {
+            ExecuteSafely(ImportBossSpawnSchedule);
+        }
+
+        if (GUILayout.Button("보스 스케줄 CSV 열기", GUILayout.Height(32)))
+        {
+            ExecuteSafely(OpenBossScheduleCsv);
         }
         EditorGUILayout.EndHorizontal();
     }
@@ -157,7 +183,7 @@ public class ZombieBalanceCsvEditorTool : EditorWindow
         SerializedProperty stages = serializedObject.FindProperty("stages");
         List<ZombieWaveDpsMeasurementProfileSO> dpsProfiles = LoadZombieWaveDpsMeasurementProfiles();
         StringBuilder builder = new StringBuilder(4096);
-        builder.AppendLine("MinWave(시작 웨이브),MaxWave(종료 웨이브),SpawnInterval(스폰 간격),SpawnCount(스폰 수),SpawnBossAsLastEnemy(마지막 적 보스 여부),HpMultiplier(체력 배율),AttackDamageMultiplier(공격력 배율),MoveAttackSpeedMultiplier(이동/공격 속도 배율),RewardMultiplier(보상 배율),NormalZombieEntries(일반 좀비 후보),BossZombieEntries(보스 좀비 후보),MeasuredNormalDps(일반 실측/정규화 DPS),MeasuredBossDps_Boomer(부머 실측/정규화 DPS),MeasuredBossDps_Screamer(스크리머 실측/정규화 DPS),MeasuredBossDps_Tank(탱크 실측/정규화 DPS)");
+        builder.AppendLine("MinWave(시작 웨이브),MaxWave(종료 웨이브),SpawnInterval(스폰 간격),SpawnCount(스폰 수),HpMultiplier(체력 배율),AttackDamageMultiplier(공격력 배율),MoveAttackSpeedMultiplier(이동/공격 속도 배율),RewardMultiplier(보상 배율),NormalZombieEntries(일반 좀비 후보),MeasuredNormalDps(일반 실측/정규화 DPS),MeasuredBossDps_Boomer(부머 실측/정규화 DPS),MeasuredBossDps_Screamer(스크리머 실측/정규화 DPS),MeasuredBossDps_Tank(탱크 실측/정규화 DPS)");
         for (int i = 0; i < stages.arraySize; i++)
         {
             SerializedProperty stage = stages.GetArrayElementAtIndex(i);
@@ -180,8 +206,6 @@ public class ZombieBalanceCsvEditorTool : EditorWindow
         builder.Append(',');
         builder.Append(GetRelativeInt(stage, "spawnCount"));
         builder.Append(',');
-        builder.Append(GetRelativeBool(stage, "spawnBossAsLastEnemy"));
-        builder.Append(',');
         builder.Append(GetRelativeFloat(stage, "hpMultiplier"));
         builder.Append(',');
         builder.Append(GetRelativeFloat(stage, "attackDamageMultiplier"));
@@ -191,8 +215,6 @@ public class ZombieBalanceCsvEditorTool : EditorWindow
         builder.Append(GetRelativeFloat(stage, "rewardMultiplier"));
         builder.Append(',');
         builder.Append(EscapeCsvField(FormatNormalZombieEntries(stage.FindPropertyRelative("normalZombieEntries"))));
-        builder.Append(',');
-        builder.Append(EscapeCsvField(FormatBossZombieEntries(stage.FindPropertyRelative("bossZombieEntries"))));
         builder.Append(',');
         builder.Append(ResolveNormalDpsCsvValue(stages, stage, dpsProfiles));
         builder.Append(',');
@@ -479,6 +501,97 @@ public class ZombieBalanceCsvEditorTool : EditorWindow
         FlushMessagesToConsole(true);
     }
 
+    // 보스 스폰 스케줄을 CSV로 내보낸다
+    private void ExportBossSpawnSchedule()
+    {
+        ClearRunState();
+        ZombieWaveSpawnProfileSO profile = AssetDatabase.LoadAssetAtPath<ZombieWaveSpawnProfileSO>(WAVE_PROFILE_PATH);
+        if (profile == null)
+        {
+            AddMessage("웨이브 스폰 프로필을 찾을 수 없습니다: " + WAVE_PROFILE_PATH);
+            FlushMessagesToConsole(false);
+            return;
+        }
+
+        SerializedObject serializedObject = new SerializedObject(profile);
+        SerializedProperty schedules = serializedObject.FindProperty("bossSpawnSchedules");
+        StringBuilder builder = new StringBuilder(512);
+        builder.AppendLine("BossType(보스 타입),FirstWave(최초 출현 웨이브),WaveInterval(웨이브 간격)");
+        for (int i = 0; i < schedules.arraySize; i++)
+        {
+            SerializedProperty schedule = schedules.GetArrayElementAtIndex(i);
+            BossZombieType bossType = (BossZombieType)schedule.FindPropertyRelative("bossType").enumValueIndex;
+            builder.Append(EscapeCsvField(bossType.ToString()));
+            builder.Append(',');
+            builder.Append(GetRelativeInt(schedule, "firstWave"));
+            builder.Append(',');
+            builder.Append(GetRelativeInt(schedule, "waveInterval"));
+            builder.AppendLine();
+        }
+
+        WriteUtf8Csv(BOSS_SCHEDULE_CSV_PATH, builder.ToString());
+        AddMessage("보스 스케줄 CSV 익스포트 완료: " + BOSS_SCHEDULE_CSV_PATH);
+        FlushMessagesToConsole(true);
+    }
+
+    // CSV의 보스 스폰 스케줄을 프로필에 반영한다
+    private void ImportBossSpawnSchedule()
+    {
+        ClearRunState();
+        ZombieWaveSpawnProfileSO profile = AssetDatabase.LoadAssetAtPath<ZombieWaveSpawnProfileSO>(WAVE_PROFILE_PATH);
+        if (profile == null)
+        {
+            AddMessage("웨이브 스폰 프로필을 찾을 수 없습니다: " + WAVE_PROFILE_PATH);
+            FlushMessagesToConsole(false);
+            return;
+        }
+
+        if (!TryReadCsv(BOSS_SCHEDULE_CSV_PATH, out List<List<string>> table))
+        {
+            FlushMessagesToConsole(false);
+            return;
+        }
+
+        if (!TryBuildHeaderMap(table[0], GetBossScheduleRequiredColumns(), out Dictionary<string, int> headerMap))
+        {
+            FlushMessagesToConsole(false);
+            return;
+        }
+
+        SerializedObject serializedObject = new SerializedObject(profile);
+        SerializedProperty schedules = serializedObject.FindProperty("bossSpawnSchedules");
+        schedules.arraySize = CountDataRows(table);
+        int scheduleIndex = 0;
+        for (int i = 1; i < table.Count; i++)
+        {
+            List<string> row = table[i];
+            if (IsEmptyCsvRow(row))
+            {
+                continue;
+            }
+
+            SerializedProperty schedule = schedules.GetArrayElementAtIndex(scheduleIndex);
+            SetBossScheduleFromRow(schedule, row, headerMap, i + 1);
+            scheduleIndex++;
+        }
+
+        serializedObject.ApplyModifiedProperties();
+        EditorUtility.SetDirty(profile);
+        AssetDatabase.SaveAssets();
+        AssetDatabase.Refresh();
+        AddMessage("보스 스케줄 CSV 임포트 완료: " + WAVE_PROFILE_PATH);
+        FlushMessagesToConsole(true);
+    }
+
+    // CSV 행 값을 보스 스폰 스케줄 직렬화 프로퍼티에 반영한다
+    private void SetBossScheduleFromRow(SerializedProperty schedule, List<string> row, Dictionary<string, int> headerMap, int lineNumber)
+    {
+        BossZombieType bossType = ReadBossZombieType(row, headerMap, "BossType", lineNumber);
+        schedule.FindPropertyRelative("bossType").enumValueIndex = (int)bossType;
+        schedule.FindPropertyRelative("firstWave").intValue = Mathf.Max(1, ReadInt(row, headerMap, "FirstWave", lineNumber, 1));
+        schedule.FindPropertyRelative("waveInterval").intValue = Mathf.Max(1, ReadInt(row, headerMap, "WaveInterval", lineNumber, 1));
+    }
+
     // CSV 행 값을 웨이브 스테이지 직렬화 프로퍼티에 반영한다
     private void SetWaveStageFromRow(SerializedProperty stage, List<string> row, Dictionary<string, int> headerMap, int lineNumber)
     {
@@ -486,13 +599,11 @@ public class ZombieBalanceCsvEditorTool : EditorWindow
         stage.FindPropertyRelative("maxWave").intValue = ReadInt(row, headerMap, "MaxWave", lineNumber, 0);
         stage.FindPropertyRelative("spawnInterval").floatValue = ReadFloat(row, headerMap, "SpawnInterval", lineNumber, 1.0f);
         stage.FindPropertyRelative("spawnCount").intValue = ReadInt(row, headerMap, "SpawnCount", lineNumber, 0);
-        stage.FindPropertyRelative("spawnBossAsLastEnemy").boolValue = ReadBool(row, headerMap, "SpawnBossAsLastEnemy", lineNumber, false);
         stage.FindPropertyRelative("hpMultiplier").floatValue = ReadFloat(row, headerMap, "HpMultiplier", lineNumber, 1.0f);
         stage.FindPropertyRelative("attackDamageMultiplier").floatValue = ReadFloat(row, headerMap, "AttackDamageMultiplier", lineNumber, 1.0f);
         stage.FindPropertyRelative("moveAttackSpeedMultiplier").floatValue = ReadFloat(row, headerMap, "MoveAttackSpeedMultiplier", lineNumber, 1.0f);
         stage.FindPropertyRelative("rewardMultiplier").floatValue = ReadFloat(row, headerMap, "RewardMultiplier", lineNumber, 1.0f);
         SetNormalZombieEntries(stage.FindPropertyRelative("normalZombieEntries"), ReadString(row, headerMap, "NormalZombieEntries"), lineNumber);
-        SetBossZombieEntries(stage.FindPropertyRelative("bossZombieEntries"), ReadString(row, headerMap, "BossZombieEntries"), lineNumber);
     }
 
     // 좀비 보상 프로필들을 CSV로 내보낸다
@@ -761,6 +872,14 @@ public class ZombieBalanceCsvEditorTool : EditorWindow
     {
         ClearRunState();
         bool isSuccess = TryOpenCsvFile(WAVE_CSV_PATH);
+        FlushMessagesToConsole(isSuccess);
+    }
+
+    // 보스 스케줄 CSV 파일을 기본 앱으로 연다
+    private void OpenBossScheduleCsv()
+    {
+        ClearRunState();
+        bool isSuccess = TryOpenCsvFile(BOSS_SCHEDULE_CSV_PATH);
         FlushMessagesToConsole(isSuccess);
     }
 
@@ -1307,6 +1426,19 @@ public class ZombieBalanceCsvEditorTool : EditorWindow
         return RewardCurrencyType.Coin;
     }
 
+    // CSV 행에서 보스 좀비 enum 값을 읽는다
+    private BossZombieType ReadBossZombieType(List<string> row, Dictionary<string, int> headerMap, string columnName, int lineNumber)
+    {
+        string value = ReadString(row, headerMap, columnName).Trim();
+        if (Enum.TryParse(value, out BossZombieType result))
+        {
+            return result;
+        }
+
+        AddMessage($"{lineNumber}행: BossZombieType 값이 유효하지 않아 Boomer를 사용합니다. 값: {value}");
+        return BossZombieType.Boomer;
+    }
+
     // 문자열을 정수로 변환한다
     private static int ParseInt(string value, int fallback)
     {
@@ -1412,13 +1544,22 @@ public class ZombieBalanceCsvEditorTool : EditorWindow
             "MaxWave",
             "SpawnInterval",
             "SpawnCount",
-            "SpawnBossAsLastEnemy",
             "HpMultiplier",
             "AttackDamageMultiplier",
             "MoveAttackSpeedMultiplier",
             "RewardMultiplier",
-            "NormalZombieEntries",
-            "BossZombieEntries"
+            "NormalZombieEntries"
+        };
+    }
+
+    // 보스 스케줄 CSV 필수 컬럼 목록을 반환한다
+    private static string[] GetBossScheduleRequiredColumns()
+    {
+        return new[]
+        {
+            "BossType",
+            "FirstWave",
+            "WaveInterval"
         };
     }
 

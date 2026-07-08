@@ -1,0 +1,4 @@
+﻿BossType(보스 타입),FirstWave(최초 출현 웨이브),WaveInterval(웨이브 간격)
+Boomer,10,5
+Screamer,15,5
+Tank,20,5

@@ -14,9 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   level: 1
   moveSpeed: 3
-  moveSpeedLevelWeight: 0.05
-  repairMaxHpPercentPerSecond: 10
-  repairMaxHpPercentPerSecondLevelWeight: 0.05
+  moveSpeedLevelWeight: 0
+  repairMaxHpPercentPerSecond: 2
+  repairMaxHpPercentPerSecondLevelWeight: 0
   repairRange: 2
   targetSearchInterval: 0.5
   rotationSpeed: 8

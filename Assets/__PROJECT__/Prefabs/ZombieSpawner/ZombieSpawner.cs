@@ -16,13 +16,18 @@ public class ZombieSpawner : MonoBehaviour
 
     private float currTime; // 현재 누적 시간
     private float currSpawnInterval; // 현재 스폰 간격
-    private int currSpawnCount; // 현재 누적 스폰 횟수
-    private int currMaxSpawnCount; // 현재 최대 스폰 횟수
+    private int currSpawnCount; // 현재 누적 일반 좀비 스폰 횟수
+    private int currMaxSpawnCount; // 현재 목표 처치 수
+    private int currMaxNormalSpawnCount; // 현재 최대 일반 좀비 스폰 수
     private bool spawnEnabled = true; // 스폰 활성화 상태
     private bool currentSpawnBossAsFirstEnemy = true; // 현재 웨이브 첫 스폰 보스 여부
     private ZombieSpawnRuntimeModifiers currentRuntimeModifiers = ZombieSpawnRuntimeModifiers.Default; // 현재 웨이브 좀비 배율
     private Coroutine waveWaitCoroutine;
     private readonly List<PoolObject> spawnedZombies = new List<PoolObject>(64);
+    private readonly List<BossZombieType> scheduledBossTypes = new List<BossZombieType>(4);
+    private readonly List<PoolObject> scheduledBossPrefabs = new List<PoolObject>(4);
+    private int currentScheduledBossIndex;
+    private bool currentUsesScheduledBosses;
 
     // 시작 시 현재 웨이브의 스폰 설정을 초기화하고 웨이브 변경 이벤트를 구독한다
     void Start()
@@ -119,17 +124,24 @@ public class ZombieSpawner : MonoBehaviour
             Debug.LogWarning("[ZombieSpawner] 웨이브 스폰 프로필이 없어 좀비 스폰을 비활성화합니다.", this);
             currSpawnInterval = 1.0f;
             currMaxSpawnCount = 1;
+            currMaxNormalSpawnCount = 1;
             spawnEnabled = false;
             currentSpawnBossAsFirstEnemy = false;
             currentRuntimeModifiers = ZombieSpawnRuntimeModifiers.Default;
+            currentUsesScheduledBosses = false;
+            scheduledBossTypes.Clear();
+            scheduledBossPrefabs.Clear();
+            currentScheduledBossIndex = 0;
             return;
         }
 
         spawnEnabled = true;
         currSpawnInterval = waveSpawnProfile.GetSpawnInterval(safeWave, 1.0f);
-        currMaxSpawnCount = waveSpawnProfile.GetSpawnCount(safeWave, 0);
+        currMaxNormalSpawnCount = waveSpawnProfile.GetSpawnCount(safeWave, 0);
         currentSpawnBossAsFirstEnemy = waveSpawnProfile.ShouldSpawnBossAsLastEnemy(safeWave, false);
         currentRuntimeModifiers = waveSpawnProfile.GetRuntimeModifiers(safeWave).Sanitized();
+        CacheScheduledBosses(safeWave);
+        currMaxSpawnCount = currMaxNormalSpawnCount + scheduledBossPrefabs.Count;
     }
 
     // 매 프레임 스폰 타이머를 갱신하고 필요 시 다음 좀비를 스폰한다
@@ -138,22 +150,88 @@ public class ZombieSpawner : MonoBehaviour
         if(spawnEnabled)
         {
             currTime += Time.deltaTime;
-            if (currSpawnCount < currMaxSpawnCount && currTime >= currSpawnInterval)
+            if (HasRemainingSpawns() && currTime >= currSpawnInterval)
             {
                 SpawnNextZombie();
                 currTime -= currSpawnInterval;
-                currSpawnCount++;
             }
         }
     }
 
-    // 현재 스폰 순서에 맞춰 일반 좀비 또는 보스를 스폰한다
+    // 현재 웨이브에 예약된 보스 프리팹을 캐시한다
+    private void CacheScheduledBosses(int wave)
+    {
+        scheduledBossTypes.Clear();
+        scheduledBossPrefabs.Clear();
+        currentScheduledBossIndex = 0;
+        currentUsesScheduledBosses = waveSpawnProfile.HasBossSpawnSchedules();
+        if (!currentUsesScheduledBosses)
+        {
+            return;
+        }
+
+        waveSpawnProfile.FillScheduledBossZombieTypes(wave, scheduledBossTypes);
+        for (int i = 0; i < scheduledBossTypes.Count; i++)
+        {
+            BossZombieType bossType = scheduledBossTypes[i];
+            if (waveSpawnProfile.TryGetBossPrefabForType(bossType, out PoolObject prefab))
+            {
+                scheduledBossPrefabs.Add(prefab);
+                continue;
+            }
+
+            Debug.LogWarning($"[ZombieSpawner] {wave}웨이브 보스 스케줄의 {bossType} 프리팹을 찾을 수 없어 해당 보스 스폰을 건너뜁니다.", this);
+        }
+    }
+
+    // 현재 웨이브에서 아직 스폰할 좀비가 남아 있는지 확인한다
+    private bool HasRemainingSpawns()
+    {
+        return currSpawnCount < currMaxNormalSpawnCount || currentScheduledBossIndex < scheduledBossPrefabs.Count;
+    }
+
+    // 현재 스폰 순서에 맞춰 일반 좀비와 예약된 보스를 스폰한다
     private void SpawnNextZombie()
     {
+        if (currentUsesScheduledBosses)
+        {
+            SpawnScheduledBossIfNeeded();
+            SpawnNormalZombieIfNeeded();
+            return;
+        }
+
         bool shouldSpawnBoss = currentSpawnBossAsFirstEnemy && currSpawnCount == 0;
         if (shouldSpawnBoss && TryGetBossZombiePrefab(out PoolObject bossPrefab))
         {
             SpawnBossZombie(bossPrefab);
+            currSpawnCount++;
+            return;
+        }
+
+        SpawnNormalZombieIfNeeded();
+    }
+
+    // 예약된 보스 큐에서 다음 보스를 한 마리 스폰한다
+    private void SpawnScheduledBossIfNeeded()
+    {
+        if (currentScheduledBossIndex >= scheduledBossPrefabs.Count)
+        {
+            return;
+        }
+
+        PoolObject bossPrefab = scheduledBossPrefabs[currentScheduledBossIndex];
+        currentScheduledBossIndex++;
+        if (bossPrefab != null)
+        {
+            SpawnBossZombie(bossPrefab);
+        }
+    }
+
+    // 현재 웨이브의 일반 좀비가 남아 있으면 한 마리 스폰한다
+    private void SpawnNormalZombieIfNeeded()
+    {
+        if (currSpawnCount >= currMaxNormalSpawnCount)
+        {
             return;
         }
 
@@ -161,6 +239,8 @@ public class ZombieSpawner : MonoBehaviour
         {
             SpawnNormalZombie(normalPrefab);
         }
+
+        currSpawnCount++;
     }
 
     // 현재 웨이브에 맞는 일반 좀비 프리팹을 반환한다

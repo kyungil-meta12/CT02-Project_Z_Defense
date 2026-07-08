@@ -52,9 +52,19 @@ MonoBehaviour:
     prefab: {fileID: 4401505760050390836, guid: 05a79271ac3da344298794ee3568a586, type: 3}
   - bossType: 1
     prefab: {fileID: 7451463094761099968, guid: 8d82f2b7c62a03949a3eac43f1107dca, type: 3}
+  bossSpawnSchedules:
+  - bossType: 0
+    firstWave: 10
+    waveInterval: 5
+  - bossType: 1
+    firstWave: 15
+    waveInterval: 5
+  - bossType: 2
+    firstWave: 20
+    waveInterval: 5
   stages:
   - minWave: 1
-    maxWave: 10
+    maxWave: 9
     spawnInterval: 2.5
     spawnCount: 10
     spawnBossAsLastEnemy: 0
@@ -88,7 +98,7 @@ MonoBehaviour:
     attackDamageMultiplier: 1
     moveAttackSpeedMultiplier: 1
     rewardMultiplier: 1
-  - minWave: 11
+  - minWave: 10
     maxWave: 25
     spawnInterval: 2.2
     spawnCount: 15

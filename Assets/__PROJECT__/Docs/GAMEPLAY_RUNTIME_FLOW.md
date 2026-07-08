@@ -11,13 +11,14 @@ This document summarizes the current runtime flow for waves, zombies, obstacles,
 3. If no wave spawn profile is assigned, `ZombieSpawner` disables spawning for that wave and logs a warning.
 4. `ZombieSpawner` sends the target kill count to `GameManager.InputDestKillCount`.
 5. During runtime, `ZombieSpawner` spawns normal zombies from pooled prefabs by interval.
-6. With `ZombieWaveSpawnProfileSO`, normal and boss prefab candidates can be weighted and restricted by wave range.
-7. The first spawn in the wave can be a boss zombie when the active profile stage enables it.
-8. Spawn profile runtime multipliers can adjust spawned zombie HP, attack damage, move/attack speed, and reward amount.
-9. Zombies notify kill progress through `GameManager.IncreaseKillCount` when their death flow completes.
-10. `GameManager.Update` increases `Wave` when `KillCount == DestKillCount` and invokes `OnWaveIncrease`.
-11. `ZombieSpawner` receives the next wave and recalculates spawn settings from the active wave profile.
-12. Game-over restart lowers the active wave through `PreparePreviousWaveRestart` and invokes `OnWaveDecrease` for UI systems that must refresh on rollback.
+6. With `ZombieWaveSpawnProfileSO`, normal prefab candidates can be weighted and restricted by wave range.
+7. Boss zombie spawn waves are controlled by the separate boss schedule on `ZombieWaveSpawnProfileSO`; each boss type uses first-wave and wave-interval values exported through `ZombieBossSpawnSchedule.csv`.
+8. When multiple boss schedules match the same wave, all matching bosses spawn one per early spawn tick as additional enemies, without reducing the normal zombie spawn count.
+9. Spawn profile runtime multipliers can adjust spawned zombie HP, attack damage, move/attack speed, and reward amount.
+10. Zombies notify kill progress through `GameManager.IncreaseKillCount` when their death flow completes.
+11. `GameManager.Update` increases `Wave` when `KillCount == DestKillCount` and invokes `OnWaveIncrease`.
+12. `ZombieSpawner` receives the next wave and recalculates spawn settings from the active wave profile.
+13. Game-over restart lowers the active wave through `PreparePreviousWaveRestart` and invokes `OnWaveDecrease` for UI systems that must refresh on rollback.
 
 ## Normal Zombie Role Specs
 
@@ -42,8 +43,8 @@ Use `ZombieWaveSpawnProfileSO` for:
 
 - Wave ranges and stage segmentation.
 - Spawn count and spawn interval.
-- Weighted normal and boss prefab entries.
-- First-spawn boss toggle.
+- Weighted normal prefab entries and legacy fallback boss entries.
+- Boss first-wave and wave-interval schedules through the separate boss schedule CSV.
 - Runtime HP, attack damage, move/attack speed, and reward multipliers.
 
 Current first-pass campaign balancing uses wave `1~500`, with the final `451~500` stage using `hpMultiplier = 280`. With current role specs this puts late normal elite zombies around `79,800~100,800` HP before future turret DPS rebalancing.

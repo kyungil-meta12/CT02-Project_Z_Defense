@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
@@ -10,6 +11,9 @@ public class ZombieWaveSpawnProfileSO : ScriptableObject
     [Header("Prefab Map")]
     [SerializeField] private NormalZombiePrefabBinding[] normalZombiePrefabMap;
     [SerializeField] private BossZombiePrefabBinding[] bossZombiePrefabMap;
+
+    [Header("보스 스폰 스케줄")]
+    [SerializeField] private BossZombieSpawnSchedule[] bossSpawnSchedules;
 
     [SerializeField] private ZombieWaveSpawnStage[] stages;
 
@@ -69,6 +73,39 @@ public class ZombieWaveSpawnProfileSO : ScriptableObject
         }
 
         return TryGetBossPrefabForType(type, out prefab);
+    }
+
+    // 보스 스폰 스케줄이 별도로 설정되어 있는지 확인한다
+    public bool HasBossSpawnSchedules()
+    {
+        return bossSpawnSchedules != null && bossSpawnSchedules.Length > 0;
+    }
+
+    // 현재 웨이브에 출현할 보스 타입을 스케줄 순서대로 채운다
+    public int FillScheduledBossZombieTypes(int wave, List<BossZombieType> results)
+    {
+        if (results == null)
+        {
+            return 0;
+        }
+
+        results.Clear();
+        if (bossSpawnSchedules == null || bossSpawnSchedules.Length == 0)
+        {
+            return 0;
+        }
+
+        int safeWave = Mathf.Max(1, wave);
+        for (int i = 0; i < bossSpawnSchedules.Length; i++)
+        {
+            BossZombieSpawnSchedule schedule = bossSpawnSchedules[i];
+            if (schedule != null && schedule.IsScheduledForWave(safeWave))
+            {
+                results.Add(schedule.BossType);
+            }
+        }
+
+        return results.Count;
     }
 
     // enum 타입으로 일반 좀비 프리팹을 조회한다
@@ -156,6 +193,17 @@ public class ZombieWaveSpawnProfileSO : ScriptableObject
     // 인스펙터 입력값을 유효한 범위로 보정한다
     private void OnValidate()
     {
+        if (bossSpawnSchedules != null)
+        {
+            for (int i = 0; i < bossSpawnSchedules.Length; i++)
+            {
+                if (bossSpawnSchedules[i] != null)
+                {
+                    bossSpawnSchedules[i].Validate();
+                }
+            }
+        }
+
         if (stages == null)
         {
             return;
@@ -168,6 +216,39 @@ public class ZombieWaveSpawnProfileSO : ScriptableObject
                 stages[i].Validate();
             }
         }
+    }
+}
+
+/// <summary>
+/// 보스 좀비 타입별 최초 출현 웨이브와 반복 간격을 정의한다.
+/// </summary>
+[Serializable]
+public class BossZombieSpawnSchedule
+{
+    [SerializeField] private BossZombieType bossType;
+    [SerializeField, Min(1)] private int firstWave = 1;
+    [SerializeField, Min(1)] private int waveInterval = 1;
+
+    public BossZombieType BossType => bossType;
+
+    public int FirstWave => Mathf.Max(1, firstWave);
+
+    public int WaveInterval => Mathf.Max(1, waveInterval);
+
+    // 지정한 웨이브가 이 보스 스케줄에 해당하는지 확인한다
+    public bool IsScheduledForWave(int wave)
+    {
+        int safeWave = Mathf.Max(1, wave);
+        int safeFirstWave = FirstWave;
+        int safeInterval = WaveInterval;
+        return safeWave >= safeFirstWave && (safeWave - safeFirstWave) % safeInterval == 0;
+    }
+
+    // 인스펙터 입력값을 유효한 범위로 보정한다
+    public void Validate()
+    {
+        firstWave = Mathf.Max(1, firstWave);
+        waveInterval = Mathf.Max(1, waveInterval);
     }
 }
 
@@ -354,6 +435,7 @@ public class ZombieWaveSpawnStage
         ValidateEntries(bossZombieEntries);
     }
 
+    // 일반 좀비 후보 목록의 인스펙터 입력값을 보정한다
     private static void ValidateEntries(NormalZombieSpawnEntry[] entries)
     {
         if (entries == null)
@@ -370,6 +452,7 @@ public class ZombieWaveSpawnStage
         }
     }
 
+    // 보스 좀비 후보 목록의 인스펙터 입력값을 보정한다
     private static void ValidateEntries(BossZombieSpawnEntry[] entries)
     {
         if (entries == null)

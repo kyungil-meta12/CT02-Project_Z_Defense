@@ -24,7 +24,7 @@ This document is the shortest map for finding where project code, scenes, prefab
 | Zombies | `Prefabs/Damageable/NormalZombie`, `Prefabs/Damageable/BossZombie` | Movement, attack, damage, death, pool return, boss behavior. |
 | Obstacles and repair | `Prefabs/Damageable/Obstacle`, `Prefabs/Survivor` | Obstacle HP/fracture/repair reservation, survivor retreat/return/repair/vault. |
 | Obstacle placement | `Prefabs/Damageable/Obstacle/ObstacleBuild*`, `Prefabs/Damageable/Obstacle/ObstaclePlacement*` | Fixed defense-line obstacle/gate slot placement and rebuild UI. |
-| Spawning | `Prefabs/ZombieSpawner`, `Scenes/KKW/Turret_Scene/SO/Zombie Wave Spawn Profile`, `Scenes/KKW/Turret_Scene/SO/Zombie_Specs` | `ZombieWaveSpawnProfileSO` driven wave ranges, spawn counts, weighted zombie entries, boss final spawn, and runtime stat/reward multipliers. Zombie specs own only baseline stats and random variance. |
+| Spawning | `Prefabs/ZombieSpawner`, `Scenes/KKW/Turret_Scene/SO/Zombie Wave Spawn Profile`, `Scenes/KKW/Turret_Scene/SO/Zombie_Specs` | `ZombieWaveSpawnProfileSO` driven wave ranges, spawn counts, weighted normal entries, boss spawn schedules, and runtime stat/reward multipliers. Zombie specs own only baseline stats and random variance. |
 | Turrets | `Scenes/KKW/Turret_Scene` | Turret definitions, stats, evolution, placement, projectile damage, VFX profile data. |
 | Common feedback | `Scripts/DamagePopup*`, `Resources/UI` | World-space DNP damage number policy, spawning, sorting, and runtime profiling settings. |
 | Status effects | `Scripts/StatusEffects` | Shared status-effect visuals and per-target runtimes such as `FrostStatusRuntime` and `PoisonStatusRuntime`. |

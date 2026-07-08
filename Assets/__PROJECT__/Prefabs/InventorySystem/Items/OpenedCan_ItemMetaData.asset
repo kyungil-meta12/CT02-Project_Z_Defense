@@ -20,5 +20,6 @@ MonoBehaviour:
   Decomposable: 0
   ItemsFromDecompose: []
   Name: "\uBE48 \uCE94"
-  InfoText: "\uAE38\uAC00\uC5D0 \uAD74\uB7EC\uB2E4\uB514\uB294 \uCE94 \uC4F0\uB808\uAE30."
+  InfoText: "\uAE38\uAC00\uC5D0 \uAD74\uB7EC\uB2E4\uB514\uB294 \uC4F0\uB808\uAE30
+    \uCE94."
   ItemImage: {fileID: 21300000, guid: c2d3842efa0d72a4782e1499285266cf, type: 3}

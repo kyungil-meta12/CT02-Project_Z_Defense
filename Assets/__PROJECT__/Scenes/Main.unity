@@ -19946,6 +19946,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 434708764}
+  - component: {fileID: 434708766}
+  - component: {fileID: 434708767}
+  - component: {fileID: 434708765}
   m_Layer: 5
   m_Name: DropItemGetLog
   m_TagString: Untagged
@@ -19968,10 +19971,62 @@ RectTransform:
   m_Father: {fileID: 1342197863}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0.5}
-  m_AnchorMax: {x: 0, y: 0.5}
-  m_AnchoredPosition: {x: 17.527, y: -445}
-  m_SizeDelta: {x: 212.75, y: 405.3513}
-  m_Pivot: {x: 0, y: 0.5}
+  m_AnchorMax: {x: 1, y: 0.5}
+  m_AnchoredPosition: {x: -133.63998, y: -395.51968}
+  m_SizeDelta: {x: -302.33, y: 518.3608}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &434708765
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 434708763}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9f9100431928b3149bcb4d94e1710321, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::DropItemGetLog
+  textPrefab: {fileID: 6087810430363346047, guid: 42a433dab12520b409ca7810d3591d68, type: 3}
+  testMode: 1
+--- !u!114 &434708766
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 434708763}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 59f8146938fff824cb5fd77236b75775, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.VerticalLayoutGroup
+  m_Padding:
+    m_Left: 0
+    m_Right: 0
+    m_Top: 0
+    m_Bottom: 0
+  m_ChildAlignment: 6
+  m_Spacing: 0
+  m_ChildForceExpandWidth: 1
+  m_ChildForceExpandHeight: 0
+  m_ChildControlWidth: 1
+  m_ChildControlHeight: 1
+  m_ChildScaleWidth: 1
+  m_ChildScaleHeight: 0
+  m_ReverseArrangement: 0
+--- !u!225 &434708767
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 434708763}
+  m_Enabled: 1
+  m_Alpha: 1
+  m_Interactable: 1
+  m_BlocksRaycasts: 1
+  m_IgnoreParentGroups: 0
 --- !u!1001 &435807276
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -22310,7 +22365,7 @@ MonoBehaviour:
   m_HandleRect: {fileID: 395439652}
   m_Direction: 2
   m_Value: 0
-  m_Size: 0.69016665
+  m_Size: 0.3450833
   m_NumberOfSteps: 0
   m_OnValueChanged:
     m_PersistentCalls:
@@ -45591,6 +45646,7 @@ MonoBehaviour:
   - {fileID: 1946592246}
   - {fileID: 85796884}
   - {fileID: 2041250385}
+  - {fileID: 434708767}
   hideState: 0
 --- !u!4 &856102687
 Transform:
@@ -47987,7 +48043,7 @@ MonoBehaviour:
   m_HandleRect: {fileID: 585445104}
   m_Direction: 0
   m_Value: 1
-  m_Size: 0.1893478
+  m_Size: 0.0946739
   m_NumberOfSteps: 0
   m_OnValueChanged:
     m_PersistentCalls:
@@ -73495,8 +73551,8 @@ RectTransform:
   - {fileID: 1835198605}
   - {fileID: 85796883}
   - {fileID: 2041250383}
-  - {fileID: 1425476399}
   - {fileID: 434708764}
+  - {fileID: 1425476399}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -79702,8 +79758,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: -96.814}
-  m_SizeDelta: {x: 461.6987, y: 184.3876}
+  m_AnchoredPosition: {x: 0, y: -59.3819}
+  m_SizeDelta: {x: 461.6987, y: 109.5233}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1452723725
 MonoBehaviour:

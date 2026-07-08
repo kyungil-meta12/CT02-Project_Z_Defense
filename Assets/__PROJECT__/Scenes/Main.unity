@@ -3817,7 +3817,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &85796883
 RectTransform:
   m_ObjectHideFlags: 0
@@ -6464,6 +6464,7 @@ GameObject:
   - component: {fileID: 137889801}
   - component: {fileID: 137889803}
   - component: {fileID: 137889802}
+  - component: {fileID: 137889804}
   m_Layer: 5
   m_Name: TurretSelectPopupBackground
   m_TagString: Untagged
@@ -6531,6 +6532,50 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 137889800}
   m_CullTransparentMesh: 1
+--- !u!114 &137889804
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 137889800}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Button
+  m_Navigation:
+    m_Mode: 3
+    m_WrapAround: 0
+    m_SelectOnUp: {fileID: 0}
+    m_SelectOnDown: {fileID: 0}
+    m_SelectOnLeft: {fileID: 0}
+    m_SelectOnRight: {fileID: 0}
+  m_Transition: 1
+  m_Colors:
+    m_NormalColor: {r: 1, g: 1, b: 1, a: 1}
+    m_HighlightedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
+    m_PressedColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 1}
+    m_SelectedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
+    m_DisabledColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 0.5019608}
+    m_ColorMultiplier: 1
+    m_FadeDuration: 0.1
+  m_SpriteState:
+    m_HighlightedSprite: {fileID: 0}
+    m_PressedSprite: {fileID: 0}
+    m_SelectedSprite: {fileID: 0}
+    m_DisabledSprite: {fileID: 0}
+  m_AnimationTriggers:
+    m_NormalTrigger: Normal
+    m_HighlightedTrigger: Highlighted
+    m_PressedTrigger: Pressed
+    m_SelectedTrigger: Selected
+    m_DisabledTrigger: Disabled
+  m_Interactable: 1
+  m_TargetGraphic: {fileID: 137889802}
+  m_OnClick:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!1001 &145291289
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -9538,6 +9583,8 @@ GameObject:
   - component: {fileID: 217801441}
   - component: {fileID: 217801443}
   - component: {fileID: 217801442}
+  - component: {fileID: 217801445}
+  - component: {fileID: 217801444}
   m_Layer: 5
   m_Name: CurrentTurretImageFrame
   m_TagString: Untagged
@@ -9603,6 +9650,62 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 217801440}
   m_CullTransparentMesh: 1
+--- !u!114 &217801444
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 217801440}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7664a941eb984671919e935e928a5284, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TurretEvolutionCandidatePressForwarder
+--- !u!114 &217801445
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 217801440}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Button
+  m_Navigation:
+    m_Mode: 3
+    m_WrapAround: 0
+    m_SelectOnUp: {fileID: 0}
+    m_SelectOnDown: {fileID: 0}
+    m_SelectOnLeft: {fileID: 0}
+    m_SelectOnRight: {fileID: 0}
+  m_Transition: 0
+  m_Colors:
+    m_NormalColor: {r: 1, g: 1, b: 1, a: 1}
+    m_HighlightedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
+    m_PressedColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 1}
+    m_SelectedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
+    m_DisabledColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 0.5019608}
+    m_ColorMultiplier: 1
+    m_FadeDuration: 0.1
+  m_SpriteState:
+    m_HighlightedSprite: {fileID: 0}
+    m_PressedSprite: {fileID: 0}
+    m_SelectedSprite: {fileID: 0}
+    m_DisabledSprite: {fileID: 0}
+  m_AnimationTriggers:
+    m_NormalTrigger: Normal
+    m_HighlightedTrigger: Highlighted
+    m_PressedTrigger: Pressed
+    m_SelectedTrigger: Selected
+    m_DisabledTrigger: Disabled
+  m_Interactable: 1
+  m_TargetGraphic: {fileID: 217801442}
+  m_OnClick:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!1 &218026426
 GameObject:
   m_ObjectHideFlags: 0
@@ -16128,7 +16231,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 0.5}
   m_AnchorMax: {x: 1, y: 0.5}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 77.92}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &359511267
 GameObject:
@@ -18204,6 +18307,8 @@ GameObject:
   - component: {fileID: 390330293}
   - component: {fileID: 390330295}
   - component: {fileID: 390330294}
+  - component: {fileID: 390330297}
+  - component: {fileID: 390330296}
   m_Layer: 5
   m_Name: NextTurretImageFrame_4
   m_TagString: Untagged
@@ -18269,6 +18374,62 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 390330292}
   m_CullTransparentMesh: 1
+--- !u!114 &390330296
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 390330292}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7664a941eb984671919e935e928a5284, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TurretEvolutionCandidatePressForwarder
+--- !u!114 &390330297
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 390330292}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Button
+  m_Navigation:
+    m_Mode: 3
+    m_WrapAround: 0
+    m_SelectOnUp: {fileID: 0}
+    m_SelectOnDown: {fileID: 0}
+    m_SelectOnLeft: {fileID: 0}
+    m_SelectOnRight: {fileID: 0}
+  m_Transition: 0
+  m_Colors:
+    m_NormalColor: {r: 1, g: 1, b: 1, a: 1}
+    m_HighlightedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
+    m_PressedColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 1}
+    m_SelectedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
+    m_DisabledColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 0.5019608}
+    m_ColorMultiplier: 1
+    m_FadeDuration: 0.1
+  m_SpriteState:
+    m_HighlightedSprite: {fileID: 0}
+    m_PressedSprite: {fileID: 0}
+    m_SelectedSprite: {fileID: 0}
+    m_DisabledSprite: {fileID: 0}
+  m_AnimationTriggers:
+    m_NormalTrigger: Normal
+    m_HighlightedTrigger: Highlighted
+    m_PressedTrigger: Pressed
+    m_SelectedTrigger: Selected
+    m_DisabledTrigger: Disabled
+  m_Interactable: 1
+  m_TargetGraphic: {fileID: 390330294}
+  m_OnClick:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!1 &393767453
 GameObject:
   m_ObjectHideFlags: 0
@@ -18377,8 +18538,8 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 839369737}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
+  m_AnchorMin: {x: 0, y: 0.000000033908417}
+  m_AnchorMax: {x: 1, y: 0.69016665}
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 20, y: 20}
   m_Pivot: {x: 0.5, y: 0.5}
@@ -19471,7 +19632,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &421468492
 RectTransform:
   m_ObjectHideFlags: 0
@@ -20071,35 +20232,39 @@ MonoBehaviour:
   popupRoot: {fileID: 438194478}
   closeButton: {fileID: 2111344259}
   backButton: {fileID: 1627963906}
-  titleText: {fileID: 0}
-  statusText: {fileID: 0}
-  currentTurretNameText: {fileID: 0}
+  currentTurretNameText: {fileID: 1309478039}
   currentTurretLevelText: {fileID: 1262133878}
   nextTurretLevelText: {fileID: 1429013336}
   currentDpsText: {fileID: 618604272}
   currentFireRateText: {fileID: 1394316301}
   currentRangeText: {fileID: 673964815}
-  currentPierceText: {fileID: 0}
+  currentPierceText: {fileID: 1923588024}
   nextDpsText: {fileID: 67718140}
   nextFireRateText: {fileID: 265954556}
   nextRangeText: {fileID: 1779382658}
-  nextPierceText: {fileID: 0}
+  nextPierceText: {fileID: 337658830}
   dpsDeltaText: {fileID: 1580740133}
   fireRateDeltaText: {fileID: 1289413621}
   rangeDeltaText: {fileID: 1688026356}
-  pierceDeltaText: {fileID: 0}
+  pierceDeltaText: {fileID: 898710480}
   turretImage: {fileID: 980489670}
-  resourceItemNameTexts: []
+  resourceItemNameTexts:
+  - {fileID: 791861364}
+  - {fileID: 741133940}
+  - {fileID: 1188035815}
+  - {fileID: 250443913}
   resourceItemCountTexts:
   - {fileID: 371406473}
   - {fileID: 1239461515}
   - {fileID: 1055955114}
   - {fileID: 1060504273}
-  resourceItemImages: []
-  resourceItemDefaultSprites: []
-  upgradeCloseButton: {fileID: 0}
-  upgradeBackButton: {fileID: 0}
+  resourceItemImages:
+  - {fileID: 378338004}
+  - {fileID: 1375914391}
+  - {fileID: 2080704077}
+  - {fileID: 748201440}
   upgradeButton: {fileID: 674428765}
+  upgradeButtonEventTrigger: {fileID: 674428768}
   evolutionButton: {fileID: 572558143}
 --- !u!1001 &438870471
 PrefabInstance:
@@ -20277,7 +20442,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &444196493
 RectTransform:
   m_ObjectHideFlags: 0
@@ -21454,7 +21619,7 @@ GameObject:
   - component: {fileID: 457848591}
   - component: {fileID: 457848590}
   m_Layer: 5
-  m_Name: Image
+  m_Name: Image3
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -22211,9 +22376,9 @@ RectTransform:
   m_Father: {fileID: 6866159}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 1, y: 0}
-  m_AnchorMax: {x: 1, y: 0}
+  m_AnchorMax: {x: 1, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 20, y: 0}
+  m_SizeDelta: {x: 20, y: -17}
   m_Pivot: {x: 1, y: 1}
 --- !u!114 &466532698
 MonoBehaviour:
@@ -22258,8 +22423,8 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 395439653}
   m_HandleRect: {fileID: 395439652}
   m_Direction: 2
-  m_Value: 0
-  m_Size: 0.3450833
+  m_Value: 0.00000010944085
+  m_Size: 0.6901667
   m_NumberOfSteps: 0
   m_OnValueChanged:
     m_PersistentCalls:
@@ -23281,10 +23446,10 @@ RectTransform:
   - {fileID: 1391580460}
   m_Father: {fileID: 2138183422}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 0, y: -400}
+  m_SizeDelta: {x: 200, y: 100}
   m_Pivot: {x: 0, y: 1}
 --- !u!1001 &483623029
 PrefabInstance:
@@ -24192,6 +24357,8 @@ GameObject:
   - component: {fileID: 507324286}
   - component: {fileID: 507324288}
   - component: {fileID: 507324287}
+  - component: {fileID: 507324290}
+  - component: {fileID: 507324289}
   m_Layer: 5
   m_Name: NextTurretImageFrame_2
   m_TagString: Untagged
@@ -24257,6 +24424,62 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 507324285}
   m_CullTransparentMesh: 1
+--- !u!114 &507324289
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 507324285}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7664a941eb984671919e935e928a5284, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TurretEvolutionCandidatePressForwarder
+--- !u!114 &507324290
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 507324285}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Button
+  m_Navigation:
+    m_Mode: 3
+    m_WrapAround: 0
+    m_SelectOnUp: {fileID: 0}
+    m_SelectOnDown: {fileID: 0}
+    m_SelectOnLeft: {fileID: 0}
+    m_SelectOnRight: {fileID: 0}
+  m_Transition: 0
+  m_Colors:
+    m_NormalColor: {r: 1, g: 1, b: 1, a: 1}
+    m_HighlightedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
+    m_PressedColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 1}
+    m_SelectedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
+    m_DisabledColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 0.5019608}
+    m_ColorMultiplier: 1
+    m_FadeDuration: 0.1
+  m_SpriteState:
+    m_HighlightedSprite: {fileID: 0}
+    m_PressedSprite: {fileID: 0}
+    m_SelectedSprite: {fileID: 0}
+    m_DisabledSprite: {fileID: 0}
+  m_AnimationTriggers:
+    m_NormalTrigger: Normal
+    m_HighlightedTrigger: Highlighted
+    m_PressedTrigger: Pressed
+    m_SelectedTrigger: Selected
+    m_DisabledTrigger: Disabled
+  m_Interactable: 1
+  m_TargetGraphic: {fileID: 507324287}
+  m_OnClick:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!1 &510706850
 GameObject:
   m_ObjectHideFlags: 0
@@ -25741,10 +25964,10 @@ RectTransform:
   - {fileID: 414946921}
   m_Father: {fileID: 2138183422}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 0, y: -100}
+  m_SizeDelta: {x: 200, y: 100}
   m_Pivot: {x: 0, y: 1}
 --- !u!1001 &536017731
 PrefabInstance:
@@ -28740,8 +28963,8 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 983379047}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
+  m_AnchorMin: {x: 0.8106522, y: 0}
+  m_AnchorMax: {x: 1, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 20, y: 20}
   m_Pivot: {x: 0.5, y: 0.5}
@@ -31556,7 +31779,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &630882008
 RectTransform:
   m_ObjectHideFlags: 0
@@ -33215,10 +33438,10 @@ RectTransform:
   - {fileID: 122670624}
   m_Father: {fileID: 2138183422}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 0, y: -500}
+  m_SizeDelta: {x: 200, y: 100}
   m_Pivot: {x: 0, y: 1}
 --- !u!1 &659954860
 GameObject:
@@ -34182,7 +34405,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &669037539
 RectTransform:
   m_ObjectHideFlags: 0
@@ -34200,7 +34423,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 1}
   m_AnchorMax: {x: 0.5, y: 1}
-  m_AnchoredPosition: {x: 0, y: -119.9}
+  m_AnchoredPosition: {x: 0, y: -119.8999}
   m_SizeDelta: {x: 378.74, y: 122.2389}
   m_Pivot: {x: 0.5, y: 1}
 --- !u!114 &669037540
@@ -34533,6 +34756,7 @@ GameObject:
   - component: {fileID: 674428767}
   - component: {fileID: 674428766}
   - component: {fileID: 674428765}
+  - component: {fileID: 674428768}
   m_Layer: 5
   m_Name: Upgrade
   m_TagString: Untagged
@@ -34642,6 +34866,19 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 674428763}
   m_CullTransparentMesh: 1
+--- !u!114 &674428768
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 674428763}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d0b148fe25e99eb48b9724523833bab1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.EventSystems.EventTrigger
+  m_Delegates: []
 --- !u!1 &677499698
 GameObject:
   m_ObjectHideFlags: 0
@@ -44033,7 +44270,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &826157345
 RectTransform:
   m_ObjectHideFlags: 0
@@ -46045,10 +46282,10 @@ RectTransform:
   - {fileID: 69162383}
   m_Father: {fileID: 2138183422}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 0, y: -200}
+  m_SizeDelta: {x: 200, y: 100}
   m_Pivot: {x: 0, y: 1}
 --- !u!1001 &879999054
 PrefabInstance:
@@ -46296,7 +46533,7 @@ GameObject:
   - component: {fileID: 884100128}
   - component: {fileID: 884100127}
   m_Layer: 5
-  m_Name: Image
+  m_Name: Image4
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -47737,9 +47974,9 @@ RectTransform:
   m_Father: {fileID: 6866159}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
+  m_AnchorMax: {x: 1, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 20}
+  m_SizeDelta: {x: -17, y: 20}
   m_Pivot: {x: 0, y: 0}
 --- !u!114 &917932219
 MonoBehaviour:
@@ -47785,7 +48022,7 @@ MonoBehaviour:
   m_HandleRect: {fileID: 585445104}
   m_Direction: 0
   m_Value: 1
-  m_Size: 0.0946739
+  m_Size: 0.1893478
   m_NumberOfSteps: 0
   m_OnValueChanged:
     m_PersistentCalls:
@@ -48217,7 +48454,7 @@ GameObject:
   - component: {fileID: 920585657}
   - component: {fileID: 920585660}
   - component: {fileID: 920585659}
-  - component: {fileID: 920585658}
+  - component: {fileID: 920585661}
   m_Layer: 5
   m_Name: TurretInfoPopup
   m_TagString: Untagged
@@ -48245,31 +48482,6 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 740, y: 500}
   m_Pivot: {x: 0.5, y: 0.5}
---- !u!114 &920585658
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 920585656}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4ee277e79dfe3cd4ab305d53afcd3e5a, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::TurretSelectPopupUI
-  popupRoot: {fileID: 920585656}
-  backgroundButton: {fileID: 0}
-  closeButton: {fileID: 762410871}
-  upgradeButton: {fileID: 362271873}
-  detailButton: {fileID: 1393320914}
-  skillButton: {fileID: 193876410}
-  nameText: {fileID: 574706773}
-  levelText: {fileID: 413005227}
-  damageText: {fileID: 1371766336}
-  fireRateText: {fileID: 2096864930}
-  noteText: {fileID: 1541557931}
-  turretImage: {fileID: 0}
-  disableSkillButtonUntilImplemented: 1
 --- !u!114 &920585659
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -48308,6 +48520,29 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 920585656}
   m_CullTransparentMesh: 1
+--- !u!114 &920585661
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 920585656}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 465e7344166082646afcca56f1f12a95, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TurretInfoPopupUI
+  popupRoot: {fileID: 920585656}
+  backButton: {fileID: 362271873}
+  closeButton: {fileID: 762410871}
+  informationButton: {fileID: 1393320914}
+  descriptionPopup: {fileID: 1592153346}
+  nameText: {fileID: 574706773}
+  levelText: {fileID: 413005227}
+  damageText: {fileID: 1371766336}
+  fireRateText: {fileID: 2096864930}
+  noteText: {fileID: 1541557931}
+  turretImage: {fileID: 1757426380}
 --- !u!1001 &920622355
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -49196,6 +49431,8 @@ GameObject:
   - component: {fileID: 933782950}
   - component: {fileID: 933782952}
   - component: {fileID: 933782951}
+  - component: {fileID: 933782954}
+  - component: {fileID: 933782953}
   m_Layer: 5
   m_Name: NextTurretImageFrame_3
   m_TagString: Untagged
@@ -49261,6 +49498,62 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 933782949}
   m_CullTransparentMesh: 1
+--- !u!114 &933782953
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 933782949}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7664a941eb984671919e935e928a5284, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TurretEvolutionCandidatePressForwarder
+--- !u!114 &933782954
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 933782949}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Button
+  m_Navigation:
+    m_Mode: 3
+    m_WrapAround: 0
+    m_SelectOnUp: {fileID: 0}
+    m_SelectOnDown: {fileID: 0}
+    m_SelectOnLeft: {fileID: 0}
+    m_SelectOnRight: {fileID: 0}
+  m_Transition: 0
+  m_Colors:
+    m_NormalColor: {r: 1, g: 1, b: 1, a: 1}
+    m_HighlightedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
+    m_PressedColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 1}
+    m_SelectedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
+    m_DisabledColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 0.5019608}
+    m_ColorMultiplier: 1
+    m_FadeDuration: 0.1
+  m_SpriteState:
+    m_HighlightedSprite: {fileID: 0}
+    m_PressedSprite: {fileID: 0}
+    m_SelectedSprite: {fileID: 0}
+    m_DisabledSprite: {fileID: 0}
+  m_AnimationTriggers:
+    m_NormalTrigger: Normal
+    m_HighlightedTrigger: Highlighted
+    m_PressedTrigger: Pressed
+    m_SelectedTrigger: Selected
+    m_DisabledTrigger: Disabled
+  m_Interactable: 1
+  m_TargetGraphic: {fileID: 933782951}
+  m_OnClick:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!1001 &934295638
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -60812,6 +61105,8 @@ GameObject:
   - component: {fileID: 1141212385}
   - component: {fileID: 1141212387}
   - component: {fileID: 1141212386}
+  - component: {fileID: 1141212389}
+  - component: {fileID: 1141212388}
   m_Layer: 5
   m_Name: NextTurretImageFrame_1
   m_TagString: Untagged
@@ -60877,6 +61172,62 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1141212384}
   m_CullTransparentMesh: 1
+--- !u!114 &1141212388
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1141212384}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7664a941eb984671919e935e928a5284, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TurretEvolutionCandidatePressForwarder
+--- !u!114 &1141212389
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1141212384}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Button
+  m_Navigation:
+    m_Mode: 3
+    m_WrapAround: 0
+    m_SelectOnUp: {fileID: 0}
+    m_SelectOnDown: {fileID: 0}
+    m_SelectOnLeft: {fileID: 0}
+    m_SelectOnRight: {fileID: 0}
+  m_Transition: 0
+  m_Colors:
+    m_NormalColor: {r: 1, g: 1, b: 1, a: 1}
+    m_HighlightedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
+    m_PressedColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 1}
+    m_SelectedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
+    m_DisabledColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 0.5019608}
+    m_ColorMultiplier: 1
+    m_FadeDuration: 0.1
+  m_SpriteState:
+    m_HighlightedSprite: {fileID: 0}
+    m_PressedSprite: {fileID: 0}
+    m_SelectedSprite: {fileID: 0}
+    m_DisabledSprite: {fileID: 0}
+  m_AnimationTriggers:
+    m_NormalTrigger: Normal
+    m_HighlightedTrigger: Highlighted
+    m_PressedTrigger: Pressed
+    m_SelectedTrigger: Selected
+    m_DisabledTrigger: Disabled
+  m_Interactable: 1
+  m_TargetGraphic: {fileID: 1141212386}
+  m_OnClick:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!1 &1142250053
 GameObject:
   m_ObjectHideFlags: 0
@@ -64543,6 +64894,8 @@ GameObject:
   - component: {fileID: 1209357494}
   - component: {fileID: 1209357496}
   - component: {fileID: 1209357495}
+  - component: {fileID: 1209357498}
+  - component: {fileID: 1209357497}
   m_Layer: 5
   m_Name: NextTurretImageFrame_1
   m_TagString: Untagged
@@ -64608,6 +64961,62 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1209357493}
   m_CullTransparentMesh: 1
+--- !u!114 &1209357497
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1209357493}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7664a941eb984671919e935e928a5284, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TurretEvolutionCandidatePressForwarder
+--- !u!114 &1209357498
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1209357493}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Button
+  m_Navigation:
+    m_Mode: 3
+    m_WrapAround: 0
+    m_SelectOnUp: {fileID: 0}
+    m_SelectOnDown: {fileID: 0}
+    m_SelectOnLeft: {fileID: 0}
+    m_SelectOnRight: {fileID: 0}
+  m_Transition: 0
+  m_Colors:
+    m_NormalColor: {r: 1, g: 1, b: 1, a: 1}
+    m_HighlightedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
+    m_PressedColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 1}
+    m_SelectedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
+    m_DisabledColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 0.5019608}
+    m_ColorMultiplier: 1
+    m_FadeDuration: 0.1
+  m_SpriteState:
+    m_HighlightedSprite: {fileID: 0}
+    m_PressedSprite: {fileID: 0}
+    m_SelectedSprite: {fileID: 0}
+    m_DisabledSprite: {fileID: 0}
+  m_AnimationTriggers:
+    m_NormalTrigger: Normal
+    m_HighlightedTrigger: Highlighted
+    m_PressedTrigger: Pressed
+    m_SelectedTrigger: Selected
+    m_DisabledTrigger: Disabled
+  m_Interactable: 1
+  m_TargetGraphic: {fileID: 1209357495}
+  m_OnClick:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!1001 &1212466044
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -66263,7 +66672,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1057609490946825435, guid: 5447a8e65cc5c35478f930cdecc0f4a8, type: 3}
       propertyPath: initialWalletCurrencies.Array.data[0].amount
-      value: 500
+      value: 500000000
       objectReference: {fileID: 0}
     - target: {fileID: 1057609490946825435, guid: 5447a8e65cc5c35478f930cdecc0f4a8, type: 3}
       propertyPath: initialWalletCurrencies.Array.data[1].amount
@@ -67730,7 +68139,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &1260175745
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -69478,7 +69887,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TurretSelectPopupUI
   popupRoot: {fileID: 1283362029}
-  backgroundButton: {fileID: 0}
+  backgroundButton: {fileID: 137889804}
   closeButton: {fileID: 587720114}
   upgradeButton: {fileID: 1120692921}
   detailButton: {fileID: 950909340}
@@ -69488,7 +69897,7 @@ MonoBehaviour:
   damageText: {fileID: 1189748324}
   fireRateText: {fileID: 772520458}
   noteText: {fileID: 629780485}
-  turretImage: {fileID: 0}
+  turretImage: {fileID: 2053768677}
   disableSkillButtonUntilImplemented: 1
 --- !u!1001 &1287195508
 PrefabInstance:
@@ -71616,7 +72025,7 @@ GameObject:
   - component: {fileID: 1322910352}
   - component: {fileID: 1322910351}
   m_Layer: 5
-  m_Name: Image
+  m_Name: Image5
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -74173,7 +74582,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 0.5}
   m_AnchorMax: {x: 1, y: 0.5}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 90.37}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1001 &1366171851
 PrefabInstance:
@@ -75462,7 +75871,7 @@ GameObject:
   - component: {fileID: 1378118803}
   - component: {fileID: 1378118802}
   m_Layer: 5
-  m_Name: Image
+  m_Name: Image6
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -76602,9 +77011,9 @@ RectTransform:
   m_Father: {fileID: 6866159}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
+  m_AnchorMax: {x: 1, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
+  m_SizeDelta: {x: -17, y: -17}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1397042430
 MonoBehaviour:
@@ -79480,7 +79889,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1452723724
 RectTransform:
   m_ObjectHideFlags: 0
@@ -80536,40 +80945,39 @@ MonoBehaviour:
   popupRoot: {fileID: 1485831722}
   closeButton: {fileID: 905949636}
   backButton: {fileID: 1446948306}
-  titleText: {fileID: 0}
-  statusText: {fileID: 0}
-  oneBranchPanel: {fileID: 0}
-  twoBranchPanel: {fileID: 0}
-  fourBranchPanel: {fileID: 0}
-  nextTurretFrameImages: []
-  nextTurretFrameDefaultColors: []
-  evolutionCandidateButtons: []
+  oneBranchPanel: {fileID: 1670614559}
+  twoBranchPanel: {fileID: 978724388}
+  fourBranchPanel: {fileID: 1192201188}
   selectedCandidateFrameColor: {r: 1, g: 0.12, b: 0.12, a: 1}
-  turretInfoPopup: {fileID: 0}
+  turretInfoPopup: {fileID: 920585661}
   candidateInfoHoldDuration: 0.5
-  resourceItemNameTexts: []
-  resourceItemCountTexts:
+  resourceItemNameTexts:
   - {fileID: 597442646}
-  - {fileID: 1980194508}
   - {fileID: 666787330}
-  - {fileID: 1761549149}
   - {fileID: 1035884036}
-  - {fileID: 791674}
   - {fileID: 719515048}
-  - {fileID: 1218645753}
   - {fileID: 1064024350}
-  - {fileID: 1983079597}
   - {fileID: 1329650229}
-  - {fileID: 757939257}
   - {fileID: 179115103}
-  - {fileID: 1567681705}
   - {fileID: 1325601071}
+  resourceItemCountTexts:
+  - {fileID: 1980194508}
+  - {fileID: 1761549149}
+  - {fileID: 791674}
+  - {fileID: 1218645753}
+  - {fileID: 1983079597}
+  - {fileID: 757939257}
+  - {fileID: 1567681705}
   - {fileID: 803886706}
-  resourceItemImages: []
-  resourceSlotFrames: []
-  resourceItemDefaultSprites: []
-  evolutionCloseButton: {fileID: 0}
-  evolutionBackButton: {fileID: 0}
+  resourceItemImages:
+  - {fileID: 2034085910}
+  - {fileID: 1837563822}
+  - {fileID: 457848590}
+  - {fileID: 884100127}
+  - {fileID: 1322910351}
+  - {fileID: 1378118802}
+  - {fileID: 1955413663}
+  - {fileID: 1978758626}
   evolutionButton: {fileID: 400311}
   replacePrefabOnEvolution: 1
 --- !u!1001 &1486107691
@@ -82559,12 +82967,12 @@ MonoBehaviour:
   pierceCountText: {fileID: 531123156}
   criticalChanceText: {fileID: 737350416}
   heavyHitChanceText: {fileID: 771233230}
-  damageNumberText: {fileID: 0}
-  rangeNumberText: {fileID: 0}
-  fireRateNumberText: {fileID: 0}
-  pierceCountNumberText: {fileID: 0}
-  criticalChanceNumberText: {fileID: 0}
-  heavyHitChanceNumberText: {fileID: 0}
+  damageNumberText: {fileID: 263166103}
+  rangeNumberText: {fileID: 1752511465}
+  fireRateNumberText: {fileID: 1054599671}
+  pierceCountNumberText: {fileID: 735877576}
+  criticalChanceNumberText: {fileID: 1914872809}
+  heavyHitChanceNumberText: {fileID: 1826047470}
   videoPlayer: {fileID: 2138561789}
   videoImage: {fileID: 1664753487}
   fallbackIconImage: {fileID: 2059645774}
@@ -83535,10 +83943,10 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 838471487}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 50}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 125.38979, y: -1039}
+  m_SizeDelta: {x: 154.77959, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1542115095
 MonoBehaviour:
@@ -85920,8 +86328,6 @@ MonoBehaviour:
   popupRoot: {fileID: 1592153342}
   closeButton: {fileID: 1423699152}
   backButton: {fileID: 1282498831}
-  titleText: {fileID: 0}
-  statusText: {fileID: 0}
   currentTurretNameText: {fileID: 1173392454}
   turretImage: {fileID: 1808903267}
   levelText: {fileID: 1252836495}
@@ -85930,11 +86336,10 @@ MonoBehaviour:
   bulletSpeedText: {fileID: 638722892}
   pierceCountText: {fileID: 2064385960}
   rangeText: {fileID: 1819435583}
-  criticalChanceText: {fileID: 0}
-  heavyHitChanceText: {fileID: 0}
-  statText: {fileID: 0}
-  detailUpgradeButton: {fileID: 0}
-  detailUpgradeFrame: {fileID: 0}
+  criticalChanceText: {fileID: 306463705}
+  heavyHitChanceText: {fileID: 1025364769}
+  detailUpgradeButton: {fileID: 1244040743}
+  detailUpgradeFrame: {fileID: 1303611445}
 --- !u!1001 &1592242331
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -90106,10 +90511,10 @@ RectTransform:
   - {fileID: 964216978}
   m_Father: {fileID: 2138183422}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
+  m_SizeDelta: {x: 200, y: 100}
   m_Pivot: {x: 0, y: 1}
 --- !u!1001 &1681804483
 PrefabInstance:
@@ -91815,10 +92220,10 @@ RectTransform:
   - {fileID: 1934964233}
   m_Father: {fileID: 2138183422}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 0, y: -300}
+  m_SizeDelta: {x: 200, y: 100}
   m_Pivot: {x: 0, y: 1}
 --- !u!1 &1710973824
 GameObject:
@@ -91839,7 +92244,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1710973825
 RectTransform:
   m_ObjectHideFlags: 0
@@ -92010,7 +92415,7 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 72
+  m_fontSize: 69.95
   m_fontSizeBase: 63.44
   m_fontWeight: 400
   m_enableAutoSizing: 1
@@ -92793,7 +93198,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1722935818
 RectTransform:
   m_ObjectHideFlags: 0
@@ -95749,6 +96154,8 @@ GameObject:
   - component: {fileID: 1776727904}
   - component: {fileID: 1776727906}
   - component: {fileID: 1776727905}
+  - component: {fileID: 1776727908}
+  - component: {fileID: 1776727907}
   m_Layer: 5
   m_Name: NextTurretImageFrame
   m_TagString: Untagged
@@ -95814,6 +96221,62 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1776727903}
   m_CullTransparentMesh: 1
+--- !u!114 &1776727907
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1776727903}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7664a941eb984671919e935e928a5284, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TurretEvolutionCandidatePressForwarder
+--- !u!114 &1776727908
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1776727903}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Button
+  m_Navigation:
+    m_Mode: 3
+    m_WrapAround: 0
+    m_SelectOnUp: {fileID: 0}
+    m_SelectOnDown: {fileID: 0}
+    m_SelectOnLeft: {fileID: 0}
+    m_SelectOnRight: {fileID: 0}
+  m_Transition: 0
+  m_Colors:
+    m_NormalColor: {r: 1, g: 1, b: 1, a: 1}
+    m_HighlightedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
+    m_PressedColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 1}
+    m_SelectedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
+    m_DisabledColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 0.5019608}
+    m_ColorMultiplier: 1
+    m_FadeDuration: 0.1
+  m_SpriteState:
+    m_HighlightedSprite: {fileID: 0}
+    m_PressedSprite: {fileID: 0}
+    m_SelectedSprite: {fileID: 0}
+    m_DisabledSprite: {fileID: 0}
+  m_AnimationTriggers:
+    m_NormalTrigger: Normal
+    m_HighlightedTrigger: Highlighted
+    m_PressedTrigger: Pressed
+    m_SelectedTrigger: Selected
+    m_DisabledTrigger: Disabled
+  m_Interactable: 1
+  m_TargetGraphic: {fileID: 1776727905}
+  m_OnClick:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!1 &1776917035
 GameObject:
   m_ObjectHideFlags: 0
@@ -95884,10 +96347,10 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 838471487}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 50}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 125.38979, y: -960.99994}
+  m_SizeDelta: {x: 154.77959, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1777306864
 MonoBehaviour:
@@ -96882,6 +97345,8 @@ GameObject:
   - component: {fileID: 1786763028}
   - component: {fileID: 1786763030}
   - component: {fileID: 1786763029}
+  - component: {fileID: 1786763032}
+  - component: {fileID: 1786763031}
   m_Layer: 5
   m_Name: CurrentTurretImageFrame
   m_TagString: Untagged
@@ -96947,6 +97412,62 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1786763027}
   m_CullTransparentMesh: 1
+--- !u!114 &1786763031
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1786763027}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7664a941eb984671919e935e928a5284, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TurretEvolutionCandidatePressForwarder
+--- !u!114 &1786763032
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1786763027}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Button
+  m_Navigation:
+    m_Mode: 3
+    m_WrapAround: 0
+    m_SelectOnUp: {fileID: 0}
+    m_SelectOnDown: {fileID: 0}
+    m_SelectOnLeft: {fileID: 0}
+    m_SelectOnRight: {fileID: 0}
+  m_Transition: 0
+  m_Colors:
+    m_NormalColor: {r: 1, g: 1, b: 1, a: 1}
+    m_HighlightedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
+    m_PressedColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 1}
+    m_SelectedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
+    m_DisabledColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 0.5019608}
+    m_ColorMultiplier: 1
+    m_FadeDuration: 0.1
+  m_SpriteState:
+    m_HighlightedSprite: {fileID: 0}
+    m_PressedSprite: {fileID: 0}
+    m_SelectedSprite: {fileID: 0}
+    m_DisabledSprite: {fileID: 0}
+  m_AnimationTriggers:
+    m_NormalTrigger: Normal
+    m_HighlightedTrigger: Highlighted
+    m_PressedTrigger: Pressed
+    m_SelectedTrigger: Selected
+    m_DisabledTrigger: Disabled
+  m_Interactable: 1
+  m_TargetGraphic: {fileID: 1786763029}
+  m_OnClick:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!1001 &1788228614
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -99214,7 +99735,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1835198605
 RectTransform:
   m_ObjectHideFlags: 0
@@ -99251,7 +99772,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::TurretTechTreeUIController
   popupRoot: {fileID: 1835198604}
   viewProfile: {fileID: 11400000, guid: ad1f4704580547d4eb524e4fcd8ac327, type: 2}
-  treeScrollRect: {fileID: 0}
+  treeScrollRect: {fileID: 6866160}
   nodeViews:
   - {fileID: 1395665345}
   - {fileID: 767821889}
@@ -99359,7 +99880,7 @@ GameObject:
   - component: {fileID: 1837563823}
   - component: {fileID: 1837563822}
   m_Layer: 5
-  m_Name: Image
+  m_Name: Image2
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -100875,7 +101396,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 0.5}
   m_AnchorMax: {x: 1, y: 0.5}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 90.37}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1001 &1869242377
 PrefabInstance:
@@ -103975,6 +104496,7 @@ RectTransform:
   - {fileID: 1485831723}
   - {fileID: 920585657}
   - {fileID: 1592153343}
+  - {fileID: 1998525668}
   m_Father: {fileID: 1342197863}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -103994,7 +104516,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d00c98b111b728a44ad7e4627b4982fa, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TurretSelectionUIController
-  placementController: {fileID: 0}
+  placementController: {fileID: 459482902}
   requireSecondClickToOpenSelectPopup: 1
   secondClickInterval: 1
   selectPopup: {fileID: 1283362033}
@@ -104003,16 +104525,7 @@ MonoBehaviour:
   evolutionPopup: {fileID: 1485831726}
   skillPopup: {fileID: 0}
   showRangeIndicatorOnSelection: 1
-  rangeIndicator: {fileID: 0}
-  rangeIndicatorPrefab: {fileID: 6568605054823850433, guid: 9d2d54666564b05419bc9af9a5472a22, type: 3}
-  rangeIndicatorPrefabRadiusAtScaleOne: 1
-  forceRangeIndicatorPrefabParticleLoop: 1
-  restartRangeIndicatorPrefabParticlesOnShow: 1
-  useLineRangeIndicatorFallback: 1
-  rangeIndicatorSegments: 96
-  rangeIndicatorLineWidth: 0.08
-  rangeIndicatorYOffset: 0.05
-  rangeIndicatorColor: {r: 0.2, g: 0.85, b: 1, a: 0.65}
+  rangeIndicator: {fileID: 1998525667}
 --- !u!225 &1920560385
 CanvasGroup:
   m_ObjectHideFlags: 0
@@ -106389,7 +106902,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1946592245
 RectTransform:
   m_ObjectHideFlags: 0
@@ -106685,7 +107198,7 @@ GameObject:
   - component: {fileID: 1955413664}
   - component: {fileID: 1955413663}
   m_Layer: 5
-  m_Name: Image
+  m_Name: Image7
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -107779,7 +108292,7 @@ GameObject:
   - component: {fileID: 1978758627}
   - component: {fileID: 1978758626}
   m_Layer: 5
-  m_Name: Image
+  m_Name: Image8
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -108579,6 +109092,63 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1997151985}
   m_CullTransparentMesh: 1
+--- !u!1 &1998525666
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1998525668}
+  - component: {fileID: 1998525667}
+  m_Layer: 5
+  m_Name: TurretRangeIndicator
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1998525667
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1998525666}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bb3c9ad3b34e4a1a9bc2ff1b43b74006, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TurretRangeIndicator
+  indicatorPrefab: {fileID: 6568605054823850433, guid: 9d2d54666564b05419bc9af9a5472a22, type: 3}
+  prefabRadiusAtScaleOne: 1
+  forcePrefabParticleLoop: 1
+  restartPrefabParticlesOnShow: 1
+  useLineFallbackWhenPrefabMissing: 1
+  lineSegments: 96
+  lineWidth: 0.08
+  yOffset: 0.05
+  lineColor: {r: 0.2, g: 0.85, b: 1, a: 0.65}
+--- !u!224 &1998525668
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1998525666}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1920560383}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 100, y: 100}
+  m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &1999227224
 GameObject:
   m_ObjectHideFlags: 0
@@ -112248,7 +112818,7 @@ GameObject:
   - component: {fileID: 2034085911}
   - component: {fileID: 2034085910}
   m_Layer: 5
-  m_Name: Image
+  m_Name: Image1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -113345,6 +113915,8 @@ GameObject:
   - component: {fileID: 2048966336}
   - component: {fileID: 2048966338}
   - component: {fileID: 2048966337}
+  - component: {fileID: 2048966340}
+  - component: {fileID: 2048966339}
   m_Layer: 5
   m_Name: CurrentTurretImageFrame
   m_TagString: Untagged
@@ -113410,6 +113982,62 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2048966335}
   m_CullTransparentMesh: 1
+--- !u!114 &2048966339
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2048966335}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7664a941eb984671919e935e928a5284, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TurretEvolutionCandidatePressForwarder
+--- !u!114 &2048966340
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2048966335}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Button
+  m_Navigation:
+    m_Mode: 3
+    m_WrapAround: 0
+    m_SelectOnUp: {fileID: 0}
+    m_SelectOnDown: {fileID: 0}
+    m_SelectOnLeft: {fileID: 0}
+    m_SelectOnRight: {fileID: 0}
+  m_Transition: 0
+  m_Colors:
+    m_NormalColor: {r: 1, g: 1, b: 1, a: 1}
+    m_HighlightedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
+    m_PressedColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 1}
+    m_SelectedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
+    m_DisabledColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 0.5019608}
+    m_ColorMultiplier: 1
+    m_FadeDuration: 0.1
+  m_SpriteState:
+    m_HighlightedSprite: {fileID: 0}
+    m_PressedSprite: {fileID: 0}
+    m_SelectedSprite: {fileID: 0}
+    m_DisabledSprite: {fileID: 0}
+  m_AnimationTriggers:
+    m_NormalTrigger: Normal
+    m_HighlightedTrigger: Highlighted
+    m_PressedTrigger: Pressed
+    m_SelectedTrigger: Selected
+    m_DisabledTrigger: Disabled
+  m_Interactable: 1
+  m_TargetGraphic: {fileID: 2048966337}
+  m_OnClick:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!1 &2049670442
 GameObject:
   m_ObjectHideFlags: 0
@@ -115775,6 +116403,8 @@ GameObject:
   - component: {fileID: 2085739233}
   - component: {fileID: 2085739235}
   - component: {fileID: 2085739234}
+  - component: {fileID: 2085739237}
+  - component: {fileID: 2085739236}
   m_Layer: 5
   m_Name: NextTurretImageFrame_2
   m_TagString: Untagged
@@ -115840,6 +116470,62 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2085739232}
   m_CullTransparentMesh: 1
+--- !u!114 &2085739236
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2085739232}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7664a941eb984671919e935e928a5284, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TurretEvolutionCandidatePressForwarder
+--- !u!114 &2085739237
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2085739232}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Button
+  m_Navigation:
+    m_Mode: 3
+    m_WrapAround: 0
+    m_SelectOnUp: {fileID: 0}
+    m_SelectOnDown: {fileID: 0}
+    m_SelectOnLeft: {fileID: 0}
+    m_SelectOnRight: {fileID: 0}
+  m_Transition: 0
+  m_Colors:
+    m_NormalColor: {r: 1, g: 1, b: 1, a: 1}
+    m_HighlightedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
+    m_PressedColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 1}
+    m_SelectedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
+    m_DisabledColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 0.5019608}
+    m_ColorMultiplier: 1
+    m_FadeDuration: 0.1
+  m_SpriteState:
+    m_HighlightedSprite: {fileID: 0}
+    m_PressedSprite: {fileID: 0}
+    m_SelectedSprite: {fileID: 0}
+    m_DisabledSprite: {fileID: 0}
+  m_AnimationTriggers:
+    m_NormalTrigger: Normal
+    m_HighlightedTrigger: Highlighted
+    m_PressedTrigger: Pressed
+    m_SelectedTrigger: Selected
+    m_DisabledTrigger: Disabled
+  m_Interactable: 1
+  m_TargetGraphic: {fileID: 2085739234}
+  m_OnClick:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!1001 &2088107877
 PrefabInstance:
   m_ObjectHideFlags: 0

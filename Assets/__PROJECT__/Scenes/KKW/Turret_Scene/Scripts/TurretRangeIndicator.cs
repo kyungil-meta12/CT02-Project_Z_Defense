@@ -16,6 +16,12 @@ public class TurretRangeIndicator : MonoBehaviour
     [SerializeField] private bool restartPrefabParticlesOnShow = true;
     [SerializeField] private bool useLineFallbackWhenPrefabMissing = true;
 
+    [Header("라인 표시")]
+    [SerializeField, Min(12)] private int lineSegments = 96;
+    [SerializeField, Min(0.001f)] private float lineWidth = 0.08f;
+    [SerializeField] private float yOffset = 0.05f;
+    [SerializeField] private Color lineColor = new Color(0.2f, 0.85f, 1.0f, 0.65f);
+
     private LineRenderer lineRenderer;
     private Material runtimeMaterial;
     private Vector3[] circlePoints;
@@ -46,23 +52,8 @@ public class TurretRangeIndicator : MonoBehaviour
         }
     }
 
-    // 외부 UI 설정으로 프리팹 기반 사거리 표시 값을 갱신한다
-    public void ConfigurePrefab(GameObject prefab, float radiusAtScaleOne, bool forceParticleLoop, bool restartParticles, bool useLineFallback)
-    {
-        indicatorPrefab = prefab;
-        prefabRadiusAtScaleOne = Mathf.Max(MIN_RADIUS, radiusAtScaleOne);
-        forcePrefabParticleLoop = forceParticleLoop;
-        restartPrefabParticlesOnShow = restartParticles;
-        useLineFallbackWhenPrefabMissing = useLineFallback;
-
-        if (cachedPrefab != indicatorPrefab)
-        {
-            DestroyPrefabInstance();
-        }
-    }
-
     // 지정한 중심과 반경으로 사거리 원을 표시한다
-    public void Show(Vector3 center, float radius, int segments, float lineWidth, float yOffset, Color color)
+    public void Show(Vector3 center, float radius)
     {
         if (indicatorPrefab != null)
         {
@@ -77,7 +68,7 @@ public class TurretRangeIndicator : MonoBehaviour
             return;
         }
 
-        ShowLine(center, radius, segments, lineWidth, yOffset, color);
+        ShowLine(center, radius);
     }
 
     // 사거리 원 표시를 숨긴다
@@ -111,12 +102,12 @@ public class TurretRangeIndicator : MonoBehaviour
     }
 
     // 기존 라인 렌더러 방식으로 사거리 원을 표시한다
-    private void ShowLine(Vector3 center, float radius, int segments, float lineWidth, float yOffset, Color color)
+    private void ShowLine(Vector3 center, float radius)
     {
         EnsureLineRenderer();
 
         float safeRadius = Mathf.Max(MIN_RADIUS, radius);
-        int safeSegments = Mathf.Max(MIN_SEGMENTS, segments);
+        int safeSegments = Mathf.Max(MIN_SEGMENTS, lineSegments);
         int pointCount = safeSegments + 1;
         EnsurePointBuffer(pointCount);
 
@@ -131,7 +122,7 @@ public class TurretRangeIndicator : MonoBehaviour
                 drawCenter.z + Mathf.Sin(angle) * safeRadius);
         }
 
-        ApplyMaterialColor(color);
+        ApplyMaterialColor(lineColor);
         lineRenderer.positionCount = pointCount;
         lineRenderer.startWidth = Mathf.Max(0.001f, lineWidth);
         lineRenderer.endWidth = lineRenderer.startWidth;

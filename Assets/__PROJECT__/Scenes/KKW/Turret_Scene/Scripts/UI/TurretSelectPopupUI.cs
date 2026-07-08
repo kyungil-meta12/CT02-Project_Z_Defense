@@ -50,8 +50,7 @@ public class TurretSelectPopupUI : MonoBehaviour
     // 시작 전에 버튼 이벤트를 연결한다
     private void Awake()
     {
-        BindChildReferences();
-        EnsureBackgroundButton();
+        ValidateRequiredReferences();
         CacheTextTemplates();
         BindButtonListeners();
     }
@@ -129,23 +128,6 @@ public class TurretSelectPopupUI : MonoBehaviour
         fireRateText = fireRateText != null ? fireRateText : FindChildComponent<TMP_Text>(searchRoot, "TurretSelectPopupBackground/MiddlePanel/Panel/FireRate");
         noteText = noteText != null ? noteText : FindChildComponent<TMP_Text>(searchRoot, "TurretSelectPopupBackground/MiddlePanel/Panel/NoteFrame/Note");
         turretImage = ResolveTurretIconImage(searchRoot, turretImage);
-    }
-
-    // 배경 클릭용 Button 컴포넌트가 없으면 표시 루트에서 보강한다
-    private void EnsureBackgroundButton()
-    {
-        if (backgroundButton != null)
-        {
-            return;
-        }
-
-        GameObject backgroundObject = popupRoot != null ? popupRoot : gameObject;
-        backgroundButton = backgroundObject.GetComponent<Button>();
-        if (backgroundButton == null)
-        {
-            backgroundButton = backgroundObject.AddComponent<Button>();
-            backgroundButton.transition = Selectable.Transition.None;
-        }
     }
 
     // 선택된 터렛의 간단 정보를 텍스트에 반영한다
@@ -335,6 +317,40 @@ public class TurretSelectPopupUI : MonoBehaviour
 
         Transform child = searchRoot.Find(childPath);
         return child == null ? null : child.GetComponent<T>();
+    }
+
+    // 선택 팝업에 필요한 수동 연결 참조를 검증한다
+    private void ValidateRequiredReferences()
+    {
+        if (popupRoot == null)
+        {
+            Debug.LogWarning("[TurretSelectPopupUI] Popup Root 참조가 비어 있습니다.", this);
+        }
+
+        if (backgroundButton == null)
+        {
+            Debug.LogWarning("[TurretSelectPopupUI] Background Button 참조가 비어 있습니다. 바깥 클릭 닫기가 동작하지 않습니다.", this);
+        }
+
+        if (closeButton == null)
+        {
+            Debug.LogWarning("[TurretSelectPopupUI] Close Button 참조가 비어 있습니다.", this);
+        }
+
+        if (upgradeButton == null || detailButton == null || skillButton == null)
+        {
+            Debug.LogWarning("[TurretSelectPopupUI] 선택 팝업의 기능 버튼 참조가 일부 비어 있습니다.", this);
+        }
+
+        if (nameText == null || levelText == null || damageText == null || fireRateText == null || noteText == null)
+        {
+            Debug.LogWarning("[TurretSelectPopupUI] 선택 팝업 TMP 참조가 일부 비어 있습니다.", this);
+        }
+
+        if (turretImage == null)
+        {
+            Debug.LogWarning("[TurretSelectPopupUI] Turret Image 참조가 비어 있습니다.", this);
+        }
     }
 
     // 여러 경로 중 처음 발견되는 하위 컴포넌트를 반환한다

@@ -53,8 +53,7 @@
 - `TurretDetailPopupUI`는 현재 선택 터렛의 `TurretDefinitionSO.damagePolishProfile`에서 치명타/강타 확률을 읽어 백분율로 표시한다.
 - Damage Polish Profile이 비어 있으면 치명타/강타 확률은 `0%`로 표시한다.
 - 선택된 터렛이 없을 때는 다른 상세 수치와 동일하게 `-`를 표시한다.
-- 기존 `statText` 단일 상세 문자열은 레거시 호환용으로만 유지한다. 신규 UI는 `DetailInfoPanel`의 개별 TMP를 기준으로 본다.
-- Roslyn `OutOfMemoryException` 재발을 줄이기 위해 레거시 `statText` 문자열은 중첩 보간 문자열 대신 `string.Concat`과 미리 계산된 `damagePolishProfile` 인자를 사용한다.
+- 기존 `statText` 단일 상세 문자열 경로는 제거했다. 상세 팝업은 `DetailInfoPanel`의 개별 TMP를 기준으로만 표시한다.
 
 ## 2026-07-01 Button Reference Hardening
 
@@ -152,7 +151,7 @@
 
 - `TurretInfoPopup`의 Information 버튼은 기존 팝업 내부 텍스트 변경이 아니라, 해당 진화 후보 터렛의 `DescriptionPopup`을 추가로 표시한다.
 - `DescriptionPopup`은 1레벨 기준 상세 수치를 표시하며, `TurretInfoPopup`과 `EvolutionPopup`은 닫지 않는다.
-- 진화 후보 정보 보기에서 열린 `TurretInfoPopup`의 Upgrade 버튼은 사용할 수 없게 비활성화한다.
+- 현재 씬의 `TurretInfoPopup`에는 Upgrade 영역이 없으므로 후보 정보 팝업은 업그레이드 버튼 제어를 담당하지 않는다.
 
 ### Fix
 
@@ -160,7 +159,7 @@
 - `TurretDetailPopupUI`는 미리보기 모드에서 `BackButtonFrame/BackButton`과 `CloseFrame/CloseButton` 입력을 `Hide`로 처리해 `DescriptionPopup`만 닫는다.
 - `TurretDetailPopupUI`는 미리보기 모드에서 `LowPanel/UpgradeFrame`을 숨기고 Upgrade 버튼을 비활성화한다.
 - `TurretInfoPopupUI`의 Information 버튼은 씬의 `DescriptionPopup`을 찾아 `ShowPreview`를 호출한다.
-- `TurretInfoPopupUI`도 진화 후보 전용 팝업이므로 `LowPanel/UpgradeFrame`을 숨기고 Upgrade 버튼을 비활성화한다.
+- `TurretInfoPopupUI`는 진화 후보 전용 팝업이므로 후보 요약, 닫기/뒤로가기, Information 버튼만 담당한다.
 
 ### Play Mode Check
 
@@ -168,7 +167,7 @@
 - `TurretInfoPopup` Information: 후보 터렛의 `DescriptionPopup` 표시.
 - `DescriptionPopup` Back: `DescriptionPopup`만 닫히고 `TurretInfoPopup`으로 복귀.
 - `DescriptionPopup` X: `DescriptionPopup`만 닫히고 `TurretInfoPopup`으로 복귀.
-- 후보 상세 미리보기의 Upgrade 버튼은 비활성화.
+- 후보 상세 미리보기의 Upgrade 버튼은 `DescriptionPopup`에서 비활성화.
 
 ## 2026-07-02 Turret UI Damage Display Correction
 
@@ -413,6 +412,23 @@ Detail_Popup_Panel
 - 터렛 트리 시작 위치는 씬에 저장된 Content 위치와 `TurretTechTreeUIController.openedScrollNormalizedPosition`이 함께 담당한다. 루트 노드 중앙 하단 시작이 필요하면 기본값 `(0.5, 0)`을 유지한다.
 - 수동으로 마지막 스크롤 위치를 유지하는 UX가 필요해지기 전까지는 팝업을 열 때마다 중앙 하단으로 초기화한다.
 
+## 2026-07-08 Turret Tech Tree Inspector Reference Hardening
+
+### Completed
+
+- `TurretTechTreePanel` 런타임 경로에서 인스펙터 참조를 문자열 탐색이나 하위 컴포넌트 자동 수집으로 보강하지 않도록 정리했다.
+- `TurretTechTreeUIController`, `TurretTechTreeDetailPopupUI`, `TurretTechTreeOpenButton`, `TurretTechTreeNodeUI`, `TurretTechTreeLineUI`는 `Awake`에서 필수 참조를 검증하고, 누락 시 한국어 경고를 출력한 뒤 해당 기능 실행을 막는다.
+- `Reset`과 `참조 다시 연결` 컨텍스트 메뉴는 에디터 세팅 보조용으로 유지한다. 런타임 정상 동작은 Inspector 명시 참조를 기준으로 한다.
+- Main 씬의 `TurretTechTreeUIController.treeScrollRect` 참조를 직접 연결했다.
+- Main 씬의 `TurretTechTreeDetailPopupUI` 숫자 전용 TMP 6개(`damageNumberText`, `rangeNumberText`, `fireRateNumberText`, `pierceCountNumberText`, `criticalChanceNumberText`, `heavyHitChanceNumberText`)를 직접 연결했다.
+- Main 씬 YAML 기준 `TurretTechTreePanel` 관련 `TurretTechTreeUIController` 1개, `TurretTechTreeNodeUI` 33개, `TurretTechTreeLineUI` 56개, `TurretTechTreeDetailPopupUI` 1개, `TurretTechTreeOpenButton` 1개에서 필수 직렬화 참조의 `{fileID: 0}` 누락이 없는 상태로 확인했다.
+
+### Current Rule
+
+- 터렛 트리 UI는 버튼 클릭, 노드 클릭, 닫기 입력을 이벤트 기반으로 처리한다.
+- Ready 펄스와 프리뷰 영상 페이드는 시간 기반 연출이므로 `Update`를 유지하되, 활성 플래그가 꺼져 있으면 즉시 반환한다.
+- 계층 이름 변경 후에는 Play Mode에 들어가기 전에 각 컴포넌트의 `참조 다시 연결` 컨텍스트 메뉴를 실행하고 변경된 참조를 씬에 저장한다.
+
 ## 2026-07-08 Legacy Turret Upgrade Popup Cleanup
 
 ### Removed
@@ -428,6 +444,33 @@ Detail_Popup_Panel
 - `TurretSelectionUIController.upgradePopup`은 `UpgradePopup`의 `TurretUpgradePopupUI`를 참조해야 한다.
 - 진화 후보 선택과 실행은 `EvolutionPopup`의 `TurretEvolutionPopupUI`가 담당한다.
 - 레거시 `TurretUpgradePopup` 프리팹 또는 `TurretTemporaryUpgradePopupUI` 경로를 다시 만들지 않는다.
+
+## 2026-07-08 Turret UI Inspector Reference Hardening
+
+### Completed
+
+- `Canvas > Turret UI` 런타임 경로에서 주요 팝업 참조를 `Awake`, `Show`, `Hide` 중 자동 탐색으로 보강하지 않도록 1차 정리했다.
+- `TurretSelectionUIController`는 `Select/Upgrade/Detail/Evolution/Skill Popup`과 `Range Indicator`를 직접 참조로 사용한다. 누락 시 한국어 경고를 출력하고 해당 기능 실행을 중단한다.
+- `TurretSelectPopupUI`는 `Background Button`을 런타임에 추가하지 않는다. 바깥 클릭 닫기는 에디터에서 연결된 Button만 사용한다.
+- `TurretUpgradePopupUI`는 `Upgrade Button EventTrigger`를 에디터 연결 대상으로 노출했다. 누락 시 길게 누르기 업그레이드는 비활성화하고 기본 클릭 업그레이드만 연결한다.
+- `TurretEvolutionPopupUI`는 후보 프레임에 런타임 Button을 추가하지 않고, `TurretInfoPopupUI`도 런타임에 자동 부착하지 않는다.
+- `TurretEvolutionCandidatePressForwarder`를 별도 스크립트로 분리해 진화 후보 버튼에 수동 부착할 수 있게 했다.
+- `TurretDetailPopupUI`와 `TurretInfoPopupUI`는 후보 미리보기 표시 중 하위 계층을 다시 탐색하지 않고, 직접 연결된 참조만 사용한다.
+- 하위 팝업 공통 필드의 `Title/Status`와 업그레이드/진화 팝업의 별도 `Close/Back` 필드는 중복 Inspector 항목이라 제거했다. 이제 닫기/뒤로가기 연결은 `TurretPopupPageUI`의 공통 `Close Button`, `Back Button`만 사용한다.
+- `TurretSelectionUIController`에 남아 있던 사거리 표시 프리팹, 라인 색상, 두께, 세그먼트 설정은 `TurretRangeIndicator`로 이관했다. 선택 컨트롤러는 `TurretRangeIndicator` 참조만 소유하고, 실제 표시 방식과 튜닝값은 인디케이터 오브젝트에서 조정한다.
+- 현재 씬의 `TurretInfoPopup`에는 Upgrade 영역이 없으므로 `TurretInfoPopupUI`의 `Upgrade Button`, `Upgrade Frame` 필드를 제거했다.
+- `TurretEvolutionPopupUI`의 후보 프레임/후보 버튼 배열은 런타임 내부 캐시이므로 Inspector 연결 대상에서 제거했다.
+- 업그레이드/진화 재화 기본 스프라이트 배열은 이미지 배열이 연결되어 있으면 시작 시 현재 슬롯 이미지를 자동 캐시한다. 별도 기본 스프라이트 배열 연결은 필요할 때만 사용한다.
+- `TurretDetailPopupUI.detailUpgradeFrame`은 선택 항목이다. 프레임이 없으면 후보 미리보기에서 Upgrade 버튼 비활성화만 적용하고, 프레임 숨김은 생략한다.
+- `TurretEvolutionPopupUI.resourceSlotFrames`와 업그레이드/진화 `resourceItemDefaultSprites`는 인스펙터 연결 대상에서 제거했다. 재화 표시는 이름 TMP, 수량 TMP, 아이콘 Image 배열만 직접 연결한다.
+- `TurretDetailPopupUI.statText` 레거시 필드는 제거했다. Unity 씬 YAML에 남은 `statText` 값은 리컴파일 후 씬 저장 시 정리되는 잔여 직렬화 데이터다.
+
+### Current Rule
+
+- `Reset`과 `참조 다시 연결` 컨텍스트 메뉴는 에디터 세팅 보조용으로만 사용한다.
+- Play Mode 정상 동작은 Inspector에 저장된 직접 참조를 기준으로 한다.
+- `TurretInfoPopup` 오브젝트에는 `TurretInfoPopupUI`가 직접 붙어 있어야 하며, `TurretEvolutionPopupUI.turretInfoPopup`에 연결해야 한다.
+- 진화 후보 이미지를 길게 눌러 정보 팝업을 열려면 후보 Button 오브젝트마다 `TurretEvolutionCandidatePressForwarder`를 직접 붙인다.
 
 ## Next Work Plan
 

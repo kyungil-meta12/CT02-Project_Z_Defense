@@ -48,12 +48,10 @@ public class TurretUpgradePopupUI : TurretPopupPageUI
     [SerializeField] private TMP_Text[] resourceItemNameTexts = System.Array.Empty<TMP_Text>();
     [SerializeField] private TMP_Text[] resourceItemCountTexts = System.Array.Empty<TMP_Text>();
     [SerializeField] private Image[] resourceItemImages = System.Array.Empty<Image>();
-    [SerializeField] private Sprite[] resourceItemDefaultSprites = System.Array.Empty<Sprite>();
 
     [Header("버튼")]
-    [SerializeField] private Button upgradeCloseButton;
-    [SerializeField] private Button upgradeBackButton;
     [SerializeField] private Button upgradeButton;
+    [SerializeField] private EventTrigger upgradeButtonEventTrigger;
     [SerializeField] private Button evolutionButton;
 
     private string currentTurretNameTextTemplate;
@@ -71,7 +69,7 @@ public class TurretUpgradePopupUI : TurretPopupPageUI
     private string fireRateDeltaTextTemplate;
     private string rangeDeltaTextTemplate;
     private string pierceDeltaTextTemplate;
-    private EventTrigger upgradeButtonEventTrigger;
+    private Sprite[] resourceItemDefaultSprites = System.Array.Empty<Sprite>();
     private EventTrigger.Entry upgradePointerDownEntry;
     private EventTrigger.Entry upgradePointerUpEntry;
     private EventTrigger.Entry upgradePointerExitEntry;
@@ -94,7 +92,8 @@ public class TurretUpgradePopupUI : TurretPopupPageUI
     protected override void Awake()
     {
         base.Awake();
-        BindChildReferences();
+        ValidateRequiredReferences();
+        CacheResourceDefaultSprites();
         CacheTextTemplates();
         BindButtonListeners();
     }
@@ -184,10 +183,6 @@ public class TurretUpgradePopupUI : TurretPopupPageUI
         rangeDeltaText = rangeDeltaText != null ? rangeDeltaText : FindFirstPopupComponent<TMP_Text>(searchRoot, "MiddlePanel/DeltaDetailInfoPanel/RangeDelta");
         pierceDeltaText = pierceDeltaText != null ? pierceDeltaText : FindFirstPopupComponent<TMP_Text>(searchRoot, "MiddlePanel/DeltaDetailInfoPanel/PierceDelta");
         turretImage = ResolveTurretIconImage(searchRoot, turretImage);
-        upgradeCloseButton = upgradeCloseButton != null ? upgradeCloseButton : FindFirstPopupComponent<Button>(searchRoot, "HighPanel/CloseFrame/CloseButton", "HighPanel/ExitFrame/Button");
-        upgradeBackButton = upgradeBackButton != null ? upgradeBackButton : FindFirstPopupComponent<Button>(searchRoot, "LowPanel/BackButtonFrame/BackButton");
-        upgradeCloseButton = upgradeCloseButton != null ? upgradeCloseButton : CloseButton;
-        upgradeBackButton = upgradeBackButton != null ? upgradeBackButton : BackButton;
         upgradeButton = upgradeButton != null ? upgradeButton : FindFirstPopupComponent<Button>(searchRoot, "LowPanel/UpgradeFrame/Upgrade");
         evolutionButton = evolutionButton != null ? evolutionButton : FindFirstPopupComponent<Button>(searchRoot, "LowPanel/Evolution", "LowPanel/EvolutionFrame/Evolution", "LowPanel/EvolutionFrame/EvolutionTextFrame", "LowPanel/SkillFrame/Skill");
         BindResourceSlotReferences(searchRoot);
@@ -208,18 +203,6 @@ public class TurretUpgradePopupUI : TurretPopupPageUI
         }
 
         EvolutionPopupRequested?.Invoke();
-    }
-
-    // 닫기 버튼 입력으로 터렛 선택을 해제한다
-    public void OnCloseButtonClicked()
-    {
-        RequestCloseSelection();
-    }
-
-    // 뒤로가기 버튼 입력으로 선택 팝업으로 돌아간다
-    public void OnBackButtonClicked()
-    {
-        RequestBackToSelectPopup();
     }
 
     // 현재 선택 터렛 기준으로 업그레이드 표시 정보를 갱신한다
@@ -436,16 +419,6 @@ public class TurretUpgradePopupUI : TurretPopupPageUI
     {
         UnbindButtonListeners();
 
-        if (upgradeCloseButton != null && upgradeCloseButton != CloseButton)
-        {
-            upgradeCloseButton.onClick.AddListener(OnCloseButtonClicked);
-        }
-
-        if (upgradeBackButton != null && upgradeBackButton != BackButton)
-        {
-            upgradeBackButton.onClick.AddListener(OnBackButtonClicked);
-        }
-
         if (upgradeButton != null)
         {
             BindUpgradeHoldListeners();
@@ -460,18 +433,9 @@ public class TurretUpgradePopupUI : TurretPopupPageUI
     // 버튼 클릭 이벤트를 해제한다
     private void UnbindButtonListeners()
     {
-        if (upgradeCloseButton != null && upgradeCloseButton != CloseButton)
-        {
-            upgradeCloseButton.onClick.RemoveListener(OnCloseButtonClicked);
-        }
-
-        if (upgradeBackButton != null && upgradeBackButton != BackButton)
-        {
-            upgradeBackButton.onClick.RemoveListener(OnBackButtonClicked);
-        }
-
         if (upgradeButton != null)
         {
+            upgradeButton.onClick.RemoveListener(OnUpgradeButtonClicked);
             UnbindUpgradeHoldListeners();
         }
 
@@ -490,10 +454,12 @@ public class TurretUpgradePopupUI : TurretPopupPageUI
         }
 
         UnbindUpgradeHoldListeners();
-        upgradeButtonEventTrigger = upgradeButton.GetComponent<EventTrigger>();
         if (upgradeButtonEventTrigger == null)
         {
-            upgradeButtonEventTrigger = upgradeButton.gameObject.AddComponent<EventTrigger>();
+            Debug.LogWarning("[TurretUpgradePopupUI] Upgrade Button EventTrigger 참조가 없어 길게 누르기 업그레이드를 사용할 수 없습니다.", this);
+            upgradeButton.onClick.RemoveListener(OnUpgradeButtonClicked);
+            upgradeButton.onClick.AddListener(OnUpgradeButtonClicked);
+            return;
         }
 
         upgradePointerDownEntry = CreateUpgradeHoldEntry(EventTriggerType.PointerDown, OnUpgradeHoldPointerDown);
@@ -831,6 +797,28 @@ public class TurretUpgradePopupUI : TurretPopupPageUI
         resourceItemDefaultSprites = resourceItemDefaultSprites ?? System.Array.Empty<Sprite>();
     }
 
+    // 재화 기본 스프라이트가 비어 있으면 현재 이미지 스프라이트를 기본값으로 저장한다
+    private void CacheResourceDefaultSprites()
+    {
+        if (resourceItemImages == null)
+        {
+            return;
+        }
+
+        if (resourceItemDefaultSprites == null || resourceItemDefaultSprites.Length != resourceItemImages.Length)
+        {
+            resourceItemDefaultSprites = new Sprite[resourceItemImages.Length];
+        }
+
+        for (int i = 0; i < resourceItemImages.Length; i++)
+        {
+            if (resourceItemDefaultSprites[i] == null && resourceItemImages[i] != null)
+            {
+                resourceItemDefaultSprites[i] = resourceItemImages[i].sprite;
+            }
+        }
+    }
+
     // 지정 배열에서 안전하게 텍스트 참조를 얻는다
     private static TMP_Text GetTextAt(TMP_Text[] texts, int index)
     {
@@ -841,6 +829,45 @@ public class TurretUpgradePopupUI : TurretPopupPageUI
     private static Image GetImageAt(Image[] images, int index)
     {
         return images != null && index >= 0 && index < images.Length ? images[index] : null;
+    }
+
+    // 업그레이드 팝업에 필요한 수동 연결 참조를 검증한다
+    private void ValidateRequiredReferences()
+    {
+        if (currentTurretNameText == null || currentTurretLevelText == null || nextTurretLevelText == null)
+        {
+            Debug.LogWarning("[TurretUpgradePopupUI] 레벨 표시 TMP 참조가 일부 비어 있습니다.", this);
+        }
+
+        if (currentDpsText == null || currentFireRateText == null || currentRangeText == null || currentPierceText == null)
+        {
+            Debug.LogWarning("[TurretUpgradePopupUI] 현재 수치 TMP 참조가 일부 비어 있습니다.", this);
+        }
+
+        if (nextDpsText == null || nextFireRateText == null || nextRangeText == null || nextPierceText == null)
+        {
+            Debug.LogWarning("[TurretUpgradePopupUI] 다음 수치 TMP 참조가 일부 비어 있습니다.", this);
+        }
+
+        if (dpsDeltaText == null || fireRateDeltaText == null || rangeDeltaText == null || pierceDeltaText == null)
+        {
+            Debug.LogWarning("[TurretUpgradePopupUI] 변화량 TMP 참조가 일부 비어 있습니다.", this);
+        }
+
+        if (turretImage == null)
+        {
+            Debug.LogWarning("[TurretUpgradePopupUI] Turret Image 참조가 비어 있습니다.", this);
+        }
+
+        if (upgradeButton == null || evolutionButton == null)
+        {
+            Debug.LogWarning("[TurretUpgradePopupUI] Upgrade/Evolution 버튼 참조가 비어 있습니다.", this);
+        }
+
+        if (upgradeButtonEventTrigger == null)
+        {
+            Debug.LogWarning("[TurretUpgradePopupUI] Upgrade Button EventTrigger 참조가 비어 있습니다.", this);
+        }
     }
 
     // 지정 배열에서 안전하게 기본 슬롯 스프라이트를 얻는다

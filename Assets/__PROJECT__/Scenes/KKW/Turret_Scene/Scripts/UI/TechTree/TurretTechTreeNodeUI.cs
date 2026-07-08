@@ -28,6 +28,7 @@ public class TurretTechTreeNodeUI : MonoBehaviour
     private TurretTechTreeNodeState currentState;
     private Color pulseBaseColor = Color.white;
     private bool isPulseActive;
+    private bool hasRequiredReferences;
 
     public TurretDefinitionSO Definition => definition;
     public TurretTechTreeNodeState CurrentState => currentState;
@@ -52,11 +53,7 @@ public class TurretTechTreeNodeUI : MonoBehaviour
     // 시작 전에 버튼 이벤트를 연결한다
     private void Awake()
     {
-        if (button == null)
-        {
-            button = GetComponent<Button>();
-        }
-
+        hasRequiredReferences = ValidateRequiredReferences();
         if (pulseGraphic != null)
         {
             pulseBaseColor = pulseGraphic.color;
@@ -94,6 +91,11 @@ public class TurretTechTreeNodeUI : MonoBehaviour
     // 현재 노드 상태와 표시 데이터를 UI에 적용한다
     public void ApplyState(TurretTechTreeNodeState state, TurretTechTreeViewProfileSO profile)
     {
+        if (!hasRequiredReferences)
+        {
+            return;
+        }
+
         currentState = state;
         TurretTechTreeNodeViewData nodeData = profile == null ? null : profile.FindNodeData(definition);
         Sprite icon = ResolveIcon(nodeData);
@@ -137,7 +139,7 @@ public class TurretTechTreeNodeUI : MonoBehaviour
     // 버튼 클릭 이벤트를 등록한다
     private void BindButton()
     {
-        if (button == null)
+        if (!hasRequiredReferences || button == null)
         {
             return;
         }
@@ -183,6 +185,32 @@ public class TurretTechTreeNodeUI : MonoBehaviour
         }
 
         return definition == null ? null : definition.uiIcon;
+    }
+
+    // 런타임에 필요한 인스펙터 참조가 모두 연결됐는지 확인한다
+    private bool ValidateRequiredReferences()
+    {
+        bool isValid = true;
+        isValid &= LogMissingReference(definition, nameof(definition));
+        isValid &= LogMissingReference(iconImage, nameof(iconImage));
+        isValid &= LogMissingReference(frameImage, nameof(frameImage));
+        isValid &= LogMissingReference(pulseGraphic, nameof(pulseGraphic));
+        isValid &= LogMissingReference(nameText, nameof(nameText));
+        isValid &= LogMissingReference(stateText, nameof(stateText));
+        isValid &= LogMissingReference(button, nameof(button));
+        return isValid;
+    }
+
+    // 단일 인스펙터 참조 누락 여부를 로그로 알린다
+    private bool LogMissingReference(Object reference, string fieldName)
+    {
+        if (reference != null)
+        {
+            return true;
+        }
+
+        Debug.LogWarning("[터렛 트리 노드 UI] " + fieldName + " 참조가 비어 있습니다. 인스펙터에서 직접 연결해야 합니다.", this);
+        return false;
     }
 
     // 터렛 정의의 표시 이름을 반환한다

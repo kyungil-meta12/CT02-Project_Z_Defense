@@ -25,9 +25,6 @@ public class TurretDetailPopupUI : TurretPopupPageUI
     [SerializeField] private TMP_Text criticalChanceText;
     [SerializeField] private TMP_Text heavyHitChanceText;
 
-    [Header("레거시 상세 정보")]
-    [SerializeField] private TMP_Text statText;
-
     [Header("버튼")]
     [SerializeField] private Button detailUpgradeButton;
     [SerializeField] private GameObject detailUpgradeFrame;
@@ -56,7 +53,7 @@ public class TurretDetailPopupUI : TurretPopupPageUI
     protected override void Awake()
     {
         base.Awake();
-        BindChildReferences();
+        ValidateRequiredReferences();
         CacheTextTemplates();
         BindButtonListeners();
     }
@@ -91,7 +88,6 @@ public class TurretDetailPopupUI : TurretPopupPageUI
         isPreviewMode = true;
         previewDefinition = definition;
         base.Show(default);
-        BindChildReferences();
         CacheTextTemplates();
         SetPreviewButtonState(true);
         RefreshPreviewHeader();
@@ -223,12 +219,6 @@ public class TurretDetailPopupUI : TurretPopupPageUI
     // 미리보기 대상 터렛의 이름과 대표 이미지를 상세 팝업에 반영한다
     private void RefreshPreviewHeader()
     {
-        TMP_Text previewNameText = FindFirstDescriptionComponent<TMP_Text>(transform, "HighPanel/CurrentTurretNameFrame/CurrentTurretName", "CurrentTurretNameFrame/CurrentTurretName");
-        if (previewNameText != null)
-        {
-            currentTurretNameText = previewNameText;
-        }
-
         if (previewDefinition == null)
         {
             SetText(currentTurretNameText, ApplyNameTemplate(currentTurretNameTextTemplate, string.Empty));
@@ -246,14 +236,12 @@ public class TurretDetailPopupUI : TurretPopupPageUI
         if (!CurrentContext.IsValid)
         {
             ClearDetailStatTexts();
-            SetText(statText, "선택된 터렛 없음");
             return;
         }
 
         TurretRuntimeStat stat = CurrentContext.CalculateCurrentStat();
         TurretDamagePolishProfileSO damagePolishProfile = CurrentContext.Definition == null ? null : CurrentContext.Definition.damagePolishProfile;
         SetDetailStatTexts(CurrentContext.Turret.CurrentTierLevel, stat, damagePolishProfile);
-        SetLegacyStatText(stat, damagePolishProfile);
     }
 
     // 미리보기 대상 터렛의 1레벨 상세 수치를 표시한다
@@ -262,14 +250,12 @@ public class TurretDetailPopupUI : TurretPopupPageUI
         if (previewDefinition == null)
         {
             ClearDetailStatTexts();
-            SetText(statText, "선택된 터렛 없음");
             return;
         }
 
         TurretRuntimeStat stat = TurretStatCalculator.Calculate(previewDefinition, PREVIEW_LEVEL);
         TurretDamagePolishProfileSO damagePolishProfile = previewDefinition.damagePolishProfile;
         SetDetailStatTexts(PREVIEW_LEVEL, stat, damagePolishProfile);
-        SetLegacyStatText(stat, damagePolishProfile);
     }
 
     // 상세 수치 TMP 템플릿에 현재 터렛 스탯을 반영한다
@@ -296,25 +282,6 @@ public class TurretDetailPopupUI : TurretPopupPageUI
         SetText(rangeText, ApplyTemplate(rangeTextTemplate, "-"));
         SetText(criticalChanceText, ApplyTemplate(criticalChanceTextTemplate, "-"));
         SetText(heavyHitChanceText, ApplyTemplate(heavyHitChanceTextTemplate, "-"));
-    }
-
-    // 기존 단일 상세 텍스트 참조가 남아 있을 때만 호환 표시를 유지한다
-    private void SetLegacyStatText(TurretRuntimeStat stat, TurretDamagePolishProfileSO damagePolishProfile)
-    {
-        if (statText == null)
-        {
-            return;
-        }
-
-        statText.text = string.Concat(
-            "공격력: ", FormatValue(stat.damage), "\n",
-            "사거리: ", FormatValue(stat.range), "\n",
-            "발사간격: ", stat.fireInterval.ToString("0.###"), "\n",
-            "탄속: ", FormatValue(stat.projectileSpeed), "\n",
-            "투사체 수: ", stat.projectileCount.ToString(), "\n",
-            "관통 횟수: ", stat.pierceCount.ToString(), "\n",
-            "치명타 확률: ", FormatChance(GetCriticalChance(damagePolishProfile)), "\n",
-            "강타 확률: ", FormatChance(GetHeavyHitChance(damagePolishProfile)));
     }
 
     // 단일 스탯 값을 소수점 둘째 자리까지 표시한다
@@ -451,6 +418,30 @@ public class TurretDetailPopupUI : TurretPopupPageUI
         if (detailUpgradeButton != null)
         {
             detailUpgradeButton.onClick.RemoveListener(RequestUpgrade);
+        }
+    }
+
+    // 상세 팝업에 필요한 수동 연결 참조를 검증한다
+    private void ValidateRequiredReferences()
+    {
+        if (currentTurretNameText == null || levelText == null || dpsText == null || fireRateText == null || bulletSpeedText == null || pierceCountText == null || rangeText == null)
+        {
+            Debug.LogWarning("[TurretDetailPopupUI] 상세 스탯 TMP 참조가 일부 비어 있습니다.", this);
+        }
+
+        if (criticalChanceText == null || heavyHitChanceText == null)
+        {
+            Debug.LogWarning("[TurretDetailPopupUI] 치명타/강타 확률 TMP 참조가 비어 있습니다.", this);
+        }
+
+        if (turretImage == null)
+        {
+            Debug.LogWarning("[TurretDetailPopupUI] Turret Image 참조가 비어 있습니다.", this);
+        }
+
+        if (detailUpgradeButton == null)
+        {
+            Debug.LogWarning("[TurretDetailPopupUI] 상세 팝업 Upgrade 버튼 참조가 비어 있습니다.", this);
         }
     }
 

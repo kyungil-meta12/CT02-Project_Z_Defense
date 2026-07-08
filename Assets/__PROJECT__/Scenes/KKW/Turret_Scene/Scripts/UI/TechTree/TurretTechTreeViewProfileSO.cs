@@ -35,8 +35,16 @@ public class TurretTechTreeViewProfileSO : ScriptableObject
     [SerializeField] private string readyText = "진화 가능";
     [SerializeField] private string unlockedText = "해금 완료";
 
+    [Header("프리뷰 영상 페이드")]
+    [SerializeField] private bool usePreviewVideoFade = true;
+    [SerializeField, Min(0.0f)] private float previewVideoFadeInDuration = 0.5f;
+    [SerializeField, Min(0.0f)] private float previewVideoFadeOutDuration = 0.5f;
+
     public TurretDefinitionSO[] DefaultUnlockedDefinitions => defaultUnlockedDefinitions;
     public TurretTechTreeNodeViewData[] Nodes => nodes;
+    public bool UsePreviewVideoFade => usePreviewVideoFade;
+    public float PreviewVideoFadeInDuration => previewVideoFadeInDuration;
+    public float PreviewVideoFadeOutDuration => previewVideoFadeOutDuration;
 
     // 지정 터렛 정의에 맞는 노드 표시 데이터를 찾는다
     public TurretTechTreeNodeViewData FindNodeData(TurretDefinitionSO definition)
@@ -117,6 +125,8 @@ public class TurretTechTreeViewProfileSO : ScriptableObject
     {
         defaultUnlockedDefinitions = defaultUnlockedDefinitions ?? Array.Empty<TurretDefinitionSO>();
         nodes = nodes ?? Array.Empty<TurretTechTreeNodeViewData>();
+        previewVideoFadeInDuration = Mathf.Max(0.0f, previewVideoFadeInDuration);
+        previewVideoFadeOutDuration = Mathf.Max(0.0f, previewVideoFadeOutDuration);
     }
 }
 

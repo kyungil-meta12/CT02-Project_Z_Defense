@@ -30,5 +30,8 @@ MonoBehaviour:
   Decomposable: 0
   ItemsFromDecompose: []
   Name: "\uB85C\uBD07 \uD314"
-  InfoText: "\uBAA8\uD130\uB85C \uC6C0\uC9C1\uC774\uB294 \uAE30\uACC4 \uD314."
+  InfoText: "\"\uB2F9\uC2E0\uC758 \uD130\uB81B\uC5D0 \uC815\uBC00\uD55C \uD0C0\uACA9\uAC10\uC744
+    \uB354\uD574\uC90D\uB2C8\uB2E4. \uC880\uBE44\uB4E4\uC758 \uC6C0\uC9C1\uC784\uBCF4\uB2E4
+    \uBC18 \uBC15\uC790 \uB354 \uBE60\uB974\uAC8C \uC870\uC900\uD558\uB294 \uAC74
+    \uAE30\uBCF8\uC774\uC8E0.\""
   ItemImage: {fileID: 21300000, guid: b2e613a8b14d8544b9870ebf4a455080, type: 3}

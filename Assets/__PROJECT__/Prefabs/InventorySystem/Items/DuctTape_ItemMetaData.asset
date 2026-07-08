@@ -20,6 +20,6 @@ MonoBehaviour:
   Decomposable: 0
   ItemsFromDecompose: []
   Name: "\uB355\uD2B8\uD14C\uC774\uD504"
-  InfoText: "\uC5B4\uB290 \uACF3\uC774\uB4E0\uC9C0 \uBAA8\uB450 \uACE0\uCE60 \uC218
-    \uC788\uB294 \uB9CC\uB2A5 \uD14C\uC774\uD504."
+  InfoText: "\uADF8 \uC5B4\uB5A4 \uAC83\uC774\uB77C\uB3C4 \uBAA8\uB450 \uACE0\uCE60
+    \uC218 \uC788\uB294 \uB9CC\uB2A5 \uD14C\uC774\uD504."
   ItemImage: {fileID: 21300000, guid: 741ffde1d78abe644b4dc16261fca43f, type: 3}

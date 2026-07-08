@@ -29,6 +29,7 @@ MonoBehaviour:
     Min: 1
     Max: 5
   Name: "\uAC74\uC804\uC9C0"
-  InfoText: "\uC544\uC9C1\uC740 \uC4F8 \uB9CC\uD55C \uC591\uC774 \uB0A8\uC544\uC788\uB294
-    \uAC74\uC804\uC9C0."
+  InfoText: "\uC4F0\uB2E4 \uB0A8\uC740 \uBC30\uD130\uB9AC\uC785\uB2C8\uB2E4. \uADF8\uB0E5
+    \uB450\uBA74 \uD658\uACBD\uC624\uC5FC\uC774\uC9C0\uB9CC, \uB72F\uC73C\uBA74 \uC3E0\uC3E0\uD55C
+    \uAD11\uBB3C\uC774 \uC3DF\uC544\uC838 \uB098\uC624\uC8E0."
   ItemImage: {fileID: 21300000, guid: a4ebd81defff6604a9afad03593aa7de, type: 3}

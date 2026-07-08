@@ -341,6 +341,7 @@ TurretTechTreeDetailPopupUI와 TurretTechTreeUIController.detailPopup Inspector 
 - 프리뷰 영상은 단일 `VideoPlayer`를 재사용하고, 노드 전환 시 `VideoClip`만 교체한다.
 - 영상은 `Prepare` 완료 후 재생하며, 팝업 닫기 시 재생을 멈추고 클립 참조를 비운다.
 - `PreviewRawImage`는 영상이 있을 때만 표시하고, 영상이 없으면 `FallbackIconImage`와 `MissingVideoMessage`를 표시한다.
+- `TurretTechTreeViewProfileSO`는 프리뷰 영상 페이드 사용 여부와 시작/끝 페이드 시간을 소유한다. 기본값은 시작 `0.5`초 페이드인, 끝 `0.5`초 페이드아웃이며, 원본 `VideoClip`을 편집하지 않고 `PreviewRawImage` 알파만 조절한다.
 - `useVideoUvRect` 옵션을 추가했다. 새로 녹화한 정상 비율 영상은 꺼두고, 레거시 영상처럼 검은 여백이 큰 클립을 임시로 잘라야 할 때만 켠다.
 - 상세 설명 텍스트는 현재 상세 팝업에서 사용하지 않는다. `DescriptionText`가 남아 있더라도 런타임에서 비우고 숨긴다.
 - 스탯 표시는 공격력, 사거리, 공격속도, 관통횟수, 치명타 확률, 강타 확률 6개만 사용한다.
@@ -383,6 +384,7 @@ Detail_Popup_Panel
 - `DamageText`, `RangeText`, `FireRateText`, `PierceCountText`, `CriticalChance`, `HeavyHitChance`는 라벨 전용 TMP로 둔다.
 - 각 라벨 TMP의 자식 `StatNumber`는 숫자 전용 TMP로 둔다. Text Input은 임시값이어도 되며 런타임에서 숫자로 덮어쓴다.
 - 숫자 크기, 정렬, 위치는 각 `StatNumber`의 TMP Inspector에서 조정한다. 스크립트는 `StatNumber.text`만 갱신하고 폰트 크기는 건드리지 않는다.
+- `Turret Tech Tree View Profile SO.asset`의 `프리뷰 영상 페이드`에서 `Use Preview Video Fade`, `Preview Video Fade In Duration`, `Preview Video Fade Out Duration`을 조정한다.
 - 새 정상 비율 영상 기준 `useVideoUvRect`는 꺼둔다.
 - `RenderTexture`는 세로 프리뷰 기준으로 `540x960` 또는 `720x1280`을 권장한다.
 - `VideoPlayer.Audio Output Mode`는 `None`을 권장한다. 현재 프리뷰는 영상 확인용이며 사운드가 필요 없다.

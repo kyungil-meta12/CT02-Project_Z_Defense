@@ -49,6 +49,8 @@ public class TurretTechTreeDetailPopupUI : MonoBehaviour
     private string pierceCountTextTemplate;
     private string criticalChanceTextTemplate;
     private string heavyHitChanceTextTemplate;
+    private TurretTechTreeViewProfileSO activeProfile;
+    private bool isVideoFadeActive;
 
     // 컴포넌트 추가 시 기본 루트와 버튼 참조를 자동 연결한다
     private void Reset()
@@ -73,6 +75,12 @@ public class TurretTechTreeDetailPopupUI : MonoBehaviour
         Hide();
     }
 
+    // 재생 중인 프리뷰 영상의 시작/끝 페이드 알파를 갱신한다
+    private void Update()
+    {
+        UpdateVideoFade();
+    }
+
     // 파괴 시 닫기 버튼 이벤트를 해제한다
     private void OnDestroy()
     {
@@ -95,7 +103,7 @@ public class TurretTechTreeDetailPopupUI : MonoBehaviour
 
         CacheTextTemplates();
         RefreshTexts(definition, state, profile);
-        RefreshVideo(definition, nodeData);
+        RefreshVideo(definition, nodeData, profile);
     }
 
     // 상세 팝업을 닫고 재생 중인 영상을 정지한다
@@ -126,15 +134,17 @@ public class TurretTechTreeDetailPopupUI : MonoBehaviour
     }
 
     // 노드 데이터의 영상 클립을 VideoPlayer에 연결해 루프 재생한다
-    private void RefreshVideo(TurretDefinitionSO definition, TurretTechTreeNodeViewData nodeData)
+    private void RefreshVideo(TurretDefinitionSO definition, TurretTechTreeNodeViewData nodeData, TurretTechTreeViewProfileSO profile)
     {
         VideoClip clip = nodeData == null ? null : nodeData.PreviewClip;
         bool hasClip = clip != null && videoPlayer != null;
+        activeProfile = profile;
+        isVideoFadeActive = false;
 
         if (videoImage != null)
         {
             videoImage.gameObject.SetActive(hasClip);
-            videoImage.color = Color.white;
+            SetVideoImageAlpha(ShouldUseVideoFade(profile) ? 0.0f : 1.0f);
             videoImage.uvRect = useVideoUvRect ? videoUvRect : new Rect(0.0f, 0.0f, 1.0f, 1.0f);
         }
 
@@ -170,6 +180,10 @@ public class TurretTechTreeDetailPopupUI : MonoBehaviour
     // 현재 VideoPlayer 재생을 멈추고 클립 참조를 비운다
     private void StopVideo()
     {
+        activeProfile = null;
+        isVideoFadeActive = false;
+        SetVideoImageAlpha(1.0f);
+
         if (videoPlayer == null)
         {
             return;
@@ -192,7 +206,77 @@ public class TurretTechTreeDetailPopupUI : MonoBehaviour
             return;
         }
 
+        isVideoFadeActive = ShouldUseVideoFade(activeProfile);
+        SetVideoImageAlpha(isVideoFadeActive ? 0.0f : 1.0f);
         preparedPlayer.Play();
+    }
+
+    // 영상 시간 기준으로 시작 페이드인과 끝 페이드아웃을 계산한다
+    private void UpdateVideoFade()
+    {
+        if (!isVideoFadeActive || videoPlayer == null || videoImage == null || videoPlayer.clip == null)
+        {
+            return;
+        }
+
+        double clipLength = videoPlayer.length > 0.0 ? videoPlayer.length : videoPlayer.clip.length;
+        if (clipLength <= 0.0)
+        {
+            SetVideoImageAlpha(1.0f);
+            return;
+        }
+
+        float alpha = CalculateVideoFadeAlpha(videoPlayer.time, clipLength, activeProfile);
+        SetVideoImageAlpha(alpha);
+    }
+
+    // 프로필 설정에 따라 프리뷰 영상 페이드를 사용할지 반환한다
+    private static bool ShouldUseVideoFade(TurretTechTreeViewProfileSO profile)
+    {
+        if (profile == null || !profile.UsePreviewVideoFade)
+        {
+            return false;
+        }
+
+        return profile.PreviewVideoFadeInDuration > 0.0f || profile.PreviewVideoFadeOutDuration > 0.0f;
+    }
+
+    // 현재 영상 시간에 맞는 페이드 알파를 계산한다
+    private static float CalculateVideoFadeAlpha(double time, double clipLength, TurretTechTreeViewProfileSO profile)
+    {
+        if (profile == null)
+        {
+            return 1.0f;
+        }
+
+        float alpha = 1.0f;
+        float fadeInDuration = profile.PreviewVideoFadeInDuration;
+        float fadeOutDuration = profile.PreviewVideoFadeOutDuration;
+
+        if (fadeInDuration > 0.0f)
+        {
+            alpha = Mathf.Min(alpha, Mathf.Clamp01((float)(time / fadeInDuration)));
+        }
+
+        if (fadeOutDuration > 0.0f)
+        {
+            alpha = Mathf.Min(alpha, Mathf.Clamp01((float)((clipLength - time) / fadeOutDuration)));
+        }
+
+        return alpha;
+    }
+
+    // 영상 RawImage의 알파만 변경한다
+    private void SetVideoImageAlpha(float alpha)
+    {
+        if (videoImage == null)
+        {
+            return;
+        }
+
+        Color color = videoImage.color;
+        color.a = Mathf.Clamp01(alpha);
+        videoImage.color = color;
     }
 
     [ContextMenu("참조 다시 연결")]

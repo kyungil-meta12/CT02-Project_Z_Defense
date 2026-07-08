@@ -15,6 +15,11 @@ public class ZombieWaveSpawnProfileSO : ScriptableObject
     [Header("보스 스폰 스케줄")]
     [SerializeField] private BossZombieSpawnSchedule[] bossSpawnSchedules;
 
+    [Header("마지막 웨이브 이후 Fallback")]
+    [SerializeField, Min(1)] private int postFinalWaveFallbackIntervalWaves = 50;
+    [SerializeField, Min(0.0f)] private float postFinalWaveHpMultiplierIncrease = 100.0f;
+    [SerializeField, Min(0.0f)] private float postFinalWaveAttackDamageMultiplierIncrease = 5.0f;
+
     [SerializeField] private ZombieWaveSpawnStage[] stages;
 
     // 현재 웨이브에 해당하는 스테이지 설정을 반환한다
@@ -53,7 +58,8 @@ public class ZombieWaveSpawnProfileSO : ScriptableObject
     public bool TryGetNormalZombiePrefab(int wave, out PoolObject prefab)
     {
         ZombieWaveSpawnStage stage = GetStageForWave(wave);
-        if (stage == null || !stage.TrySelectNormalZombieType(wave, out NormalZombieType type))
+        int candidateWave = GetCandidateEvaluationWave(wave);
+        if (stage == null || !stage.TrySelectNormalZombieType(candidateWave, out NormalZombieType type))
         {
             prefab = null;
             return false;
@@ -66,7 +72,8 @@ public class ZombieWaveSpawnProfileSO : ScriptableObject
     public bool TryGetBossZombiePrefab(int wave, out PoolObject prefab)
     {
         ZombieWaveSpawnStage stage = GetStageForWave(wave);
-        if (stage == null || !stage.TrySelectBossZombieType(wave, out BossZombieType type))
+        int candidateWave = GetCandidateEvaluationWave(wave);
+        if (stage == null || !stage.TrySelectBossZombieType(candidateWave, out BossZombieType type))
         {
             prefab = null;
             return false;
@@ -187,12 +194,98 @@ public class ZombieWaveSpawnProfileSO : ScriptableObject
     public ZombieSpawnRuntimeModifiers GetRuntimeModifiers(int wave)
     {
         ZombieWaveSpawnStage stage = GetStageForWave(wave);
-        return stage == null ? ZombieSpawnRuntimeModifiers.Default : stage.GetRuntimeModifiers();
+        if (stage == null)
+        {
+            return ZombieSpawnRuntimeModifiers.Default;
+        }
+
+        ZombieSpawnRuntimeModifiers modifiers = stage.GetRuntimeModifiers();
+        if (TryGetPostFinalWaveFallbackStep(wave, out int fallbackStep))
+        {
+            modifiers.hpMultiplier += fallbackStep * Mathf.Max(0.0f, postFinalWaveHpMultiplierIncrease);
+            modifiers.attackDamageMultiplier += fallbackStep * Mathf.Max(0.0f, postFinalWaveAttackDamageMultiplierIncrease);
+        }
+
+        return modifiers;
+    }
+
+    // 마지막 명시 웨이브 이후 fallback에서 사용할 후보 판정 웨이브를 반환한다
+    private int GetCandidateEvaluationWave(int wave)
+    {
+        int safeWave = Mathf.Max(1, wave);
+        if (!IsWaveExplicitlyConfigured(safeWave) && TryGetFinalConfiguredWave(out int finalConfiguredWave) && safeWave > finalConfiguredWave)
+        {
+            return finalConfiguredWave;
+        }
+
+        return safeWave;
+    }
+
+    // 마지막 명시 웨이브 이후 fallback 보정 단계를 계산한다
+    private bool TryGetPostFinalWaveFallbackStep(int wave, out int fallbackStep)
+    {
+        fallbackStep = 0;
+        int safeWave = Mathf.Max(1, wave);
+        if (IsWaveExplicitlyConfigured(safeWave) || !TryGetFinalConfiguredWave(out int finalConfiguredWave) || safeWave <= finalConfiguredWave)
+        {
+            return false;
+        }
+
+        int safeInterval = Mathf.Max(1, postFinalWaveFallbackIntervalWaves);
+        int wavesAfterFinal = safeWave - finalConfiguredWave;
+        fallbackStep = 1 + ((wavesAfterFinal - 1) / safeInterval);
+        return fallbackStep > 0;
+    }
+
+    // 지정 웨이브가 어떤 스테이지 범위에 명시적으로 포함되는지 확인한다
+    private bool IsWaveExplicitlyConfigured(int wave)
+    {
+        int safeWave = Mathf.Max(1, wave);
+        if (stages == null)
+        {
+            return false;
+        }
+
+        for (int i = 0; i < stages.Length; i++)
+        {
+            ZombieWaveSpawnStage stage = stages[i];
+            if (stage != null && stage.IsWaveMatch(safeWave))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    // 프로필에 명시된 가장 마지막 종료 웨이브를 찾는다
+    private bool TryGetFinalConfiguredWave(out int finalConfiguredWave)
+    {
+        finalConfiguredWave = 0;
+        if (stages == null)
+        {
+            return false;
+        }
+
+        for (int i = 0; i < stages.Length; i++)
+        {
+            ZombieWaveSpawnStage stage = stages[i];
+            if (stage != null && stage.MaxWave > 0)
+            {
+                finalConfiguredWave = Mathf.Max(finalConfiguredWave, stage.MaxWave);
+            }
+        }
+
+        return finalConfiguredWave > 0;
     }
 
     // 인스펙터 입력값을 유효한 범위로 보정한다
     private void OnValidate()
     {
+        postFinalWaveFallbackIntervalWaves = Mathf.Max(1, postFinalWaveFallbackIntervalWaves);
+        postFinalWaveHpMultiplierIncrease = Mathf.Max(0.0f, postFinalWaveHpMultiplierIncrease);
+        postFinalWaveAttackDamageMultiplierIncrease = Mathf.Max(0.0f, postFinalWaveAttackDamageMultiplierIncrease);
+
         if (bossSpawnSchedules != null)
         {
             for (int i = 0; i < bossSpawnSchedules.Length; i++)
@@ -307,6 +400,7 @@ public class ZombieWaveSpawnStage
     [SerializeField, Min(0.0f)] private float rewardMultiplier = 1.0f;
 
     public int MinWave => minWave;
+    public int MaxWave => maxWave;
     public float SpawnInterval => spawnInterval;
     public int SpawnCount => spawnCount;
     public bool SpawnBossAsLastEnemy => spawnBossAsLastEnemy;

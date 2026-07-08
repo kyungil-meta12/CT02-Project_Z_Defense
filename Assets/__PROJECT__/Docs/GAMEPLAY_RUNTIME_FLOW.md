@@ -15,10 +15,11 @@ This document summarizes the current runtime flow for waves, zombies, obstacles,
 7. Boss zombie spawn waves are controlled by the separate boss schedule on `ZombieWaveSpawnProfileSO`; each boss type uses first-wave and wave-interval values exported through `ZombieBossSpawnSchedule.csv`.
 8. When multiple boss schedules match the same wave, all matching bosses spawn one per early spawn tick as additional enemies, without reducing the normal zombie spawn count.
 9. Spawn profile runtime multipliers can adjust spawned zombie HP, attack damage, move/attack speed, and reward amount.
-10. Zombies notify kill progress through `GameManager.IncreaseKillCount` when their death flow completes.
-11. `GameManager.Update` increases `Wave` when `KillCount == DestKillCount` and invokes `OnWaveIncrease`.
-12. `ZombieSpawner` receives the next wave and recalculates spawn settings from the active wave profile.
-13. Game-over restart lowers the active wave through `PreparePreviousWaveRestart` and invokes `OnWaveDecrease` for UI systems that must refresh on rollback.
+10. Runtime-only fallback scaling applies after the final finite wave range in `ZombieWaveSpawnProfileSO`: the next wave immediately adds the configured HP and attack multiplier increments, then repeats every configured interval.
+11. Zombies notify kill progress through `GameManager.IncreaseKillCount` when their death flow completes.
+12. `GameManager.Update` increases `Wave` when `KillCount == DestKillCount` and invokes `OnWaveIncrease`.
+13. `ZombieSpawner` receives the next wave and recalculates spawn settings from the active wave profile.
+14. Game-over restart lowers the active wave through `PreparePreviousWaveRestart` and invokes `OnWaveDecrease` for UI systems that must refresh on rollback.
 
 ## Normal Zombie Role Specs
 
@@ -50,6 +51,8 @@ Use `ZombieWaveSpawnProfileSO` for:
 Current first-pass campaign balancing uses wave `1~500`, with the final `451~500` stage using `hpMultiplier = 280`. With current role specs this puts late normal elite zombies around `79,800~100,800` HP before future turret DPS rebalancing.
 
 Runtime zombie HP is calculated from the spawned prefab's combat spec as `Spec.Hp * Random.Range(MinHp, MaxHp) * stage.hpMultiplier`. Stage HP multipliers are intentionally stepped by wave range rather than calculated per wave, so balance reviews should compare turret DPS against the active stage range and weighted zombie composition.
+
+If a wave falls between configured finite stage ranges, runtime spawning keeps using the existing previous-stage fallback without extra multiplier scaling. If a wave is beyond the final finite stage range, runtime spawning keeps the final stage's spawn interval, spawn count, and candidate composition, but adds the profile's post-final-wave HP and attack multiplier increments immediately and once per configured interval after that. This post-final fallback is intentionally runtime-only and is not exported to the wave CSV or reflected in the balance report.
 
 The current 500-wave profile gradually removes early weak/basic roles and narrows late waves toward `Attacker` and `Elite` normal zombies. This means late-wave difficulty is driven by both higher `hpMultiplier` values and a heavier spawn composition, not by HP multiplier alone.
 

@@ -20394,15 +20394,15 @@ MonoBehaviour:
   currentTurretNameText: {fileID: 1309478039}
   currentTurretLevelText: {fileID: 1262133878}
   nextTurretLevelText: {fileID: 1429013336}
-  currentDamageText: {fileID: 0}
+  currentDamageText: {fileID: 618604272}
   currentFireRateText: {fileID: 1394316301}
   currentRangeText: {fileID: 673964815}
   currentPierceText: {fileID: 1923588024}
-  nextDamageText: {fileID: 0}
+  nextDamageText: {fileID: 67718140}
   nextFireRateText: {fileID: 265954556}
   nextRangeText: {fileID: 1779382658}
   nextPierceText: {fileID: 337658830}
-  damageDeltaText: {fileID: 0}
+  damageDeltaText: {fileID: 1580740133}
   fireRateDeltaText: {fileID: 1289413621}
   rangeDeltaText: {fileID: 1688026356}
   pierceDeltaText: {fileID: 898710480}
@@ -20423,7 +20423,7 @@ MonoBehaviour:
   - {fileID: 2080704077}
   - {fileID: 748201440}
   upgradeButton: {fileID: 674428765}
-  upgradeButtonEventTrigger: {fileID: 0}
+  upgradeButtonEventTrigger: {fileID: 674428768}
   evolutionButton: {fileID: 572558143}
 --- !u!1001 &438870471
 PrefabInstance:
@@ -22583,7 +22583,7 @@ MonoBehaviour:
   m_HandleRect: {fileID: 395439652}
   m_Direction: 2
   m_Value: 0.00000010944085
-  m_Size: 0.6901667
+  m_Size: 0.3450832
   m_NumberOfSteps: 0
   m_OnValueChanged:
     m_PersistentCalls:
@@ -48346,7 +48346,7 @@ MonoBehaviour:
   m_HandleRect: {fileID: 585445104}
   m_Direction: 0
   m_Value: 1
-  m_Size: 0.18934783
+  m_Size: 0.09467392
   m_NumberOfSteps: 0
   m_OnValueChanged:
     m_PersistentCalls:
@@ -81127,7 +81127,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -1864.5, y: 557.69995}
+  m_AnchoredPosition: {x: -1864.5, y: 557.6998}
   m_SizeDelta: {x: 4600, y: 3600}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &1484945180
@@ -86683,7 +86683,7 @@ MonoBehaviour:
   currentTurretNameText: {fileID: 1173392454}
   turretImage: {fileID: 1808903267}
   levelText: {fileID: 1252836495}
-  damageText: {fileID: 0}
+  damageText: {fileID: 688204195}
   fireRateText: {fileID: 1929699645}
   bulletSpeedText: {fileID: 638722892}
   pierceCountText: {fileID: 2064385960}

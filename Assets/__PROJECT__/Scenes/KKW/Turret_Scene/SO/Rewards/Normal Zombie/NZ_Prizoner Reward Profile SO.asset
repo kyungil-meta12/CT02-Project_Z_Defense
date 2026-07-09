@@ -138,7 +138,7 @@ MonoBehaviour:
     dropChance: 0.1
     minAmountMultiplier: 0.8
     maxAmountMultiplier: 1.2
-  - currencyType: 70
+  - currencyType: 63
     amount: 1
     dropChance: 0.1
     minAmountMultiplier: 0.8

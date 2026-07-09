@@ -28,14 +28,14 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 675436380934075217}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: -0.44158414, z: 0, w: 0.89721984}
-  m_LocalPosition: {x: -0, y: 0.0231205, z: 0}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 8889536927553433659}
   m_Father: {fileID: 6653001837914997780}
-  m_LocalEulerAnglesHint: {x: 0, y: -52.41, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!33 &7335507655156875983
 MeshFilter:
   m_ObjectHideFlags: 0
@@ -413,6 +413,7 @@ MonoBehaviour:
   statProfileApplier: {fileID: -7968085712790658073}
   targetTurret: {fileID: -4755385057412981211}
   targetFiringEvent: {fileID: 441157724391781920}
+  damageMeterSource: {fileID: 0}
   currentTurretName: 
   availableEvolutionNames: 
 --- !u!114 &7652736115020868580

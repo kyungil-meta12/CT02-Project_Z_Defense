@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Machinegun_Red_Definition 3
   m_EditorClassIdentifier: Assembly-CSharp::TurretDefinitionSO
   turretId: machinegun_red_3
-  displayName: Machinegun_Red_3
+  displayName: 레드 스톰
   shortDescription: "<nobr>\uC804\uC7A5\uC744</nobr> <nobr>\uBD89\uAC8C</nobr> <nobr>\uBB3C\uB4E4\uC774\uB294</nobr>
     <nobr>\uD30C\uAD34\uC801\uC778</nobr> <nobr>\uC911\uD654\uB825</nobr> <nobr>\uC885\uACB0\uD615</nobr>
     <nobr>\uAE30\uAD00\uCD1D</nobr> <nobr>\uD3EC\uD0D1\uC785\uB2C8\uB2E4.</nobr>

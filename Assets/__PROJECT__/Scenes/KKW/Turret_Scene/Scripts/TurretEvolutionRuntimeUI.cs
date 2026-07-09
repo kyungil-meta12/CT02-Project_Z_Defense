@@ -636,17 +636,17 @@ public class TurretEvolutionRuntimeUI : MonoBehaviour
             return string.Empty;
         }
 
-        if (!string.IsNullOrWhiteSpace(entry.displayName))
-        {
-            return entry.displayName;
-        }
-
         if (entry.targetDefinition != null && !string.IsNullOrWhiteSpace(entry.targetDefinition.displayName))
         {
             return entry.targetDefinition.displayName;
         }
 
-        return entry.targetDefinition == null ? string.Empty : entry.targetDefinition.name;
+        if (entry.targetDefinition != null)
+        {
+            return entry.targetDefinition.name;
+        }
+
+        return string.IsNullOrWhiteSpace(entry.displayName) ? string.Empty : entry.displayName;
     }
 
     // 비용 배열을 UI에 표시할 짧은 문자열로 변환한다

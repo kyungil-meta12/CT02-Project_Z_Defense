@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Plasma_Blue_Definition 3
   m_EditorClassIdentifier: Assembly-CSharp::TurretDefinitionSO
   turretId: plasma_blue_3
-  displayName: Plasma_Blue_3
+  displayName: 블루 코어
   shortDescription: "<nobr>\uC5F0\uC0AC</nobr> <nobr>\uBA54\uCEE4\uB2C8\uC998\uC744</nobr>
     <nobr>\uADF9\uD55C\uAE4C\uC9C0</nobr> <nobr>\uB04C\uC5B4\uC62C\uB824</nobr> <nobr>\uCCAD\uC0C9</nobr>
     <nobr>\uD50C\uB77C\uC988\uB9C8\uB97C</nobr> <nobr>\uD3ED\uD3EC\uC218\uCC98\uB7FC</nobr>

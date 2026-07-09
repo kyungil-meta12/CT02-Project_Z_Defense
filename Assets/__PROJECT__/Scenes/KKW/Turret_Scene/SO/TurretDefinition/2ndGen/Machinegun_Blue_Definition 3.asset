@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Machinegun_Blue_Definition 3
   m_EditorClassIdentifier: Assembly-CSharp::TurretDefinitionSO
   turretId: machinegun_blue_3
-  displayName: Machinegun_Blue_3
+  displayName: 블루 스톰
   shortDescription: "<nobr>\uC274</nobr> <nobr>\uC0C8</nobr> <nobr>\uC5C6\uC774</nobr>
     <nobr>\uBFDC\uC5B4\uC838</nobr> <nobr>\uB098\uC624\uB294</nobr> <nobr>\uCCAD\uC0C9</nobr>
     <nobr>\uD0C4\uD658\uC73C\uB85C</nobr> <nobr>\uC804\uC120\uC744</nobr> <nobr>\uC9C0\uBC30\uD558\uB294</nobr>

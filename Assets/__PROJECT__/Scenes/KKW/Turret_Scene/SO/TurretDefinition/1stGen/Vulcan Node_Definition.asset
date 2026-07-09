@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Vulcan Node_Definition
   m_EditorClassIdentifier: Assembly-CSharp::TurretDefinitionSO
   turretId: vulcan_node
-  displayName: Vulcan Node
+  displayName: 벌칸 노드
   shortDescription: "<nobr>\uD55C\uBC1C\uD55C\uBC1C\uC758</nobr> <nobr>\uD30C\uAD34\uB825\uC744</nobr>
     <nobr>\uADF9\uD55C\uC73C\uB85C</nobr> <nobr>\uB04C\uC5B4\uC62C\uB9B0</nobr> <nobr>\uC911\uD654\uAE30</nobr>
     <nobr>\uD3EC\uD0D1\uC785\uB2C8\uB2E4.</nobr> <nobr>\uAC15\uB825\uD55C</nobr>

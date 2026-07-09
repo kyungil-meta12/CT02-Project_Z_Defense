@@ -21215,7 +21215,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0.000061035156, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 36, y: 80}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &444196494
@@ -67682,7 +67682,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1057609490946825435, guid: 5447a8e65cc5c35478f930cdecc0f4a8, type: 3}
       propertyPath: initialWalletCurrencies.Array.data[0].amount
-      value: 500
+      value: 2147483647
       objectReference: {fileID: 0}
     - target: {fileID: 1057609490946825435, guid: 5447a8e65cc5c35478f930cdecc0f4a8, type: 3}
       propertyPath: initialWalletCurrencies.Array.data[1].amount
@@ -68763,7 +68763,7 @@ MonoBehaviour:
       m_Calls: []
   m_text: '[Sentinel-01]'
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 2f19c5723d5938144a3d2cff85a107c1, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
@@ -68830,7 +68830,7 @@ MonoBehaviour:
   m_margin: {x: 0, y: 0, z: 0, w: 0}
   m_isUsingLegacyAnimationComponent: 0
   m_isVolumetricText: 0
-  m_hasFontAssetChanged: 0
+  m_hasFontAssetChanged: 1
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
 --- !u!222 &1249991742
@@ -81200,7 +81200,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 1, y: 0.5}
   m_AnchorMax: {x: 1, y: 0.5}
-  m_AnchoredPosition: {x: -48.11589, y: 199.29997}
+  m_AnchoredPosition: {x: -48.115845, y: 199.29997}
   m_SizeDelta: {x: 120, y: 120}
   m_Pivot: {x: 1, y: 0.5}
 --- !u!114 &1458140081
@@ -89939,7 +89939,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0.88238525, y: -338.58118}
+  m_AnchoredPosition: {x: 0.8823242, y: -338.58118}
   m_SizeDelta: {x: -37.0604, y: -1576.2003}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1649835281
@@ -98470,7 +98470,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f85c52382d6ac9143a2d631cda87fbf0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::FeelManager
-  enableAttackFeedback: 1
+  enableAttackFeedback: 0
   attackFeedback: {fileID: 1177937658}
   tankSkillFeedback: {fileID: 1218842725}
   boomerSkillFeedback: {fileID: 1067577014}
@@ -104490,7 +104490,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0.88238525, y: -380.63025}
+  m_AnchoredPosition: {x: 0.8823242, y: -380.63025}
   m_SizeDelta: {x: -41.3325, y: -1659.9161}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1909869293
@@ -111924,10 +111924,10 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Sentinel-01
+  m_text: "\uC13C\uD2F0\uB110 \uD3EC\uC2A4\uD2B8"
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
-  m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 2f19c5723d5938144a3d2cff85a107c1, type: 2}
+  m_sharedMaterial: {fileID: 8627694614124292958, guid: 2f19c5723d5938144a3d2cff85a107c1, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []

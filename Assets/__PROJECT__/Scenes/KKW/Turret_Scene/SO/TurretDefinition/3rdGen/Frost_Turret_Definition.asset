@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Frost_Turret_Definition
   m_EditorClassIdentifier: Assembly-CSharp::TurretDefinitionSO
   turretId: frost_turret
-  displayName: Frost_Turret
+  displayName: 글레이셜 코어
   shortDescription: "<nobr>\uAE30\uC220\uC758</nobr> <nobr>\uADF9\uD55C\uC5D0</nobr>
     <nobr>\uB3C4\uB2EC\uD55C</nobr> <nobr>\uCD5C\uCCA8\uB2E8</nobr> <nobr>\uBE59\uACB0</nobr>
     <nobr>\uC81C\uC5B4</nobr> <nobr>\uD3EC\uD0D1\uC785\uB2C8\uB2E4.</nobr> <nobr>\uB2E4\uC218\uC758</nobr>

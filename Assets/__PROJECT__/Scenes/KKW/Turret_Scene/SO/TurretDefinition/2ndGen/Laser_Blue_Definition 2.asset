@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Laser_Blue_Definition 2
   m_EditorClassIdentifier: Assembly-CSharp::TurretDefinitionSO
   turretId: laser_blue_2
-  displayName: Laser_Blue_2
+  displayName: 블루 랜스
   shortDescription: "<nobr>\uCF54\uC5B4</nobr> <nobr>\uB0C9\uAC01</nobr> <nobr>\uC131\uB2A5\uC744</nobr>
     <nobr>\uAC1C\uC120\uD558\uC5EC</nobr> <nobr>\uC5F0\uC0AC</nobr> <nobr>\uC18D\uB3C4\uB97C</nobr>
     <nobr>\uD55C\uCE35</nobr> <nobr>\uB354</nobr> <nobr>\uB04C\uC5B4\uC62C\uB9B0</nobr>

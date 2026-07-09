@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Machinegun_Red_Definition 1
   m_EditorClassIdentifier: Assembly-CSharp::TurretDefinitionSO
   turretId: machinegun_red_1
-  displayName: Machinegun_Red_1
+  displayName: 레드 MG
   shortDescription: "<nobr>\uBD88\uAF43\uCC98\uB7FC</nobr> <nobr>\uBD89\uC740</nobr>
     <nobr>\uB300\uAD6C\uACBD</nobr> <nobr>\uD0C4\uD658\uC744</nobr> <nobr>\uBC1C\uC0AC\uD558\uB294</nobr>
     <nobr>\uC911\uD654\uAE30</nobr> <nobr>\uAE30\uAD00\uCD1D</nobr> <nobr>\uD3EC\uD0D1\uC785\uB2C8\uB2E4.</nobr>

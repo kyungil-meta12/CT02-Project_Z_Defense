@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Lethal_Red_Definition 3
   m_EditorClassIdentifier: Assembly-CSharp::TurretDefinitionSO
   turretId: lethal_red_3
-  displayName: Lethal_Red_3
+  displayName: 엠버 저지먼트
   shortDescription: "<nobr>\uD589\uC131</nobr> <nobr>\uAC1C\uCC99\uC6A9</nobr> <nobr>\uD14C\uB974\uBBF8\uD2B8</nobr>
     <nobr>\uACF5\uC815\uC744</nobr> <nobr>\uBB34\uAE30\uC5D0</nobr> <nobr>\uC811\uBAA9\uD55C</nobr>
     <nobr>\uD654\uB825</nobr> <nobr>\uC885\uACB0\uD615</nobr> <nobr>\uD3EC\uD0D1\uC785\uB2C8\uB2E4.</nobr>

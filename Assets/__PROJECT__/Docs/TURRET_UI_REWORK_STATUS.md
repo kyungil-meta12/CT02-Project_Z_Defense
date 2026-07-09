@@ -421,6 +421,11 @@ Detail_Popup_Panel
 - 터렛 표시명은 UI 노출용 이름만 교체한다. ScriptableObject 에셋명, 프리팹명, GUID, 안정 ID는 별도 작업 전까지 유지한다.
 - 한글 표시명은 영어식 발음을 한글로 표기한 톤을 사용하고, 영문 표시명은 같은 의미의 UI 표기명으로 관리한다.
 
+### Implementation Status
+
+- 2026-07-09: `TurretDefinitionSO.displayName`, `TurretShopEntrySO.displayName`, `TurretEvolutionEntry.displayName`에 한글 표시명을 적용했다.
+- 2026-07-09: 진화 후보명 조회는 목표 `TurretDefinitionSO.displayName`을 우선하고, 목표 정의가 없을 때만 `TurretEvolutionEntry.displayName`을 fallback으로 사용한다.
+
 ### Display Name Mapping
 
 | Current `turretName` | Korean Display Name | English Display Name |

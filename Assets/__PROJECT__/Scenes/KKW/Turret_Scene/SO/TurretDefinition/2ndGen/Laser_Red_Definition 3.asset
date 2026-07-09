@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Laser_Red_Definition 3
   m_EditorClassIdentifier: Assembly-CSharp::TurretDefinitionSO
   turretId: laser_red_3
-  displayName: Laser_Red_3
+  displayName: 레드 저지먼트
   shortDescription: "<nobr>\uACE0\uBC00\uB3C4</nobr> <nobr>\uC785\uC790</nobr> <nobr>\uCDA9\uC804\uC744</nobr>
     <nobr>\uD1B5\uD574</nobr> <nobr>\uD30C\uAD34\uC801\uC778</nobr> <nobr>\uC77C\uACA9\uC744</nobr>
     <nobr>\uB0A0\uB9AC\uB294</nobr> <nobr>\uC885\uACB0\uD615</nobr> <nobr>\uD3EC\uD0D1\uC785\uB2C8\uB2E4.</nobr>

@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Plasma_Yellow_Definition 3
   m_EditorClassIdentifier: Assembly-CSharp::TurretDefinitionSO
   turretId: plasma_yellow_3
-  displayName: Plasma_Yellow_3
+  displayName: 선 코어
   shortDescription: "<nobr>\uCF54\uC5B4\uC758</nobr> <nobr>\uC5D0\uB108\uC9C0\uB97C</nobr>
     <nobr>\uD55C\uBC88\uC5D0</nobr> <nobr>\uD3ED\uBC1C\uC2DC\uCF1C</nobr> <nobr>\uC801\uB4E4\uC744</nobr>
     <nobr>\uC9D1\uC5B4\uC0BC\uD0A4\uB294</nobr> <nobr>\uC885\uACB0\uD615</nobr> <nobr>\uD3EC\uD0D1\uC785\uB2C8\uB2E4.</nobr>

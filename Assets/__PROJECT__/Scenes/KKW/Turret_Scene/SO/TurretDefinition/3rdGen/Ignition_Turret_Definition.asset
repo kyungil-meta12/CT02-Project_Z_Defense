@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Ignition_Turret_Definition
   m_EditorClassIdentifier: Assembly-CSharp::TurretDefinitionSO
   turretId: ignition_turret
-  displayName: Ignition_Turret
+  displayName: 인페르노 코어
   shortDescription: "<nobr>\uCD08\uACE0\uC628\uC758</nobr> <nobr>\uC5F4\uC5D0\uB108\uC9C0\uB97C</nobr>
     <nobr>\uBC29\uCD9C\uD574</nobr> <nobr>\uC804\uBC29\uC744</nobr> <nobr>\uCD08\uD1A0\uD654\uD558\uB294</nobr>
     <nobr>\uAD11\uC5ED</nobr> <nobr>\uC18C\uAC01</nobr> <nobr>\uD3EC\uD0D1\uC785\uB2C8\uB2E4.</nobr>

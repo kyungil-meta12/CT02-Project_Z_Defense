@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Poison_Turret_Definition
   m_EditorClassIdentifier: Assembly-CSharp::TurretDefinitionSO
   turretId: poison_turret
-  displayName: Poison_Turret
+  displayName: 베놈 리액터
   shortDescription: "<nobr>\uCE58\uBA85\uC801</nobr> <nobr>\uB3C5\uC18C\uB97C</nobr>
     <nobr>\uD65C\uC6A9\uD574</nobr> <nobr>\uC804\uC7A5\uC744</nobr> <nobr>\uC624\uC5FC\uC2DC\uD0A4\uB294</nobr>
     <nobr>\uBB34\uC2DC\uBB34\uC2DC\uD55C</nobr> <nobr>\uD654\uD559</nobr> <nobr>\uD3EC\uD0D1\uC785\uB2C8\uB2E4.</nobr>

@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Lethal_Green_Definition 2
   m_EditorClassIdentifier: Assembly-CSharp::TurretDefinitionSO
   turretId: lethal_green_2
-  displayName: Lethal_Green_2
+  displayName: 그린 피어스
   shortDescription: "<nobr>\uD22C\uC0AC\uCCB4\uC758</nobr> <nobr>\uD68C\uC804</nobr>
     <nobr>\uC548\uC815\uC131\uC744</nobr> <nobr>\uB192\uC5EC</nobr> <nobr>\uB354</nobr>
     <nobr>\uC9D9\uC740</nobr> <nobr>\uB179\uC0C9</nobr> <nobr>\uC5D0\uB108\uC9C0</nobr>

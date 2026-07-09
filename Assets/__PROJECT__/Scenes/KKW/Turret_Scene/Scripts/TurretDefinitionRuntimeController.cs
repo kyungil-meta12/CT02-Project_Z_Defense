@@ -777,12 +777,13 @@ public class TurretDefinitionRuntimeController : MonoBehaviour
             return string.Empty;
         }
 
-        if (!string.IsNullOrWhiteSpace(entry.displayName))
+        string targetDefinitionName = GetDefinitionName(entry.targetDefinition);
+        if (!string.IsNullOrWhiteSpace(targetDefinitionName))
         {
-            return entry.displayName;
+            return targetDefinitionName;
         }
 
-        return GetDefinitionName(entry.targetDefinition);
+        return string.IsNullOrWhiteSpace(entry.displayName) ? string.Empty : entry.displayName;
     }
 
     // 현재 터렛 정의의 로그용 표시 이름을 반환한다

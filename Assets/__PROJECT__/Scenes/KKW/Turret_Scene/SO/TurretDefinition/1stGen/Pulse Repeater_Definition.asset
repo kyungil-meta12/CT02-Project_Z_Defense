@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Pulse Repeater_Definition
   m_EditorClassIdentifier: Assembly-CSharp::TurretDefinitionSO
   turretId: pulse_repeater
-  displayName: Pulse Repeater
+  displayName: 펄스 리피터
   shortDescription: "<nobr>\uADF9\uB300\uD654\uB41C</nobr> <nobr>\uC5F0\uC0AC</nobr>
     <nobr>\uBA54\uCEE4\uB2C8\uC998\uC744</nobr> <nobr>\uD0D1\uC7AC\uD55C</nobr> <nobr>\uACE0\uC18D</nobr>
     <nobr>\uD3EC\uD0D1\uC785\uB2C8\uB2E4.</nobr> <nobr>\uC274</nobr> <nobr>\uC0C8</nobr>

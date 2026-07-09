@@ -35,10 +35,14 @@ public class TurretEvolutionPopupUI : TurretPopupPageUI
     [Header("버튼")]
     [SerializeField] private Button evolutionButton;
 
+    [Header("현재 터렛")]
+    [SerializeField] private TMP_Text currentTurretNameText;
+
     [Header("진화 실행")]
     [SerializeField] private bool replacePrefabOnEvolution = true;
 
     private int selectedEvolutionIndex;
+    private string currentTurretNameTextTemplate;
     private Image[] nextTurretFrameImages = System.Array.Empty<Image>();
     private Color[] nextTurretFrameDefaultColors = System.Array.Empty<Color>();
     private Button[] evolutionCandidateButtons = System.Array.Empty<Button>();
@@ -59,8 +63,10 @@ public class TurretEvolutionPopupUI : TurretPopupPageUI
     protected override void Awake()
     {
         base.Awake();
+        BindChildReferences();
         ValidateRequiredReferences();
         CacheResourceDefaultSprites();
+        CacheTextTemplates();
         BindButtonListeners();
     }
 
@@ -94,6 +100,7 @@ public class TurretEvolutionPopupUI : TurretPopupPageUI
     public override void Show(TurretSelectionContext context)
     {
         base.Show(context);
+        CacheTextTemplates();
         ClearCandidatePressState();
         RefreshEvolutionTexts();
     }
@@ -107,6 +114,7 @@ public class TurretEvolutionPopupUI : TurretPopupPageUI
         twoBranchPanel = twoBranchPanel != null ? twoBranchPanel : FindChildGameObject(searchRoot, PANEL_B_PATH);
         fourBranchPanel = fourBranchPanel != null ? fourBranchPanel : FindChildGameObject(searchRoot, PANEL_C_PATH);
         evolutionButton = evolutionButton != null ? evolutionButton : FindFirstChildComponent<Button>(searchRoot, BACKGROUND_PATH + "/LowPanel/EvolutionFrame/EvolutionTextFrame", BACKGROUND_PATH + "/LowPanel/EvolutionFrame/Evolution");
+        currentTurretNameText = currentTurretNameText != null ? currentTurretNameText : FindFirstChildComponent<TMP_Text>(searchRoot, BACKGROUND_PATH + "/HighPanel/CurrentTurretFrame/CurrentTurretName");
         turretInfoPopup = turretInfoPopup != null ? turretInfoPopup : ResolveTurretInfoPopup(searchRoot);
         BindBranchPanelReferences();
         BindResourceSlotReferences(searchRoot);
@@ -125,6 +133,7 @@ public class TurretEvolutionPopupUI : TurretPopupPageUI
         {
             selectedEvolutionIndex = 0;
             EvolutionBranchPanelData emptyPanel = SetActiveBranchPanel(0);
+            RefreshCurrentTurretHeader(string.Empty);
             SetCostTexts(System.Array.Empty<ResourceCost>());
             SetInteractable(false);
             ApplyCandidateSelectionHighlights(emptyPanel);
@@ -134,9 +143,25 @@ public class TurretEvolutionPopupUI : TurretPopupPageUI
         int availableCount = Mathf.Min(CurrentContext.Turret.GetAvailableEvolutionCount(), MAX_EVOLUTION_SLOT_COUNT);
         selectedEvolutionIndex = Mathf.Clamp(selectedEvolutionIndex, 0, Mathf.Max(0, availableCount - 1));
         EvolutionBranchPanelData activePanel = SetActiveBranchPanel(availableCount);
+        RefreshCurrentTurretHeader(CurrentContext.GetDisplayName());
         RefreshCurrentTurretSlots(activePanel);
         RefreshEvolutionCandidateSlots(activePanel, availableCount);
         RefreshSelectedEvolutionDetails(activePanel);
+    }
+
+    // 상단 현재 터렛 이름 텍스트를 선택된 터렛 표시명으로 갱신한다
+    private void RefreshCurrentTurretHeader(string displayName)
+    {
+        SetText(currentTurretNameText, ApplyNameTemplate(currentTurretNameTextTemplate, displayName));
+    }
+
+    // TMP 원문 템플릿을 보관해 괄호와 고정 문구를 유지한다
+    private void CacheTextTemplates()
+    {
+        if (currentTurretNameText != null && string.IsNullOrEmpty(currentTurretNameTextTemplate))
+        {
+            currentTurretNameTextTemplate = currentTurretNameText.text;
+        }
     }
 
     // 현재 선택된 후보 인덱스로 진화를 실행한다
@@ -1001,6 +1026,42 @@ public class TurretEvolutionPopupUI : TurretPopupPageUI
         {
             targetText.text = value;
         }
+    }
+
+    // 템플릿 안의 이름 자리표시자를 실제 터렛 이름으로 교체한다
+    private static string ApplyNameTemplate(string template, string value)
+    {
+        if (string.IsNullOrEmpty(template))
+        {
+            return value;
+        }
+
+        if (TryApplyDelimitedTemplate(template, value, '{', '}', out string braceResult))
+        {
+            return braceResult;
+        }
+
+        if (TryApplyDelimitedTemplate(template, value, '[', ']', out string bracketResult))
+        {
+            return bracketResult;
+        }
+
+        return value;
+    }
+
+    // 지정 구분자 사이의 텍스트를 실제 값으로 교체한다
+    private static bool TryApplyDelimitedTemplate(string template, string value, char openToken, char closeToken, out string result)
+    {
+        result = value;
+        int openIndex = template.IndexOf(openToken);
+        int closeIndex = template.IndexOf(closeToken, openIndex + 1);
+        if (openIndex < 0 || closeIndex < 0 || closeIndex <= openIndex)
+        {
+            return false;
+        }
+
+        result = template.Substring(0, openIndex + 1) + value + template.Substring(closeIndex);
+        return true;
     }
 
     // 지정 오브젝트의 활성 상태를 안전하게 변경한다

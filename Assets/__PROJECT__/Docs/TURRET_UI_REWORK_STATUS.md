@@ -404,6 +404,8 @@ Detail_Popup_Panel
 - `TurretTechTreeUIController`에 `treeScrollRect`와 `openedScrollNormalizedPosition`을 추가했다.
 - 터렛 트리 팝업을 열 때 `ScrollRect.normalizedPosition`을 `(0.5, 0)`으로 초기화해 중앙 하단에서 시작하도록 했다.
 - `Canvas > TurretTechTreePanel > CloseButton`을 추가하고 `Button.OnClick`을 `TurretTechTreeUIController.Hide()`에 연결했다.
+- `TurretTechTreePanel > Scroll View`의 양방향 드래그 탐색은 유지하되, 기본 `Scrollbar Horizontal`/`Scrollbar Vertical`은 ScrollRect 참조에서 제거하고 오브젝트를 비활성화했다.
+- `TurretTechTreeZoomController`를 `Scroll View`에 추가해 PC 마우스 휠 확대/축소와 모바일 두 손가락 핀치 확대/축소를 지원한다.
 
 ### Current Setup Rule
 
@@ -411,6 +413,10 @@ Detail_Popup_Panel
 - 닫기 버튼은 `TurretTechTreePanel`의 직접 자식으로 두고, Hierarchy에서 Scroll View보다 뒤쪽에 배치해 화면 위에 렌더링되도록 한다.
 - 터렛 트리 시작 위치는 씬에 저장된 Content 위치와 `TurretTechTreeUIController.openedScrollNormalizedPosition`이 함께 담당한다. 루트 노드 중앙 하단 시작이 필요하면 기본값 `(0.5, 0)`을 유지한다.
 - 수동으로 마지막 스크롤 위치를 유지하는 UX가 필요해지기 전까지는 팝업을 열 때마다 중앙 하단으로 초기화한다.
+- 터렛 트리는 마우스/터치 드래그로 탐색한다. Scrollbar는 시각 노이즈를 줄이기 위해 숨긴 상태를 유지하고, 필요하면 별도 안내 문구나 배경 패턴으로 드래그 가능성을 표현한다.
+- 터렛 트리 확대/축소는 `Content.localScale`을 조정하며, 포인터 또는 핀치 중심 기준으로 `Content.anchoredPosition`을 보정해 화면 중심이 튀지 않게 한다.
+- PC 마우스 휠은 ScrollRect 이동이 아니라 확대/축소 전용 입력이다. `ScrollRect.scrollSensitivity`는 0으로 유지하고, 드래그 이동은 기존 ScrollRect 드래그로 처리한다.
+- 모바일 핀치 중에는 첫 번째 터치가 ScrollRect 드래그로 동시에 처리되지 않도록 `ScrollRect`를 임시 비활성화하고, 핀치 종료 시 복구한다.
 
 ## 2026-07-08 Turret Tech Tree Inspector Reference Hardening
 

@@ -54,7 +54,7 @@ namespace WaypointsFree
         
 
 
-        int positionIndex = -1; // Index of the next waypoint to move toward
+        public int positionIndex = -1; // Index of the next waypoint to move toward
         List<Waypoint> waypointsList; //Reference to the list of waypoints located in Waypoints 
 
 
@@ -346,29 +346,60 @@ namespace WaypointsFree
             // LookatSpeed is 0; no rotating...
             if (LookAtSpeed <= 0) return;
 
-            float step = LookAtSpeed * Time.deltaTime;
+            // float step = LookAtSpeed * Time.deltaTime;
+            // Vector3 targetDir = nextPosition - transform.position;
+
+
+            // if (XYZConstraint == PositionConstraint.XY)
+            // {
+            //     float angle = Mathf.Atan2(targetDir.y, targetDir.x) * Mathf.Rad2Deg - 90;
+            //     Quaternion qt = Quaternion.AngleAxis(angle, Vector3.forward);
+            //     transform.rotation = Quaternion.RotateTowards(transform.rotation, qt, step);
+            // }
+
+            // else if (XYZConstraint == PositionConstraint.XZ)
+            // {
+            //     float angle = Mathf.Atan2(targetDir.x, targetDir.z) * Mathf.Rad2Deg;
+            //     Quaternion qt = Quaternion.AngleAxis(angle, Vector3.up);
+            //     transform.rotation = Quaternion.RotateTowards(transform.rotation, qt, step);
+            // }
+            // else
+            // {
+            //     Vector3 newDir = Vector3.RotateTowards(transform.forward, targetDir, step, 0.0f);
+            //     // Move our position a step closer to the target.
+            //     transform.rotation = Quaternion.LookRotation(newDir);
+
+            // }
+
+            float t = LookAtSpeed * Time.deltaTime;
             Vector3 targetDir = nextPosition - transform.position;
 
+            // 타겟 방향이 제로 벡터라면 계산하지 않음 (오류 방지)
+            if (targetDir.sqrMagnitude < 0.001f) return;
 
             if (XYZConstraint == PositionConstraint.XY)
             {
                 float angle = Mathf.Atan2(targetDir.y, targetDir.x) * Mathf.Rad2Deg - 90;
-                Quaternion qt = Quaternion.AngleAxis(angle, Vector3.forward);
-                transform.rotation = Quaternion.RotateTowards(transform.rotation, qt, step);
+                Quaternion targetRotation = Quaternion.AngleAxis(angle, Vector3.forward);
+                
+                // RotateTowards 대신 Slerp 적용
+                transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, t);
             }
-
             else if (XYZConstraint == PositionConstraint.XZ)
             {
                 float angle = Mathf.Atan2(targetDir.x, targetDir.z) * Mathf.Rad2Deg;
-                Quaternion qt = Quaternion.AngleAxis(angle, Vector3.up);
-                transform.rotation = Quaternion.RotateTowards(transform.rotation, qt, step);
+                Quaternion targetRotation = Quaternion.AngleAxis(angle, Vector3.up);
+                
+                // RotateTowards 대신 Slerp 적용
+                transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, t);
             }
             else
             {
-                Vector3 newDir = Vector3.RotateTowards(transform.forward, targetDir, step, 0.0f);
-                // Move our position a step closer to the target.
-                transform.rotation = Quaternion.LookRotation(newDir);
-
+                // XYZ 3차원 회전 처리
+                Quaternion targetRotation = Quaternion.LookRotation(targetDir);
+                
+                // 기존의 Vector3.RotateTowards + LookRotation 대신 Slerp 적용
+                transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, t);
             }
 
         }

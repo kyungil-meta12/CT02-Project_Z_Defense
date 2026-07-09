@@ -245,6 +245,7 @@ internal static class TurretBalanceReportGraphRenderer
     private static readonly Color EvolutionEndColor = new Color(0.68f, 0.34f, 0.92f);
     private static readonly string[] AxisGroupLabels = { "HP", "배율", "재화" };
     private static readonly Dictionary<int, GUIStyle> ColoredToggleStyleCache = new Dictionary<int, GUIStyle>();
+    private static readonly GUIContent ReusableToggleLabelContent = new GUIContent();
     private static Vector3[] reusablePointBuffer = new Vector3[0];
     private static bool[] reusableValidPointBuffer = new bool[0];
 
@@ -546,7 +547,8 @@ internal static class TurretBalanceReportGraphRenderer
     // 토글 라벨 길이에 맞는 폭을 계산한다
     private static float CalculateToggleWidth(string label)
     {
-        float width = EditorStyles.label.CalcSize(GUIContent.Temp(label)).x + TOGGLE_LABEL_PADDING;
+        ReusableToggleLabelContent.text = label;
+        float width = EditorStyles.label.CalcSize(ReusableToggleLabelContent).x + TOGGLE_LABEL_PADDING;
         return Mathf.Clamp(width, TOGGLE_MIN_WIDTH, TOGGLE_MAX_WIDTH);
     }
 

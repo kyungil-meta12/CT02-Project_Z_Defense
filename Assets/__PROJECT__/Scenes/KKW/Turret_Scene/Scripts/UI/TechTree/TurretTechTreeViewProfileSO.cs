@@ -40,11 +40,15 @@ public class TurretTechTreeViewProfileSO : ScriptableObject
     [SerializeField, Min(0.0f)] private float previewVideoFadeInDuration = 0.5f;
     [SerializeField, Min(0.0f)] private float previewVideoFadeOutDuration = 0.5f;
 
+    [Header("상태 연출")]
+    [SerializeField] private bool useReadyPulse;
+
     public TurretDefinitionSO[] DefaultUnlockedDefinitions => defaultUnlockedDefinitions;
     public TurretTechTreeNodeViewData[] Nodes => nodes;
     public bool UsePreviewVideoFade => usePreviewVideoFade;
     public float PreviewVideoFadeInDuration => previewVideoFadeInDuration;
     public float PreviewVideoFadeOutDuration => previewVideoFadeOutDuration;
+    public bool UseReadyPulse => useReadyPulse;
 
     // 지정 터렛 정의에 맞는 노드 표시 데이터를 찾는다
     public TurretTechTreeNodeViewData FindNodeData(TurretDefinitionSO definition)

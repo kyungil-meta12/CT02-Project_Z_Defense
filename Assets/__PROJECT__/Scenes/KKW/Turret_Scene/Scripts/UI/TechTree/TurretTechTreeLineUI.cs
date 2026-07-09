@@ -66,7 +66,7 @@ public class TurretTechTreeLineUI : MonoBehaviour
 
         Color color = profile == null ? Color.white : profile.GetLineColor(state);
         baseColor = color;
-        isPulseActive = state == TurretTechTreeNodeState.Ready;
+        isPulseActive = profile != null && profile.UseReadyPulse && state == TurretTechTreeNodeState.Ready;
 
         if (lineGraphic != null)
         {

@@ -124,7 +124,8 @@ public class TurretTechTreeNodeUI : MonoBehaviour
             stateText.text = profile == null ? string.Empty : profile.GetStateText(state);
         }
 
-        SetPulseActive(state == TurretTechTreeNodeState.Ready, profile == null ? Color.white : profile.GetLineColor(state));
+        bool useReadyPulse = profile != null && profile.UseReadyPulse;
+        SetPulseActive(useReadyPulse && state == TurretTechTreeNodeState.Ready, profile == null ? Color.white : profile.GetLineColor(state));
     }
 
     // 노드 클릭을 상위 컨트롤러에 전달한다

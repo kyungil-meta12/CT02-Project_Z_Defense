@@ -147,18 +147,19 @@ MonoBehaviour:
     overrideIcon: {fileID: 0}
     previewClip: {fileID: 32900000, guid: 585a4ffb317842545a20af94d086e36c, type: 3}
     previewDescription: 
-  lockedNodeColor: {r: 0.35, g: 0.37, b: 0.42, a: 0.38}
-  blockedByLevelNodeColor: {r: 0.48, g: 0.62, b: 0.78, a: 0.68}
-  blockedByCostNodeColor: {r: 1, g: 0.66, b: 0.22, a: 0.78}
+  lockedNodeColor: {r: 1, g: 1, b: 1, a: 1}
+  blockedByLevelNodeColor: {r: 1, g: 1, b: 1, a: 1}
+  blockedByCostNodeColor: {r: 1, g: 1, b: 1, a: 1}
   readyNodeColor: {r: 1, g: 1, b: 1, a: 1}
   unlockedNodeColor: {r: 1, g: 1, b: 1, a: 1}
-  lockedLineColor: {r: 0.24, g: 0.26, b: 0.3, a: 0.35}
-  blockedByLevelLineColor: {r: 0.42, g: 0.58, b: 0.76, a: 0.62}
-  blockedByCostLineColor: {r: 1, g: 0.66, b: 0.22, a: 0.66}
-  readyLineColor: {r: 0.2, g: 0.95, b: 1, a: 0.95}
-  unlockedLineColor: {r: 0.75, g: 0.95, b: 1, a: 0.9}
+  lockedLineColor: {r: 1, g: 1, b: 1, a: 1}
+  blockedByLevelLineColor: {r: 1, g: 1, b: 1, a: 1}
+  blockedByCostLineColor: {r: 1, g: 1, b: 1, a: 1}
+  readyLineColor: {r: 1, g: 1, b: 1, a: 1}
+  unlockedLineColor: {r: 1, g: 1, b: 1, a: 1}
   lockedText: "\uC774\uC804 \uD130\uB81B \uD544\uC694"
   blockedByLevelText: "\uB808\uBCA8 \uBD80\uC871"
   blockedByCostText: "\uC7AC\uB8CC \uBD80\uC871"
   readyText: "\uC9C4\uD654 \uAC00\uB2A5"
   unlockedText: "\uD574\uAE08 \uC644\uB8CC"
+  useReadyPulse: 0

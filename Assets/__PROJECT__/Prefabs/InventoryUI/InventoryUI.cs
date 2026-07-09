@@ -2,6 +2,7 @@ using IncrementalLib;
 using System;
 using System.Collections.Generic;
 using TMPro;
+using UnityEditorInternal;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -23,6 +24,7 @@ public struct ContentData
     public GameObject Content;
     public Button TabButton;
     public Button FunctionButton;
+    public Toggle FunctionToggle;
 }
 
 public class CellData {
@@ -153,6 +155,8 @@ public class InventoryUI : TouchBackHandler
 
     [Header("자동 실행 진입 시간")] public float autoExecuteEnterTime;
     [Header("자동 실행 간격")] public float autoExecuteInterval;
+
+    public bool BatchWorkMode { get; set; } = false;
 
     private EventTrigger makeButtonEvent;
     private TextMeshProUGUI makeButtonText;
@@ -662,20 +666,43 @@ public class InventoryUI : TouchBackHandler
     {
         var metaData = InventorySystem.Inst.GetMetaData(selectedType);
         var decompItems = metaData.ItemsFromDecompose;
-        foreach(var item in decompItems)
+
+        if(BatchWorkMode) // 일괄 작업이 활성화 되었을 경우 더 이상 분해가 불가능할때까지 반복한다.
         {
-            var randomCount = UnityEngine.Random.Range(item.Min, item.Max + 1);
-            InventorySystem.Inst.AddItem(item.Type, randomCount);
-            // 피드백 표시
-            if(randomCount > 0)
+            while(decomposeButton.interactable)
             {
-                var addedItemViewer = itemViewerButtonList.Find(bt => bt.Type == item.Type);
-                addedItemViewer.T.localScale = originItemViewerTextScale * 1.3f;
+                InventorySystem.Inst.UseItem(selectedType, 1);
+
+                foreach(var item in decompItems)
+                {
+                    var randomCount = UnityEngine.Random.Range(item.Min, item.Max + 1);
+                    InventorySystem.Inst.AddItem(item.Type, randomCount);
+                    // 피드백 표시
+                    if(randomCount > 0)
+                    {
+                        var addedItemViewer = itemViewerButtonList.Find(bt => bt.Type == item.Type);
+                        addedItemViewer.T.localScale = originItemViewerTextScale * 1.3f;
+                    }
+                }
+            }
+        }
+        else
+        {
+            InventorySystem.Inst.UseItem(selectedType, 1);
+
+            foreach(var item in decompItems)
+            {
+                var randomCount = UnityEngine.Random.Range(item.Min, item.Max + 1);
+                InventorySystem.Inst.AddItem(item.Type, randomCount);
+                // 피드백 표시
+                if(randomCount > 0)
+                {
+                    var addedItemViewer = itemViewerButtonList.Find(bt => bt.Type == item.Type);
+                    addedItemViewer.T.localScale = originItemViewerTextScale * 1.3f;
+                }
             }
         }
 
-        // 분해된 아이템 획득
-        InventorySystem.Inst.UseItem(selectedType, 1);
         print("[InventoryUI] 아이템 분해 완료");
     }
 
@@ -686,13 +713,28 @@ public class InventoryUI : TouchBackHandler
     {
         var metaData = InventorySystem.Inst.GetMetaData(selectedType);
         var needItems = metaData.ItemsToCreate;
-        foreach(var item in needItems)
+
+        if(BatchWorkMode) // 일괄 작업이 활성화 되었을 경우 더 이상 제작할 수 없을 때까지 반복한다.
         {
-            InventorySystem.Inst.UseItem(item.Type, item.Count);
+            while(makeButton.interactable)
+            {
+                 foreach(var item in needItems)
+                {
+                    InventorySystem.Inst.UseItem(item.Type, item.Count);
+                }
+                InventorySystem.Inst.AddItem(selectedType, metaData.CountPerCraft);
+            }
+        }
+        else
+        {
+            foreach(var item in needItems)
+            {
+                InventorySystem.Inst.UseItem(item.Type, item.Count);
+            }
+            InventorySystem.Inst.AddItem(selectedType, metaData.CountPerCraft);
         }
 
         // 아이템 제작
-        InventorySystem.Inst.AddItem(selectedType, metaData.CountPerCraft);
         Debug.Log($"[InventoryUI] 아이템 제작 완료 | 아이템: {selectedType}");
 
         // 피드백 표시
@@ -735,11 +777,10 @@ public class InventoryUI : TouchBackHandler
         if(needItemData.ContainsKey(type))
         {
             var needData = needItemData[type];
-            bool hadItemEnough = InventorySystem.Inst.GetCount(type) > needData.Count;
             needItemText[type].text = needData.Count.ToString() + "/" + InventorySystem.Inst.GetCountString(type);
 
             // 개수가 부족하면 빨간색으로 표시한다.
-            needItemText[type].color = hadItemEnough ? Color.white : Color.softRed;
+            needItemText[type].color = InventorySystem.Inst.CanUseItem(type, needData.Count) ? Color.white : Color.softRed;
 
             bool itemEnough = true;
             foreach (var need in needItemData)
@@ -959,22 +1000,34 @@ public class InventoryUI : TouchBackHandler
         {
             c.Content.SetActive(false);
             SetButtonColor(c.TabButton, Color.black);
-            if(c.FunctionButton != null)
+            
+            if(c.FunctionButton)
             {
                 c.FunctionButton.gameObject.SetActive(false);
             }
+            if(c.FunctionToggle)
+            {
+                c.FunctionToggle.gameObject.SetActive(false);
+            }
         }
+
         var selected = contentDict[type];
         var selectedContent = selected.Content;
         var selectedTabButton = selected.TabButton;
         var selectedFunctionButton = selected.FunctionButton;
+        var selectedFunctionToggle = selected.FunctionToggle;
 
         selectedContent.SetActive(true);
         ResetScroll(selectedContent);
         SetButtonColor(selectedTabButton, selectedTabColor);
-        if(selectedFunctionButton != null)
+
+        if(selectedFunctionButton)
         {
             selectedFunctionButton.gameObject.SetActive(true);
+        }
+        if(selectedFunctionToggle)
+        {
+            selectedFunctionToggle.gameObject.SetActive(true);
         }
 
         ResetInfoArea();
@@ -1016,7 +1069,7 @@ public class InventoryUI : TouchBackHandler
                 bool itemEnough = true;
                 foreach (var items in needItems) // 아이템이 부족해서 제작이 불가능한 아이템은 아이콘을 어둡게 표시하고 텍스트를 빨간색으로 표시한다.
                 {
-                    if(InventorySystem.Inst.GetCount(items.Type) < items.Count)
+                    if(!InventorySystem.Inst.CanUseItem(items.Type, items.Count))
                     {
                         itemEnough = false;
                         break;

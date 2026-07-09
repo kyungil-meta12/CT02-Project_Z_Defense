@@ -464,6 +464,7 @@ GameObject:
   - component: {fileID: 6866162}
   - component: {fileID: 6866161}
   - component: {fileID: 6866160}
+  - component: {fileID: 6866163}
   m_Layer: 5
   m_Name: Scroll View
   m_TagString: Untagged
@@ -512,7 +513,7 @@ MonoBehaviour:
   m_Elasticity: 0.1
   m_Inertia: 1
   m_DecelerationRate: 0.135
-  m_ScrollSensitivity: 1
+  m_ScrollSensitivity: 0
   m_Viewport: {fileID: 1397042429}
   m_HorizontalScrollbar: {fileID: 0}
   m_VerticalScrollbar: {fileID: 0}
@@ -561,6 +562,28 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 6866158}
   m_CullTransparentMesh: 1
+--- !u!114 &6866163
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6866158}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f43ed139f7cf4bd6a71594ead5452671, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TurretTechTreeZoomController
+  scrollRect: {fileID: 6866160}
+  viewport: {fileID: 1397042429}
+  content: {fileID: 1482486607}
+  inputBlockerRoot: {fileID: 1524856353}
+  minZoom: 0.55
+  maxZoom: 1.6
+  defaultZoom: 1
+  mouseWheelStep: 0.12
+  pinchSensitivity: 1
+  resetZoomOnEnable: 1
 --- !u!1 &7521103
 GameObject:
   m_ObjectHideFlags: 0
@@ -105712,7 +105735,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &1928875167
 RectTransform:
   m_ObjectHideFlags: 0

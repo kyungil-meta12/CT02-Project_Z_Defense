@@ -4,7 +4,7 @@ public static class BillboardUtil
 {
     public static void SetBillboard(RectTransform rt, Camera mainCam)
     {
-        rt.rotation = mainCam.transform.rotation;
+        rt.localRotation = mainCam.transform.rotation;
     }
 
     public static void SetBillboardQuad(Transform t, Camera mainCam)

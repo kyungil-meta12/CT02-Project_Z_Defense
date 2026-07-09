@@ -20,7 +20,6 @@ public class TurretTechTreeDetailPopupUI : MonoBehaviour
     [Header("텍스트")]
     [SerializeField] private TMP_Text nameText;
     [SerializeField] private TMP_Text stateText;
-    [SerializeField] private TMP_Text descriptionText;
     [SerializeField] private TMP_Text damageText;
     [SerializeField] private TMP_Text rangeText;
     [SerializeField] private TMP_Text fireRateText;
@@ -127,7 +126,6 @@ public class TurretTechTreeDetailPopupUI : MonoBehaviour
         TurretDamagePolishProfileSO damagePolishProfile = definition.damagePolishProfile;
         SetText(nameText, ApplyNameTemplate(nameTextTemplate, GetDisplayName(definition)));
         SetText(stateText, profile == null ? string.Empty : profile.GetStateText(state));
-        HideDescriptionText();
         SetStatText(damageText, damageNumberText, damageTextTemplate, FormatValue(stat.damage));
         SetStatText(rangeText, rangeNumberText, rangeTextTemplate, FormatValue(stat.range));
         SetStatText(fireRateText, fireRateNumberText, fireRateTextTemplate, FormatValue(stat.fireInterval));
@@ -328,7 +326,6 @@ public class TurretTechTreeDetailPopupUI : MonoBehaviour
         closeButton = closeButton != null ? closeButton : FindComponentByName<Button>("ExitButton");
         nameText = nameText != null ? nameText : FindComponentByName<TMP_Text>("TurretNameText");
         stateText = stateText != null ? stateText : FindComponentByName<TMP_Text>("StateText");
-        descriptionText = descriptionText != null ? descriptionText : FindComponentByName<TMP_Text>("DescriptionText");
         damageText = damageText != null ? damageText : FindComponentByName<TMP_Text>("DamageText");
         rangeText = rangeText != null ? rangeText : FindComponentByName<TMP_Text>("RangeText");
         fireRateText = fireRateText != null ? fireRateText : FindComponentByName<TMP_Text>("FireRateText");
@@ -371,18 +368,6 @@ public class TurretTechTreeDetailPopupUI : MonoBehaviour
         {
             template = text.text;
         }
-    }
-
-    // 상세 설명 텍스트는 현재 팝업에서 사용하지 않으므로 숨긴다
-    private void HideDescriptionText()
-    {
-        if (descriptionText == null)
-        {
-            return;
-        }
-
-        descriptionText.text = string.Empty;
-        descriptionText.gameObject.SetActive(false);
     }
 
     // 닫기 버튼 클릭 이벤트를 등록한다

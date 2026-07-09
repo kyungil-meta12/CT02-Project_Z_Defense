@@ -14,12 +14,10 @@ public class TurretTechTreeLineUI : MonoBehaviour
     [Header("표시 참조")]
     [SerializeField] private Graphic lineGraphic;
 
-    [Header("연출")]
-    [SerializeField, Min(0.0f)] private float readyPulseSpeed = 2.6f;
-    [SerializeField, Range(0.0f, 1.0f)] private float readyPulseMinAlpha = 0.45f;
-    [SerializeField, Range(0.0f, 1.0f)] private float readyPulseMaxAlpha = 1.0f;
-
     private Color baseColor = Color.white;
+    private float pulseDuration = 2.0f;
+    private float pulseMinAlpha = 0.3f;
+    private float pulseMaxAlpha = 0.7f;
     private bool isPulseActive;
     private bool hasRequiredReferences;
 
@@ -42,7 +40,7 @@ public class TurretTechTreeLineUI : MonoBehaviour
         }
     }
 
-    // Ready 상태일 때 라인 펄스 투명도를 갱신한다
+    // 미완료 연결선의 펄스 투명도를 갱신한다
     private void Update()
     {
         if (!isPulseActive || lineGraphic == null)
@@ -50,9 +48,9 @@ public class TurretTechTreeLineUI : MonoBehaviour
             return;
         }
 
-        float pulse = (Mathf.Sin(Time.unscaledTime * readyPulseSpeed) + 1.0f) * 0.5f;
+        float pulse = (Mathf.Sin(Time.unscaledTime / pulseDuration * Mathf.PI * 2.0f) + 1.0f) * 0.5f;
         Color color = baseColor;
-        color.a = Mathf.Lerp(readyPulseMinAlpha, readyPulseMaxAlpha, pulse);
+        color.a = Mathf.Lerp(pulseMinAlpha, pulseMaxAlpha, pulse);
         lineGraphic.color = color;
     }
 
@@ -66,12 +64,29 @@ public class TurretTechTreeLineUI : MonoBehaviour
 
         Color color = profile == null ? Color.white : profile.GetLineColor(state);
         baseColor = color;
-        isPulseActive = profile != null && profile.UseReadyPulse && state == TurretTechTreeNodeState.Ready;
+        ApplyPulseSettings(profile);
+        isPulseActive = profile != null && profile.UseIncompleteLinePulse && state != TurretTechTreeNodeState.Unlocked;
 
         if (lineGraphic != null)
         {
             lineGraphic.color = color;
         }
+    }
+
+    // 프로필의 미완료 라인 펄스 설정을 적용한다
+    private void ApplyPulseSettings(TurretTechTreeViewProfileSO profile)
+    {
+        if (profile == null)
+        {
+            pulseDuration = 2.0f;
+            pulseMinAlpha = 0.3f;
+            pulseMaxAlpha = 0.7f;
+            return;
+        }
+
+        pulseDuration = Mathf.Max(0.1f, profile.IncompleteLinePulseDuration);
+        pulseMinAlpha = profile.IncompleteLinePulseMinAlpha;
+        pulseMaxAlpha = Mathf.Max(pulseMinAlpha, profile.IncompleteLinePulseMaxAlpha);
     }
 
     // 런타임에 필요한 인스펙터 참조가 모두 연결됐는지 확인한다

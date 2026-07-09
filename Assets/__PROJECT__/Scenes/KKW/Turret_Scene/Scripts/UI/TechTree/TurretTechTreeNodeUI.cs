@@ -14,20 +14,16 @@ public class TurretTechTreeNodeUI : MonoBehaviour
     [Header("표시 참조")]
     [SerializeField] private Image iconImage;
     [SerializeField] private Image frameImage;
-    [SerializeField] private Graphic pulseGraphic;
     [SerializeField] private TMP_Text nameText;
     [SerializeField] private TMP_Text stateText;
     [SerializeField] private Button button;
 
-    [Header("연출")]
-    [SerializeField, Min(0.0f)] private float readyPulseSpeed = 3.0f;
-    [SerializeField, Range(0.0f, 1.0f)] private float readyPulseMinAlpha = 0.35f;
-    [SerializeField, Range(0.0f, 1.0f)] private float readyPulseMaxAlpha = 0.95f;
+    [Header("상태 아이콘")]
+    [SerializeField] private GameObject lockIconRoot;
+    [SerializeField] private GameObject unlockIconRoot;
 
     private TurretTechTreeUIController owner;
     private TurretTechTreeNodeState currentState;
-    private Color pulseBaseColor = Color.white;
-    private bool isPulseActive;
     private bool hasRequiredReferences;
 
     public TurretDefinitionSO Definition => definition;
@@ -48,17 +44,20 @@ public class TurretTechTreeNodeUI : MonoBehaviour
         {
             stateText = texts[1];
         }
+
+        BindStateIconReferences();
+    }
+
+    // 에디터에서 자식 상태 아이콘 참조를 보조 연결한다
+    private void OnValidate()
+    {
+        BindStateIconReferences();
     }
 
     // 시작 전에 버튼 이벤트를 연결한다
     private void Awake()
     {
         hasRequiredReferences = ValidateRequiredReferences();
-        if (pulseGraphic != null)
-        {
-            pulseBaseColor = pulseGraphic.color;
-        }
-
         BindButton();
     }
 
@@ -66,20 +65,6 @@ public class TurretTechTreeNodeUI : MonoBehaviour
     private void OnDestroy()
     {
         UnbindButton();
-    }
-
-    // Ready 상태일 때 테두리 펄스 투명도를 갱신한다
-    private void Update()
-    {
-        if (!isPulseActive || pulseGraphic == null)
-        {
-            return;
-        }
-
-        float pulse = (Mathf.Sin(Time.unscaledTime * readyPulseSpeed) + 1.0f) * 0.5f;
-        Color color = pulseBaseColor;
-        color.a = Mathf.Lerp(readyPulseMinAlpha, readyPulseMaxAlpha, pulse);
-        pulseGraphic.color = color;
     }
 
     // 상위 터렛 트리 컨트롤러 참조를 설정한다
@@ -124,8 +109,7 @@ public class TurretTechTreeNodeUI : MonoBehaviour
             stateText.text = profile == null ? string.Empty : profile.GetStateText(state);
         }
 
-        bool useReadyPulse = profile != null && profile.UseReadyPulse;
-        SetPulseActive(useReadyPulse && state == TurretTechTreeNodeState.Ready, profile == null ? Color.white : profile.GetLineColor(state));
+        ApplyStateIcons(state);
     }
 
     // 노드 클릭을 상위 컨트롤러에 전달한다
@@ -158,22 +142,38 @@ public class TurretTechTreeNodeUI : MonoBehaviour
         }
     }
 
-    // Ready 상태 펄스 표시 여부를 적용한다
-    private void SetPulseActive(bool isActive, Color pulseColor)
+    [ContextMenu("상태 아이콘 참조 다시 연결")]
+    // Lock과 Unlock 자식 오브젝트 참조를 다시 연결한다
+    private void BindStateIconReferences()
     {
-        isPulseActive = isActive;
-        if (pulseGraphic == null)
+        if (lockIconRoot == null)
         {
-            return;
+            Transform lockTransform = FindDirectChild("Lock");
+            lockIconRoot = lockTransform == null ? null : lockTransform.gameObject;
         }
 
-        pulseBaseColor = pulseColor;
-        pulseGraphic.gameObject.SetActive(isActive);
-        if (!isActive)
+        if (unlockIconRoot == null)
         {
-            Color color = pulseBaseColor;
-            color.a = 0.0f;
-            pulseGraphic.color = color;
+            Transform unlockTransform = FindDirectChild("Unlock");
+            unlockIconRoot = unlockTransform == null ? null : unlockTransform.gameObject;
+        }
+    }
+
+    // 현재 노드 상태에 맞춰 잠금/해금 가능 아이콘을 표시한다
+    private void ApplyStateIcons(TurretTechTreeNodeState state)
+    {
+        bool isUnlocked = state == TurretTechTreeNodeState.Unlocked;
+        bool isReady = state == TurretTechTreeNodeState.Ready;
+        SetIconRootActive(lockIconRoot, !isUnlocked && !isReady);
+        SetIconRootActive(unlockIconRoot, isReady);
+    }
+
+    // 상태 아이콘 루트 활성화 상태를 필요한 경우에만 변경한다
+    private static void SetIconRootActive(GameObject iconRoot, bool isActive)
+    {
+        if (iconRoot != null && iconRoot.activeSelf != isActive)
+        {
+            iconRoot.SetActive(isActive);
         }
     }
 
@@ -188,6 +188,22 @@ public class TurretTechTreeNodeUI : MonoBehaviour
         return definition == null ? null : definition.uiIcon;
     }
 
+    // 직계 자식 중 지정 이름의 Transform을 찾는다
+    private Transform FindDirectChild(string childName)
+    {
+        Transform cachedTransform = transform;
+        for (int i = 0; i < cachedTransform.childCount; i++)
+        {
+            Transform child = cachedTransform.GetChild(i);
+            if (child.name == childName)
+            {
+                return child;
+            }
+        }
+
+        return null;
+    }
+
     // 런타임에 필요한 인스펙터 참조가 모두 연결됐는지 확인한다
     private bool ValidateRequiredReferences()
     {
@@ -195,7 +211,6 @@ public class TurretTechTreeNodeUI : MonoBehaviour
         isValid &= LogMissingReference(definition, nameof(definition));
         isValid &= LogMissingReference(iconImage, nameof(iconImage));
         isValid &= LogMissingReference(frameImage, nameof(frameImage));
-        isValid &= LogMissingReference(pulseGraphic, nameof(pulseGraphic));
         isValid &= LogMissingReference(nameText, nameof(nameText));
         isValid &= LogMissingReference(stateText, nameof(stateText));
         isValid &= LogMissingReference(button, nameof(button));

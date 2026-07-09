@@ -26,7 +26,7 @@ public class TurretTechTreeViewProfileSO : ScriptableObject
     [SerializeField] private Color blockedByLevelLineColor = new Color(0.42f, 0.58f, 0.76f, 0.62f);
     [SerializeField] private Color blockedByCostLineColor = new Color(1.0f, 0.66f, 0.22f, 0.66f);
     [SerializeField] private Color readyLineColor = new Color(0.2f, 0.95f, 1.0f, 0.95f);
-    [SerializeField] private Color unlockedLineColor = new Color(0.75f, 0.95f, 1.0f, 0.9f);
+    [SerializeField] private Color unlockedLineColor = new Color(0.86f, 0.68f, 0.32f, 1.0f);
 
     [Header("상태 문구")]
     [SerializeField] private string lockedText = "이전 터렛 필요";
@@ -40,15 +40,25 @@ public class TurretTechTreeViewProfileSO : ScriptableObject
     [SerializeField, Min(0.0f)] private float previewVideoFadeInDuration = 0.5f;
     [SerializeField, Min(0.0f)] private float previewVideoFadeOutDuration = 0.5f;
 
-    [Header("상태 연출")]
-    [SerializeField] private bool useReadyPulse;
+    [Header("미완료 라인 펄스")]
+    [Tooltip("해금 완료가 아닌 연결선의 알파 펄스를 사용할지 결정한다.")]
+    [SerializeField] private bool useIncompleteLinePulse = true;
+    [Tooltip("미완료 연결선 알파가 한 번 왕복하는 시간(초)이다.")]
+    [SerializeField, Min(0.1f)] private float incompleteLinePulseDuration = 2.0f;
+    [Tooltip("미완료 연결선 펄스의 최소 알파값이다.")]
+    [SerializeField, Range(0.0f, 1.0f)] private float incompleteLinePulseMinAlpha = 0.3f;
+    [Tooltip("미완료 연결선 펄스의 최대 알파값이다.")]
+    [SerializeField, Range(0.0f, 1.0f)] private float incompleteLinePulseMaxAlpha = 0.7f;
 
     public TurretDefinitionSO[] DefaultUnlockedDefinitions => defaultUnlockedDefinitions;
     public TurretTechTreeNodeViewData[] Nodes => nodes;
     public bool UsePreviewVideoFade => usePreviewVideoFade;
     public float PreviewVideoFadeInDuration => previewVideoFadeInDuration;
     public float PreviewVideoFadeOutDuration => previewVideoFadeOutDuration;
-    public bool UseReadyPulse => useReadyPulse;
+    public bool UseIncompleteLinePulse => useIncompleteLinePulse;
+    public float IncompleteLinePulseDuration => incompleteLinePulseDuration;
+    public float IncompleteLinePulseMinAlpha => incompleteLinePulseMinAlpha;
+    public float IncompleteLinePulseMaxAlpha => incompleteLinePulseMaxAlpha;
 
     // 지정 터렛 정의에 맞는 노드 표시 데이터를 찾는다
     public TurretTechTreeNodeViewData FindNodeData(TurretDefinitionSO definition)
@@ -131,6 +141,11 @@ public class TurretTechTreeViewProfileSO : ScriptableObject
         nodes = nodes ?? Array.Empty<TurretTechTreeNodeViewData>();
         previewVideoFadeInDuration = Mathf.Max(0.0f, previewVideoFadeInDuration);
         previewVideoFadeOutDuration = Mathf.Max(0.0f, previewVideoFadeOutDuration);
+        incompleteLinePulseDuration = Mathf.Max(0.1f, incompleteLinePulseDuration);
+        if (incompleteLinePulseMaxAlpha < incompleteLinePulseMinAlpha)
+        {
+            incompleteLinePulseMaxAlpha = incompleteLinePulseMinAlpha;
+        }
     }
 }
 
@@ -146,11 +161,8 @@ public class TurretTechTreeNodeViewData
 
     [Header("미리보기")]
     [SerializeField] private VideoClip previewClip;
-    [TextArea(2, 4)]
-    [SerializeField] private string previewDescription;
 
     public TurretDefinitionSO Definition => definition;
     public Sprite OverrideIcon => overrideIcon;
     public VideoClip PreviewClip => previewClip;
-    public string PreviewDescription => previewDescription;
 }

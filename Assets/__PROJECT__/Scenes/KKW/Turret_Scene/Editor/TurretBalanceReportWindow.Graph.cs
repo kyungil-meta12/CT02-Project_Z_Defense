@@ -4,6 +4,14 @@ using System.Globalization;
 using UnityEditor;
 using UnityEngine;
 
+// 그래프 세로축 그룹을 구분한다.
+internal enum TurretBalanceReportGraphAxisGroup
+{
+    Hp,
+    Ratio,
+    Currency
+}
+
 // 터렛 웨이브 밸런스 리포트 그래프 탭에서 사용할 표시 상태를 보관한다.
 internal sealed class TurretBalanceReportGraphState
 {
@@ -13,14 +21,118 @@ internal sealed class TurretBalanceReportGraphState
     public bool ShowCumulativeCurrency;
     public bool ShowTopRankDps;
     public bool ShowAllTurretDps;
+    public bool PreferAllTurretDps = true;
     public bool ShowClearTimeRatio;
     public bool ShowObstacleDestructionRatio;
     public bool ShowZombieArrivalRatio;
-    public float HpAxisScaleMultiplier = 1.0f;
+    public TurretBalanceReportGraphAxisGroup ActiveVerticalAxisGroup = TurretBalanceReportGraphAxisGroup.Hp;
+    public float WaveAxisZoom = 1.0f;
+    public float WaveAxisOffset01;
+    public float HpAxisZoom = 1.0f;
+    public float HpAxisOffset01;
+    public float RatioAxisZoom = 1.0f;
+    public float RatioAxisOffset01;
+    public float CurrencyAxisZoom = 1.0f;
+    public float CurrencyAxisOffset01;
+    public bool IsDraggingGraph;
+    public Vector2 LastDragMousePosition;
+    public Vector2 TopConditionToggleScroll;
+    public Vector2 CurrencyToggleScroll;
+    public Vector2 ZombieToggleScroll;
+    public Vector2 TurretToggleScroll;
     public readonly Dictionary<RewardCurrencyType, bool> CurrencyVisibility = new Dictionary<RewardCurrencyType, bool>();
     public readonly Dictionary<NormalZombieType, bool> NormalZombieVisibility = new Dictionary<NormalZombieType, bool>();
     public readonly Dictionary<BossZombieType, bool> BossZombieVisibility = new Dictionary<BossZombieType, bool>();
     public readonly Dictionary<string, bool> TurretVisibility = new Dictionary<string, bool>();
+
+    // 활성 세로축 그룹의 확대 배율을 반환한다
+    public float GetActiveVerticalZoom()
+    {
+        switch (ActiveVerticalAxisGroup)
+        {
+            case TurretBalanceReportGraphAxisGroup.Ratio:
+                return RatioAxisZoom;
+            case TurretBalanceReportGraphAxisGroup.Currency:
+                return CurrencyAxisZoom;
+            default:
+                return HpAxisZoom;
+        }
+    }
+
+    // 활성 세로축 그룹의 확대 배율을 갱신한다
+    public void SetActiveVerticalZoom(float zoom)
+    {
+        switch (ActiveVerticalAxisGroup)
+        {
+            case TurretBalanceReportGraphAxisGroup.Ratio:
+                RatioAxisZoom = zoom;
+                break;
+            case TurretBalanceReportGraphAxisGroup.Currency:
+                CurrencyAxisZoom = zoom;
+                break;
+            default:
+                HpAxisZoom = zoom;
+                break;
+        }
+    }
+
+    // 활성 세로축 그룹의 스크롤 위치를 반환한다
+    public float GetActiveVerticalOffset01()
+    {
+        switch (ActiveVerticalAxisGroup)
+        {
+            case TurretBalanceReportGraphAxisGroup.Ratio:
+                return RatioAxisOffset01;
+            case TurretBalanceReportGraphAxisGroup.Currency:
+                return CurrencyAxisOffset01;
+            default:
+                return HpAxisOffset01;
+        }
+    }
+
+    // 활성 세로축 그룹의 스크롤 위치를 갱신한다
+    public void SetActiveVerticalOffset01(float offset01)
+    {
+        float clampedOffset = Mathf.Clamp01(offset01);
+        switch (ActiveVerticalAxisGroup)
+        {
+            case TurretBalanceReportGraphAxisGroup.Ratio:
+                RatioAxisOffset01 = clampedOffset;
+                break;
+            case TurretBalanceReportGraphAxisGroup.Currency:
+                CurrencyAxisOffset01 = clampedOffset;
+                break;
+            default:
+                HpAxisOffset01 = clampedOffset;
+                break;
+        }
+    }
+
+    // 활성 세로축 그룹의 확대와 스크롤을 초기화한다
+    public void ResetActiveVerticalAxis()
+    {
+        SetActiveVerticalZoom(1.0f);
+        SetActiveVerticalOffset01(0.0f);
+    }
+
+    // 웨이브 가로축 확대와 스크롤을 초기화한다
+    public void ResetWaveAxis()
+    {
+        WaveAxisZoom = 1.0f;
+        WaveAxisOffset01 = 0.0f;
+    }
+
+    // 모든 그래프 축 확대와 스크롤을 초기화한다
+    public void ResetAllAxes()
+    {
+        ResetWaveAxis();
+        HpAxisZoom = 1.0f;
+        HpAxisOffset01 = 0.0f;
+        RatioAxisZoom = 1.0f;
+        RatioAxisOffset01 = 0.0f;
+        CurrencyAxisZoom = 1.0f;
+        CurrencyAxisOffset01 = 0.0f;
+    }
 
     // 재화별 표시 상태가 없으면 기본값으로 등록한다
     public bool GetCurrencyVisible(RewardCurrencyType currencyType)
@@ -105,11 +217,16 @@ internal static class TurretBalanceReportGraphRenderer
     private const float GRAPH_TOP_PADDING = 14.0f;
     private const float GRAPH_BOTTOM_PADDING = 38.0f;
     private const float HOVER_DISTANCE = 7.0f;
-    private const float HP_AXIS_MIN_SCALE = 0.0001f;
-    private const float HP_AXIS_MAX_SCALE = 20.0f;
-    private const float HP_AXIS_ZOOM_STEP = 1.12f;
-    private const int ZOMBIE_TOGGLE_COLUMNS = 4;
-    private const int TURRET_TOGGLE_COLUMNS = 4;
+    private const float AXIS_MIN_ZOOM = 1.0f;
+    private const float AXIS_MAX_ZOOM = 20.0f;
+    private const float AXIS_ZOOM_STEP = 1.12f;
+    private const float SCROLLBAR_SIZE = 13.0f;
+    private const float CONTROL_HINT_WIDTH = 390.0f;
+    private const float TOGGLE_ROW_HEIGHT = 20.0f;
+    private const float TOGGLE_SCROLL_HEIGHT = 38.0f;
+    private const float TOGGLE_LABEL_PADDING = 34.0f;
+    private const float TOGGLE_MIN_WIDTH = 84.0f;
+    private const float TOGGLE_MAX_WIDTH = 190.0f;
 
     private static readonly Color[] SeriesColors =
     {
@@ -126,6 +243,10 @@ internal static class TurretBalanceReportGraphRenderer
     private static readonly Color EvolutionStartColor = new Color(0.20f, 0.72f, 0.32f);
     private static readonly Color EvolutionMiddleColor = new Color(0.18f, 0.56f, 0.95f);
     private static readonly Color EvolutionEndColor = new Color(0.68f, 0.34f, 0.92f);
+    private static readonly string[] AxisGroupLabels = { "HP", "배율", "재화" };
+    private static readonly Dictionary<int, GUIStyle> ColoredToggleStyleCache = new Dictionary<int, GUIStyle>();
+    private static Vector3[] reusablePointBuffer = new Vector3[0];
+    private static bool[] reusableValidPointBuffer = new bool[0];
 
     // 그래프 탭 전체 UI를 그린다
     public static void Draw(TurretBalanceReportResult report, TurretBalanceReportGraphState state, float targetClearSeconds, float targetClearSecondsIncrement, float obstacleTargetTimeMultiplier, float zombieArrivalSeconds, float zombieArrivalTimeMultiplier, List<ObstacleWaveRow> obstacleRows)
@@ -135,7 +256,7 @@ internal static class TurretBalanceReportGraphRenderer
             return;
         }
 
-        EditorGUILayout.HelpBox("가로축은 웨이브입니다. 좀비 총 HP와 터렛 DPS 계열은 같은 HP 축을 사용합니다. 터렛 선은 총 DPS × 기준 클리어 시간으로 변환한 처리 가능 HP입니다. 그래프 위 마우스 휠로 HP 축 최대값을 조절합니다.", MessageType.Info);
+        EditorGUILayout.HelpBox("가로축은 웨이브입니다. 표시 조건은 HP, 배율, 재화 세로축 그룹으로 나뉘며 각 그룹은 독립적으로 확대/스크롤됩니다. 터렛 선은 총 DPS × 기준 클리어 시간으로 변환한 처리 가능 HP입니다.", MessageType.Info);
         if (report == null || report.WaveRows.Count == 0)
         {
             EditorGUILayout.LabelField("표시할 리포트 데이터가 없습니다.", EditorStyles.boldLabel);
@@ -181,50 +302,13 @@ internal static class TurretBalanceReportGraphRenderer
         EditorGUILayout.BeginVertical(EditorStyles.helpBox);
         EditorGUILayout.LabelField("표시 조건", EditorStyles.boldLabel);
 
-        EditorGUILayout.BeginHorizontal();
-        state.ShowTotalWaveHp = EditorGUILayout.ToggleLeft("좀비 HP 스택", state.ShowTotalWaveHp, GUILayout.Width(120.0f));
-        state.ShowTotalZombieHp = EditorGUILayout.ToggleLeft("총 좀비 HP", state.ShowTotalZombieHp, GUILayout.Width(110.0f));
-        state.ShowAverageZombieHp = EditorGUILayout.ToggleLeft("일반 좀비 1마리 평균 HP", state.ShowAverageZombieHp, GUILayout.Width(170.0f));
-        bool nextShowTopRankDps = EditorGUILayout.ToggleLeft("1순위 터렛 DPS", state.ShowTopRankDps, GUILayout.Width(140.0f));
-        if (nextShowTopRankDps)
-        {
-            state.ShowAllTurretDps = false;
-        }
+        DrawTopConditionToggles(state);
 
-        state.ShowTopRankDps = nextShowTopRankDps;
-
-        bool nextShowAllTurretDps = EditorGUILayout.ToggleLeft("모든 터렛 DPS", state.ShowAllTurretDps, GUILayout.Width(140.0f));
-        if (nextShowAllTurretDps)
-        {
-            state.ShowTopRankDps = false;
-        }
-
-        state.ShowAllTurretDps = nextShowAllTurretDps;
-        state.ShowClearTimeRatio = EditorGUILayout.ToggleLeft("클리어 시간 배율", state.ShowClearTimeRatio, GUILayout.Width(140.0f));
-        state.ShowObstacleDestructionRatio = EditorGUILayout.ToggleLeft("장애물 파괴시간 배율", state.ShowObstacleDestructionRatio, GUILayout.Width(160.0f));
-        state.ShowZombieArrivalRatio = EditorGUILayout.ToggleLeft("좀비 도달시간 배율", state.ShowZombieArrivalRatio, GUILayout.Width(150.0f));
-        state.ShowCumulativeCurrency = EditorGUILayout.ToggleLeft("누적 재화", state.ShowCumulativeCurrency, GUILayout.Width(100.0f));
-        GUILayout.FlexibleSpace();
-        EditorGUILayout.LabelField($"HP 축 {state.HpAxisScaleMultiplier:0.##}x", EditorStyles.miniLabel, GUILayout.Width(76.0f));
-        if (GUILayout.Button("HP 축 초기화", EditorStyles.miniButton, GUILayout.Width(84.0f)))
-        {
-            state.HpAxisScaleMultiplier = 1.0f;
-        }
-
-        EditorGUILayout.EndHorizontal();
+        DrawAxisControlBar(state);
 
         if (state.ShowCumulativeCurrency && currencyTypes.Count > 0)
         {
-            EditorGUILayout.BeginHorizontal();
-            EditorGUILayout.LabelField("재화", GUILayout.Width(36.0f));
-            for (int i = 0; i < currencyTypes.Count; i++)
-            {
-                RewardCurrencyType currencyType = currencyTypes[i];
-                bool visible = EditorGUILayout.ToggleLeft(GetCurrencyLabel(currencyType), state.GetCurrencyVisible(currencyType), GUILayout.Width(120.0f));
-                state.SetCurrencyVisible(currencyType, visible);
-            }
-
-            EditorGUILayout.EndHorizontal();
+            DrawCurrencyVisibilityToggles(state, currencyTypes);
         }
 
         if (state.ShowTotalWaveHp)
@@ -240,11 +324,112 @@ internal static class TurretBalanceReportGraphRenderer
         EditorGUILayout.EndVertical();
     }
 
-    // 좀비 타입별 HP 스택 표시 토글을 그린다
+    // 표시 조건 최상위 토글을 한 줄 가로 스크롤로 그린다
+    private static void DrawTopConditionToggles(TurretBalanceReportGraphState state)
+    {
+        state.TopConditionToggleScroll = BeginToggleScrollRow("조건", state.TopConditionToggleScroll);
+        bool allVisible = IsAllTopConditionsVisible(state);
+        bool nextAllVisible = DrawColoredToggle("전체", allVisible, Color.white);
+        if (nextAllVisible != allVisible)
+        {
+            SetAllTopConditionsVisible(state, nextAllVisible);
+        }
+
+        state.ShowTotalWaveHp = DrawColoredToggle("좀비 HP 스택", state.ShowTotalWaveHp, GetTopConditionColor(0));
+        state.ShowTotalZombieHp = DrawColoredToggle("총 좀비 HP", state.ShowTotalZombieHp, GetTopConditionColor(1));
+        state.ShowAverageZombieHp = DrawColoredToggle("일반 좀비 평균 HP", state.ShowAverageZombieHp, GetTopConditionColor(2));
+        bool nextShowTopRankDps = DrawColoredToggle("1순위 터렛 DPS", state.ShowTopRankDps, GetTopConditionColor(3));
+        if (nextShowTopRankDps)
+        {
+            state.ShowAllTurretDps = false;
+            state.PreferAllTurretDps = false;
+        }
+
+        state.ShowTopRankDps = nextShowTopRankDps;
+        bool nextShowAllTurretDps = DrawColoredToggle("모든 터렛 DPS", state.ShowAllTurretDps, GetTopConditionColor(4));
+        if (nextShowAllTurretDps)
+        {
+            state.ShowTopRankDps = false;
+            state.PreferAllTurretDps = true;
+        }
+
+        state.ShowAllTurretDps = nextShowAllTurretDps;
+        state.ShowClearTimeRatio = DrawColoredToggle("클리어 시간 배율", state.ShowClearTimeRatio, GetTopConditionColor(5));
+        state.ShowObstacleDestructionRatio = DrawColoredToggle("장애물 파괴시간 배율", state.ShowObstacleDestructionRatio, GetTopConditionColor(6));
+        state.ShowZombieArrivalRatio = DrawColoredToggle("좀비 도달시간 배율", state.ShowZombieArrivalRatio, GetTopConditionColor(7));
+        state.ShowCumulativeCurrency = DrawColoredToggle("누적 재화", state.ShowCumulativeCurrency, GetTopConditionColor(8));
+        EndToggleScrollRow();
+    }
+
+    // 그래프 축 선택과 초기화 컨트롤을 그린다
+    private static void DrawAxisControlBar(TurretBalanceReportGraphState state)
+    {
+        EditorGUILayout.BeginHorizontal();
+        EditorGUILayout.LabelField("활성 축", GUILayout.Width(48.0f));
+        int selectedGroup = GUILayout.Toolbar((int)state.ActiveVerticalAxisGroup, AxisGroupLabels, GUILayout.Width(170.0f));
+        TurretBalanceReportGraphAxisGroup nextGroup = (TurretBalanceReportGraphAxisGroup)Mathf.Clamp(selectedGroup, 0, 2);
+        if (nextGroup != state.ActiveVerticalAxisGroup)
+        {
+            state.ActiveVerticalAxisGroup = nextGroup;
+            ApplyActiveAxisFilter(state, nextGroup);
+        }
+
+        EditorGUILayout.LabelField($"세로 {state.GetActiveVerticalZoom():0.##}x", EditorStyles.miniLabel, GUILayout.Width(76.0f));
+        EditorGUILayout.LabelField($"웨이브 {state.WaveAxisZoom:0.##}x", EditorStyles.miniLabel, GUILayout.Width(88.0f));
+        GUILayout.FlexibleSpace();
+        if (GUILayout.Button("웨이브 축 초기화", EditorStyles.miniButton, GUILayout.Width(108.0f)))
+        {
+            state.ResetWaveAxis();
+        }
+
+        if (GUILayout.Button("세로 축 초기화", EditorStyles.miniButton, GUILayout.Width(98.0f)))
+        {
+            state.ResetActiveVerticalAxis();
+        }
+
+        if (GUILayout.Button("전체 축 초기화", EditorStyles.miniButton, GUILayout.Width(98.0f)))
+        {
+            state.ResetAllAxes();
+        }
+
+        EditorGUILayout.EndHorizontal();
+    }
+
+    // 누적 재화 토글을 한 줄 가로 스크롤로 그린다
+    private static void DrawCurrencyVisibilityToggles(TurretBalanceReportGraphState state, List<RewardCurrencyType> currencyTypes)
+    {
+        state.CurrencyToggleScroll = BeginToggleScrollRow("재화", state.CurrencyToggleScroll);
+        bool allVisible = AreAllCurrenciesVisible(state, currencyTypes);
+        bool nextAllVisible = DrawColoredToggle("전체", allVisible, Color.white);
+        if (nextAllVisible != allVisible)
+        {
+            SetAllCurrenciesVisible(state, currencyTypes, nextAllVisible);
+        }
+
+        for (int i = 0; i < currencyTypes.Count; i++)
+        {
+            RewardCurrencyType currencyType = currencyTypes[i];
+            string label = GetCurrencyLabel(currencyType);
+            bool visible = DrawColoredToggle(label, state.GetCurrencyVisible(currencyType), GetCurrencyGraphColor(i));
+            state.SetCurrencyVisible(currencyType, visible);
+        }
+
+        EndToggleScrollRow();
+    }
+
+    // 좀비 타입별 HP 스택 표시 토글을 한 줄 가로 스크롤로 그린다
     private static void DrawZombieVisibilityToggles(TurretBalanceReportResult report, TurretBalanceReportGraphState state)
     {
+        state.ZombieToggleScroll = BeginToggleScrollRow("좀비", state.ZombieToggleScroll);
+        bool allVisible = AreAllZombiesVisible(report, state);
+        bool nextAllVisible = DrawColoredToggle("전체", allVisible, Color.white);
+        if (nextAllVisible != allVisible)
+        {
+            SetAllZombiesVisible(report, state, nextAllVisible);
+        }
+
         Array normalTypes = Enum.GetValues(typeof(NormalZombieType));
-        int normalColumn = 0;
+        int colorIndex = 0;
         for (int i = 0; i < normalTypes.Length; i++)
         {
             NormalZombieType normalType = (NormalZombieType)normalTypes.GetValue(i);
@@ -253,30 +438,11 @@ internal static class TurretBalanceReportGraphRenderer
                 continue;
             }
 
-            if (normalColumn % ZOMBIE_TOGGLE_COLUMNS == 0)
-            {
-                EditorGUILayout.BeginHorizontal();
-                EditorGUILayout.LabelField(normalColumn == 0 ? "일반" : string.Empty, GUILayout.Width(36.0f));
-            }
-
-            bool visible = EditorGUILayout.ToggleLeft(normalType.ToString(), state.GetNormalZombieVisible(normalType), GUILayout.Width(136.0f));
+            bool visible = DrawColoredToggle(normalType.ToString(), state.GetNormalZombieVisible(normalType), GetSeriesColor(colorIndex));
             state.SetNormalZombieVisible(normalType, visible);
-            normalColumn++;
-            if (normalColumn % ZOMBIE_TOGGLE_COLUMNS == 0)
-            {
-                GUILayout.FlexibleSpace();
-                EditorGUILayout.EndHorizontal();
-            }
+            colorIndex++;
         }
 
-        if (normalColumn > 0 && normalColumn % ZOMBIE_TOGGLE_COLUMNS != 0)
-        {
-            GUILayout.FlexibleSpace();
-            EditorGUILayout.EndHorizontal();
-        }
-
-        EditorGUILayout.BeginHorizontal();
-        EditorGUILayout.LabelField("보스", GUILayout.Width(36.0f));
         Array bossTypes = Enum.GetValues(typeof(BossZombieType));
         for (int i = 0; i < bossTypes.Length; i++)
         {
@@ -286,18 +452,27 @@ internal static class TurretBalanceReportGraphRenderer
                 continue;
             }
 
-            bool visible = EditorGUILayout.ToggleLeft(bossType.ToString(), state.GetBossZombieVisible(bossType), GUILayout.Width(120.0f));
+            bool visible = DrawColoredToggle(bossType.ToString(), state.GetBossZombieVisible(bossType), GetSeriesColor(colorIndex));
             state.SetBossZombieVisible(bossType, visible);
+            colorIndex++;
         }
 
-        EditorGUILayout.EndHorizontal();
+        EndToggleScrollRow();
     }
 
-    // 터렛별 DPS 표시 토글을 그린다
+    // 터렛별 DPS 표시 토글을 한 줄 가로 스크롤로 그린다
     private static void DrawTurretVisibilityToggles(TurretBalanceReportResult report, TurretBalanceReportGraphState state)
     {
         List<TurretGraphEntry> turretEntries = BuildTurretGraphEntries(report);
-        int turretColumn = 0;
+        int maxTier = GetMaxTurretTier(turretEntries);
+        state.TurretToggleScroll = BeginToggleScrollRow("터렛", state.TurretToggleScroll);
+        bool allVisible = AreAllTurretsVisible(state, turretEntries);
+        bool nextAllVisible = DrawColoredToggle("전체", allVisible, Color.white);
+        if (nextAllVisible != allVisible)
+        {
+            SetAllTurretsVisible(state, turretEntries, nextAllVisible);
+        }
+
         for (int i = 0; i < turretEntries.Count; i++)
         {
             string turretName = turretEntries[i].TurretName;
@@ -306,27 +481,279 @@ internal static class TurretBalanceReportGraphRenderer
                 continue;
             }
 
-            if (turretColumn % TURRET_TOGGLE_COLUMNS == 0)
-            {
-                EditorGUILayout.BeginHorizontal();
-                EditorGUILayout.LabelField(turretColumn == 0 ? "터렛" : string.Empty, GUILayout.Width(36.0f));
-            }
-
-            bool visible = EditorGUILayout.ToggleLeft(turretName, state.GetTurretVisible(turretName), GUILayout.Width(136.0f));
+            bool visible = DrawColoredToggle(turretName, state.GetTurretVisible(turretName), GetTurretEvolutionColor(turretEntries[i].Tier, maxTier, i));
             state.SetTurretVisible(turretName, visible);
-            turretColumn++;
-            if (turretColumn % TURRET_TOGGLE_COLUMNS == 0)
+        }
+
+        EndToggleScrollRow();
+    }
+
+    // 가로 스크롤 토글 행을 시작한다
+    private static Vector2 BeginToggleScrollRow(string label, Vector2 scroll)
+    {
+        EditorGUILayout.BeginHorizontal(GUILayout.Height(TOGGLE_SCROLL_HEIGHT));
+        EditorGUILayout.LabelField(label, GUILayout.Width(36.0f));
+        Vector2 nextScroll = EditorGUILayout.BeginScrollView(scroll, false, false, GUILayout.Height(TOGGLE_SCROLL_HEIGHT));
+        EditorGUILayout.BeginHorizontal();
+        return nextScroll;
+    }
+
+    // 가로 스크롤 토글 행을 종료한다
+    private static void EndToggleScrollRow()
+    {
+        EditorGUILayout.EndHorizontal();
+        EditorGUILayout.EndScrollView();
+        EditorGUILayout.EndHorizontal();
+    }
+
+    // 지정 색상의 글자로 토글을 그린다
+    private static bool DrawColoredToggle(string label, bool value, Color color)
+    {
+        GUIStyle style = GetColoredToggleStyle(color);
+        float width = CalculateToggleWidth(label);
+        return EditorGUILayout.ToggleLeft(label, value, style, GUILayout.Width(width), GUILayout.Height(TOGGLE_ROW_HEIGHT));
+    }
+
+    // 토글 글자 색상용 GUIStyle을 캐시해서 반환한다
+    private static GUIStyle GetColoredToggleStyle(Color color)
+    {
+        int colorKey = GetColorKey(color);
+        if (ColoredToggleStyleCache.TryGetValue(colorKey, out GUIStyle cachedStyle))
+        {
+            return cachedStyle;
+        }
+
+        GUIStyle style = new GUIStyle(EditorStyles.label);
+        style.normal.textColor = color;
+        style.onNormal.textColor = color;
+        style.hover.textColor = color;
+        style.onHover.textColor = color;
+        style.active.textColor = color;
+        style.onActive.textColor = color;
+        style.focused.textColor = color;
+        style.onFocused.textColor = color;
+        ColoredToggleStyleCache[colorKey] = style;
+        return style;
+    }
+
+    // 색상 캐시 키를 만든다
+    private static int GetColorKey(Color color)
+    {
+        Color32 color32 = color;
+        return color32.r << 24 | color32.g << 16 | color32.b << 8 | color32.a;
+    }
+
+    // 토글 라벨 길이에 맞는 폭을 계산한다
+    private static float CalculateToggleWidth(string label)
+    {
+        float width = EditorStyles.label.CalcSize(GUIContent.Temp(label)).x + TOGGLE_LABEL_PADDING;
+        return Mathf.Clamp(width, TOGGLE_MIN_WIDTH, TOGGLE_MAX_WIDTH);
+    }
+
+    // 상위 표시조건이 모두 켜진 상태인지 확인한다
+    private static bool IsAllTopConditionsVisible(TurretBalanceReportGraphState state)
+    {
+        return state.ShowTotalWaveHp
+            && state.ShowTotalZombieHp
+            && state.ShowAverageZombieHp
+            && (state.ShowTopRankDps || state.ShowAllTurretDps)
+            && state.ShowClearTimeRatio
+            && state.ShowObstacleDestructionRatio
+            && state.ShowZombieArrivalRatio
+            && state.ShowCumulativeCurrency;
+    }
+
+    // 상위 표시조건 전체를 켜거나 끈다
+    private static void SetAllTopConditionsVisible(TurretBalanceReportGraphState state, bool visible)
+    {
+        state.ShowTotalWaveHp = visible;
+        state.ShowTotalZombieHp = visible;
+        state.ShowAverageZombieHp = visible;
+        if (visible)
+        {
+            state.ShowTopRankDps = !state.PreferAllTurretDps;
+            state.ShowAllTurretDps = state.PreferAllTurretDps;
+        }
+        else
+        {
+            state.ShowTopRankDps = false;
+            state.ShowAllTurretDps = false;
+        }
+
+        state.ShowClearTimeRatio = visible;
+        state.ShowObstacleDestructionRatio = visible;
+        state.ShowZombieArrivalRatio = visible;
+        state.ShowCumulativeCurrency = visible;
+    }
+
+    // 재화 표시 항목이 모두 켜진 상태인지 확인한다
+    private static bool AreAllCurrenciesVisible(TurretBalanceReportGraphState state, List<RewardCurrencyType> currencyTypes)
+    {
+        if (currencyTypes.Count == 0)
+        {
+            return false;
+        }
+
+        for (int i = 0; i < currencyTypes.Count; i++)
+        {
+            if (!state.GetCurrencyVisible(currencyTypes[i]))
             {
-                GUILayout.FlexibleSpace();
-                EditorGUILayout.EndHorizontal();
+                return false;
             }
         }
 
-        if (turretColumn > 0 && turretColumn % TURRET_TOGGLE_COLUMNS != 0)
+        return true;
+    }
+
+    // 재화 표시 항목 전체를 켜거나 끈다
+    private static void SetAllCurrenciesVisible(TurretBalanceReportGraphState state, List<RewardCurrencyType> currencyTypes, bool visible)
+    {
+        for (int i = 0; i < currencyTypes.Count; i++)
         {
-            GUILayout.FlexibleSpace();
-            EditorGUILayout.EndHorizontal();
+            state.SetCurrencyVisible(currencyTypes[i], visible);
         }
+    }
+
+    // 좀비 HP 스택 항목이 모두 켜진 상태인지 확인한다
+    private static bool AreAllZombiesVisible(TurretBalanceReportResult report, TurretBalanceReportGraphState state)
+    {
+        bool hasAny = false;
+        Array normalTypes = Enum.GetValues(typeof(NormalZombieType));
+        for (int i = 0; i < normalTypes.Length; i++)
+        {
+            NormalZombieType normalType = (NormalZombieType)normalTypes.GetValue(i);
+            if (!HasHpStackSegment(report, false, normalType, default))
+            {
+                continue;
+            }
+
+            hasAny = true;
+            if (!state.GetNormalZombieVisible(normalType))
+            {
+                return false;
+            }
+        }
+
+        Array bossTypes = Enum.GetValues(typeof(BossZombieType));
+        for (int i = 0; i < bossTypes.Length; i++)
+        {
+            BossZombieType bossType = (BossZombieType)bossTypes.GetValue(i);
+            if (!HasHpStackSegment(report, true, default, bossType))
+            {
+                continue;
+            }
+
+            hasAny = true;
+            if (!state.GetBossZombieVisible(bossType))
+            {
+                return false;
+            }
+        }
+
+        return hasAny;
+    }
+
+    // 좀비 HP 스택 항목 전체를 켜거나 끈다
+    private static void SetAllZombiesVisible(TurretBalanceReportResult report, TurretBalanceReportGraphState state, bool visible)
+    {
+        Array normalTypes = Enum.GetValues(typeof(NormalZombieType));
+        for (int i = 0; i < normalTypes.Length; i++)
+        {
+            NormalZombieType normalType = (NormalZombieType)normalTypes.GetValue(i);
+            if (HasHpStackSegment(report, false, normalType, default))
+            {
+                state.SetNormalZombieVisible(normalType, visible);
+            }
+        }
+
+        Array bossTypes = Enum.GetValues(typeof(BossZombieType));
+        for (int i = 0; i < bossTypes.Length; i++)
+        {
+            BossZombieType bossType = (BossZombieType)bossTypes.GetValue(i);
+            if (HasHpStackSegment(report, true, default, bossType))
+            {
+                state.SetBossZombieVisible(bossType, visible);
+            }
+        }
+    }
+
+    // 터렛 표시 항목이 모두 켜진 상태인지 확인한다
+    private static bool AreAllTurretsVisible(TurretBalanceReportGraphState state, List<TurretGraphEntry> turretEntries)
+    {
+        if (turretEntries.Count == 0)
+        {
+            return false;
+        }
+
+        for (int i = 0; i < turretEntries.Count; i++)
+        {
+            if (!state.GetTurretVisible(turretEntries[i].TurretName))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    // 터렛 표시 항목 전체를 켜거나 끈다
+    private static void SetAllTurretsVisible(TurretBalanceReportGraphState state, List<TurretGraphEntry> turretEntries, bool visible)
+    {
+        for (int i = 0; i < turretEntries.Count; i++)
+        {
+            state.SetTurretVisible(turretEntries[i].TurretName, visible);
+        }
+    }
+
+    // 활성 세로축 그룹에 맞춰 상위 표시조건을 필터링한다
+    private static void ApplyActiveAxisFilter(TurretBalanceReportGraphState state, TurretBalanceReportGraphAxisGroup axisGroup)
+    {
+        state.ShowTotalWaveHp = axisGroup == TurretBalanceReportGraphAxisGroup.Hp;
+        state.ShowTotalZombieHp = axisGroup == TurretBalanceReportGraphAxisGroup.Hp;
+        state.ShowAverageZombieHp = axisGroup == TurretBalanceReportGraphAxisGroup.Hp;
+        state.ShowClearTimeRatio = axisGroup == TurretBalanceReportGraphAxisGroup.Ratio;
+        state.ShowObstacleDestructionRatio = axisGroup == TurretBalanceReportGraphAxisGroup.Ratio;
+        state.ShowZombieArrivalRatio = axisGroup == TurretBalanceReportGraphAxisGroup.Ratio;
+        state.ShowCumulativeCurrency = axisGroup == TurretBalanceReportGraphAxisGroup.Currency;
+
+        if (axisGroup == TurretBalanceReportGraphAxisGroup.Hp)
+        {
+            if (!state.ShowTopRankDps && !state.ShowAllTurretDps)
+            {
+                state.ShowTopRankDps = !state.PreferAllTurretDps;
+                state.ShowAllTurretDps = state.PreferAllTurretDps;
+            }
+        }
+        else
+        {
+            if (state.ShowTopRankDps || state.ShowAllTurretDps)
+            {
+                state.PreferAllTurretDps = state.ShowAllTurretDps;
+            }
+
+            state.ShowTopRankDps = false;
+            state.ShowAllTurretDps = false;
+        }
+    }
+
+    // 시리즈 팔레트에서 인덱스에 해당하는 색상을 반환한다
+    private static Color GetSeriesColor(int index)
+    {
+        Color color = SeriesColors[Mathf.Abs(index) % SeriesColors.Length];
+        color.a = 1.0f;
+        return color;
+    }
+
+    // 상위 표시조건 토글과 단일 그래프 선의 색상을 반환한다
+    private static Color GetTopConditionColor(int index)
+    {
+        return GetSeriesColor(index);
+    }
+
+    // 누적 재화 그래프 색상을 반환한다
+    private static Color GetCurrencyGraphColor(int index)
+    {
+        return GetSeriesColor(index);
     }
 
     // 그래프 영역 안에 배경, 축, 선, 툴팁을 그린다
@@ -346,16 +773,19 @@ internal static class TurretBalanceReportGraphRenderer
             graphRect.width - GRAPH_LEFT_PADDING - GRAPH_RIGHT_PADDING,
             graphRect.height - GRAPH_TOP_PADDING - GRAPH_BOTTOM_PADDING);
 
-        HandleHpAxisWheelZoom(plotRect, state);
-        DrawGrid(plotRect, report);
+        GraphViewport viewport = BuildGraphViewport(report, state, seriesList);
+        HandleGraphInput(plotRect, state, viewport, report.WaveRows.Count);
+        ClampGraphViewState(state);
+        viewport = BuildGraphViewport(report, state, seriesList);
+
+        DrawGrid(plotRect, report, viewport);
         bool showAnyRatioBaseline = state.ShowClearTimeRatio || state.ShowObstacleDestructionRatio || state.ShowZombieArrivalRatio;
         if (showAnyRatioBaseline)
         {
-            List<ObstacleWaveRow> obstacleRowsForAxis = state.ShowObstacleDestructionRatio ? obstacleRows : null;
-            List<WaveSummaryRow> arrivalRowsForAxis = state.ShowZombieArrivalRatio ? report.WaveRows : null;
             DrawRatioBaselines(
                 plotRect,
-                CalculateRatioAxisMax(report, obstacleRowsForAxis, arrivalRowsForAxis, targetClearSeconds, targetClearSecondsIncrement, obstacleTargetTimeMultiplier, zombieArrivalSeconds, zombieArrivalTimeMultiplier),
+                viewport.RatioMin,
+                viewport.RatioMax,
                 state.ShowClearTimeRatio,
                 state.ShowObstacleDestructionRatio,
                 obstacleTargetTimeMultiplier,
@@ -363,8 +793,9 @@ internal static class TurretBalanceReportGraphRenderer
                 zombieArrivalTimeMultiplier);
         }
 
-        DrawSeriesList(plotRect, seriesList, report.WaveRows.Count, out GraphHoverInfo hoverInfo);
-        DrawLegend(graphRect, seriesList);
+        DrawSeriesList(plotRect, seriesList, report.WaveRows.Count, viewport, !state.IsDraggingGraph, out GraphHoverInfo hoverInfo);
+        DrawGraphScrollbars(plotRect, state);
+        DrawControlHint(graphRect);
         DrawHoverTooltip(graphRect, report, hoverInfo);
     }
 
@@ -372,36 +803,35 @@ internal static class TurretBalanceReportGraphRenderer
     private static List<GraphSeries> BuildSeriesList(TurretBalanceReportResult report, TurretBalanceReportGraphState state, List<RewardCurrencyType> currencyTypes, float targetClearSeconds, float targetClearSecondsIncrement, float obstacleTargetTimeMultiplier, float zombieArrivalSeconds, float zombieArrivalTimeMultiplier, List<ObstacleWaveRow> obstacleRows)
     {
         List<GraphSeries> seriesList = new List<GraphSeries>(8);
-        int colorIndex = 0;
-        float hpAxisMax = CalculateHpAxisMax(report, targetClearSeconds, targetClearSecondsIncrement) * Mathf.Clamp(state.HpAxisScaleMultiplier, HP_AXIS_MIN_SCALE, HP_AXIS_MAX_SCALE);
+        float hpAxisMax = CalculateHpAxisMax(report, targetClearSeconds, targetClearSecondsIncrement);
         if (state.ShowTotalWaveHp)
         {
-            AddZombieHpStackSeries(report, state, seriesList, ref colorIndex, hpAxisMax);
+            AddZombieHpStackSeries(report, state, seriesList, hpAxisMax);
         }
 
         if (state.ShowTotalZombieHp)
         {
-            seriesList.Add(CreateTotalZombieHpSeries(report, SeriesColors[colorIndex++ % SeriesColors.Length], hpAxisMax));
+            seriesList.Add(CreateTotalZombieHpSeries(report, GetTopConditionColor(1), hpAxisMax));
         }
 
         if (state.ShowAverageZombieHp)
         {
-            seriesList.Add(CreateAverageZombieHpSeries(report, SeriesColors[colorIndex++ % SeriesColors.Length], hpAxisMax));
+            seriesList.Add(CreateAverageZombieHpSeries(report, GetTopConditionColor(2), hpAxisMax));
         }
 
         if (state.ShowCumulativeCurrency)
         {
-            AddCurrencySeries(report, state, currencyTypes, seriesList, ref colorIndex);
+            AddCurrencySeries(report, state, currencyTypes, seriesList);
         }
 
         if (state.ShowTopRankDps)
         {
-            seriesList.Add(CreateTopRankDpsSeries(report, SeriesColors[colorIndex++ % SeriesColors.Length], hpAxisMax, targetClearSeconds, targetClearSecondsIncrement));
+            seriesList.Add(CreateTopRankDpsSeries(report, GetTopConditionColor(3), hpAxisMax, targetClearSeconds, targetClearSecondsIncrement));
         }
 
         if (state.ShowAllTurretDps)
         {
-            AddAllTurretDpsSeries(report, state, seriesList, ref colorIndex, hpAxisMax, targetClearSeconds, targetClearSecondsIncrement);
+            AddAllTurretDpsSeries(report, state, seriesList, hpAxisMax, targetClearSeconds, targetClearSecondsIncrement);
         }
 
         bool showAnyRatio = state.ShowClearTimeRatio || state.ShowObstacleDestructionRatio || state.ShowZombieArrivalRatio;
@@ -410,7 +840,8 @@ internal static class TurretBalanceReportGraphRenderer
         float ratioAxisMax = showAnyRatio ? CalculateRatioAxisMax(report, obstacleRowsForAxis, arrivalRowsForAxis, targetClearSeconds, targetClearSecondsIncrement, obstacleTargetTimeMultiplier, zombieArrivalSeconds, zombieArrivalTimeMultiplier) : 1.0f;
         if (state.ShowClearTimeRatio)
         {
-            GraphSeries series = CreateSeries("클리어 시간 / 기준 시간", "배", SeriesColors[colorIndex++ % SeriesColors.Length], report.WaveRows.Count);
+            GraphSeries series = CreateSeries("클리어 시간 / 기준 시간", "배", GetTopConditionColor(5), report.WaveRows.Count);
+            series.AxisGroup = TurretBalanceReportGraphAxisGroup.Ratio;
             SetFixedScale(series, 0.0f, ratioAxisMax);
             for (int i = 0; i < report.WaveRows.Count; i++)
             {
@@ -426,7 +857,8 @@ internal static class TurretBalanceReportGraphRenderer
 
         if (state.ShowObstacleDestructionRatio)
         {
-            GraphSeries series = CreateSeries("장애물 파괴시간 / 기준 시간", "배", SeriesColors[colorIndex++ % SeriesColors.Length], report.WaveRows.Count);
+            GraphSeries series = CreateSeries("장애물 파괴시간 / 기준 시간", "배", GetTopConditionColor(6), report.WaveRows.Count);
+            series.AxisGroup = TurretBalanceReportGraphAxisGroup.Ratio;
             SetFixedScale(series, 0.0f, ratioAxisMax);
             for (int i = 0; i < report.WaveRows.Count; i++)
             {
@@ -452,7 +884,8 @@ internal static class TurretBalanceReportGraphRenderer
 
         if (state.ShowZombieArrivalRatio)
         {
-            GraphSeries series = CreateSeries("좀비 전체 도달 시간 / 기준 시간", "배", SeriesColors[colorIndex++ % SeriesColors.Length], report.WaveRows.Count);
+            GraphSeries series = CreateSeries("좀비 전체 도달 시간 / 기준 시간", "배", GetTopConditionColor(7), report.WaveRows.Count);
+            series.AxisGroup = TurretBalanceReportGraphAxisGroup.Ratio;
             SetFixedScale(series, 0.0f, ratioAxisMax);
             for (int i = 0; i < report.WaveRows.Count; i++)
             {
@@ -508,37 +941,52 @@ internal static class TurretBalanceReportGraphRenderer
     }
 
     // 좀비 타입별 누적 HP 스택 그래프 선을 추가한다
-    private static void AddZombieHpStackSeries(TurretBalanceReportResult report, TurretBalanceReportGraphState state, List<GraphSeries> seriesList, ref int colorIndex, float hpAxisMax)
+    private static void AddZombieHpStackSeries(TurretBalanceReportResult report, TurretBalanceReportGraphState state, List<GraphSeries> seriesList, float hpAxisMax)
     {
         Array normalTypes = Enum.GetValues(typeof(NormalZombieType));
+        int colorIndex = 0;
         for (int i = 0; i < normalTypes.Length; i++)
         {
             NormalZombieType normalType = (NormalZombieType)normalTypes.GetValue(i);
-            if (!state.GetNormalZombieVisible(normalType))
+            if (!HasHpStackSegment(report, false, normalType, default))
             {
                 continue;
             }
 
-            AddZombieHpStackSeriesForType(report, seriesList, ref colorIndex, hpAxisMax, normalType.ToString(), false, normalType, default);
+            if (!state.GetNormalZombieVisible(normalType))
+            {
+                colorIndex++;
+                continue;
+            }
+
+            AddZombieHpStackSeriesForType(report, seriesList, hpAxisMax, normalType.ToString(), false, normalType, default, GetSeriesColor(colorIndex));
+            colorIndex++;
         }
 
         Array bossTypes = Enum.GetValues(typeof(BossZombieType));
         for (int i = 0; i < bossTypes.Length; i++)
         {
             BossZombieType bossType = (BossZombieType)bossTypes.GetValue(i);
-            if (!state.GetBossZombieVisible(bossType))
+            if (!HasHpStackSegment(report, true, default, bossType))
             {
                 continue;
             }
 
-            AddZombieHpStackSeriesForType(report, seriesList, ref colorIndex, hpAxisMax, bossType.ToString(), true, default, bossType);
+            if (!state.GetBossZombieVisible(bossType))
+            {
+                colorIndex++;
+                continue;
+            }
+
+            AddZombieHpStackSeriesForType(report, seriesList, hpAxisMax, bossType.ToString(), true, default, bossType, GetSeriesColor(colorIndex));
+            colorIndex++;
         }
     }
 
     // 특정 좀비 타입의 누적 HP 스택 그래프 선을 추가한다
-    private static void AddZombieHpStackSeriesForType(TurretBalanceReportResult report, List<GraphSeries> seriesList, ref int colorIndex, float hpAxisMax, string label, bool isBoss, NormalZombieType normalType, BossZombieType bossType)
+    private static void AddZombieHpStackSeriesForType(TurretBalanceReportResult report, List<GraphSeries> seriesList, float hpAxisMax, string label, bool isBoss, NormalZombieType normalType, BossZombieType bossType, Color color)
     {
-        GraphSeries series = CreateSeries("HP 스택 - " + label, "HP", SeriesColors[colorIndex % SeriesColors.Length], report.WaveRows.Count);
+        GraphSeries series = CreateSeries("HP 스택 - " + label, "HP", color, report.WaveRows.Count);
         SetFixedScale(series, 0.0f, hpAxisMax);
         bool hasValue = false;
         for (int waveIndex = 0; waveIndex < report.WaveRows.Count; waveIndex++)
@@ -560,7 +1008,6 @@ internal static class TurretBalanceReportGraphRenderer
         if (hasValue)
         {
             seriesList.Add(series);
-            colorIndex++;
         }
     }
 
@@ -660,18 +1107,230 @@ internal static class TurretBalanceReportGraphRenderer
         return Mathf.Max(1.0f, maxValue);
     }
 
-    // 그래프 위 마우스 휠 입력으로 HP 축 최대값 배율을 조절한다
-    private static void HandleHpAxisWheelZoom(Rect plotRect, TurretBalanceReportGraphState state)
+    // 그래프 위 마우스 입력으로 확대/축소와 드래그 이동을 처리한다
+    private static void HandleGraphInput(Rect plotRect, TurretBalanceReportGraphState state, GraphViewport viewport, int waveCount)
     {
         Event currentEvent = Event.current;
-        if (currentEvent == null || currentEvent.type != EventType.ScrollWheel || !plotRect.Contains(currentEvent.mousePosition))
+        if (currentEvent == null)
         {
             return;
         }
 
-        float multiplier = currentEvent.delta.y < 0.0f ? 1.0f / HP_AXIS_ZOOM_STEP : HP_AXIS_ZOOM_STEP;
-        state.HpAxisScaleMultiplier = Mathf.Clamp(state.HpAxisScaleMultiplier * multiplier, HP_AXIS_MIN_SCALE, HP_AXIS_MAX_SCALE);
+        if (currentEvent.type == EventType.ScrollWheel && plotRect.Contains(currentEvent.mousePosition))
+        {
+            HandleGraphWheelZoom(plotRect, state, viewport, waveCount, currentEvent);
+            return;
+        }
+
+        HandleGraphDrag(plotRect, state, viewport, waveCount, currentEvent);
+    }
+
+    // 마우스 휠로 활성 세로축 또는 웨이브 축을 확대/축소한다
+    private static void HandleGraphWheelZoom(Rect plotRect, TurretBalanceReportGraphState state, GraphViewport viewport, int waveCount, Event currentEvent)
+    {
+        float multiplier = currentEvent.delta.y < 0.0f ? AXIS_ZOOM_STEP : 1.0f / AXIS_ZOOM_STEP;
+        if (currentEvent.shift)
+        {
+            float anchorRatio = Mathf.InverseLerp(plotRect.xMin, plotRect.xMax, currentEvent.mousePosition.x);
+            float anchorValue = Mathf.Lerp(viewport.WaveMin, viewport.WaveMax, anchorRatio);
+            state.WaveAxisZoom = ClampZoom(state.WaveAxisZoom * multiplier);
+            state.WaveAxisOffset01 = CalculateOffsetForAnchor(0.0f, Mathf.Max(0.0f, waveCount - 1.0f), state.WaveAxisZoom, anchorValue, anchorRatio);
+        }
+        else
+        {
+            float anchorRatio = Mathf.InverseLerp(plotRect.yMax, plotRect.yMin, currentEvent.mousePosition.y);
+            GetActiveVerticalRange(viewport, state.ActiveVerticalAxisGroup, out float visibleMin, out float visibleMax);
+            float anchorValue = Mathf.Lerp(visibleMin, visibleMax, anchorRatio);
+            state.SetActiveVerticalZoom(ClampZoom(state.GetActiveVerticalZoom() * multiplier));
+            GetBaseVerticalRange(viewport, state.ActiveVerticalAxisGroup, out float baseMin, out float baseMax);
+            state.SetActiveVerticalOffset01(CalculateOffsetForAnchor(baseMin, baseMax, state.GetActiveVerticalZoom(), anchorValue, anchorRatio));
+        }
+
+        GUI.changed = true;
         currentEvent.Use();
+    }
+
+    // 마우스 드래그로 웨이브 축과 활성 세로축을 이동한다
+    private static void HandleGraphDrag(Rect plotRect, TurretBalanceReportGraphState state, GraphViewport viewport, int waveCount, Event currentEvent)
+    {
+        if (currentEvent.type == EventType.MouseDown && currentEvent.button == 0 && plotRect.Contains(currentEvent.mousePosition))
+        {
+            state.IsDraggingGraph = true;
+            state.LastDragMousePosition = currentEvent.mousePosition;
+            GUI.changed = true;
+            currentEvent.Use();
+            return;
+        }
+
+        if (currentEvent.type == EventType.MouseUp && currentEvent.button == 0)
+        {
+            state.IsDraggingGraph = false;
+            GUI.changed = true;
+            return;
+        }
+
+        if (!state.IsDraggingGraph || currentEvent.type != EventType.MouseDrag || currentEvent.button != 0)
+        {
+            return;
+        }
+
+        Vector2 delta = currentEvent.mousePosition - state.LastDragMousePosition;
+        state.LastDragMousePosition = currentEvent.mousePosition;
+
+        float waveSpan = Mathf.Max(0.0f, viewport.WaveMax - viewport.WaveMin);
+        float waveValueDelta = plotRect.width <= 0.0f ? 0.0f : -delta.x / plotRect.width * waveSpan;
+        state.WaveAxisOffset01 = PanOffset(0.0f, Mathf.Max(0.0f, waveCount - 1.0f), state.WaveAxisZoom, state.WaveAxisOffset01, waveValueDelta);
+
+        GetActiveVerticalRange(viewport, state.ActiveVerticalAxisGroup, out float visibleMin, out float visibleMax);
+        GetBaseVerticalRange(viewport, state.ActiveVerticalAxisGroup, out float baseMin, out float baseMax);
+        float verticalSpan = Mathf.Max(0.0f, visibleMax - visibleMin);
+        float verticalValueDelta = plotRect.height <= 0.0f ? 0.0f : delta.y / plotRect.height * verticalSpan;
+        state.SetActiveVerticalOffset01(PanOffset(baseMin, baseMax, state.GetActiveVerticalZoom(), state.GetActiveVerticalOffset01(), verticalValueDelta));
+
+        GUI.changed = true;
+        currentEvent.Use();
+    }
+
+    // 그래프 축 상태를 허용 범위 안으로 보정한다
+    private static void ClampGraphViewState(TurretBalanceReportGraphState state)
+    {
+        state.WaveAxisZoom = ClampZoom(state.WaveAxisZoom);
+        state.WaveAxisOffset01 = Mathf.Clamp01(state.WaveAxisOffset01);
+        state.HpAxisZoom = ClampZoom(state.HpAxisZoom);
+        state.HpAxisOffset01 = Mathf.Clamp01(state.HpAxisOffset01);
+        state.RatioAxisZoom = ClampZoom(state.RatioAxisZoom);
+        state.RatioAxisOffset01 = Mathf.Clamp01(state.RatioAxisOffset01);
+        state.CurrencyAxisZoom = ClampZoom(state.CurrencyAxisZoom);
+        state.CurrencyAxisOffset01 = Mathf.Clamp01(state.CurrencyAxisOffset01);
+    }
+
+    // 축 확대 배율을 허용 범위로 제한한다
+    private static float ClampZoom(float zoom)
+    {
+        return Mathf.Clamp(float.IsNaN(zoom) || float.IsInfinity(zoom) ? 1.0f : zoom, AXIS_MIN_ZOOM, AXIS_MAX_ZOOM);
+    }
+
+    // 기준 범위와 확대 배율에서 앵커 값을 유지하는 스크롤 위치를 계산한다
+    private static float CalculateOffsetForAnchor(float baseMin, float baseMax, float zoom, float anchorValue, float anchorRatio)
+    {
+        float baseSpan = Mathf.Max(0.0f, baseMax - baseMin);
+        if (baseSpan <= 0.0001f || zoom <= 1.0001f)
+        {
+            return 0.0f;
+        }
+
+        float visibleSpan = baseSpan / ClampZoom(zoom);
+        float maxStart = Mathf.Max(0.0f, baseSpan - visibleSpan);
+        float start = Mathf.Clamp(anchorValue - baseMin - Mathf.Clamp01(anchorRatio) * visibleSpan, 0.0f, maxStart);
+        return maxStart <= 0.0001f ? 0.0f : Mathf.Clamp01(start / maxStart);
+    }
+
+    // 현재 스크롤 위치에 데이터 단위 이동량을 더한다
+    private static float PanOffset(float baseMin, float baseMax, float zoom, float offset01, float valueDelta)
+    {
+        float baseSpan = Mathf.Max(0.0f, baseMax - baseMin);
+        if (baseSpan <= 0.0001f || zoom <= 1.0001f)
+        {
+            return 0.0f;
+        }
+
+        float visibleSpan = baseSpan / ClampZoom(zoom);
+        float maxStart = Mathf.Max(0.0f, baseSpan - visibleSpan);
+        float start = Mathf.Clamp(Mathf.Clamp01(offset01) * maxStart + valueDelta, 0.0f, maxStart);
+        return maxStart <= 0.0001f ? 0.0f : Mathf.Clamp01(start / maxStart);
+    }
+
+    // 현재 축 확대/스크롤 상태에서 보이는 그래프 범위를 계산한다
+    private static GraphViewport BuildGraphViewport(TurretBalanceReportResult report, TurretBalanceReportGraphState state, List<GraphSeries> seriesList)
+    {
+        GraphViewport viewport = new GraphViewport();
+        float waveMax = Mathf.Max(0.0f, report.WaveRows.Count - 1.0f);
+        CalculateVisibleRange(0.0f, waveMax, state.WaveAxisZoom, state.WaveAxisOffset01, out viewport.WaveMin, out viewport.WaveMax);
+
+        float hpMax = CalculateGroupBaseMax(seriesList, TurretBalanceReportGraphAxisGroup.Hp);
+        float ratioMax = CalculateGroupBaseMax(seriesList, TurretBalanceReportGraphAxisGroup.Ratio);
+        float currencyMax = CalculateGroupBaseMax(seriesList, TurretBalanceReportGraphAxisGroup.Currency);
+        viewport.HpBaseMin = 0.0f;
+        viewport.HpBaseMax = hpMax;
+        viewport.RatioBaseMin = 0.0f;
+        viewport.RatioBaseMax = ratioMax;
+        viewport.CurrencyBaseMin = 0.0f;
+        viewport.CurrencyBaseMax = currencyMax;
+        CalculateVisibleRange(viewport.HpBaseMin, viewport.HpBaseMax, state.HpAxisZoom, state.HpAxisOffset01, out viewport.HpMin, out viewport.HpMax);
+        CalculateVisibleRange(viewport.RatioBaseMin, viewport.RatioBaseMax, state.RatioAxisZoom, state.RatioAxisOffset01, out viewport.RatioMin, out viewport.RatioMax);
+        CalculateVisibleRange(viewport.CurrencyBaseMin, viewport.CurrencyBaseMax, state.CurrencyAxisZoom, state.CurrencyAxisOffset01, out viewport.CurrencyMin, out viewport.CurrencyMax);
+        return viewport;
+    }
+
+    // 축 기본 범위와 확대/스크롤 상태에서 실제 표시 범위를 계산한다
+    private static void CalculateVisibleRange(float baseMin, float baseMax, float zoom, float offset01, out float visibleMin, out float visibleMax)
+    {
+        float safeBaseMax = Mathf.Max(baseMin + 1.0f, baseMax);
+        float baseSpan = safeBaseMax - baseMin;
+        float safeZoom = ClampZoom(zoom);
+        float visibleSpan = baseSpan / safeZoom;
+        float maxStart = Mathf.Max(0.0f, baseSpan - visibleSpan);
+        visibleMin = baseMin + Mathf.Clamp01(offset01) * maxStart;
+        visibleMax = visibleMin + visibleSpan;
+    }
+
+    // 특정 축 그룹의 기본 최대값을 시리즈 목록에서 찾는다
+    private static float CalculateGroupBaseMax(List<GraphSeries> seriesList, TurretBalanceReportGraphAxisGroup axisGroup)
+    {
+        float maxValue = 1.0f;
+        for (int i = 0; i < seriesList.Count; i++)
+        {
+            GraphSeries series = seriesList[i];
+            if (series.AxisGroup != axisGroup)
+            {
+                continue;
+            }
+
+            GetSeriesScale(series, out _, out float seriesMax);
+            maxValue = Mathf.Max(maxValue, seriesMax);
+        }
+
+        return maxValue;
+    }
+
+    // 활성 세로축 그룹의 현재 표시 범위를 반환한다
+    private static void GetActiveVerticalRange(GraphViewport viewport, TurretBalanceReportGraphAxisGroup axisGroup, out float minValue, out float maxValue)
+    {
+        switch (axisGroup)
+        {
+            case TurretBalanceReportGraphAxisGroup.Ratio:
+                minValue = viewport.RatioMin;
+                maxValue = viewport.RatioMax;
+                break;
+            case TurretBalanceReportGraphAxisGroup.Currency:
+                minValue = viewport.CurrencyMin;
+                maxValue = viewport.CurrencyMax;
+                break;
+            default:
+                minValue = viewport.HpMin;
+                maxValue = viewport.HpMax;
+                break;
+        }
+    }
+
+    // 활성 세로축 그룹의 기본 전체 범위를 반환한다
+    private static void GetBaseVerticalRange(GraphViewport viewport, TurretBalanceReportGraphAxisGroup axisGroup, out float minValue, out float maxValue)
+    {
+        switch (axisGroup)
+        {
+            case TurretBalanceReportGraphAxisGroup.Ratio:
+                minValue = viewport.RatioBaseMin;
+                maxValue = viewport.RatioBaseMax;
+                break;
+            case TurretBalanceReportGraphAxisGroup.Currency:
+                minValue = viewport.CurrencyBaseMin;
+                maxValue = viewport.CurrencyBaseMax;
+                break;
+            default:
+                minValue = viewport.HpBaseMin;
+                maxValue = viewport.HpBaseMax;
+                break;
+        }
     }
 
     // 좀비 총 HP와 기준 시간 처리 가능 HP를 포함한 공통 HP 축 최대값을 계산한다
@@ -720,7 +1379,7 @@ internal static class TurretBalanceReportGraphRenderer
     }
 
     // 모든 터렛 종류의 웨이브별 최적 총 DPS 그래프 선을 추가한다
-    private static void AddAllTurretDpsSeries(TurretBalanceReportResult report, TurretBalanceReportGraphState state, List<GraphSeries> seriesList, ref int colorIndex, float hpAxisMax, float targetClearSeconds, float targetClearSecondsIncrement)
+    private static void AddAllTurretDpsSeries(TurretBalanceReportResult report, TurretBalanceReportGraphState state, List<GraphSeries> seriesList, float hpAxisMax, float targetClearSeconds, float targetClearSecondsIncrement)
     {
         List<TurretGraphEntry> turretEntries = BuildTurretGraphEntries(report);
         int maxTier = GetMaxTurretTier(turretEntries);
@@ -752,7 +1411,6 @@ internal static class TurretBalanceReportGraphRenderer
             }
 
             seriesList.Add(criticalSeries);
-            colorIndex++;
         }
     }
 
@@ -859,9 +1517,10 @@ internal static class TurretBalanceReportGraphRenderer
     }
 
     // 누적 재화 그래프 선을 목록에 추가한다
-    private static void AddCurrencySeries(TurretBalanceReportResult report, TurretBalanceReportGraphState state, List<RewardCurrencyType> currencyTypes, List<GraphSeries> seriesList, ref int colorIndex)
+    private static void AddCurrencySeries(TurretBalanceReportResult report, TurretBalanceReportGraphState state, List<RewardCurrencyType> currencyTypes, List<GraphSeries> seriesList)
     {
         HashSet<RewardCurrencyType> currencyScope = TurretBalanceReportCurrencyProjector.BuildTurretCurrencyScope(report);
+        float currencyAxisMax = CalculateCurrencyAxisMax(report, state, currencyTypes, currencyScope);
         for (int currencyIndex = 0; currencyIndex < currencyTypes.Count; currencyIndex++)
         {
             RewardCurrencyType currencyType = currencyTypes[currencyIndex];
@@ -870,7 +1529,9 @@ internal static class TurretBalanceReportGraphRenderer
                 continue;
             }
 
-            GraphSeries series = CreateSeries("누적 " + GetCurrencyLabel(currencyType), GetCurrencyLabel(currencyType), SeriesColors[colorIndex++ % SeriesColors.Length], report.WaveRows.Count);
+            GraphSeries series = CreateSeries("누적 " + GetCurrencyLabel(currencyType), GetCurrencyLabel(currencyType), GetCurrencyGraphColor(currencyIndex), report.WaveRows.Count);
+            series.AxisGroup = TurretBalanceReportGraphAxisGroup.Currency;
+            SetFixedScale(series, 0.0f, currencyAxisMax);
             for (int i = 0; i < report.WaveRows.Count; i++)
             {
                 Dictionary<RewardCurrencyType, float> rewards = i < report.ItemBalanceRows.Count
@@ -883,6 +1544,38 @@ internal static class TurretBalanceReportGraphRenderer
 
             seriesList.Add(series);
         }
+    }
+
+    // 표시 중인 누적 재화 그래프가 공유할 세로축 최대값을 계산한다
+    private static float CalculateCurrencyAxisMax(TurretBalanceReportResult report, TurretBalanceReportGraphState state, List<RewardCurrencyType> currencyTypes, HashSet<RewardCurrencyType> currencyScope)
+    {
+        float maxValue = 1.0f;
+        for (int i = 0; i < report.WaveRows.Count; i++)
+        {
+            Dictionary<RewardCurrencyType, float> rewards = i < report.ItemBalanceRows.Count
+                ? TurretBalanceReportCurrencyProjector.FilterItemAmounts(report.ItemBalanceRows[i], currencyScope)
+                : null;
+            if (rewards == null)
+            {
+                continue;
+            }
+
+            for (int currencyIndex = 0; currencyIndex < currencyTypes.Count; currencyIndex++)
+            {
+                RewardCurrencyType currencyType = currencyTypes[currencyIndex];
+                if (!state.GetCurrencyVisible(currencyType))
+                {
+                    continue;
+                }
+
+                if (rewards.TryGetValue(currencyType, out float amount))
+                {
+                    maxValue = Mathf.Max(maxValue, Mathf.Max(0.0f, amount));
+                }
+            }
+        }
+
+        return maxValue;
     }
     // 1순위 터렛의 치명타/강타 기대 처리 가능 HP 그래프 선을 만든다
     private static GraphSeries CreateTopRankDpsSeries(TurretBalanceReportResult report, Color color, float hpAxisMax, float targetClearSeconds, float targetClearSecondsIncrement)
@@ -930,7 +1623,7 @@ internal static class TurretBalanceReportGraphRenderer
     }
 
     // 그래프 배경 격자와 축 라벨을 그린다
-    private static void DrawGrid(Rect plotRect, TurretBalanceReportResult report)
+    private static void DrawGrid(Rect plotRect, TurretBalanceReportResult report, GraphViewport viewport)
     {
         EditorGUI.DrawRect(plotRect, new Color(0.11f, 0.11f, 0.11f, 0.18f));
         Handles.BeginGUI();
@@ -956,40 +1649,42 @@ internal static class TurretBalanceReportGraphRenderer
 
         GUI.Label(new Rect(plotRect.xMin - 52.0f, plotRect.yMin - 2.0f, 48.0f, 20.0f), "최대", EditorStyles.miniLabel);
         GUI.Label(new Rect(plotRect.xMin - 52.0f, plotRect.yMax - 18.0f, 48.0f, 20.0f), "최소", EditorStyles.miniLabel);
-        GUI.Label(new Rect(plotRect.xMin, plotRect.yMax + 6.0f, 160.0f, 20.0f), GetWaveLabel(report, 0), EditorStyles.miniLabel);
-        GUI.Label(new Rect(plotRect.xMax - 160.0f, plotRect.yMax + 6.0f, 160.0f, 20.0f), GetWaveLabel(report, report.WaveRows.Count - 1), EditorStyles.miniLabel);
+        int minWaveIndex = Mathf.Clamp(Mathf.RoundToInt(viewport.WaveMin), 0, report.WaveRows.Count - 1);
+        int maxWaveIndex = Mathf.Clamp(Mathf.RoundToInt(viewport.WaveMax), 0, report.WaveRows.Count - 1);
+        GUI.Label(new Rect(plotRect.xMin, plotRect.yMax + 6.0f, 160.0f, 20.0f), GetWaveLabel(report, minWaveIndex), EditorStyles.miniLabel);
+        GUI.Label(new Rect(plotRect.xMax - 160.0f, plotRect.yMax + 6.0f, 160.0f, 20.0f), GetWaveLabel(report, maxWaveIndex), EditorStyles.miniLabel);
     }
 
     // 표시 중인 배율 그래프의 기준선을 그린다
-    private static void DrawRatioBaselines(Rect plotRect, float ratioAxisMax, bool showClearBaseline, bool showObstacleBaseline, float obstacleTargetTimeMultiplier, bool showArrivalBaseline, float zombieArrivalTimeMultiplier)
+    private static void DrawRatioBaselines(Rect plotRect, float visibleMin, float visibleMax, bool showClearBaseline, bool showObstacleBaseline, float obstacleTargetTimeMultiplier, bool showArrivalBaseline, float zombieArrivalTimeMultiplier)
     {
         if (showClearBaseline)
         {
-            DrawRatioBaseline(plotRect, ratioAxisMax, 1.0f, "기준 1.0x");
+            DrawRatioBaseline(plotRect, visibleMin, visibleMax, 1.0f, "기준 1.0x");
         }
 
         if (showObstacleBaseline)
         {
             float obstacleBaseline = Mathf.Max(0.1f, obstacleTargetTimeMultiplier);
-            DrawRatioBaseline(plotRect, ratioAxisMax, obstacleBaseline, $"장애물 기준 {FormatFloat(obstacleBaseline)}x");
+            DrawRatioBaseline(plotRect, visibleMin, visibleMax, obstacleBaseline, $"장애물 기준 {FormatFloat(obstacleBaseline)}x");
         }
 
         if (showArrivalBaseline)
         {
             float arrivalBaseline = Mathf.Max(0.01f, zombieArrivalTimeMultiplier);
-            DrawRatioBaseline(plotRect, ratioAxisMax, arrivalBaseline, $"도달 기준 {FormatFloat(arrivalBaseline)}x");
+            DrawRatioBaseline(plotRect, visibleMin, visibleMax, arrivalBaseline, $"도달 기준 {FormatFloat(arrivalBaseline)}x");
         }
     }
 
     // 지정 배율 위치에 기준선을 그린다
-    private static void DrawRatioBaseline(Rect plotRect, float ratioAxisMax, float baselineRatio, string label)
+    private static void DrawRatioBaseline(Rect plotRect, float visibleMin, float visibleMax, float baselineRatio, string label)
     {
-        if (baselineRatio <= 0.0f)
+        if (baselineRatio <= 0.0f || baselineRatio < visibleMin || baselineRatio > visibleMax)
         {
             return;
         }
 
-        float yRatio = Mathf.Approximately(ratioAxisMax, 0.0f) ? 1.0f : Mathf.Clamp01(baselineRatio / ratioAxisMax);
+        float yRatio = Mathf.Approximately(visibleMax, visibleMin) ? 1.0f : Mathf.InverseLerp(visibleMin, visibleMax, baselineRatio);
         float y = Mathf.Lerp(plotRect.yMax, plotRect.yMin, yRatio);
         Handles.BeginGUI();
         Handles.color = new Color(1.0f, 1.0f, 1.0f, 0.45f);
@@ -999,7 +1694,7 @@ internal static class TurretBalanceReportGraphRenderer
     }
 
     // 모든 그래프 선을 그리고 마우스 hover 정보를 찾는다
-    private static void DrawSeriesList(Rect plotRect, List<GraphSeries> seriesList, int waveCount, out GraphHoverInfo hoverInfo)
+    private static void DrawSeriesList(Rect plotRect, List<GraphSeries> seriesList, int waveCount, GraphViewport viewport, bool allowHover, out GraphHoverInfo hoverInfo)
     {
         hoverInfo = new GraphHoverInfo { HasValue = false, Distance = float.MaxValue };
         if (waveCount <= 0 || seriesList.Count == 0)
@@ -1009,55 +1704,71 @@ internal static class TurretBalanceReportGraphRenderer
         }
 
         Vector2 mousePosition = Event.current.mousePosition;
+        bool canHover = allowHover && plotRect.Contains(mousePosition);
         Handles.BeginGUI();
         for (int i = 0; i < seriesList.Count; i++)
         {
-            DrawSeriesLine(plotRect, seriesList[i], waveCount, mousePosition, ref hoverInfo);
+            DrawSeriesLine(plotRect, seriesList[i], waveCount, viewport, mousePosition, canHover, ref hoverInfo);
         }
 
         Handles.EndGUI();
     }
 
     // 그래프 선 하나를 그리고 hover 후보를 갱신한다
-    private static void DrawSeriesLine(Rect plotRect, GraphSeries series, int waveCount, Vector2 mousePosition, ref GraphHoverInfo hoverInfo)
+    private static void DrawSeriesLine(Rect plotRect, GraphSeries series, int waveCount, GraphViewport viewport, Vector2 mousePosition, bool allowHover, ref GraphHoverInfo hoverInfo)
     {
         if (series.Values == null || series.Values.Count == 0)
         {
             return;
         }
 
-        GetSeriesScale(series, out float minValue, out float maxValue);
-        Vector3[] points = new Vector3[series.Values.Count];
-        bool[] validPoints = new bool[series.Values.Count];
-        for (int i = 0; i < series.Values.Count; i++)
+        GetSeriesVisibleScale(series, viewport, out float minValue, out float maxValue);
+        int pointCount = series.Values.Count;
+        EnsurePointBuffers(pointCount);
+        for (int i = 0; i < pointCount; i++)
         {
-            validPoints[i] = IsValidGraphValue(series.Values[i]);
-            if (validPoints[i])
+            reusableValidPointBuffer[i] = IsValidGraphValue(series.Values[i]) && i >= viewport.WaveMin && i <= viewport.WaveMax && series.Values[i] >= minValue && series.Values[i] <= maxValue;
+            if (reusableValidPointBuffer[i])
             {
-                points[i] = CalculatePoint(plotRect, i, waveCount, series.Values[i], minValue, maxValue);
+                reusablePointBuffer[i] = CalculatePoint(plotRect, i, series.Values[i], viewport.WaveMin, viewport.WaveMax, minValue, maxValue);
             }
         }
 
         Handles.color = series.Color;
-        DrawValidLineSegments(points, validPoints);
-        for (int i = 0; i < points.Length; i++)
+        DrawValidLineSegments(reusablePointBuffer, reusableValidPointBuffer, pointCount);
+        for (int i = 0; i < pointCount; i++)
         {
-            if (!validPoints[i])
+            if (!reusableValidPointBuffer[i])
             {
                 continue;
             }
 
-            Rect pointRect = new Rect(points[i].x - 2.0f, points[i].y - 2.0f, 4.0f, 4.0f);
+            Rect pointRect = new Rect(reusablePointBuffer[i].x - 2.0f, reusablePointBuffer[i].y - 2.0f, 4.0f, 4.0f);
             EditorGUI.DrawRect(pointRect, series.Color);
         }
 
-        UpdateHoverInfo(series, points, validPoints, mousePosition, ref hoverInfo);
+        if (allowHover)
+        {
+            UpdateHoverInfo(series, reusablePointBuffer, reusableValidPointBuffer, pointCount, mousePosition, ref hoverInfo);
+        }
+    }
+
+    // 그래프 선 렌더링에 사용할 재사용 버퍼 크기를 보장한다
+    private static void EnsurePointBuffers(int pointCount)
+    {
+        if (reusablePointBuffer.Length >= pointCount && reusableValidPointBuffer.Length >= pointCount)
+        {
+            return;
+        }
+
+        reusablePointBuffer = new Vector3[pointCount];
+        reusableValidPointBuffer = new bool[pointCount];
     }
 
     // 유효한 값끼리 이어진 선분만 그린다
-    private static void DrawValidLineSegments(Vector3[] points, bool[] validPoints)
+    private static void DrawValidLineSegments(Vector3[] points, bool[] validPoints, int pointCount)
     {
-        for (int i = 0; i < points.Length - 1; i++)
+        for (int i = 0; i < pointCount - 1; i++)
         {
             if (validPoints[i] && validPoints[i + 1])
             {
@@ -1077,6 +1788,26 @@ internal static class TurretBalanceReportGraphRenderer
         }
 
         CalculateMinMax(series.Values, out minValue, out maxValue);
+    }
+
+    // 그래프 선의 축 그룹에 맞는 현재 표시 범위를 반환한다
+    private static void GetSeriesVisibleScale(GraphSeries series, GraphViewport viewport, out float minValue, out float maxValue)
+    {
+        switch (series.AxisGroup)
+        {
+            case TurretBalanceReportGraphAxisGroup.Ratio:
+                minValue = viewport.RatioMin;
+                maxValue = viewport.RatioMax;
+                break;
+            case TurretBalanceReportGraphAxisGroup.Currency:
+                minValue = viewport.CurrencyMin;
+                maxValue = viewport.CurrencyMax;
+                break;
+            default:
+                minValue = viewport.HpMin;
+                maxValue = viewport.HpMax;
+                break;
+        }
     }
 
     // 값 목록의 최소/최대값을 계산한다
@@ -1117,9 +1848,9 @@ internal static class TurretBalanceReportGraphRenderer
     }
 
     // 그래프 좌표계에서 값 하나의 위치를 계산한다
-    private static Vector3 CalculatePoint(Rect plotRect, int index, int waveCount, float value, float minValue, float maxValue)
+    private static Vector3 CalculatePoint(Rect plotRect, int index, float value, float waveMin, float waveMax, float minValue, float maxValue)
     {
-        float xRatio = waveCount <= 1 ? 0.0f : index / (float)(waveCount - 1);
+        float xRatio = Mathf.Approximately(waveMax, waveMin) ? 0.0f : Mathf.InverseLerp(waveMin, waveMax, index);
         float yRatio = Mathf.Approximately(maxValue, minValue) ? 0.5f : Mathf.InverseLerp(minValue, maxValue, value);
         float x = Mathf.Lerp(plotRect.xMin, plotRect.xMax, xRatio);
         float y = Mathf.Lerp(plotRect.yMax, plotRect.yMin, yRatio);
@@ -1127,14 +1858,14 @@ internal static class TurretBalanceReportGraphRenderer
     }
 
     // 마우스와 가까운 선분을 찾아 hover 정보를 갱신한다
-    private static void UpdateHoverInfo(GraphSeries series, Vector3[] points, bool[] validPoints, Vector2 mousePosition, ref GraphHoverInfo hoverInfo)
+    private static void UpdateHoverInfo(GraphSeries series, Vector3[] points, bool[] validPoints, int pointCount, Vector2 mousePosition, ref GraphHoverInfo hoverInfo)
     {
-        if (points.Length <= 0)
+        if (pointCount <= 0)
         {
             return;
         }
 
-        if (points.Length == 1)
+        if (pointCount == 1)
         {
             if (validPoints[0])
             {
@@ -1144,7 +1875,7 @@ internal static class TurretBalanceReportGraphRenderer
             return;
         }
 
-        for (int i = 0; i < points.Length - 1; i++)
+        for (int i = 0; i < pointCount - 1; i++)
         {
             if (!validPoints[i] || !validPoints[i + 1])
             {
@@ -1192,21 +1923,6 @@ internal static class TurretBalanceReportGraphRenderer
         return Vector2.Distance(point, projected);
     }
 
-    // 그래프 범례를 그린다
-    private static void DrawLegend(Rect graphRect, List<GraphSeries> seriesList)
-    {
-        float x = graphRect.x + 10.0f;
-        float y = graphRect.y + 8.0f;
-        for (int i = 0; i < seriesList.Count; i++)
-        {
-            GraphSeries series = seriesList[i];
-            Rect colorRect = new Rect(x, y + 4.0f, 10.0f, 10.0f);
-            EditorGUI.DrawRect(colorRect, series.Color);
-            GUI.Label(new Rect(x + 14.0f, y, 240.0f, 18.0f), series.Name, EditorStyles.miniLabel);
-            y += 18.0f;
-        }
-    }
-
     // hover 툴팁을 그린다
     private static void DrawHoverTooltip(Rect graphRect, TurretBalanceReportResult report, GraphHoverInfo hoverInfo)
     {
@@ -1235,6 +1951,31 @@ internal static class TurretBalanceReportGraphRenderer
         }
 
         GUI.Box(tooltipRect, tooltip, EditorStyles.helpBox);
+    }
+
+    // 확대된 그래프를 이동할 수 있는 스크롤바를 그린다
+    private static void DrawGraphScrollbars(Rect plotRect, TurretBalanceReportGraphState state)
+    {
+        if (state.WaveAxisZoom > 1.0001f)
+        {
+            Rect horizontalRect = new Rect(plotRect.xMin, plotRect.yMax + 4.0f, plotRect.width, SCROLLBAR_SIZE);
+            float visibleSize = 1.0f / ClampZoom(state.WaveAxisZoom);
+            state.WaveAxisOffset01 = GUI.HorizontalScrollbar(horizontalRect, state.WaveAxisOffset01, visibleSize, 0.0f, 1.0f);
+        }
+
+        if (state.GetActiveVerticalZoom() > 1.0001f)
+        {
+            Rect verticalRect = new Rect(plotRect.xMax + 4.0f, plotRect.yMin, SCROLLBAR_SIZE, plotRect.height);
+            float visibleSize = 1.0f / ClampZoom(state.GetActiveVerticalZoom());
+            state.SetActiveVerticalOffset01(GUI.VerticalScrollbar(verticalRect, state.GetActiveVerticalOffset01(), visibleSize, 0.0f, 1.0f));
+        }
+    }
+
+    // 그래프 조작법을 최하단 우측에 표시한다
+    private static void DrawControlHint(Rect graphRect)
+    {
+        Rect hintRect = new Rect(graphRect.xMax - CONTROL_HINT_WIDTH - 10.0f, graphRect.yMax - 20.0f, CONTROL_HINT_WIDTH, 18.0f);
+        GUI.Label(hintRect, "휠: 세로 확대 | Shift+휠: 웨이브 확대 | 드래그: 이동", EditorStyles.miniLabel);
     }
 
     // 웨이브 행의 표시 라벨을 반환한다
@@ -1272,11 +2013,31 @@ internal static class TurretBalanceReportGraphRenderer
         public string Name;
         public string Unit;
         public Color Color;
+        public TurretBalanceReportGraphAxisGroup AxisGroup;
         public List<float> Values;
         public List<string> PointNotes;
         public bool UseFixedScale;
         public float FixedMinValue;
         public float FixedMaxValue;
+    }
+
+    // 현재 그래프에서 보이는 가로축과 세로축 범위를 보관한다.
+    private struct GraphViewport
+    {
+        public float WaveMin;
+        public float WaveMax;
+        public float HpBaseMin;
+        public float HpBaseMax;
+        public float HpMin;
+        public float HpMax;
+        public float RatioBaseMin;
+        public float RatioBaseMax;
+        public float RatioMin;
+        public float RatioMax;
+        public float CurrencyBaseMin;
+        public float CurrencyBaseMax;
+        public float CurrencyMin;
+        public float CurrencyMax;
     }
 
     // 터렛 그래프 선의 이름과 세대 정보를 보관한다.

@@ -81,6 +81,7 @@ internal sealed class TurretBalanceReportResult
 {
     public int InitialWalletCoin;
     public readonly List<WaveSummaryRow> WaveRows = new List<WaveSummaryRow>();
+    public readonly List<ItemBalanceRow> ItemBalanceRows = new List<ItemBalanceRow>();
     public readonly List<WaveClearSimulationRow> WaveClearRows = new List<WaveClearSimulationRow>();
     public readonly List<int> ScenarioReferenceLevels = new List<int>();
     public readonly List<TurretSpeciesDetailRow> SpeciesDetailRows = new List<TurretSpeciesDetailRow>();
@@ -185,6 +186,13 @@ internal struct WaveSummaryRow
     public float AverageNormalZombieDps;
     public string DpsDataNote;
     public List<ZombieHpStackSegment> HpStackSegments;
+}
+
+// 웨이브 시작 시점의 아이템별 최대 참조 수량 행 데이터.
+internal struct ItemBalanceRow
+{
+    public string WaveLabel;
+    public Dictionary<RewardCurrencyType, float> MaxItemAmounts;
 }
 
 // 웨이브 클리어 시뮬레이션 표 한 순위 항목의 터렛/설치 수/레벨/총 DPS.

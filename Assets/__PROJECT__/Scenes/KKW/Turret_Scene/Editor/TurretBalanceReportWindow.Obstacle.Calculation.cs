@@ -103,14 +103,16 @@ internal static class ObstacleBalanceCalculator
     public static List<ObstacleWaveRow> BuildRows(
         List<WaveSummaryRow> waveRows,
         List<ObstacleEntrySpec> entries,
-        List<WaveClearSimulationRow> clearRows)
+        List<WaveClearSimulationRow> clearRows,
+        List<ItemBalanceRow> itemBalanceRows)
     {
         List<ObstacleWaveRow> rows = new List<ObstacleWaveRow>(waveRows.Count);
+        HashSet<RewardCurrencyType> currencyScope = TurretBalanceReportCurrencyProjector.BuildObstacleCurrencyScope(entries);
 
         for (int i = 0; i < waveRows.Count; i++)
         {
             WaveSummaryRow wave = waveRows[i];
-            Dictionary<RewardCurrencyType, float> budget = BuildBudget(wave);
+            Dictionary<RewardCurrencyType, float> budget = BuildBudget(itemBalanceRows, i, currencyScope);
             float zombieDps = wave.AverageNormalZombieDps * wave.NormalSpawnCount;
 
             ObstacleInstallSample[] single = new ObstacleInstallSample[entries.Count];
@@ -288,24 +290,15 @@ internal static class ObstacleBalanceCalculator
         };
     }
 
-    // 웨이브 요약 행에서 전 재화별 누적 예산을 만든다. Coin은 AvailableBudgetCoin(초기 지갑 포함), 나머지는 CumulativeReward에서 가져온다.
-    private static Dictionary<RewardCurrencyType, float> BuildBudget(WaveSummaryRow wave)
+    // 아이템 밸런스 행에서 비용 관련 재화만 장애물 예산으로 만든다
+    private static Dictionary<RewardCurrencyType, float> BuildBudget(List<ItemBalanceRow> itemBalanceRows, int waveIndex, HashSet<RewardCurrencyType> currencyScope)
     {
-        Dictionary<RewardCurrencyType, float> budget = new Dictionary<RewardCurrencyType, float>();
-        budget[RewardCurrencyType.Coin] = wave.AvailableBudgetCoin;
-        if (wave.CumulativeReward != null)
+        if (itemBalanceRows == null || waveIndex < 0 || waveIndex >= itemBalanceRows.Count)
         {
-            foreach (KeyValuePair<RewardCurrencyType, float> pair in wave.CumulativeReward)
-            {
-                if (pair.Key != RewardCurrencyType.Coin)
-                {
-                    budget[pair.Key] = pair.Value;
-                }
-            }
+            return new Dictionary<RewardCurrencyType, float>();
         }
 
-        ObstacleCraftBudgetCalculator.ApplyCraftableConcreteBudget(budget);
-        return budget;
+        return TurretBalanceReportCurrencyProjector.FilterItemAmounts(itemBalanceRows[waveIndex], currencyScope);
     }
 
     // 단일 설치 시나리오: 설치 비용을 뺀 나머지 예산으로 최대 레벨을 계산한다
@@ -562,58 +555,5 @@ internal static class ObstacleBalanceCalculator
     private static string FormatHp(float value)
     {
         return value.ToString("0.##", CultureInfo.InvariantCulture);
-    }
-}
-
-// 장애물 밸런스 리포트에서 아이템 조합으로 얻을 수 있는 예산 수량을 계산한다.
-internal static class ObstacleCraftBudgetCalculator
-{
-    private const int STONE_PER_CEMENT_CRAFT = 50;
-    private const int CEMENT_PER_CEMENT_CRAFT = 5;
-    private const int WATER_PER_CONCRETE_CRAFT = 10;
-    private const int CEMENT_PER_CONCRETE_CRAFT = 20;
-
-    // 현재 예산에 조합으로 제작 가능한 콘크리트 최종 수량을 더한다
-    public static void ApplyCraftableConcreteBudget(Dictionary<RewardCurrencyType, float> budget)
-    {
-        if (budget == null)
-        {
-            return;
-        }
-
-        float concreteAmount = GetBudgetAmount(budget, RewardCurrencyType.Concrete);
-        float craftableConcrete = CalculateCraftableConcrete(
-            GetBudgetAmount(budget, RewardCurrencyType.Stone),
-            GetBudgetAmount(budget, RewardCurrencyType.Cement),
-            GetBudgetAmount(budget, RewardCurrencyType.Water));
-
-        float finalConcrete = concreteAmount + craftableConcrete;
-        if (finalConcrete > 0f)
-        {
-            budget[RewardCurrencyType.Concrete] = finalConcrete;
-        }
-    }
-
-    // Stone과 Cement, Water 예산에서 제작 가능한 Concrete 개수를 계산한다
-    private static int CalculateCraftableConcrete(float stoneAmount, float cementAmount, float waterAmount)
-    {
-        int availableCement = Mathf.FloorToInt(Mathf.Max(0f, cementAmount)) + CalculateCraftableCement(stoneAmount);
-        int availableWater = Mathf.FloorToInt(Mathf.Max(0f, waterAmount));
-        int concreteByCement = availableCement / CEMENT_PER_CONCRETE_CRAFT;
-        int concreteByWater = availableWater / WATER_PER_CONCRETE_CRAFT;
-        return Mathf.Min(concreteByCement, concreteByWater);
-    }
-
-    // Stone 예산에서 제작 가능한 Cement 개수를 계산한다
-    private static int CalculateCraftableCement(float stoneAmount)
-    {
-        int craftCount = Mathf.FloorToInt(Mathf.Max(0f, stoneAmount)) / STONE_PER_CEMENT_CRAFT;
-        return craftCount * CEMENT_PER_CEMENT_CRAFT;
-    }
-
-    // 예산 Dictionary에서 지정 재화의 현재 수량을 가져온다
-    private static float GetBudgetAmount(Dictionary<RewardCurrencyType, float> budget, RewardCurrencyType currencyType)
-    {
-        return budget != null && budget.TryGetValue(currencyType, out float amount) ? amount : 0f;
     }
 }

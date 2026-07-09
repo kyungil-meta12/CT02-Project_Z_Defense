@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
@@ -14,13 +15,44 @@ internal sealed class TurretBalanceReportTableBuilder
         {
             new ReportTableModel(),
             new ReportTableModel(),
+            new ReportTableModel(),
             new ReportTableModel()
         };
 
-        BuildWaveClearTableCache(report, tables[0], targetClearSeconds, targetClearSecondsIncrement, zombieArrivalSeconds);
-        BuildScenarioDetailTableCache(report, tables[1]);
-        BuildSourceWarningTableCache(report, tables[2]);
+        BuildItemBalanceTableCache(report, tables[0]);
+        BuildWaveClearTableCache(report, tables[1], targetClearSeconds, targetClearSecondsIncrement, zombieArrivalSeconds);
+        BuildScenarioDetailTableCache(report, tables[2]);
+        BuildSourceWarningTableCache(report, tables[3]);
         return tables;
+    }
+
+    // 아이템 밸런스 표 캐시를 만든다
+    private static void BuildItemBalanceTableCache(TurretBalanceReportResult report, ReportTableModel table)
+    {
+        RewardCurrencyType[] currencyTypes = GetSortedCurrencyTypes();
+        string[] headers = new string[1 + currencyTypes.Length];
+        headers[0] = "웨이브";
+        for (int i = 0; i < currencyTypes.Length; i++)
+        {
+            headers[1 + i] = currencyTypes[i].ToString();
+        }
+
+        table.Reset("item_balance.csv", "각 웨이브 시작 시점의 누적 보상에 드랍 기대값, 웨이브 보상 배율, 아이템 데이터 CSV의 조합/분해 기대값을 반영한 아이템별 최대 참조 수량입니다. 각 열은 해당 아이템을 목표로 했을 때의 독립 참조값이며 실제 자동 조합/분해 실행을 의미하지 않습니다.", headers);
+        for (int rowIndex = 0; rowIndex < report.ItemBalanceRows.Count; rowIndex++)
+        {
+            ItemBalanceRow row = report.ItemBalanceRows[rowIndex];
+            string[] columns = new string[headers.Length];
+            columns[0] = row.WaveLabel;
+            for (int currencyIndex = 0; currencyIndex < currencyTypes.Length; currencyIndex++)
+            {
+                row.MaxItemAmounts.TryGetValue(currencyTypes[currencyIndex], out float amount);
+                columns[1 + currencyIndex] = FormatFloat(amount);
+            }
+
+            table.AddRow(columns);
+        }
+
+        TurretBalanceReportTableRenderer.RecalculateColumnWidths(table);
     }
 
     // 웨이브 클리어 표 캐시를 만든다
@@ -30,14 +62,17 @@ internal sealed class TurretBalanceReportTableBuilder
             ? $", 웨이브당 +{FormatFloat(targetClearSecondsIncrement)}초 증가"
             : string.Empty;
         string arrivalDesc = zombieArrivalSeconds > 0f ? $", 좀비 도달 {FormatFloat(zombieArrivalSeconds)}초 포함" : string.Empty;
-        table.Reset("wave_clear_simulation.csv", $"각 웨이브에서, 터렛 시나리오 상세의 종류별 레벨 체크포인트 데이터(누적 재화·DPS)를 참고해 그 웨이브 시작 시점의 Coin 예산(직전 웨이브까지의 총 누적 재화 중 Coin, 첫 웨이브는 초기 지갑 Coin {FormatInt(report.InitialWalletCoin)})으로 설치 가능한 총 DPS가 가장 높은 1~3순위 종류를 보여줍니다. 설치 수는 현재 터렛 슬롯 상한인 최대 8대까지 계산합니다. 웨이브 획득 재화·총 누적 재화는 좀비 드랍 전체(Coin 외 재화 포함)와 웨이브 클리어 Coin 보너스까지 반영합니다. 재화 줄은 실제로 등장하는 재화 종류 수만큼 늘어납니다. 예상 클리어 초 = 웨이브 총 좀비 HP / 1순위 총 DPS + 좀비 도달 시간입니다. 비고: 기준 클리어 {FormatFloat(targetClearSeconds)}초{incrementDesc}{arrivalDesc} 대비 ±20% 초과 시 경고.", "웨이브", "일반 좀비 수", "보스 좀비 수", "웨이브 총 좀비 HP", "웨이브 획득 재화", "총 누적 재화", "1순위 터렛", "2순위 터렛", "3순위 터렛", "예상 클리어 초", "비고");
+        HashSet<RewardCurrencyType> currencyScope = TurretBalanceReportCurrencyProjector.BuildTurretCurrencyScope(report);
+        table.Reset("wave_clear_simulation.csv", $"각 웨이브에서, 터렛 시나리오 상세의 종류별 레벨 체크포인트 데이터(누적 재화·DPS)를 참고해 그 웨이브 시작 시점의 Coin 예산(직전 웨이브까지의 총 누적 재화 중 Coin, 첫 웨이브는 초기 지갑 Coin {FormatInt(report.InitialWalletCoin)})으로 설치 가능한 총 DPS가 가장 높은 1~3순위 종류를 보여줍니다. 설치 수는 현재 터렛 슬롯 상한인 최대 8대까지 계산합니다. 웨이브 획득 재화·총 누적 재화는 터렛 설치/업그레이드/진화 비용과 아이템 데이터 CSV의 조합/분해 관계에 필요한 재화만 표시합니다. 예상 클리어 초 = 웨이브 총 좀비 HP / 1순위 총 DPS + 좀비 도달 시간입니다. 비고: 기준 클리어 {FormatFloat(targetClearSeconds)}초{incrementDesc}{arrivalDesc} 대비 ±20% 초과 시 경고.", "웨이브", "일반 좀비 수", "보스 좀비 수", "웨이브 총 좀비 HP", "웨이브 획득 재화", "총 누적 재화", "1순위 터렛", "2순위 터렛", "3순위 터렛", "예상 클리어 초", "비고");
         for (int i = 0; i < report.WaveClearRows.Count; i++)
         {
             WaveClearSimulationRow row = report.WaveClearRows[i];
             float waveTarget = targetClearSeconds + i * targetClearSecondsIncrement;
             float adjustedClearSeconds = row.BestClearSeconds + zombieArrivalSeconds;
             string note = BuildWaveClearNote(adjustedClearSeconds, waveTarget, row.Note);
-            table.AddRow(row.WaveLabel, FormatInt(row.NormalSpawnCount), FormatInt(row.BossSpawnCount), FormatFloat(row.TotalWaveHp), FormatRewardBreakdown(row.AverageRewardPerWave), FormatRewardBreakdown(row.CumulativeReward), FormatRankCell(row.TopRanks, 0), FormatRankCell(row.TopRanks, 1), FormatRankCell(row.TopRanks, 2), FormatFloat(adjustedClearSeconds), note);
+            Dictionary<RewardCurrencyType, float> averageRewards = GetItemBalanceDelta(report, i, currencyScope);
+            Dictionary<RewardCurrencyType, float> cumulativeRewards = GetItemBalanceRewards(report, i, currencyScope);
+            table.AddRow(row.WaveLabel, FormatInt(row.NormalSpawnCount), FormatInt(row.BossSpawnCount), FormatFloat(row.TotalWaveHp), FormatRewardBreakdown(averageRewards), FormatRewardBreakdown(cumulativeRewards), FormatRankCell(row.TopRanks, 0), FormatRankCell(row.TopRanks, 1), FormatRankCell(row.TopRanks, 2), FormatFloat(adjustedClearSeconds), note);
         }
 
         TurretBalanceReportTableRenderer.RecalculateColumnWidths(table);
@@ -186,6 +221,55 @@ internal sealed class TurretBalanceReportTableBuilder
         }
 
         return builder.ToString();
+    }
+
+    // 아이템 밸런스 행에서 필요한 재화만 가져온다
+    private static Dictionary<RewardCurrencyType, float> GetItemBalanceRewards(TurretBalanceReportResult report, int index, HashSet<RewardCurrencyType> currencyScope)
+    {
+        if (report == null || index < 0 || index >= report.ItemBalanceRows.Count)
+        {
+            return new Dictionary<RewardCurrencyType, float>();
+        }
+
+        return TurretBalanceReportCurrencyProjector.FilterItemAmounts(report.ItemBalanceRows[index], currencyScope);
+    }
+
+    // 아이템 밸런스 누적 행의 차이를 웨이브 획득량으로 만든다
+    private static Dictionary<RewardCurrencyType, float> GetItemBalanceDelta(TurretBalanceReportResult report, int index, HashSet<RewardCurrencyType> currencyScope)
+    {
+        Dictionary<RewardCurrencyType, float> current = GetItemBalanceRewards(report, index, currencyScope);
+        if (index <= 0)
+        {
+            return current;
+        }
+
+        Dictionary<RewardCurrencyType, float> previous = GetItemBalanceRewards(report, index - 1, currencyScope);
+        Dictionary<RewardCurrencyType, float> delta = new Dictionary<RewardCurrencyType, float>();
+        foreach (KeyValuePair<RewardCurrencyType, float> pair in current)
+        {
+            previous.TryGetValue(pair.Key, out float previousAmount);
+            float amount = pair.Value - previousAmount;
+            if (amount > 0f)
+            {
+                delta[pair.Key] = amount;
+            }
+        }
+
+        return delta;
+    }
+
+    // RewardCurrencyType enum 값을 숫자 순서대로 반환한다
+    private static RewardCurrencyType[] GetSortedCurrencyTypes()
+    {
+        Array values = Enum.GetValues(typeof(RewardCurrencyType));
+        RewardCurrencyType[] currencyTypes = new RewardCurrencyType[values.Length];
+        for (int i = 0; i < values.Length; i++)
+        {
+            currencyTypes[i] = (RewardCurrencyType)values.GetValue(i);
+        }
+
+        Array.Sort(currencyTypes, (left, right) => ((int)left).CompareTo((int)right));
+        return currencyTypes;
     }
 
     // 재화 종류의 표기용 짧은 이름을 반환한다

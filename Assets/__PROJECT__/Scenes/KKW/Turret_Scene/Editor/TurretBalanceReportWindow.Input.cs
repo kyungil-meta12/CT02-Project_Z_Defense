@@ -17,6 +17,7 @@ internal sealed class TurretBalanceReportInputCollector
     private const string INITIAL_WALLET_CURRENCIES_PROPERTY = "initialWalletCurrencies";
     private const string RESOURCE_CURRENCY_TYPE_PROPERTY = "currencyType";
     private const string RESOURCE_AMOUNT_PROPERTY = "amount";
+    private const string ITEM_DATA_CSV_PATH = "Assets/__PROJECT__/Prefabs/InventorySystem/ItemData.csv";
 
     // 현재 에디터 상태에서 리포트 입력 스냅샷을 수집한다
     public TurretBalanceInputSnapshot Collect()
@@ -45,6 +46,7 @@ internal sealed class TurretBalanceReportInputCollector
         AppendAssetSignatures(builder, "t:ObstacleBuildEntrySO");
         AppendAssetSignatures(builder, "t:ObstacleDefinitionSO");
         AppendAssetSignatures(builder, "t:ObstacleUpgradeCostProfileSO");
+        AppendItemDataCsvSignature(builder);
         AppendSceneInventorySignature(builder);
         AppendSceneGameManagerSignature(builder);
         return builder.ToString();
@@ -66,6 +68,19 @@ internal sealed class TurretBalanceReportInputCollector
             builder.Append(asset == null ? 0 : EditorUtility.GetDirtyCount(asset));
             builder.AppendLine();
         }
+    }
+
+    // 아이템 데이터 CSV의 변경 서명을 추가한다
+    private static void AppendItemDataCsvSignature(StringBuilder builder)
+    {
+        UnityEngine.Object asset = AssetDatabase.LoadMainAssetAtPath(ITEM_DATA_CSV_PATH);
+        builder.Append("ItemDataCsv|");
+        builder.Append(ITEM_DATA_CSV_PATH);
+        builder.Append('|');
+        builder.Append(AssetDatabase.GetAssetDependencyHash(ITEM_DATA_CSV_PATH));
+        builder.Append('|');
+        builder.Append(asset == null ? 0 : EditorUtility.GetDirtyCount(asset));
+        builder.AppendLine();
     }
 
     // 열린 씬 인벤토리 시스템의 초기 지갑 서명을 추가한다
@@ -339,7 +354,7 @@ internal sealed class TurretBalanceReportInputCollector
 
         if (HasNonCoinCost(entry.GetPlacementCosts(0)))
         {
-            ReportWarning.Add(warnings, ReportWarningSeverity.Info, "TurretShopEntrySO", path, "설치 비용에 Coin 외 재화가 있어 Coin 시뮬레이션에서는 Note로만 표시됩니다.");
+            ReportWarning.Add(warnings, ReportWarningSeverity.Info, "TurretShopEntrySO", path, "설치 비용에 Coin 외 재화가 있어 아이템 밸런스 예산 기준으로 설치 가능 수를 계산합니다.");
         }
     }
 

@@ -23,7 +23,8 @@ internal static class ObstacleBalanceTableBuilder
 
         string[] headers = BuildHeaders(entries);
         string info = "웨이브 시작 전 누적 재화 예산 기준(Coin은 초기 지갑 포함). "
-                    + "Concrete 예산은 직접 획득 수량에 조합 가능 수량을 더해 계산합니다(Stone 50→Cement 5, Water 10+Cement 20→Concrete 1). "
+                    + "누적 재화는 장애물 건설/업그레이드 비용과 아이템 데이터 CSV의 조합/분해 관계에 필요한 재화만 표시합니다. "
+                    + "조합 가능 재화와 분해 결과는 기대 수량 기준의 가상 누적 재화로 표시하고 최적 장애물 계산에 사용합니다. "
                     + "총 좀비 DPS는 보스 제외 일반 좀비 전체 수 기준이며, 런타임 측정 DPS 또는 측정값을 웨이브 배율로 정규화한 DPS만 사용합니다. "
                     + "단일: 1개 설치 후 예산 전액으로 최대 업그레이드. "
                     + "최대 설치(Obstacle 전용): 1~9개 중 총 HP 최대 조합, 예산 전액 기준. "

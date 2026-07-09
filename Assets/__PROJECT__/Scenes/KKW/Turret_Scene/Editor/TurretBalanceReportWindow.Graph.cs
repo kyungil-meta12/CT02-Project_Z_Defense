@@ -8,6 +8,7 @@ using UnityEngine;
 internal sealed class TurretBalanceReportGraphState
 {
     public bool ShowTotalWaveHp;
+    public bool ShowTotalZombieHp;
     public bool ShowAverageZombieHp;
     public bool ShowCumulativeCurrency;
     public bool ShowTopRankDps;
@@ -152,9 +153,10 @@ internal static class TurretBalanceReportGraphRenderer
     private static List<RewardCurrencyType> BuildCurrencyTypeList(TurretBalanceReportResult report)
     {
         List<RewardCurrencyType> currencyTypes = new List<RewardCurrencyType>(4);
-        for (int i = 0; i < report.WaveRows.Count; i++)
+        HashSet<RewardCurrencyType> currencyScope = TurretBalanceReportCurrencyProjector.BuildTurretCurrencyScope(report);
+        for (int i = 0; i < report.ItemBalanceRows.Count; i++)
         {
-            Dictionary<RewardCurrencyType, float> rewards = report.WaveRows[i].CumulativeReward;
+            Dictionary<RewardCurrencyType, float> rewards = TurretBalanceReportCurrencyProjector.FilterItemAmounts(report.ItemBalanceRows[i], currencyScope);
             if (rewards == null)
             {
                 continue;
@@ -181,6 +183,7 @@ internal static class TurretBalanceReportGraphRenderer
 
         EditorGUILayout.BeginHorizontal();
         state.ShowTotalWaveHp = EditorGUILayout.ToggleLeft("좀비 HP 스택", state.ShowTotalWaveHp, GUILayout.Width(120.0f));
+        state.ShowTotalZombieHp = EditorGUILayout.ToggleLeft("총 좀비 HP", state.ShowTotalZombieHp, GUILayout.Width(110.0f));
         state.ShowAverageZombieHp = EditorGUILayout.ToggleLeft("일반 좀비 1마리 평균 HP", state.ShowAverageZombieHp, GUILayout.Width(170.0f));
         bool nextShowTopRankDps = EditorGUILayout.ToggleLeft("1순위 터렛 DPS", state.ShowTopRankDps, GUILayout.Width(140.0f));
         if (nextShowTopRankDps)
@@ -376,6 +379,11 @@ internal static class TurretBalanceReportGraphRenderer
             AddZombieHpStackSeries(report, state, seriesList, ref colorIndex, hpAxisMax);
         }
 
+        if (state.ShowTotalZombieHp)
+        {
+            seriesList.Add(CreateTotalZombieHpSeries(report, SeriesColors[colorIndex++ % SeriesColors.Length], hpAxisMax));
+        }
+
         if (state.ShowAverageZombieHp)
         {
             seriesList.Add(CreateAverageZombieHpSeries(report, SeriesColors[colorIndex++ % SeriesColors.Length], hpAxisMax));
@@ -463,6 +471,22 @@ internal static class TurretBalanceReportGraphRenderer
         }
 
         return seriesList;
+    }
+
+    // 웨이브별 총 좀비 HP 그래프 선을 만든다
+    private static GraphSeries CreateTotalZombieHpSeries(TurretBalanceReportResult report, Color color, float hpAxisMax)
+    {
+        GraphSeries series = CreateSeries("총 좀비 HP", "HP", color, report.WaveRows.Count);
+        SetFixedScale(series, 0.0f, hpAxisMax);
+        for (int i = 0; i < report.WaveRows.Count; i++)
+        {
+            WaveSummaryRow row = report.WaveRows[i];
+            float totalHp = Mathf.Max(0.0f, row.TotalWaveHp);
+            series.Values.Add(totalHp);
+            series.PointNotes.Add($"총 {FormatFloat(totalHp)} HP / 일반 {row.NormalSpawnCount}마리 / 보스 {row.BossSpawnCount}마리");
+        }
+
+        return series;
     }
 
     // 웨이브별 일반 좀비 1마리 평균 HP 그래프 선을 만든다
@@ -676,7 +700,6 @@ internal static class TurretBalanceReportGraphRenderer
             if (topRanks != null && topRanks.Count > 0)
             {
                 float waveTarget = targetClearSeconds + i * targetClearSecondsIncrement;
-                maxValue = Mathf.Max(maxValue, topRanks[0].TotalDps * waveTarget);
                 maxValue = Mathf.Max(maxValue, topRanks[0].CriticalExpectedTotalDps * waveTarget);
             }
 
@@ -689,7 +712,6 @@ internal static class TurretBalanceReportGraphRenderer
             for (int j = 0; j < speciesEntries.Count; j++)
             {
                 float waveTarget = targetClearSeconds + i * targetClearSecondsIncrement;
-                maxValue = Mathf.Max(maxValue, speciesEntries[j].TotalDps * waveTarget);
                 maxValue = Mathf.Max(maxValue, speciesEntries[j].CriticalExpectedTotalDps * waveTarget);
             }
         }
@@ -710,34 +732,25 @@ internal static class TurretBalanceReportGraphRenderer
                 continue;
             }
 
-            Color turretColor = GetTurretEvolutionColor(turretEntry.Tier, maxTier, turretIndex);
-            Color criticalColor = turretColor;
-            criticalColor.a = 0.2f;
-            GraphSeries series = CreateSeries("처리 가능 HP - " + turretEntry.TurretName, "HP", turretColor, report.WaveRows.Count);
+            Color criticalColor = GetTurretEvolutionColor(turretEntry.Tier, maxTier, turretIndex);
+            criticalColor.a = 1.0f;
             GraphSeries criticalSeries = CreateSeries("특수타 기대 HP - " + turretEntry.TurretName, "HP", criticalColor, report.WaveRows.Count);
-            SetFixedScale(series, 0.0f, hpAxisMax);
             SetFixedScale(criticalSeries, 0.0f, hpAxisMax);
             for (int waveIndex = 0; waveIndex < report.WaveRows.Count; waveIndex++)
             {
                 if (TryFindSpeciesEntry(report, waveIndex, turretEntry.TurretName, out WaveClearRankEntry entry))
                 {
                     float waveTarget = targetClearSeconds + waveIndex * targetClearSecondsIncrement;
-                    float processableHp = Mathf.Max(0.0f, entry.TotalDps * waveTarget);
                     float criticalProcessableHp = Mathf.Max(0.0f, entry.CriticalExpectedTotalDps * waveTarget);
-                    series.Values.Add(processableHp);
-                    series.PointNotes.Add($"{FormatFloat(entry.TotalDps)} DPS / {entry.InstallCount}대 / Lv{entry.Level}");
                     criticalSeries.Values.Add(criticalProcessableHp);
                     criticalSeries.PointNotes.Add($"치명타/강타 기대 {FormatFloat(entry.CriticalExpectedTotalDps)} DPS / 기존 {FormatFloat(entry.TotalDps)} DPS / {entry.InstallCount}대 / Lv{entry.Level}");
                     continue;
                 }
 
-                series.Values.Add(float.NaN);
-                series.PointNotes.Add("설치 불가");
                 criticalSeries.Values.Add(float.NaN);
                 criticalSeries.PointNotes.Add("설치 불가");
             }
 
-            seriesList.Add(series);
             seriesList.Add(criticalSeries);
             colorIndex++;
         }
@@ -848,6 +861,7 @@ internal static class TurretBalanceReportGraphRenderer
     // 누적 재화 그래프 선을 목록에 추가한다
     private static void AddCurrencySeries(TurretBalanceReportResult report, TurretBalanceReportGraphState state, List<RewardCurrencyType> currencyTypes, List<GraphSeries> seriesList, ref int colorIndex)
     {
+        HashSet<RewardCurrencyType> currencyScope = TurretBalanceReportCurrencyProjector.BuildTurretCurrencyScope(report);
         for (int currencyIndex = 0; currencyIndex < currencyTypes.Count; currencyIndex++)
         {
             RewardCurrencyType currencyType = currencyTypes[currencyIndex];
@@ -859,8 +873,10 @@ internal static class TurretBalanceReportGraphRenderer
             GraphSeries series = CreateSeries("누적 " + GetCurrencyLabel(currencyType), GetCurrencyLabel(currencyType), SeriesColors[colorIndex++ % SeriesColors.Length], report.WaveRows.Count);
             for (int i = 0; i < report.WaveRows.Count; i++)
             {
-                Dictionary<RewardCurrencyType, float> rewards = report.WaveRows[i].CumulativeReward;
-                float value = rewards != null && rewards.TryGetValue(currencyType, out float amount) ? Mathf.Max(0.0f, amount) : 0.0f;
+                Dictionary<RewardCurrencyType, float> rewards = i < report.ItemBalanceRows.Count
+                    ? TurretBalanceReportCurrencyProjector.FilterItemAmounts(report.ItemBalanceRows[i], currencyScope)
+                    : new Dictionary<RewardCurrencyType, float>();
+                float value = rewards.TryGetValue(currencyType, out float amount) ? Mathf.Max(0.0f, amount) : 0.0f;
                 series.Values.Add(value);
                 series.PointNotes.Add(string.Empty);
             }
@@ -868,11 +884,10 @@ internal static class TurretBalanceReportGraphRenderer
             seriesList.Add(series);
         }
     }
-
-    // 1순위 터렛 처리 가능 HP 그래프 선을 만든다
+    // 1순위 터렛의 치명타/강타 기대 처리 가능 HP 그래프 선을 만든다
     private static GraphSeries CreateTopRankDpsSeries(TurretBalanceReportResult report, Color color, float hpAxisMax, float targetClearSeconds, float targetClearSecondsIncrement)
     {
-        GraphSeries series = CreateSeries("1순위 처리 가능 HP", "HP", color, report.WaveRows.Count);
+        GraphSeries series = CreateSeries("1순위 특수타 기대 HP", "HP", color, report.WaveRows.Count);
         SetFixedScale(series, 0.0f, hpAxisMax);
         for (int i = 0; i < report.WaveRows.Count; i++)
         {
@@ -880,9 +895,9 @@ internal static class TurretBalanceReportGraphRenderer
             {
                 WaveClearRankEntry entry = report.WaveClearRows[i].TopRanks[0];
                 float waveTarget = targetClearSeconds + i * targetClearSecondsIncrement;
-                float processableHp = Mathf.Max(0.0f, entry.TotalDps * waveTarget);
+                float processableHp = Mathf.Max(0.0f, entry.CriticalExpectedTotalDps * waveTarget);
                 series.Values.Add(processableHp);
-                series.PointNotes.Add($"{entry.TurretName} / {FormatFloat(entry.TotalDps)} DPS ({FormatFloat(entry.CriticalExpectedTotalDps)}) / {entry.InstallCount}대 / Lv{entry.Level}");
+                series.PointNotes.Add($"{entry.TurretName} / 치명타/강타 기대 {FormatFloat(entry.CriticalExpectedTotalDps)} DPS / 기존 {FormatFloat(entry.TotalDps)} DPS / {entry.InstallCount}대 / Lv{entry.Level}");
                 continue;
             }
 

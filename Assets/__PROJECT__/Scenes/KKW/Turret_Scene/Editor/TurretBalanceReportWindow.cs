@@ -10,7 +10,7 @@ internal sealed class TurretBalanceReportWindow : EditorWindow
     private const double AUTO_REFRESH_INTERVAL_SECONDS = 2.0d;
     private const int GRAPH_TAB_INDEX = 0;
     private const string EDITOR_PREFS_PREFIX = "ProjectZDefense.TurretBalanceReport.";
-    private static readonly string[] TabLabels = { "그래프", "장애물 밸런스", "터렛 밸런스", "터렛 밸런스 상세", "데이터 경고" };
+    private static readonly string[] TabLabels = { "그래프", "아이템 밸런스", "장애물 밸런스", "터렛 밸런스", "터렛 밸런스 상세", "데이터 경고" };
 
     private readonly TurretBalanceReportInputCollector inputCollector = new TurretBalanceReportInputCollector();
     private readonly TurretBalanceReportCalculator calculator = new TurretBalanceReportCalculator();
@@ -19,6 +19,7 @@ internal sealed class TurretBalanceReportWindow : EditorWindow
 
     private ReportTableModel[] lastTables =
     {
+        new ReportTableModel(),
         new ReportTableModel(),
         new ReportTableModel(),
         new ReportTableModel(),
@@ -125,7 +126,7 @@ internal sealed class TurretBalanceReportWindow : EditorWindow
         scrollPosition = TurretBalanceReportTableRenderer.Draw(GetReportTable(selectedTab), scrollPosition);
     }
 
-    // 선택한 탭의 캐시된 표 데이터를 반환한다. 탭 0은 그래프(배열 없음), 탭 1~4 → lastTables[0~3].
+    // 선택한 탭의 캐시된 표 데이터를 반환한다. 탭 0은 그래프(배열 없음), 탭 1~5 → lastTables[0~4].
     private ReportTableModel GetReportTable(int tabIndex)
     {
         int tableIndex = tabIndex - 1;
@@ -229,14 +230,15 @@ internal sealed class TurretBalanceReportWindow : EditorWindow
         lastReport = report;
         ReportTableModel[] turretTables = tableBuilder.Build(report, targetClearSeconds, targetClearSecondsIncrement, zombieArrivalSeconds);
         List<ObstacleEntrySpec> obstacleEntries = ObstacleBalanceCalculator.CollectEntries(report.Warnings);
-        List<ObstacleWaveRow> obstacleRows = ObstacleBalanceCalculator.BuildRows(report.WaveRows, obstacleEntries, report.WaveClearRows);
+        List<ObstacleWaveRow> obstacleRows = ObstacleBalanceCalculator.BuildRows(report.WaveRows, obstacleEntries, report.WaveClearRows, report.ItemBalanceRows);
         lastObstacleRows = obstacleRows;
         lastTables = new ReportTableModel[]
         {
-            ObstacleBalanceTableBuilder.Build(obstacleRows, obstacleEntries, targetClearSeconds, targetClearSecondsIncrement, obstacleTargetTimeMultiplier, zombieArrivalSeconds),  // tab 1: 장애물 밸런스
-            turretTables[0],  // tab 2: 웨이브 클리어
-            turretTables[1],  // tab 3: 터렛 상세
-            turretTables[2],  // tab 4: 데이터 경고
+            turretTables[0],  // tab 1: 아이템 밸런스
+            ObstacleBalanceTableBuilder.Build(obstacleRows, obstacleEntries, targetClearSeconds, targetClearSecondsIncrement, obstacleTargetTimeMultiplier, zombieArrivalSeconds),  // tab 2: 장애물 밸런스
+            turretTables[1],  // tab 3: 웨이브 클리어
+            turretTables[2],  // tab 4: 터렛 상세
+            turretTables[3],  // tab 5: 데이터 경고
         };
 
         lastRefreshLabel = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture);

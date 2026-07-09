@@ -221,6 +221,7 @@ public class ProjectileHitDetector : MonoBehaviour
     {
         if (damageDealer == null || !damageDealer.HasReachedPierceLimit)
         {
+            PlayProjectilePierceHitEffect(hitCollider);
             return false;
         }
 
@@ -234,12 +235,49 @@ public class ProjectileHitDetector : MonoBehaviour
     {
         if (damageDealer == null || !damageDealer.HasReachedPierceLimit)
         {
+            PlayProjectilePierceHitEffect(hit);
             return false;
         }
 
         enabled = false;
         HandleProjectileImpact(hit.point, hit.normal);
         return true;
+    }
+
+    // 관통 중간 타격에서 투사체를 종료하지 않고 피격 이펙트만 재생한다
+    private void PlayProjectilePierceHitEffect(Collider hitCollider)
+    {
+        Vector3 hitPoint = hitCollider == null ? transform.position : GetClosestPointOnCollider(hitCollider, transform.position);
+        Vector3 hitNormal = transform.position - hitPoint;
+        if (hitNormal.sqrMagnitude <= 0.0001f)
+        {
+            hitNormal = -transform.forward;
+        }
+
+        PlayProjectilePierceHitEffect(hitPoint, hitNormal.normalized);
+    }
+
+    // 관통 중간 타격에서 RaycastHit 기준으로 피격 이펙트만 재생한다
+    private void PlayProjectilePierceHitEffect(RaycastHit hit)
+    {
+        if (hit.collider == null)
+        {
+            return;
+        }
+
+        PlayProjectilePierceHitEffect(hit.point, hit.normal);
+    }
+
+    // HOVL 투사체에 관통 중간 피격 이펙트 재생을 요청한다
+    private void PlayProjectilePierceHitEffect(Vector3 hitPoint, Vector3 hitNormal)
+    {
+        CacheProjectileMover();
+        if (projectileMover == null || !gameObject.activeInHierarchy)
+        {
+            return;
+        }
+
+        HovlProjectileHitEffectUtility.Play(projectileMover, hitPoint, hitNormal);
     }
 
     // 데미지 피격 콜라이더에서 충돌 위치와 방향을 계산해 HOVL 피격 처리로 넘긴다

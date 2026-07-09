@@ -413,6 +413,51 @@ Detail_Popup_Panel
 - 터렛 트리 시작 위치는 씬에 저장된 Content 위치와 `TurretTechTreeUIController.openedScrollNormalizedPosition`이 함께 담당한다. 루트 노드 중앙 하단 시작이 필요하면 기본값 `(0.5, 0)`을 유지한다.
 - 수동으로 마지막 스크롤 위치를 유지하는 UX가 필요해지기 전까지는 팝업을 열 때마다 중앙 하단으로 초기화한다.
 - `TurretTechTreePanel > Scroll View`에는 `TurretTechTreeZoomController`를 붙이고 `ScrollRect`, `Viewport`, `Content`, `Detail_Popup_Panel`을 직접 참조로 연결한다. 기본 `ScrollRect.scrollSensitivity`는 `0`으로 두어 휠 입력을 줌 전용으로 사용한다.
+
+## 2026-07-09 Turret Display Name Remake Plan
+
+### Decision
+
+- 터렛 표시명은 UI 노출용 이름만 교체한다. ScriptableObject 에셋명, 프리팹명, GUID, 안정 ID는 별도 작업 전까지 유지한다.
+- 한글 표시명은 영어식 발음을 한글로 표기한 톤을 사용하고, 영문 표시명은 같은 의미의 UI 표기명으로 관리한다.
+
+### Display Name Mapping
+
+| Current `turretName` | Korean Display Name | English Display Name |
+| --- | --- | --- |
+| Pulse Repeater_Definition | 펄스 리피터 | Pulse Repeater |
+| sentinel_01_Definition | 센티널 포스트 | Sentinel Post |
+| Sentry Pulse_Definition | 센트리 펄스 | Sentry Pulse |
+| Vector MG_Definition | 벡터 MG | Vector MG |
+| Vulcan Node_Definition | 벌칸 노드 | Vulcan Node |
+| Laser_Blue_Definition 1 | 블루 레이 | Blue Ray |
+| Laser_Blue_Definition 2 | 블루 랜스 | Blue Lance |
+| Laser_Blue_Definition 3 | 블루 저지먼트 | Blue Judgment |
+| Laser_Red_Definition 1 | 레드 레이 | Red Ray |
+| Laser_Red_Definition 2 | 레드 랜스 | Red Lance |
+| Laser_Red_Definition 3 | 레드 저지먼트 | Red Judgment |
+| Lethal_Green_Definition 1 | 그린 니들 | Green Needle |
+| Lethal_Green_Definition 2 | 그린 피어스 | Green Pierce |
+| Lethal_Green_Definition 3 | 그린 랜서 | Green Lancer |
+| Lethal_Red_Definition 1 | 엠버 다트 | Ember Dart |
+| Lethal_Red_Definition 2 | 엠버 캐논 | Ember Cannon |
+| Lethal_Red_Definition 3 | 엠버 저지먼트 | Ember Judgment |
+| Machinegun_Blue_Definition 1 | 블루 MG | Blue MG |
+| Machinegun_Blue_Definition 2 | 블루 배러지 | Blue Barrage |
+| Machinegun_Blue_Definition 3 | 블루 스톰 | Blue Storm |
+| Machinegun_Red_Definition 1 | 레드 MG | Red MG |
+| Machinegun_Red_Definition 2 | 레드 배러지 | Red Barrage |
+| Machinegun_Red_Definition 3 | 레드 스톰 | Red Storm |
+| Plasma_Blue_Definition 1 | 블루 필드 | Blue Field |
+| Plasma_Blue_Definition 2 | 블루 서지 | Blue Surge |
+| Plasma_Blue_Definition 3 | 블루 코어 | Blue Core |
+| Plasma_Yellow_Definition 1 | 선 필드 | Sun Field |
+| Plasma_Yellow_Definition 2 | 선 버스트 | Sun Burst |
+| Plasma_Yellow_Definition 3 | 선 코어 | Sun Core |
+| Electro_Turret_Definition | 스톰 리액터 | Storm Reactor |
+| Frost_Turret_Definition | 글레이셜 코어 | Glacial Core |
+| Ignition_Turret_Definition | 인페르노 코어 | Inferno Core |
+| Poison_Turret_Definition | 베놈 리액터 | Venom Reactor |
 - 터렛 트리는 마우스/터치 드래그로 탐색한다. Scrollbar는 시각 노이즈를 줄이기 위해 숨긴 상태를 유지하고, 필요하면 별도 안내 문구나 배경 패턴으로 드래그 가능성을 표현한다.
 
 ## 2026-07-08 Turret Tech Tree Inspector Reference Hardening

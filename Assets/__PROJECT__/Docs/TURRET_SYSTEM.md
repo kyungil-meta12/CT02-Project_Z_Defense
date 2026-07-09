@@ -50,6 +50,46 @@ Recommended turret IDs use stable lower_snake_case:
 
 Do not use display names as stable IDs.
 
+## Turret Display Name Remake Plan
+
+Display names are being remade for UI presentation. Keep asset names, prefab names, and stable IDs unchanged unless a separate GUID-safe rename pass is planned.
+
+| Current `turretName` | Korean Display Name | English Display Name |
+| --- | --- | --- |
+| Pulse Repeater_Definition | 펄스 리피터 | Pulse Repeater |
+| sentinel_01_Definition | 센티널 포스트 | Sentinel Post |
+| Sentry Pulse_Definition | 센트리 펄스 | Sentry Pulse |
+| Vector MG_Definition | 벡터 MG | Vector MG |
+| Vulcan Node_Definition | 벌칸 노드 | Vulcan Node |
+| Laser_Blue_Definition 1 | 블루 레이 | Blue Ray |
+| Laser_Blue_Definition 2 | 블루 랜스 | Blue Lance |
+| Laser_Blue_Definition 3 | 블루 저지먼트 | Blue Judgment |
+| Laser_Red_Definition 1 | 레드 레이 | Red Ray |
+| Laser_Red_Definition 2 | 레드 랜스 | Red Lance |
+| Laser_Red_Definition 3 | 레드 저지먼트 | Red Judgment |
+| Lethal_Green_Definition 1 | 그린 니들 | Green Needle |
+| Lethal_Green_Definition 2 | 그린 피어스 | Green Pierce |
+| Lethal_Green_Definition 3 | 그린 랜서 | Green Lancer |
+| Lethal_Red_Definition 1 | 엠버 다트 | Ember Dart |
+| Lethal_Red_Definition 2 | 엠버 캐논 | Ember Cannon |
+| Lethal_Red_Definition 3 | 엠버 저지먼트 | Ember Judgment |
+| Machinegun_Blue_Definition 1 | 블루 MG | Blue MG |
+| Machinegun_Blue_Definition 2 | 블루 배러지 | Blue Barrage |
+| Machinegun_Blue_Definition 3 | 블루 스톰 | Blue Storm |
+| Machinegun_Red_Definition 1 | 레드 MG | Red MG |
+| Machinegun_Red_Definition 2 | 레드 배러지 | Red Barrage |
+| Machinegun_Red_Definition 3 | 레드 스톰 | Red Storm |
+| Plasma_Blue_Definition 1 | 블루 필드 | Blue Field |
+| Plasma_Blue_Definition 2 | 블루 서지 | Blue Surge |
+| Plasma_Blue_Definition 3 | 블루 코어 | Blue Core |
+| Plasma_Yellow_Definition 1 | 선 필드 | Sun Field |
+| Plasma_Yellow_Definition 2 | 선 버스트 | Sun Burst |
+| Plasma_Yellow_Definition 3 | 선 코어 | Sun Core |
+| Electro_Turret_Definition | 스톰 리액터 | Storm Reactor |
+| Frost_Turret_Definition | 글레이셜 코어 | Glacial Core |
+| Ignition_Turret_Definition | 인페르노 코어 | Inferno Core |
+| Poison_Turret_Definition | 베놈 리액터 | Venom Reactor |
+
 ## Core ScriptableObjects
 
 | Type | Role |

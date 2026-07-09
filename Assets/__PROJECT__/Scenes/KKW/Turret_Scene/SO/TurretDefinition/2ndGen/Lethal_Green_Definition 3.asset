@@ -21,7 +21,7 @@ MonoBehaviour:
     <nobr>\uC801\uC758</nobr> <nobr>\uC7A5\uAC11\uC744</nobr> <nobr>\uBD84\uD574\uD558\uB294</nobr>
     <nobr>\uC555\uB3C4\uC801\uC778</nobr> <nobr>\uC785\uC790</nobr> <nobr>\uB300\uD3ED\uBC1C\uB85C</nobr>
     <nobr>\uBC29\uC5B4\uC120\uC744</nobr> <nobr>\uC644\uC804\uD788</nobr> <nobr>\uC9C0\uC6CC\uBC84\uB9BD\uB2C8\uB2E4.</nobr>"
-  uiIcon: {fileID: 21300000, guid: 0f30352ba79990546a9958bb842d7c5f, type: 3}
+  uiIcon: {fileID: 21300000, guid: e4ca8c2ef9bd882498109c8e57a53d63, type: 3}
   basePrefab: {fileID: 7672449163531418120, guid: b5039249dfc882f449777681e7d22a7e, type: 3}
   baseStatProfile: {fileID: 11400000, guid: bb648034f6ec5d24493dfa8d1e04af9e, type: 2}
   maxLevel: 0

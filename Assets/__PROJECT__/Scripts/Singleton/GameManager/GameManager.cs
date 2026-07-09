@@ -76,6 +76,9 @@ public class GameManager : MonoBehaviour
 
     public InputAction backAction;
 
+    // 배속 기능 사용 여부
+    public bool isTimeFastMode{ get; private set; } = false;
+
     // 인스펙터 값이 유효 범위를 벗어나지 않도록 보정한다
     private void OnValidate()
     {
@@ -149,12 +152,13 @@ public class GameManager : MonoBehaviour
     }
 
     /// <summary>
-    /// 뒤로가기키가 눌렸는지 확인한다
+    /// 시간 배속 기능 사용을 설정한다.
     /// </summary>
-    /// <returns></returns>
-    public bool IsTouchBack()
+    /// <param name="flag"></param>
+    public void SetTimeSpeedMode(bool flag)
     {
-        return Keyboard.current != null && Keyboard.current.escapeKey.wasPressedThisFrame;
+        isTimeFastMode = flag;
+        Time.timeScale = flag ? 2f : 1f;
     }
 
     /// <summary>

@@ -5,20 +5,27 @@ public class WorldUIAnimation : MonoBehaviour
     [Header("화살표 왕복 거리")] public float tripScale;
     [Header("화살표 왕복 속도")] public float tripSpeed;
     private Camera cam;
-    private Vector3 originPos;
+    private Vector3 originLocalPos;
     private float sinValue;
     
     void Awake()
     {
         cam = Camera.main;
-        originPos = transform.localPosition;
+        transform.rotation = Quaternion.identity;
+        originLocalPos = transform.localPosition;
     }
 
     void Update()
     {
-        // 위 아래로 왕복한다.
-        BillboardUtil.SetBillboardQuad(transform, cam);
-        sinValue += Time.deltaTime * tripSpeed;
-        transform.localPosition = originPos + new Vector3(Mathf.Sin(-sinValue) * tripScale, Mathf.Sin(sinValue) * tripScale, 0f);
+        if(transform.parent)
+        {
+            var camRot = -cam.transform.rotation.eulerAngles;
+            transform.rotation = Quaternion.Euler(camRot);
+            sinValue += Time.deltaTime * tripSpeed;
+            float movement = Mathf.Sin(sinValue) * tripScale;
+            Vector3 movementOffset = new Vector3(0f, movement, 0f);
+            Vector3 worldOffset = transform.TransformDirection(movementOffset);
+            transform.position = transform.parent.TransformPoint(originLocalPos) + worldOffset;
+        }
     }
 }

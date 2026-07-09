@@ -5,6 +5,8 @@ using WaypointsFree;
 public class SellerTruckMovement : MonoBehaviour
 {
     public int stopPointIndex;
+    public float stayDuration;
+    public GameObject button;
 
     private float originMoveSpeed;
     private float originLookAtSpeed;
@@ -17,6 +19,7 @@ public class SellerTruckMovement : MonoBehaviour
         traveler = GetComponent<WaypointsTraveler>();
         originMoveSpeed = traveler.MoveSpeed;
         originLookAtSpeed = traveler.LookAtSpeed;
+        button.SetActive(false);
     }
 
     void Update()
@@ -36,6 +39,7 @@ public class SellerTruckMovement : MonoBehaviour
                     traveler.MoveSpeed = 0f;
                     traveler.LookAtSpeed = 0f;
                     traveler.Move(false);
+                    button.SetActive(true);
                 }
             }
 
@@ -43,11 +47,12 @@ public class SellerTruckMovement : MonoBehaviour
             else if (!traveler.IsMoving)
             {
                 leaveTime += Time.deltaTime;
-                if (leaveTime >= 5f)
+                if (leaveTime >= stayDuration)
                 {
                     leaveTime = 0f;
                     traveler.Move(true);
                     isLeaving = true;
+                     button.SetActive(false);
                 }
             }
         }
@@ -58,5 +63,18 @@ public class SellerTruckMovement : MonoBehaviour
             traveler.MoveSpeed = Mathf.Lerp(traveler.MoveSpeed, originMoveSpeed, Time.deltaTime);
             traveler.LookAtSpeed = Mathf.Lerp(traveler.LookAtSpeed, originLookAtSpeed, Time.deltaTime);
         }
+    }
+
+    /// <summary>
+    /// 트럭을 초기화 한다.
+    /// </summary>
+    public void Reset()
+    {
+        traveler.ResetTraveler();
+        traveler.Move(true);
+        traveler.MoveSpeed = originMoveSpeed;
+        traveler.LookAtSpeed = originLookAtSpeed;
+        leaveTime = 0f;
+        isLeaving = false;
     }
 }

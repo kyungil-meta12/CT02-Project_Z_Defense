@@ -10,10 +10,10 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: cb72d6a090114d54bc9063b0f8f2ce32, type: 3}
-  m_Name: Sentinel-01_Shop Entry
+  m_Name: TurretShopEntry
   m_EditorClassIdentifier: 
   displayName: Sentinel-01
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: 8715555073c678346914bd6e857a57b4, type: 3}
   turretDefinition: {fileID: 11400000, guid: bfd04d6c347d461469139eb424cb49cd, type: 2}
   overridePrefab: {fileID: 0}
   previewPrefab: {fileID: 0}

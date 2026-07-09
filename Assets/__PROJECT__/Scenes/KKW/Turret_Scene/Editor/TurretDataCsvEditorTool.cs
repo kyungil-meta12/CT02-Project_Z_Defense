@@ -15,6 +15,8 @@ public class TurretDataCsvEditorTool : EditorWindow
     private const string CSV_PATH = "Assets/__PROJECT__/Scenes/KKW/Turret_Scene/SO/TurretData.csv";
     private const string BASE_COSTS_PROPERTY = "baseCostsPerLevel";
     private const string ADDITIONAL_COST_PERCENT_PROPERTY = "additionalCostPercentPerTierLevel";
+    private const string CRITICAL_CHANCE_PROPERTY = "criticalChance";
+    private const string HEAVY_HIT_CHANCE_PROPERTY = "heavyHitChance";
 
     private Vector2 scrollPosition;
     private readonly List<string> lastMessages = new List<string>(32);
@@ -182,6 +184,7 @@ public class TurretDataCsvEditorTool : EditorWindow
             "ProjectileSpeed(1레벨 투사체 속도)",
             "ProjectileCount(1레벨 투사체 수)",
             "PierceCount(1레벨 관통 수)",
+            "CriticalChancePercent(치명타율 %)",
             "GrowthProfilePath(성장 프로필 SO 경로)",
             "GrowthType(성장 프로필 타입)",
             "TargetDamageAtMaxLevel(최대레벨 데미지)",
@@ -225,6 +228,7 @@ public class TurretDataCsvEditorTool : EditorWindow
             stat == null ? 0.0f : stat.projectileSpeed,
             stat == null ? 1 : stat.projectileCount,
             stat == null ? 0 : stat.pierceCount,
+            FormatDamagePolishChanceCell(definition.damagePolishProfile),
             AssetDatabase.GetAssetPath(growth),
             GetGrowthType(growth),
             growth == null ? 0.0f : growth.targetDamageAtMaxLevel,
@@ -262,6 +266,7 @@ public class TurretDataCsvEditorTool : EditorWindow
         definition.maxLevel = ReadInt(row, headerMap, "MaxLevel", lineNumber, 0);
         definition.maxEngineerSeatCount = ReadOptionalInt(row, headerMap, "MaxEngineerSeatCount", lineNumber, 0);
         ApplyStatProfile(row, headerMap, lineNumber, definition);
+        ApplyDamagePolishProfile(row, headerMap, lineNumber, definition);
         ApplyGrowthProfile(row, headerMap, lineNumber, definition);
         ApplyCostProfile(row, headerMap, lineNumber, definition);
         EditorUtility.SetDirty(definition);
@@ -287,6 +292,95 @@ public class TurretDataCsvEditorTool : EditorWindow
         stat.projectileCount = ReadInt(row, headerMap, "ProjectileCount", lineNumber, stat.projectileCount);
         stat.pierceCount = ReadInt(row, headerMap, "PierceCount", lineNumber, stat.pierceCount);
         EditorUtility.SetDirty(stat);
+    }
+
+    // CSV 행의 데미지 폴리싱 값을 DamagePolishProfile에 반영한다
+    private void ApplyDamagePolishProfile(List<string> row, Dictionary<string, int> headerMap, int lineNumber, TurretDefinitionSO definition)
+    {
+        if (!headerMap.ContainsKey("CriticalChancePercent"))
+        {
+            return;
+        }
+
+        string value = ReadString(row, headerMap, "CriticalChancePercent");
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return;
+        }
+
+        TurretDamagePolishProfileSO polishProfile = definition.damagePolishProfile;
+        if (polishProfile == null)
+        {
+            AddMessage($"{lineNumber}행: DamagePolishProfile이 없어 치명타율을 반영하지 않습니다. Definition: {definition.name}");
+            return;
+        }
+
+        string[] chanceParts = value.Split(';');
+        bool hasHeavyHitValue = chanceParts.Length > 1 && !string.IsNullOrWhiteSpace(chanceParts[1]);
+        if (!TryParsePercent(chanceParts[0], lineNumber, "CriticalChancePercent", polishProfile.CriticalChance * 100.0f, out float criticalChancePercent))
+        {
+            return;
+        }
+
+        SerializedObject serializedObject = new SerializedObject(polishProfile);
+        SerializedProperty criticalChance = serializedObject.FindProperty(CRITICAL_CHANCE_PROPERTY);
+        if (criticalChance == null)
+        {
+            AddMessage($"{lineNumber}행: DamagePolishProfile에서 치명타율 필드를 찾을 수 없습니다. Profile: {AssetDatabase.GetAssetPath(polishProfile)}");
+            return;
+        }
+
+        criticalChance.floatValue = Mathf.Clamp(criticalChancePercent, 0.0f, 100.0f) / 100.0f;
+        if (hasHeavyHitValue)
+        {
+            if (!TryParsePercent(chanceParts[1], lineNumber, "CriticalChancePercent 강타율", polishProfile.HeavyHitChance * 100.0f, out float heavyHitChancePercent))
+            {
+                return;
+            }
+
+            SerializedProperty heavyHitChance = serializedObject.FindProperty(HEAVY_HIT_CHANCE_PROPERTY);
+            if (heavyHitChance == null)
+            {
+                AddMessage($"{lineNumber}행: DamagePolishProfile에서 강타 확률 필드를 찾을 수 없습니다. Profile: {AssetDatabase.GetAssetPath(polishProfile)}");
+                return;
+            }
+
+            heavyHitChance.floatValue = Mathf.Clamp(heavyHitChancePercent, 0.0f, 100.0f) / 100.0f;
+        }
+
+        serializedObject.ApplyModifiedProperties();
+        EditorUtility.SetDirty(polishProfile);
+    }
+
+    // 데미지 폴리싱 프로필의 치명타율과 강타율을 CSV 셀 문자열로 변환한다
+    private static string FormatDamagePolishChanceCell(TurretDamagePolishProfileSO polishProfile)
+    {
+        if (polishProfile == null)
+        {
+            return "0;0";
+        }
+
+        return FormatPercent(polishProfile.CriticalChance * 100.0f) + ";" + FormatPercent(polishProfile.HeavyHitChance * 100.0f);
+    }
+
+    // 퍼센트 값을 CSV용 숫자 문자열로 변환한다
+    private static string FormatPercent(float value)
+    {
+        return Mathf.Clamp(value, 0.0f, 100.0f).ToString("0.###", CultureInfo.InvariantCulture);
+    }
+
+    // CSV 셀의 퍼센트 숫자를 파싱한다
+    private bool TryParsePercent(string value, int lineNumber, string columnName, float fallback, out float result)
+    {
+        string trimmedValue = value == null ? string.Empty : value.Trim();
+        if (float.TryParse(trimmedValue, NumberStyles.Float, CultureInfo.InvariantCulture, out result))
+        {
+            return true;
+        }
+
+        result = fallback;
+        AddMessage($"{lineNumber}행: {columnName} 실수 값이 유효하지 않아 기존 값을 유지합니다. 값: {trimmedValue}");
+        return false;
     }
 
     // CSV 행의 성장 값을 GrowthProfile에 반영한다

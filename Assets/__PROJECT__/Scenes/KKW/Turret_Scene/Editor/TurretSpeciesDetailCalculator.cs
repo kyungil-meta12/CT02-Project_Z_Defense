@@ -109,7 +109,9 @@ internal sealed class TurretSpeciesDetailCalculator
         sample.CumulativeCost = cumulativeCost;
         sample.Wave = FindFirstAffordableWave(waveRowsAscending, TurretEconomySimulationCalculator.GetCoinAmount(cumulativeCost));
         sample.WaveReached = sample.Wave > 0;
-        sample.Dps = TurretSpecialAbilityDpsCalculator.CalculateDps(node.Definition, level, FindRepresentativeWaveRow(waveRowsAscending, sample.Wave), dpsSettings);
+        WaveSummaryRow representativeWave = FindRepresentativeWaveRow(waveRowsAscending, sample.Wave);
+        sample.Dps = TurretSpecialAbilityDpsCalculator.CalculateDps(node.Definition, level, representativeWave, dpsSettings);
+        sample.CriticalExpectedDps = TurretSpecialAbilityDpsCalculator.CalculateCriticalExpectedDps(node.Definition, level, representativeWave, dpsSettings);
         return sample;
     }
 

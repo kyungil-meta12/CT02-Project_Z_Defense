@@ -80,7 +80,7 @@ internal sealed class TurretBalanceReportTableBuilder
         }
 
         WaveClearRankEntry entry = topRanks[rankIndex];
-        return $"{entry.TurretName}\n{FormatInt(entry.InstallCount)}대 Lv{FormatInt(entry.Level)}\n{FormatFloat(entry.TotalDps)} DPS";
+        return $"{entry.TurretName}\n{FormatInt(entry.InstallCount)}대 Lv{FormatInt(entry.Level)}\n{FormatDpsWithCritical(entry.TotalDps, entry.CriticalExpectedTotalDps)} DPS";
     }
 
     // 터렛 시나리오 상세 표 캐시를 만든다
@@ -121,11 +121,17 @@ internal sealed class TurretBalanceReportTableBuilder
         {
             TurretLevelCostSample sample = row.LevelSamples[i];
             columns[3 + i] = sample.LevelAvailable
-                ? $"{FormatFloat(sample.Dps)} DPS\n{FormatCostBreakdown(sample.CumulativeCost)}\n{(sample.WaveReached ? $"W{FormatInt(sample.Wave)}" : "미도달")}"
+                ? $"{FormatDpsWithCritical(sample.Dps, sample.CriticalExpectedDps)} DPS\n{FormatCostBreakdown(sample.CumulativeCost)}\n{(sample.WaveReached ? $"W{FormatInt(sample.Wave)}" : "미도달")}"
                 : "해당없음";
         }
 
         return columns;
+    }
+
+    // 기본 DPS와 치명타/강타 기대 DPS를 함께 표시한다
+    private static string FormatDpsWithCritical(float baseDps, float criticalExpectedDps)
+    {
+        return $"{FormatFloat(baseDps)} ({FormatFloat(criticalExpectedDps)})";
     }
 
     // 재화별 누적 비용을 재화 종류 수만큼 줄바꿈한 문자열로 만든다

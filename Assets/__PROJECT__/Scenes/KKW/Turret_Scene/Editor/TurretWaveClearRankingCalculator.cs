@@ -73,6 +73,7 @@ internal sealed class TurretWaveClearRankingCalculator
             }
 
             float effectiveDps = TurretSpecialAbilityDpsCalculator.CalculateDps(node.Definition, sample.Level, wave, dpsSettings);
+            float criticalExpectedDps = TurretSpecialAbilityDpsCalculator.CalculateCriticalExpectedDps(node.Definition, sample.Level, wave, dpsSettings);
             float totalDps = installCount * effectiveDps;
             if (!best.HasValue || totalDps > best.Value.TotalDps)
             {
@@ -81,7 +82,8 @@ internal sealed class TurretWaveClearRankingCalculator
                     TurretName = speciesRow.TurretName,
                     InstallCount = installCount,
                     Level = sample.Level,
-                    TotalDps = totalDps
+                    TotalDps = totalDps,
+                    CriticalExpectedTotalDps = installCount * criticalExpectedDps
                 };
             }
         }

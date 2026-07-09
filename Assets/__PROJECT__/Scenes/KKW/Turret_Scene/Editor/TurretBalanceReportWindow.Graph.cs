@@ -677,6 +677,20 @@ internal static class TurretBalanceReportGraphRenderer
             {
                 float waveTarget = targetClearSeconds + i * targetClearSecondsIncrement;
                 maxValue = Mathf.Max(maxValue, topRanks[0].TotalDps * waveTarget);
+                maxValue = Mathf.Max(maxValue, topRanks[0].CriticalExpectedTotalDps * waveTarget);
+            }
+
+            List<WaveClearRankEntry> speciesEntries = report.WaveClearRows[i].SpeciesEntries;
+            if (speciesEntries == null)
+            {
+                continue;
+            }
+
+            for (int j = 0; j < speciesEntries.Count; j++)
+            {
+                float waveTarget = targetClearSeconds + i * targetClearSecondsIncrement;
+                maxValue = Mathf.Max(maxValue, speciesEntries[j].TotalDps * waveTarget);
+                maxValue = Mathf.Max(maxValue, speciesEntries[j].CriticalExpectedTotalDps * waveTarget);
             }
         }
 
@@ -696,24 +710,35 @@ internal static class TurretBalanceReportGraphRenderer
                 continue;
             }
 
-            GraphSeries series = CreateSeries("처리 가능 HP - " + turretEntry.TurretName, "HP", GetTurretEvolutionColor(turretEntry.Tier, maxTier, turretIndex), report.WaveRows.Count);
+            Color turretColor = GetTurretEvolutionColor(turretEntry.Tier, maxTier, turretIndex);
+            Color criticalColor = turretColor;
+            criticalColor.a = 0.2f;
+            GraphSeries series = CreateSeries("처리 가능 HP - " + turretEntry.TurretName, "HP", turretColor, report.WaveRows.Count);
+            GraphSeries criticalSeries = CreateSeries("특수타 기대 HP - " + turretEntry.TurretName, "HP", criticalColor, report.WaveRows.Count);
             SetFixedScale(series, 0.0f, hpAxisMax);
+            SetFixedScale(criticalSeries, 0.0f, hpAxisMax);
             for (int waveIndex = 0; waveIndex < report.WaveRows.Count; waveIndex++)
             {
                 if (TryFindSpeciesEntry(report, waveIndex, turretEntry.TurretName, out WaveClearRankEntry entry))
                 {
                     float waveTarget = targetClearSeconds + waveIndex * targetClearSecondsIncrement;
                     float processableHp = Mathf.Max(0.0f, entry.TotalDps * waveTarget);
+                    float criticalProcessableHp = Mathf.Max(0.0f, entry.CriticalExpectedTotalDps * waveTarget);
                     series.Values.Add(processableHp);
                     series.PointNotes.Add($"{FormatFloat(entry.TotalDps)} DPS / {entry.InstallCount}대 / Lv{entry.Level}");
+                    criticalSeries.Values.Add(criticalProcessableHp);
+                    criticalSeries.PointNotes.Add($"치명타/강타 기대 {FormatFloat(entry.CriticalExpectedTotalDps)} DPS / 기존 {FormatFloat(entry.TotalDps)} DPS / {entry.InstallCount}대 / Lv{entry.Level}");
                     continue;
                 }
 
                 series.Values.Add(float.NaN);
                 series.PointNotes.Add("설치 불가");
+                criticalSeries.Values.Add(float.NaN);
+                criticalSeries.PointNotes.Add("설치 불가");
             }
 
             seriesList.Add(series);
+            seriesList.Add(criticalSeries);
             colorIndex++;
         }
     }
@@ -857,7 +882,7 @@ internal static class TurretBalanceReportGraphRenderer
                 float waveTarget = targetClearSeconds + i * targetClearSecondsIncrement;
                 float processableHp = Mathf.Max(0.0f, entry.TotalDps * waveTarget);
                 series.Values.Add(processableHp);
-                series.PointNotes.Add($"{entry.TurretName} / {FormatFloat(entry.TotalDps)} DPS / {entry.InstallCount}대 / Lv{entry.Level}");
+                series.PointNotes.Add($"{entry.TurretName} / {FormatFloat(entry.TotalDps)} DPS ({FormatFloat(entry.CriticalExpectedTotalDps)}) / {entry.InstallCount}대 / Lv{entry.Level}");
                 continue;
             }
 

@@ -7,6 +7,18 @@ internal static class TurretSpecialAbilityDpsCalculator
     // 터렛 정의와 웨이브 요약을 기준으로 리포트용 기대 DPS를 계산한다
     public static float CalculateDps(TurretDefinitionSO definition, int level, WaveSummaryRow wave, TurretBalanceDpsSettings settings)
     {
+        return CalculateDps(definition, level, wave, settings, false);
+    }
+
+    // 터렛 정의와 웨이브 요약을 기준으로 치명타와 강타 기대값이 반영된 리포트용 DPS를 계산한다
+    public static float CalculateCriticalExpectedDps(TurretDefinitionSO definition, int level, WaveSummaryRow wave, TurretBalanceDpsSettings settings)
+    {
+        return CalculateDps(definition, level, wave, settings, true);
+    }
+
+    // 터렛 정의와 웨이브 요약을 기준으로 리포트용 DPS를 계산한다
+    private static float CalculateDps(TurretDefinitionSO definition, int level, WaveSummaryRow wave, TurretBalanceDpsSettings settings, bool includeCriticalExpectedValue)
+    {
         if (definition == null)
         {
             return 0.0f;
@@ -14,6 +26,11 @@ internal static class TurretSpecialAbilityDpsCalculator
 
         TurretRuntimeStat stat = TurretStatCalculator.Calculate(definition, level);
         float directDps = CalculateDirectDps(stat, settings);
+        if (includeCriticalExpectedValue)
+        {
+            directDps *= CalculateSpecialHitExpectedMultiplier(definition.damagePolishProfile);
+        }
+
         if (definition.ignitionStatusProfile != null)
         {
             return CalculateIgnitionDps(definition.ignitionStatusProfile, definition.statGrowthProfile, level, directDps, wave, settings);
@@ -36,6 +53,23 @@ internal static class TurretSpecialAbilityDpsCalculator
         }
 
         return Mathf.Max(0.0f, totalDps);
+    }
+
+    // 데미지 폴리싱 프로필에서 치명타와 강타 기대 피해 배율을 계산한다
+    private static float CalculateSpecialHitExpectedMultiplier(TurretDamagePolishProfileSO profile)
+    {
+        if (profile == null)
+        {
+            return 1.0f;
+        }
+
+        float heavyHitChance = Mathf.Clamp01(profile.HeavyHitChance);
+        float heavyHitMultiplier = Mathf.Max(0.0f, profile.HeavyHitMultiplier);
+        float criticalChance = Mathf.Clamp01(profile.CriticalChance);
+        float criticalMultiplier = Mathf.Max(0.0f, profile.CriticalMultiplier);
+        float heavyExpectedBonus = heavyHitChance * (heavyHitMultiplier - 1.0f);
+        float criticalExpectedBonus = (1.0f - heavyHitChance) * criticalChance * (criticalMultiplier - 1.0f);
+        return Mathf.Max(0.0f, 1.0f + heavyExpectedBonus + criticalExpectedBonus);
     }
 
     // 직접 피해 DPS에 관통 효율을 반영한다

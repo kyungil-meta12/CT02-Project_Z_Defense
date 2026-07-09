@@ -194,6 +194,7 @@ internal struct WaveClearRankEntry
     public int InstallCount;
     public int Level;
     public float TotalDps;
+    public float CriticalExpectedTotalDps;
 }
 
 // 웨이브 클리어 시뮬레이션 표의 행 데이터. 재화별 보상은 Dictionary로 보관해 Coin 외 재화가 추가돼도 그대로 표시된다.
@@ -232,6 +233,7 @@ internal struct TurretLevelCostSample
     public bool LevelAvailable;
     public Dictionary<RewardCurrencyType, int> CumulativeCost;
     public float Dps;
+    public float CriticalExpectedDps;
     public bool WaveReached;
     public int Wave;
 }

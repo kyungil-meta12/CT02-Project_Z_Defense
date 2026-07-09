@@ -86,6 +86,7 @@ public class TurretTechTreeDetailPopupUI : MonoBehaviour
     // 지정 터렛 노드의 상세 정보와 프리뷰 영상을 표시한다
     public void Show(TurretDefinitionSO definition, TurretTechTreeNodeViewData nodeData, TurretTechTreeNodeState state, TurretTechTreeViewProfileSO profile)
     {
+        hasRequiredReferences = ValidateRequiredReferences();
         if (!hasRequiredReferences)
         {
             Debug.LogWarning("[터렛 트리 상세 UI] 필수 인스펙터 참조가 누락되어 상세 팝업을 표시할 수 없습니다.", this);

@@ -35141,11 +35141,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 666787328}
   m_CullTransparentMesh: 1
---- !u!1 &668500569 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 7030619819816839663, guid: 676fb99fa57699c45b5e56652faed1dc, type: 3}
-  m_PrefabInstance: {fileID: 2018363199}
-  m_PrefabAsset: {fileID: 0}
 --- !u!4 &668500570 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 5582576447331775284, guid: 676fb99fa57699c45b5e56652faed1dc, type: 3}
@@ -72790,8 +72785,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SellerTruckMovement
   stopPointIndex: 18
-  stayDuration: 10
-  button: {fileID: 668500569}
+  stayDuration: 0
+  button: {fileID: 7030619819816839663, guid: 676fb99fa57699c45b5e56652faed1dc, type: 3}
 --- !u!1001 &1315848814
 PrefabInstance:
   m_ObjectHideFlags: 0

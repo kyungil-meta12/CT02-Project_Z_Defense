@@ -21,15 +21,6 @@ public class TurretSelectionUIController : MonoBehaviour
     [Header("사거리 표시")]
     [SerializeField] private bool showRangeIndicatorOnSelection = true;
     [SerializeField] private TurretRangeIndicator rangeIndicator;
-    [SerializeField] private GameObject rangeIndicatorPrefab;
-    [SerializeField, Min(0.001f)] private float rangeIndicatorPrefabRadiusAtScaleOne = 1.0f;
-    [SerializeField] private bool forceRangeIndicatorPrefabParticleLoop = true;
-    [SerializeField] private bool restartRangeIndicatorPrefabParticlesOnShow = true;
-    [SerializeField] private bool useLineRangeIndicatorFallback = true;
-    [SerializeField, Min(12)] private int rangeIndicatorSegments = 96;
-    [SerializeField, Min(0.001f)] private float rangeIndicatorLineWidth = 0.08f;
-    [SerializeField] private float rangeIndicatorYOffset = 0.05f;
-    [SerializeField] private Color rangeIndicatorColor = new Color(0.2f, 0.85f, 1.0f, 0.65f);
 
     private TurretSelectionContext currentContext;
     private TurretDefinitionRuntimeController lastClickedTurret;
@@ -46,7 +37,7 @@ public class TurretSelectionUIController : MonoBehaviour
     // 시작 전에 팝업 참조와 이벤트를 준비한다
     private void Awake()
     {
-        BindChildReferences();
+        ValidateRequiredReferences();
         InitializePopups();
         BindPopupEvents();
         HideAllPopups();
@@ -190,7 +181,13 @@ public class TurretSelectionUIController : MonoBehaviour
         currentContext = context;
         ClearPendingTurretClick();
         HideChildPopups();
-        selectPopup?.Show(currentContext);
+        if (selectPopup == null)
+        {
+            Debug.LogWarning("[TurretSelectionUIController] Select Popup 참조가 없어 선택 팝업을 열 수 없습니다.", this);
+            return;
+        }
+
+        selectPopup.Show(currentContext);
         RefreshRangeIndicator();
     }
 
@@ -204,7 +201,13 @@ public class TurretSelectionUIController : MonoBehaviour
         }
 
         HideAllPopups();
-        upgradePopup?.Show(currentContext);
+        if (upgradePopup == null)
+        {
+            Debug.LogWarning("[TurretSelectionUIController] Upgrade Popup 참조가 없어 업그레이드 팝업을 열 수 없습니다.", this);
+            return;
+        }
+
+        upgradePopup.Show(currentContext);
         RefreshRangeIndicator();
     }
 
@@ -218,7 +221,13 @@ public class TurretSelectionUIController : MonoBehaviour
         }
 
         HideAllPopups();
-        detailPopup?.Show(currentContext);
+        if (detailPopup == null)
+        {
+            Debug.LogWarning("[TurretSelectionUIController] Detail Popup 참조가 없어 상세 팝업을 열 수 없습니다.", this);
+            return;
+        }
+
+        detailPopup.Show(currentContext);
         RefreshRangeIndicator();
     }
 
@@ -232,7 +241,13 @@ public class TurretSelectionUIController : MonoBehaviour
         }
 
         HideAllPopups();
-        skillPopup?.Show(currentContext);
+        if (skillPopup == null)
+        {
+            Debug.LogWarning("[TurretSelectionUIController] Skill Popup 참조가 없어 스킬 팝업을 열 수 없습니다.", this);
+            return;
+        }
+
+        skillPopup.Show(currentContext);
         RefreshRangeIndicator();
     }
 
@@ -246,7 +261,13 @@ public class TurretSelectionUIController : MonoBehaviour
         }
 
         HideAllPopups();
-        evolutionPopup?.Show(currentContext);
+        if (evolutionPopup == null)
+        {
+            Debug.LogWarning("[TurretSelectionUIController] Evolution Popup 참조가 없어 진화 팝업을 열 수 없습니다.", this);
+            return;
+        }
+
+        evolutionPopup.Show(currentContext);
         RefreshRangeIndicator();
     }
 
@@ -275,32 +296,14 @@ public class TurretSelectionUIController : MonoBehaviour
             return;
         }
 
-        EnsureRangeIndicator();
         if (rangeIndicator == null)
         {
+            Debug.LogWarning("[TurretSelectionUIController] Range Indicator 참조가 없어 사거리 표시를 생략합니다.", this);
             return;
         }
 
         TurretRuntimeStat stat = currentContext.CalculateCurrentStat();
-        rangeIndicator.ConfigurePrefab(
-            rangeIndicatorPrefab,
-            rangeIndicatorPrefabRadiusAtScaleOne,
-            forceRangeIndicatorPrefabParticleLoop,
-            restartRangeIndicatorPrefabParticlesOnShow,
-            useLineRangeIndicatorFallback);
-        rangeIndicator.Show(currentContext.GetRangeCenter(), stat.range, rangeIndicatorSegments, rangeIndicatorLineWidth, rangeIndicatorYOffset, rangeIndicatorColor);
-    }
-
-    // 사거리 표시 컴포넌트를 준비한다
-    private void EnsureRangeIndicator()
-    {
-        if (rangeIndicator != null)
-        {
-            return;
-        }
-
-        GameObject indicatorObject = new GameObject("TurretRangeIndicator_Runtime");
-        rangeIndicator = indicatorObject.AddComponent<TurretRangeIndicator>();
+        rangeIndicator.Show(currentContext.GetRangeCenter(), stat.range);
     }
 
     // 사거리 표시를 숨긴다
@@ -326,6 +329,35 @@ public class TurretSelectionUIController : MonoBehaviour
         detailPopup?.Initialize(this);
         evolutionPopup?.Initialize(this);
         skillPopup?.Initialize(this);
+    }
+
+    // 선택 UI에 필요한 수동 연결 참조를 검증한다
+    private void ValidateRequiredReferences()
+    {
+        if (selectPopup == null)
+        {
+            Debug.LogWarning("[TurretSelectionUIController] Select Popup 참조가 비어 있습니다.", this);
+        }
+
+        if (upgradePopup == null)
+        {
+            Debug.LogWarning("[TurretSelectionUIController] Upgrade Popup 참조가 비어 있습니다.", this);
+        }
+
+        if (detailPopup == null)
+        {
+            Debug.LogWarning("[TurretSelectionUIController] Detail Popup 참조가 비어 있습니다.", this);
+        }
+
+        if (evolutionPopup == null)
+        {
+            Debug.LogWarning("[TurretSelectionUIController] Evolution Popup 참조가 비어 있습니다.", this);
+        }
+
+        if (showRangeIndicatorOnSelection && rangeIndicator == null)
+        {
+            Debug.LogWarning("[TurretSelectionUIController] Range Indicator 참조가 비어 있습니다. 런타임 자동 생성은 사용하지 않습니다.", this);
+        }
     }
 
     // 선택 팝업 이벤트를 등록한다

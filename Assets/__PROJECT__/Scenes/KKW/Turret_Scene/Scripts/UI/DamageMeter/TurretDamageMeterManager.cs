@@ -20,9 +20,11 @@ public sealed class TurretDamageMeterManager : MonoBehaviour
     [SerializeField, Min(1)] private int visibleRowLimit = DEFAULT_ROW_CAPACITY;
     [SerializeField] private bool keepPreviousWaveUntilFirstDamage = true;
 
+    [Header("UI 참조")]
+    [SerializeField] private TurretDamageMeterUI meterUI;
+
     private readonly List<TurretDamageMeterEntry> entries = new List<TurretDamageMeterEntry>(DEFAULT_ROW_CAPACITY);
     private readonly List<TurretDamageMeterEntry> sortedEntries = new List<TurretDamageMeterEntry>(DEFAULT_ROW_CAPACITY);
-    private TurretDamageMeterUI meterUI;
     private float rankingTimer;
     private float uiTimer;
     private int activeWave = -1;
@@ -57,8 +59,14 @@ public sealed class TurretDamageMeterManager : MonoBehaviour
         }
 
         instance = this;
-        CacheReferences();
+        ValidateRequiredReferences();
         FlushPendingSources();
+    }
+
+    // 에디터에서 컴포넌트를 추가할 때 같은 오브젝트의 UI 참조를 연결한다
+    private void Reset()
+    {
+        meterUI = GetComponent<TurretDamageMeterUI>();
     }
 
     // 활성화될 때 현재 웨이브 번호를 기록한다
@@ -148,12 +156,12 @@ public sealed class TurretDamageMeterManager : MonoBehaviour
         return sortedEntries;
     }
 
-    // 필요한 UI 참조를 캐시한다
-    private void CacheReferences()
+    // 런타임에 필요한 직접 연결 참조가 있는지 검증한다
+    private void ValidateRequiredReferences()
     {
         if (meterUI == null)
         {
-            meterUI = GetComponent<TurretDamageMeterUI>();
+            Debug.LogWarning("[딜 미터 매니저] Meter UI 참조가 비어 있어 딜 미터기 화면을 갱신할 수 없습니다.", this);
         }
     }
 
@@ -280,7 +288,6 @@ public sealed class TurretDamageMeterManager : MonoBehaviour
             return;
         }
 
-        CacheReferences();
         if (meterUI != null)
         {
             meterUI.Refresh(this);

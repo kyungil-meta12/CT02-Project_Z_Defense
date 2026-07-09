@@ -41,10 +41,48 @@ public sealed class TurretDamageMeterUI : MonoBehaviour
     // 시작 시 에디터에서 배치한 Row 슬롯 위치를 캐시한다
     private void Awake()
     {
+        ValidateRequiredReferences();
         CacheRowTargetPositions();
-        ResolveFoldButtonReferences();
         BindFoldButtons();
         RefreshFoldButtonFrames();
+    }
+
+    // 에디터에서 컴포넌트를 추가할 때 하위 참조를 한 번 보강한다
+    private void Reset()
+    {
+        BindChildReferences();
+    }
+
+    // 에디터 컨텍스트 메뉴에서 하위 UI 참조를 다시 연결한다
+    [ContextMenu("참조 다시 연결")]
+    private void BindChildReferences()
+    {
+        if (rowItems == null || rowItems.Length == 0)
+        {
+            rowItems = GetComponentsInChildren<TurretDamageMeterRowUI>(true);
+        }
+
+        if (closeButtonFrame == null)
+        {
+            Transform closeFrame = FindChildByName(transform, "CloseButtonFrame");
+            closeButtonFrame = closeFrame != null ? closeFrame.gameObject : null;
+        }
+
+        if (openButtonFrame == null)
+        {
+            Transform openFrame = FindChildByName(transform, "OpenButtonFrame");
+            openButtonFrame = openFrame != null ? openFrame.gameObject : null;
+        }
+
+        if (closeButton == null && closeButtonFrame != null)
+        {
+            closeButton = closeButtonFrame.GetComponentInChildren<Button>(true);
+        }
+
+        if (openButton == null && openButtonFrame != null)
+        {
+            openButton = openButtonFrame.GetComponentInChildren<Button>(true);
+        }
     }
 
     // 제거 시 버튼 이벤트 구독을 해제한다
@@ -282,29 +320,42 @@ public sealed class TurretDamageMeterUI : MonoBehaviour
         }
     }
 
-    // 접기 버튼 참조를 이름 기준으로 보강한다
-    private void ResolveFoldButtonReferences()
+    // 런타임에 필요한 직접 연결 참조가 있는지 검증한다
+    private void ValidateRequiredReferences()
     {
+        if (rowItems == null || rowItems.Length == 0)
+        {
+            Debug.LogWarning("[딜 미터 UI] Row Items 참조가 비어 있어 딜 미터 행을 표시할 수 없습니다.", this);
+        }
+        else
+        {
+            for (int i = 0; i < rowItems.Length; i++)
+            {
+                if (rowItems[i] == null)
+                {
+                    Debug.LogWarning("[딜 미터 UI] Row Items 배열에 비어 있는 항목이 있습니다. 인덱스: " + i, this);
+                }
+            }
+        }
+
         if (closeButtonFrame == null)
         {
-            Transform closeFrame = FindChildByName(transform, "CloseButtonFrame");
-            closeButtonFrame = closeFrame != null ? closeFrame.gameObject : null;
+            Debug.LogWarning("[딜 미터 UI] Close Button Frame 참조가 비어 있어 접기 버튼 프레임을 표시할 수 없습니다.", this);
         }
 
         if (openButtonFrame == null)
         {
-            Transform openFrame = FindChildByName(transform, "OpenButtonFrame");
-            openButtonFrame = openFrame != null ? openFrame.gameObject : null;
+            Debug.LogWarning("[딜 미터 UI] Open Button Frame 참조가 비어 있어 펼치기 버튼 프레임을 표시할 수 없습니다.", this);
         }
 
-        if (closeButton == null && closeButtonFrame != null)
+        if (closeButton == null)
         {
-            closeButton = closeButtonFrame.GetComponentInChildren<Button>(true);
+            Debug.LogWarning("[딜 미터 UI] Close Button 참조가 비어 있어 접기 입력을 받을 수 없습니다.", this);
         }
 
-        if (openButton == null && openButtonFrame != null)
+        if (openButton == null)
         {
-            openButton = openButtonFrame.GetComponentInChildren<Button>(true);
+            Debug.LogWarning("[딜 미터 UI] Open Button 참조가 비어 있어 펼치기 입력을 받을 수 없습니다.", this);
         }
     }
 
@@ -409,7 +460,7 @@ public sealed class TurretDamageMeterUI : MonoBehaviour
         return GetRowTargetY(0) + foldedYOffset;
     }
 
-    // 하위 계층에서 이름이 일치하는 Transform을 찾는다
+    // 에디터 참조 연결용으로 하위 계층에서 이름이 일치하는 Transform을 찾는다
     private static Transform FindChildByName(Transform root, string childName)
     {
         if (root == null || string.IsNullOrEmpty(childName))

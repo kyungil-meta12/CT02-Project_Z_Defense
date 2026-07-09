@@ -32,6 +32,7 @@ public class TurretTechTreeUIController : MonoBehaviour
     private readonly List<TechTreeEdgeData> edgeData = new List<TechTreeEdgeData>(128);
     private float previousTimeScale = 1.0f;
     private bool hasPausedGame;
+    private bool hasRequiredReferences;
 
     // 컴포넌트 추가 시 하위 UI 참조를 자동 수집한다
     private void Reset()
@@ -43,12 +44,7 @@ public class TurretTechTreeUIController : MonoBehaviour
     // 시작 전에 하위 UI를 초기화하고 기본으로 숨긴다
     private void Awake()
     {
-        if (popupRoot == null)
-        {
-            popupRoot = gameObject;
-        }
-
-        BindChildReferences();
+        hasRequiredReferences = ValidateRequiredReferences();
         InitializeNodeViews();
         Hide();
     }
@@ -72,6 +68,12 @@ public class TurretTechTreeUIController : MonoBehaviour
     // 터렛 트리 팝업을 표시하고 상태를 갱신한다
     public void Show()
     {
+        if (!hasRequiredReferences)
+        {
+            Debug.LogWarning("[터렛 트리 UI] 필수 인스펙터 참조가 누락되어 터렛 트리 창을 열 수 없습니다.", this);
+            return;
+        }
+
         if (popupRoot != null)
         {
             popupRoot.SetActive(true);
@@ -132,6 +134,12 @@ public class TurretTechTreeUIController : MonoBehaviour
     // 설치된 터렛 기준으로 노드와 연결선 상태를 다시 계산하고 UI에 적용한다
     public void Refresh()
     {
+        if (!hasRequiredReferences)
+        {
+            Debug.LogWarning("[터렛 트리 UI] 필수 인스펙터 참조가 누락되어 상태를 새로고침할 수 없습니다.", this);
+            return;
+        }
+
         InitializeNodeViews();
         BuildGraphData();
         CollectInstalledTurrets();
@@ -146,6 +154,7 @@ public class TurretTechTreeUIController : MonoBehaviour
     {
         if (nodeView == null || detailPopup == null)
         {
+            Debug.LogWarning("[터렛 트리 UI] 노드 또는 상세 팝업 참조가 없어 상세 정보를 표시할 수 없습니다.", this);
             return;
         }
 
@@ -153,6 +162,55 @@ public class TurretTechTreeUIController : MonoBehaviour
         TurretTechTreeNodeViewData nodeData = viewProfile == null ? null : viewProfile.FindNodeData(definition);
         TurretTechTreeNodeState state = GetNodeState(definition);
         detailPopup.Show(definition, nodeData, state, viewProfile);
+    }
+
+    // 런타임에 필요한 인스펙터 참조가 모두 연결됐는지 확인한다
+    private bool ValidateRequiredReferences()
+    {
+        bool isValid = true;
+        isValid &= LogMissingReference(popupRoot, nameof(popupRoot));
+        isValid &= LogMissingReference(viewProfile, nameof(viewProfile));
+        isValid &= LogMissingReference(treeScrollRect, nameof(treeScrollRect));
+        isValid &= LogMissingReference(detailPopup, nameof(detailPopup));
+        isValid &= ValidateArrayReferences(nodeViews, nameof(nodeViews));
+        isValid &= ValidateArrayReferences(lineViews, nameof(lineViews));
+        return isValid;
+    }
+
+    // 단일 인스펙터 참조 누락 여부를 로그로 알린다
+    private bool LogMissingReference(UnityEngine.Object reference, string fieldName)
+    {
+        if (reference != null)
+        {
+            return true;
+        }
+
+        Debug.LogWarning("[터렛 트리 UI] " + fieldName + " 참조가 비어 있습니다. 인스펙터에서 직접 연결해야 합니다.", this);
+        return false;
+    }
+
+    // 배열 인스펙터 참조 누락 여부를 로그로 알린다
+    private bool ValidateArrayReferences<T>(T[] references, string fieldName) where T : UnityEngine.Object
+    {
+        if (references == null || references.Length == 0)
+        {
+            Debug.LogWarning("[터렛 트리 UI] " + fieldName + " 배열이 비어 있습니다. 인스펙터에서 직접 연결해야 합니다.", this);
+            return false;
+        }
+
+        bool isValid = true;
+        for (int i = 0; i < references.Length; i++)
+        {
+            if (references[i] != null)
+            {
+                continue;
+            }
+
+            Debug.LogWarning("[터렛 트리 UI] " + fieldName + " 배열의 " + i + "번 참조가 비어 있습니다.", this);
+            isValid = false;
+        }
+
+        return isValid;
     }
 
     // 지정 터렛 정의의 현재 노드 상태를 반환한다

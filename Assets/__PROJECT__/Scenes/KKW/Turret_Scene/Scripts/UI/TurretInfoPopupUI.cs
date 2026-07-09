@@ -18,8 +18,6 @@ public class TurretInfoPopupUI : MonoBehaviour
     [SerializeField] private Button backButton;
     [SerializeField] private Button closeButton;
     [SerializeField] private Button informationButton;
-    [SerializeField] private Button upgradeButton;
-    [SerializeField] private GameObject upgradeFrame;
 
     [Header("연결 팝업")]
     [SerializeField] private TurretDetailPopupUI descriptionPopup;
@@ -48,7 +46,7 @@ public class TurretInfoPopupUI : MonoBehaviour
     // 활성화 준비 시 하위 참조와 버튼 이벤트를 연결한다
     private void Awake()
     {
-        BindChildReferences();
+        ValidateRequiredReferences();
         CacheTextTemplates();
         BindButtonListeners();
         if (currentDefinition == null)
@@ -72,8 +70,6 @@ public class TurretInfoPopupUI : MonoBehaviour
         backButton = backButton != null ? backButton : FindFirstChildComponent<Button>(searchRoot, BACKGROUND_PATH + "/LowPanel/BackFrame/Back", BACKGROUND_PATH + "/LowPanel/BackButtonFrame/BackButton");
         closeButton = closeButton != null ? closeButton : FindFirstChildComponent<Button>(searchRoot, BACKGROUND_PATH + "/HighPanel/ExitFrame/Button");
         informationButton = informationButton != null ? informationButton : FindFirstChildComponent<Button>(searchRoot, BACKGROUND_PATH + "/LowPanel/InformationFrame/Information");
-        upgradeButton = upgradeButton != null ? upgradeButton : FindFirstChildComponent<Button>(searchRoot, BACKGROUND_PATH + "/LowPanel/UpgradeFrame/Upgrade");
-        upgradeFrame = upgradeFrame != null ? upgradeFrame : FindFirstChildGameObject(searchRoot, BACKGROUND_PATH + "/LowPanel/UpgradeFrame");
         descriptionPopup = descriptionPopup != null ? descriptionPopup : ResolveDescriptionPopup(searchRoot);
         nameText = nameText != null ? nameText : FindFirstChildComponent<TMP_Text>(searchRoot, BACKGROUND_PATH + "/HighPanel/CurrentTurretNameFrame/CurrentTurretName");
         levelText = levelText != null ? levelText : FindFirstChildComponent<TMP_Text>(searchRoot, BACKGROUND_PATH + "/MiddlePanel/Panel/Level");
@@ -87,10 +83,8 @@ public class TurretInfoPopupUI : MonoBehaviour
     public void Show(TurretDefinitionSO definition)
     {
         currentDefinition = definition;
-        BindChildReferences();
         CacheTextTemplates();
         RefreshSummary();
-        SetPreviewOnlyButtonState();
 
         if (popupRoot != null)
         {
@@ -101,8 +95,6 @@ public class TurretInfoPopupUI : MonoBehaviour
     // 정보 팝업을 닫는다
     public void Hide()
     {
-        BindChildReferences();
-
         if (popupRoot != null)
         {
             popupRoot.SetActive(false);
@@ -117,11 +109,13 @@ public class TurretInfoPopupUI : MonoBehaviour
             return;
         }
 
-        EnsureDescriptionPopup();
         if (descriptionPopup != null)
         {
             descriptionPopup.ShowPreview(currentDefinition);
+            return;
         }
+
+        Debug.LogWarning("[TurretInfoPopupUI] Description Popup 참조가 없어 후보 상세 정보를 열 수 없습니다.", this);
     }
 
     // TMP 원문 템플릿을 최초 한 번 보관한다
@@ -206,29 +200,33 @@ public class TurretInfoPopupUI : MonoBehaviour
         }
     }
 
-    // 진화 후보 미리보기 팝업에서는 업그레이드 진입 버튼을 비활성화한다
-    private void SetPreviewOnlyButtonState()
+    // 정보 팝업에 필요한 수동 연결 참조를 검증한다
+    private void ValidateRequiredReferences()
     {
-        if (upgradeFrame != null)
+        if (popupRoot == null)
         {
-            upgradeFrame.SetActive(false);
+            Debug.LogWarning("[TurretInfoPopupUI] Popup Root 참조가 비어 있습니다.", this);
         }
 
-        if (upgradeButton != null)
+        if (backButton == null || closeButton == null || informationButton == null)
         {
-            upgradeButton.interactable = false;
-        }
-    }
-
-    // 상세 팝업 참조를 필요할 때 준비한다
-    private void EnsureDescriptionPopup()
-    {
-        if (descriptionPopup != null)
-        {
-            return;
+            Debug.LogWarning("[TurretInfoPopupUI] Back/Close/Information 버튼 참조가 일부 비어 있습니다.", this);
         }
 
-        descriptionPopup = ResolveDescriptionPopup(transform);
+        if (descriptionPopup == null)
+        {
+            Debug.LogWarning("[TurretInfoPopupUI] Description Popup 참조가 비어 있습니다.", this);
+        }
+
+        if (nameText == null || levelText == null || damageText == null || fireRateText == null || noteText == null)
+        {
+            Debug.LogWarning("[TurretInfoPopupUI] 정보 팝업 TMP 참조가 일부 비어 있습니다.", this);
+        }
+
+        if (turretImage == null)
+        {
+            Debug.LogWarning("[TurretInfoPopupUI] Turret Image 참조가 비어 있습니다.", this);
+        }
     }
 
     // 터렛 정의의 표시 이름을 반환한다
@@ -353,26 +351,6 @@ public class TurretInfoPopupUI : MonoBehaviour
             if (component != null)
             {
                 return component;
-            }
-        }
-
-        return null;
-    }
-
-    // 여러 경로 중 처음 발견되는 하위 게임 오브젝트를 반환한다
-    private static GameObject FindFirstChildGameObject(Transform searchRoot, params string[] childPaths)
-    {
-        if (searchRoot == null || childPaths == null)
-        {
-            return null;
-        }
-
-        for (int i = 0; i < childPaths.Length; i++)
-        {
-            Transform child = searchRoot.Find(childPaths[i]);
-            if (child != null)
-            {
-                return child.gameObject;
             }
         }
 

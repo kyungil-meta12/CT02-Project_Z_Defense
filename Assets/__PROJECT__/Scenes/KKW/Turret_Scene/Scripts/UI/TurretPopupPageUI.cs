@@ -1,4 +1,3 @@
-using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -15,10 +14,6 @@ public class TurretPopupPageUI : MonoBehaviour
     [SerializeField] private Button closeButton;
     [SerializeField] private Button backButton;
 
-    [Header("텍스트")]
-    [SerializeField] private TMP_Text titleText;
-    [SerializeField] private TMP_Text statusText;
-
     private TurretSelectionUIController owner;
     protected TurretSelectionContext CurrentContext;
 
@@ -34,11 +29,7 @@ public class TurretPopupPageUI : MonoBehaviour
     // 시작 전에 버튼 이벤트를 연결한다
     protected virtual void Awake()
     {
-        if (popupRoot == null)
-        {
-            popupRoot = gameObject;
-        }
-
+        ValidateCommonReferences();
         BindButtonListeners();
     }
 
@@ -58,7 +49,6 @@ public class TurretPopupPageUI : MonoBehaviour
     public virtual void Show(TurretSelectionContext context)
     {
         CurrentContext = context;
-        RefreshCommonTexts();
 
         if (popupRoot != null)
         {
@@ -72,6 +62,15 @@ public class TurretPopupPageUI : MonoBehaviour
         if (popupRoot != null)
         {
             popupRoot.SetActive(false);
+        }
+    }
+
+    // 공통 팝업 필수 참조 누락을 확인한다
+    protected void ValidateCommonReferences()
+    {
+        if (popupRoot == null)
+        {
+            Debug.LogWarning($"[{nameof(TurretPopupPageUI)}] {name}의 Popup Root 참조가 비어 있습니다. 팝업 표시/숨김이 동작하지 않을 수 있습니다.", this);
         }
     }
 
@@ -105,20 +104,6 @@ public class TurretPopupPageUI : MonoBehaviour
         if (owner != null)
         {
             owner.UpdateSelectionFromChild(context);
-        }
-    }
-
-    // 공통 제목과 상태 문구를 현재 선택 기준으로 갱신한다
-    protected virtual void RefreshCommonTexts()
-    {
-        if (titleText != null)
-        {
-            titleText.text = CurrentContext.GetDisplayName();
-        }
-
-        if (statusText != null)
-        {
-            statusText.text = CurrentContext.GetLevelText();
         }
     }
 

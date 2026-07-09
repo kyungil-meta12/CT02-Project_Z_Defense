@@ -51,6 +51,7 @@ public class TurretTechTreeDetailPopupUI : MonoBehaviour
     private string heavyHitChanceTextTemplate;
     private TurretTechTreeViewProfileSO activeProfile;
     private bool isVideoFadeActive;
+    private bool hasRequiredReferences;
 
     // 컴포넌트 추가 시 기본 루트와 버튼 참조를 자동 연결한다
     private void Reset()
@@ -64,12 +65,7 @@ public class TurretTechTreeDetailPopupUI : MonoBehaviour
     // 시작 전에 닫기 버튼을 연결하고 팝업을 숨긴다
     private void Awake()
     {
-        if (popupRoot == null)
-        {
-            popupRoot = gameObject;
-        }
-
-        BindChildReferences();
+        hasRequiredReferences = ValidateRequiredReferences();
         CacheTextTemplates();
         BindButton();
         Hide();
@@ -90,6 +86,12 @@ public class TurretTechTreeDetailPopupUI : MonoBehaviour
     // 지정 터렛 노드의 상세 정보와 프리뷰 영상을 표시한다
     public void Show(TurretDefinitionSO definition, TurretTechTreeNodeViewData nodeData, TurretTechTreeNodeState state, TurretTechTreeViewProfileSO profile)
     {
+        if (!hasRequiredReferences)
+        {
+            Debug.LogWarning("[터렛 트리 상세 UI] 필수 인스펙터 참조가 누락되어 상세 팝업을 표시할 수 없습니다.", this);
+            return;
+        }
+
         if (definition == null)
         {
             Hide();
@@ -209,6 +211,45 @@ public class TurretTechTreeDetailPopupUI : MonoBehaviour
         isVideoFadeActive = ShouldUseVideoFade(activeProfile);
         SetVideoImageAlpha(isVideoFadeActive ? 0.0f : 1.0f);
         preparedPlayer.Play();
+    }
+
+    // 런타임에 필요한 인스펙터 참조가 모두 연결됐는지 확인한다
+    private bool ValidateRequiredReferences()
+    {
+        bool isValid = true;
+        isValid &= LogMissingReference(popupRoot, nameof(popupRoot));
+        isValid &= LogMissingReference(closeButton, nameof(closeButton));
+        isValid &= LogMissingReference(nameText, nameof(nameText));
+        isValid &= LogMissingReference(stateText, nameof(stateText));
+        isValid &= LogMissingReference(damageText, nameof(damageText));
+        isValid &= LogMissingReference(rangeText, nameof(rangeText));
+        isValid &= LogMissingReference(fireRateText, nameof(fireRateText));
+        isValid &= LogMissingReference(pierceCountText, nameof(pierceCountText));
+        isValid &= LogMissingReference(criticalChanceText, nameof(criticalChanceText));
+        isValid &= LogMissingReference(heavyHitChanceText, nameof(heavyHitChanceText));
+        isValid &= LogMissingReference(damageNumberText, nameof(damageNumberText));
+        isValid &= LogMissingReference(rangeNumberText, nameof(rangeNumberText));
+        isValid &= LogMissingReference(fireRateNumberText, nameof(fireRateNumberText));
+        isValid &= LogMissingReference(pierceCountNumberText, nameof(pierceCountNumberText));
+        isValid &= LogMissingReference(criticalChanceNumberText, nameof(criticalChanceNumberText));
+        isValid &= LogMissingReference(heavyHitChanceNumberText, nameof(heavyHitChanceNumberText));
+        isValid &= LogMissingReference(videoPlayer, nameof(videoPlayer));
+        isValid &= LogMissingReference(videoImage, nameof(videoImage));
+        isValid &= LogMissingReference(fallbackIconImage, nameof(fallbackIconImage));
+        isValid &= LogMissingReference(missingVideoMessageRoot, nameof(missingVideoMessageRoot));
+        return isValid;
+    }
+
+    // 단일 인스펙터 참조 누락 여부를 로그로 알린다
+    private bool LogMissingReference(UnityEngine.Object reference, string fieldName)
+    {
+        if (reference != null)
+        {
+            return true;
+        }
+
+        Debug.LogWarning("[터렛 트리 상세 UI] " + fieldName + " 참조가 비어 있습니다. 인스펙터에서 직접 연결해야 합니다.", this);
+        return false;
     }
 
     // 영상 시간 기준으로 시작 페이드인과 끝 페이드아웃을 계산한다

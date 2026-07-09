@@ -6,6 +6,7 @@ using UnityEngine.UI;
 /// 딜 미터기에서 터렛 하나의 순위, 데미지, 점유율, 바 길이를 표시한다.
 /// </summary>
 [DisallowMultipleComponent]
+[RequireComponent(typeof(CanvasGroup))]
 public sealed class TurretDamageMeterRowUI : MonoBehaviour
 {
     [Header("텍스트")]
@@ -37,6 +38,7 @@ public sealed class TurretDamageMeterRowUI : MonoBehaviour
     private void Awake()
     {
         rectTransform = transform as RectTransform;
+        ValidateRequiredReferences();
         CacheBarFillRect();
         CacheMaxBarWidth();
         CacheCanvasGroup();
@@ -45,6 +47,12 @@ public sealed class TurretDamageMeterRowUI : MonoBehaviour
         {
             targetY = rectTransform.anchoredPosition.y;
         }
+    }
+
+    // 에디터에서 컴포넌트를 추가할 때 같은 오브젝트의 CanvasGroup을 연결한다
+    private void Reset()
+    {
+        canvasGroup = GetComponent<CanvasGroup>();
     }
 
     // 매 프레임 목표 Y 위치로 부드럽게 이동한다
@@ -216,7 +224,36 @@ public sealed class TurretDamageMeterRowUI : MonoBehaviour
         return (safeDamage / 1000000000.0f).ToString("0.00") + "b";
     }
 
-    // Row 전체 투명도 제어용 CanvasGroup을 캐시하거나 보강한다
+    // 런타임에 필요한 직접 연결 참조가 있는지 검증한다
+    private void ValidateRequiredReferences()
+    {
+        if (rankText == null)
+        {
+            Debug.LogWarning("[딜 미터 행 UI] Rank Text 참조가 비어 있어 순위를 표시할 수 없습니다.", this);
+        }
+
+        if (nameText == null)
+        {
+            Debug.LogWarning("[딜 미터 행 UI] Name Text 참조가 비어 있어 터렛 이름을 표시할 수 없습니다.", this);
+        }
+
+        if (damageText == null)
+        {
+            Debug.LogWarning("[딜 미터 행 UI] Damage Text 참조가 비어 있어 데미지 값을 표시할 수 없습니다.", this);
+        }
+
+        if (barFillImage == null)
+        {
+            Debug.LogWarning("[딜 미터 행 UI] Bar Fill Image 참조가 비어 있어 그래프를 표시할 수 없습니다.", this);
+        }
+
+        if (canvasGroup == null && GetComponent<CanvasGroup>() == null)
+        {
+            Debug.LogWarning("[딜 미터 행 UI] CanvasGroup 참조가 비어 있어 접기 투명도 연출을 적용할 수 없습니다.", this);
+        }
+    }
+
+    // Row 전체 투명도 제어용 CanvasGroup을 캐시한다
     private void CacheCanvasGroup()
     {
         if (canvasGroup != null)
@@ -225,9 +262,5 @@ public sealed class TurretDamageMeterRowUI : MonoBehaviour
         }
 
         canvasGroup = GetComponent<CanvasGroup>();
-        if (canvasGroup == null)
-        {
-            canvasGroup = gameObject.AddComponent<CanvasGroup>();
-        }
     }
 }

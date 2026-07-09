@@ -32,11 +32,7 @@ public class DropItemManager : MonoBehaviour
     // 웨이브 상승 시 드롭되어있던 모든 아이템들이 일괄 회수되고 목록을 비운다.
     public void OnWaveChanged(int val)
     {
-        foreach(var i in dropHash)
-        {
-            i.GetItem();
-        }
-        dropHash.Clear();
+       ClearItem();
     }
 
     /// <summary>
@@ -55,5 +51,17 @@ public class DropItemManager : MonoBehaviour
     public void RemoveItem(DropItem item)
     {
         dropHash.Remove(item);
+    }
+
+    /// <summary>
+    /// 드롭된 아이템들을 일괄 수집한다.
+    /// </summary>
+    public void ClearItem()
+    {
+         foreach(var i in dropHash)
+        {
+            i.GetItem();
+        }
+        dropHash.Clear();
     }
 }

@@ -157,6 +157,8 @@ public class Survivor : MonoBehaviour
     public bool CanRequestTreatment => role == SurvivorRole.survivor && state == SurvivorState.TreatmentReady;
     public bool CanAssignRole => role == SurvivorRole.survivor && state == SurvivorState.RoleSelectionReady;
     public bool CanBeginEngineerAssignment => role == SurvivorRole.engineer && (state == SurvivorState.EngineerReady || state == SurvivorState.EngineerAssigned);
+    public bool IsMovingForInteraction => IsAgentMoveState() && agent != null && agent.enabled && agent.isOnNavMesh && agent.desiredVelocity.sqrMagnitude > 0.01f;
+    public bool IsWaitingForInteraction => role == SurvivorRole.survivor && !CanRequestTreatment && !CanAssignRole && !IsMovingForInteraction;
 
     // 필요한 컴포넌트와 애니메이터 파라미터를 초기화한다
     private void Awake()
@@ -738,14 +740,7 @@ public class Survivor : MonoBehaviour
         if (HasReachedDefensePoint())
         {
             SurvivorState completedState = state;
-            defenseMoveTarget = null;
-
-            if (completedState == SurvivorState.ReturningToDefensePoint)
-            {
-                activeDefenseLineIndex = NO_DEFENSE_LINE;
-            }
-
-            HandleDefensePointMoveCompleted(completedState);
+            CompleteDefensePointMove(completedState);
         }
     }
 
@@ -1020,7 +1015,60 @@ public class Survivor : MonoBehaviour
         Vector3 offset = defenseMoveTarget.position - transform.position;
         offset.y = 0f;
         float arriveDistance = GetCurrentArriveDistance();
-        return offset.sqrMagnitude <= arriveDistance * arriveDistance;
+        if (offset.sqrMagnitude <= arriveDistance * arriveDistance)
+        {
+            return true;
+        }
+
+        return HasReachedAgentPathEnd(arriveDistance);
+    }
+
+    // NavMesh 경로 끝에 도달했는지 확인한다
+    private bool HasReachedAgentPathEnd(float arriveDistance)
+    {
+        if (agent == null || !agent.hasPath)
+        {
+            return false;
+        }
+
+        if (agent.pathStatus != NavMeshPathStatus.PathComplete && agent.pathStatus != NavMeshPathStatus.PathPartial)
+        {
+            return false;
+        }
+
+        float remainingDistance = agent.remainingDistance;
+        if (float.IsInfinity(remainingDistance) || float.IsNaN(remainingDistance))
+        {
+            return false;
+        }
+
+        return remainingDistance <= Mathf.Max(0.05f, arriveDistance);
+    }
+
+    // 방어선 이동 완료 처리를 공통으로 적용한다
+    private void CompleteDefensePointMove(SurvivorState completedState)
+    {
+        defenseMoveTarget = null;
+        StopAgentPath();
+
+        if (completedState == SurvivorState.ReturningToDefensePoint)
+        {
+            activeDefenseLineIndex = NO_DEFENSE_LINE;
+        }
+
+        HandleDefensePointMoveCompleted(completedState);
+    }
+
+    // 현재 Agent 경로를 정지하고 남은 경로를 정리한다
+    private void StopAgentPath()
+    {
+        if (agent == null || !agent.enabled || !agent.isOnNavMesh)
+        {
+            return;
+        }
+
+        agent.isStopped = true;
+        agent.ResetPath();
     }
 
     // 현재 이동 상태에 맞는 도착 인정 거리를 반환한다

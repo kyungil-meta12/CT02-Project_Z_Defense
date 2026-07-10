@@ -29,7 +29,7 @@ internal sealed class TurretBalanceReportTableBuilder
     // 아이템 밸런스 표 캐시를 만든다
     private static void BuildItemBalanceTableCache(TurretBalanceReportResult report, ReportTableModel table)
     {
-        RewardCurrencyType[] currencyTypes = GetSortedCurrencyTypes();
+        RewardCurrencyType[] currencyTypes = GetSortedCurrencyTypes(TurretBalanceReportCurrencyProjector.BuildTurretCurrencyScope(report));
         string[] headers = new string[1 + currencyTypes.Length];
         headers[0] = "웨이브";
         for (int i = 0; i < currencyTypes.Length; i++)
@@ -37,7 +37,7 @@ internal sealed class TurretBalanceReportTableBuilder
             headers[1 + i] = currencyTypes[i].ToString();
         }
 
-        table.Reset("item_balance.csv", "각 웨이브 시작 시점의 누적 보상에 드랍 기대값, 웨이브 보상 배율, 아이템 데이터 CSV의 조합/분해 기대값을 반영한 아이템별 최대 참조 수량입니다. 각 열은 해당 아이템을 목표로 했을 때의 독립 참조값이며 실제 자동 조합/분해 실행을 의미하지 않습니다.", headers);
+        table.Reset("item_balance.csv", "각 웨이브 시작 시점의 누적 보상에 드랍 기대값, 웨이브 보상 배율, 아이템 데이터 CSV의 조합/분해 기대값을 반영한 아이템별 최대 참조 수량입니다. 터렛 업그레이드/진화 비용에 직접 필요한 재화만 표시하며, 각 열은 해당 아이템을 목표로 했을 때의 독립 참조값입니다.", headers);
         for (int rowIndex = 0; rowIndex < report.ItemBalanceRows.Count; rowIndex++)
         {
             ItemBalanceRow row = report.ItemBalanceRows[rowIndex];
@@ -63,7 +63,7 @@ internal sealed class TurretBalanceReportTableBuilder
             : string.Empty;
         string arrivalDesc = zombieArrivalSeconds > 0f ? $", 좀비 도달 {FormatFloat(zombieArrivalSeconds)}초 포함" : string.Empty;
         HashSet<RewardCurrencyType> currencyScope = TurretBalanceReportCurrencyProjector.BuildTurretCurrencyScope(report);
-        table.Reset("wave_clear_simulation.csv", $"각 웨이브에서, 터렛 시나리오 상세의 종류별 레벨 체크포인트 데이터(누적 재화·DPS)를 참고해 그 웨이브 시작 시점의 Coin 예산(직전 웨이브까지의 총 누적 재화 중 Coin, 첫 웨이브는 초기 지갑 Coin {FormatInt(report.InitialWalletCoin)})으로 설치 가능한 총 DPS가 가장 높은 1~3순위 종류를 보여줍니다. 설치 수는 현재 터렛 슬롯 상한인 최대 8대까지 계산합니다. 웨이브 획득 재화·총 누적 재화는 터렛 설치/업그레이드/진화 비용과 아이템 데이터 CSV의 조합/분해 관계에 필요한 재화만 표시합니다. 예상 클리어 초 = 웨이브 총 좀비 HP / 1순위 총 DPS + 좀비 도달 시간입니다. 비고: 기준 클리어 {FormatFloat(targetClearSeconds)}초{incrementDesc}{arrivalDesc} 대비 ±20% 초과 시 경고.", "웨이브", "일반 좀비 수", "보스 좀비 수", "웨이브 총 좀비 HP", "웨이브 획득 재화", "총 누적 재화", "1순위 터렛", "2순위 터렛", "3순위 터렛", "예상 클리어 초", "비고");
+        table.Reset("wave_clear_simulation.csv", $"각 웨이브에서, 터렛 시나리오 상세의 종류별 레벨 체크포인트 데이터(누적 재화·DPS)를 참고해 그 웨이브 시작 시점의 Coin 예산(직전 웨이브까지의 총 누적 재화 중 Coin, 첫 웨이브는 초기 지갑 Coin {FormatInt(report.InitialWalletCoin)})으로 설치 가능한 총 DPS가 가장 높은 1~3순위 종류를 보여줍니다. 설치 수는 현재 터렛 슬롯 상한인 최대 8대까지 계산합니다. 웨이브 획득 재화·총 누적 재화는 터렛 업그레이드/진화 비용에 직접 필요한 재화만 표시합니다. 예상 클리어 초 = 웨이브 총 좀비 HP / 1순위 총 DPS + 좀비 도달 시간입니다. 비고: 기준 클리어 {FormatFloat(targetClearSeconds)}초{incrementDesc}{arrivalDesc} 대비 ±20% 초과 시 경고.", "웨이브", "일반 좀비 수", "보스 좀비 수", "웨이브 총 좀비 HP", "웨이브 획득 재화", "총 누적 재화", "1순위 터렛", "2순위 터렛", "3순위 터렛", "예상 클리어 초", "비고");
         for (int i = 0; i < report.WaveClearRows.Count; i++)
         {
             WaveClearSimulationRow row = report.WaveClearRows[i];
@@ -258,14 +258,20 @@ internal sealed class TurretBalanceReportTableBuilder
         return delta;
     }
 
-    // RewardCurrencyType enum 값을 숫자 순서대로 반환한다
-    private static RewardCurrencyType[] GetSortedCurrencyTypes()
+    // 지정된 재화 범위를 숫자 순서대로 반환한다
+    private static RewardCurrencyType[] GetSortedCurrencyTypes(HashSet<RewardCurrencyType> currencyScope)
     {
-        Array values = Enum.GetValues(typeof(RewardCurrencyType));
-        RewardCurrencyType[] currencyTypes = new RewardCurrencyType[values.Length];
-        for (int i = 0; i < values.Length; i++)
+        if (currencyScope == null || currencyScope.Count == 0)
         {
-            currencyTypes[i] = (RewardCurrencyType)values.GetValue(i);
+            return new RewardCurrencyType[0];
+        }
+
+        RewardCurrencyType[] currencyTypes = new RewardCurrencyType[currencyScope.Count];
+        int index = 0;
+        foreach (RewardCurrencyType currencyType in currencyScope)
+        {
+            currencyTypes[index] = currencyType;
+            index++;
         }
 
         Array.Sort(currencyTypes, (left, right) => ((int)left).CompareTo((int)right));

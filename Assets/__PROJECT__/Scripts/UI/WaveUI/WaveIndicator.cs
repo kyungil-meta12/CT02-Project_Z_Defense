@@ -73,7 +73,6 @@ public class WaveIndicator : MonoBehaviour
     IEnumerator PopupCoroutine()
     {
         yield return new WaitForSeconds(0.5f);
-        wavePopup.gameObject.SetActive(true);
         wavePopup.Init(GameManager.Inst.Wave);
     }
 }

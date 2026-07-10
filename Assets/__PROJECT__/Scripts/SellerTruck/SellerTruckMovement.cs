@@ -9,6 +9,7 @@ public class SellerTruckMovement : MonoBehaviour
     public float stayDuration;
     public GameObject button;
     public Image image;
+    public TransactionPopup popup;
 
     private float originMoveSpeed;
     private float originLookAtSpeed;
@@ -44,6 +45,9 @@ public class SellerTruckMovement : MonoBehaviour
                     traveler.LookAtSpeed = 0f;
                     traveler.Move(false);
                     button.SetActive(true);
+
+                    // 팝업 실행
+                    popup.Init();
                 }
             }
 

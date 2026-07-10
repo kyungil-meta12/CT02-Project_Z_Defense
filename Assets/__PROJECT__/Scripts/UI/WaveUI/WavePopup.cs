@@ -29,6 +29,7 @@ public class WavePopup : MonoBehaviour
         popOutCompleted = false;
         rt.localScale = Vector2.zero;
         text.text = "WAVE " + waveVal.ToString();
+        gameObject.SetActive(true);
     }
 
     void Update()

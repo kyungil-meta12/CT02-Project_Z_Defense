@@ -32,6 +32,7 @@
 - 각 패널의 `CurrentTurretImage`는 현재 터렛 `TurretDefinitionSO.uiIcon`을 표시한다.
 - 각 `NextTurretImage` 또는 `NextTurretImage_1~4`는 후보 `targetDefinition.uiIcon`을 표시하고, 후보 이름은 `targetDefinition.displayName`을 우선 사용한다.
 - 후보 이미지를 클릭하면 즉시 진화하지 않고 선택 후보만 변경한다.
+- 선택 후보가 바뀌면 `HighPanel/NextTurretFrame/NextTurretName`도 해당 후보 `targetDefinition.displayName` 기준 이름으로 갱신한다.
 - 선택 후보가 바뀌면 `MiddleLowPanel/RequireSorceImagePanel`의 필요 재료 슬롯이 해당 후보의 `evolutionCosts` 기준으로 즉시 갱신된다.
 - 실제 진화 실행은 하단 `LowPanel/EvolutionFrame/Evolution` 버튼에서만 수행한다.
 - 선택된 후보의 `NextTurretImageFrame` 또는 `NextTurretImageFrame_1~4`는 붉은색으로 표시하고, 나머지 후보 프레임은 원래 색상으로 복구한다.

@@ -37,12 +37,14 @@ public class TurretEvolutionPopupUI : TurretPopupPageUI
 
     [Header("현재 터렛")]
     [SerializeField] private TMP_Text currentTurretNameText;
+    [SerializeField] private TMP_Text nextTurretNameText;
 
     [Header("진화 실행")]
     [SerializeField] private bool replacePrefabOnEvolution = true;
 
     private int selectedEvolutionIndex;
     private string currentTurretNameTextTemplate;
+    private string nextTurretNameTextTemplate;
     private Image[] nextTurretFrameImages = System.Array.Empty<Image>();
     private Color[] nextTurretFrameDefaultColors = System.Array.Empty<Color>();
     private Button[] evolutionCandidateButtons = System.Array.Empty<Button>();
@@ -115,6 +117,7 @@ public class TurretEvolutionPopupUI : TurretPopupPageUI
         fourBranchPanel = fourBranchPanel != null ? fourBranchPanel : FindChildGameObject(searchRoot, PANEL_C_PATH);
         evolutionButton = evolutionButton != null ? evolutionButton : FindFirstChildComponent<Button>(searchRoot, BACKGROUND_PATH + "/LowPanel/EvolutionFrame/EvolutionTextFrame", BACKGROUND_PATH + "/LowPanel/EvolutionFrame/Evolution");
         currentTurretNameText = currentTurretNameText != null ? currentTurretNameText : FindFirstChildComponent<TMP_Text>(searchRoot, BACKGROUND_PATH + "/HighPanel/CurrentTurretFrame/CurrentTurretName");
+        nextTurretNameText = nextTurretNameText != null ? nextTurretNameText : FindFirstChildComponent<TMP_Text>(searchRoot, BACKGROUND_PATH + "/HighPanel/NextTurretFrame/NextTurretName");
         turretInfoPopup = turretInfoPopup != null ? turretInfoPopup : ResolveTurretInfoPopup(searchRoot);
         BindBranchPanelReferences();
         BindResourceSlotReferences(searchRoot);
@@ -134,6 +137,7 @@ public class TurretEvolutionPopupUI : TurretPopupPageUI
             selectedEvolutionIndex = 0;
             EvolutionBranchPanelData emptyPanel = SetActiveBranchPanel(0);
             RefreshCurrentTurretHeader(string.Empty);
+            RefreshNextTurretHeader(string.Empty);
             SetCostTexts(System.Array.Empty<ResourceCost>());
             SetInteractable(false);
             ApplyCandidateSelectionHighlights(emptyPanel);
@@ -155,12 +159,23 @@ public class TurretEvolutionPopupUI : TurretPopupPageUI
         SetText(currentTurretNameText, ApplyNameTemplate(currentTurretNameTextTemplate, displayName));
     }
 
+    // 상단 다음 터렛 이름 텍스트를 선택된 후보 표시명으로 갱신한다
+    private void RefreshNextTurretHeader(string displayName)
+    {
+        SetText(nextTurretNameText, ApplyNameTemplate(nextTurretNameTextTemplate, displayName));
+    }
+
     // TMP 원문 템플릿을 보관해 괄호와 고정 문구를 유지한다
     private void CacheTextTemplates()
     {
         if (currentTurretNameText != null && string.IsNullOrEmpty(currentTurretNameTextTemplate))
         {
             currentTurretNameTextTemplate = currentTurretNameText.text;
+        }
+
+        if (nextTurretNameText != null && string.IsNullOrEmpty(nextTurretNameTextTemplate))
+        {
+            nextTurretNameTextTemplate = nextTurretNameText.text;
         }
     }
 
@@ -266,6 +281,7 @@ public class TurretEvolutionPopupUI : TurretPopupPageUI
     private void RefreshSelectedEvolutionDetails(EvolutionBranchPanelData panelData)
     {
         TurretEvolutionEntry selectedEntry = CurrentContext.Turret.GetAvailableEvolution(selectedEvolutionIndex);
+        RefreshNextTurretHeader(GetEvolutionName(selectedEntry));
         SetCostTexts(selectedEntry == null ? System.Array.Empty<ResourceCost>() : selectedEntry.evolutionCosts);
         SetInteractable(selectedEntry != null && CurrentContext.Turret.CanEvolve(selectedEvolutionIndex));
         ApplyCandidateSelectionHighlights(panelData);
@@ -885,6 +901,11 @@ public class TurretEvolutionPopupUI : TurretPopupPageUI
         if (evolutionButton == null)
         {
             Debug.LogWarning("[TurretEvolutionPopupUI] Evolution Button 참조가 비어 있습니다.", this);
+        }
+
+        if (currentTurretNameText == null || nextTurretNameText == null)
+        {
+            Debug.LogWarning("[TurretEvolutionPopupUI] 현재/다음 터렛 이름 TMP 참조가 일부 비어 있습니다.", this);
         }
 
         if (resourceItemCountTexts == null || resourceItemCountTexts.Length == 0)

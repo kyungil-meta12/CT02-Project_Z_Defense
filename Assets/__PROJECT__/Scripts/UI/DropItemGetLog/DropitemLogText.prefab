@@ -99,7 +99,7 @@ MonoBehaviour:
   m_enableAutoSizing: 1
   m_fontSizeMin: 18
   m_fontSizeMax: 36
-  m_fontStyle: 0
+  m_fontStyle: 1
   m_HorizontalAlignment: 1
   m_VerticalAlignment: 512
   m_textAlignment: 65535
@@ -150,4 +150,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8c659ae286ebe3641b85f07842bf1c9c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::DropItemGetLogText
-  textListRef: []
+  text: {fileID: 0}

@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using IncrementalLib;
 using TMPro;
 using UnityEngine;
@@ -8,6 +7,22 @@ public class DropItemGetLog : MonoBehaviour
 {
     public PoolObject textPrefab;
     public bool testMode;
+
+    private Color colorD;
+    private Color colorC;
+    private Color colorB;
+    private Color colorA;
+    private Color colorS;
+
+    void Awake()
+    {
+        colorD = Color.white;
+        ColorUtility.TryParseHtmlString("#41AD5D", out colorC);
+        ColorUtility.TryParseHtmlString("#87CEFA", out colorB);
+        ColorUtility.TryParseHtmlString("#DA70D6", out colorA);
+        ColorUtility.TryParseHtmlString("#FFAD00", out colorS);
+
+    }
 
     void Start()
     {
@@ -60,5 +75,24 @@ public class DropItemGetLog : MonoBehaviour
         text.transform.SetParent(gameObject.transform);
         text.transform.SetAsLastSibling();
         text.text = $"+ {data.Name} x {diff.ToString()}";
+
+        // 아이템 등급에 따라 표시되는 색상이 달라진다
+        var metaData = InventorySystem.Inst.GetMetaData(data.Type);
+        var grade = metaData.Grade;
+        switch(grade)
+        {
+            case ItemGrade.D:
+                text.color = colorD; break;
+            case ItemGrade.C:
+                text.color = colorC; break;
+            case ItemGrade.B:
+                text.color = colorB; break;
+            case ItemGrade.A:
+                text.color = colorA; break;
+            case ItemGrade.S:
+                text.color = colorS; break;
+            default:
+                text.color = colorD; break;
+        }
     }
 }

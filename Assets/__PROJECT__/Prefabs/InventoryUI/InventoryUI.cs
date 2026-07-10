@@ -1,6 +1,7 @@
 using IncrementalLib;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -668,21 +669,35 @@ public class InventoryUI : TouchBackHandler
 
         if(BatchWorkMode) // 일괄 작업이 활성화 되었을 경우 더 이상 분해가 불가능할때까지 반복한다.
         {
-            while(decomposeButton.interactable)
-            {
-                InventorySystem.Inst.UseItem(selectedType, 1);
+            Dictionary<RewardCurrencyType, Incremental> contextItems = new();
+            var selectedItemCount = InventorySystem.Inst.GetCount(selectedType);
 
-                foreach(var item in decompItems)
+            for(int i = 0; i < selectedItemCount; i++)
+            {
+                foreach (var item in decompItems)
                 {
                     var randomCount = UnityEngine.Random.Range(item.Min, item.Max + 1);
-                    InventorySystem.Inst.AddItem(item.Type, randomCount);
-                    // 피드백 표시
-                    if(randomCount > 0)
+                    if (randomCount > 0)
                     {
-                        var addedItemViewer = itemViewerButtonList.Find(bt => bt.Type == item.Type);
-                        addedItemViewer.T.localScale = originItemViewerTextScale * 1.3f;
+                        if(!contextItems.ContainsKey(item.Type))
+                        {
+                            contextItems.Add(item.Type, new Incremental(randomCount));
+                        }
+                        else
+                        {
+                            contextItems[item.Type] += randomCount;
+                        }
                     }
                 }
+            }
+
+            InventorySystem.Inst.UseItem(selectedType, selectedItemCount);
+
+            foreach(var item in contextItems)
+            {
+                var addedItemViewer = itemViewerButtonList.Find(bt => bt.Type == item.Key);
+                addedItemViewer.T.localScale = originItemViewerTextScale * 1.3f;
+                InventorySystem.Inst.AddItem(item.Key, item.Value);
             }
         }
         else
@@ -715,14 +730,37 @@ public class InventoryUI : TouchBackHandler
 
         if(BatchWorkMode) // 일괄 작업이 활성화 되었을 경우 더 이상 제작할 수 없을 때까지 반복한다.
         {
-            while(makeButton.interactable)
+            Dictionary<RewardCurrencyType, Incremental> contextItems = new();
+            foreach(var item in needItems)
             {
-                 foreach(var item in needItems)
-                {
-                    InventorySystem.Inst.UseItem(item.Type, item.Count);
-                }
-                InventorySystem.Inst.AddItem(selectedType, metaData.CountPerCraft);
+                contextItems.Add(item.Type, new Incremental(InventorySystem.Inst.GetCount(item.Type)));
             }
+
+            bool escape = false;
+            Incremental createCount = new();
+
+            while(!escape)
+            {
+                foreach(var item in needItems)
+                {
+                    if(contextItems[item.Type] < item.Count)
+                    {
+                        escape = true;
+                        break;
+                    }
+                    contextItems[item.Type] -= item.Count;
+                    createCount++;
+                }
+            }
+
+            foreach(var item in needItems)
+            {
+                var originCount = InventorySystem.Inst.GetCount(item.Type);
+                var usedCount = new Incremental(originCount - contextItems[item.Type]);
+                InventorySystem.Inst.UseItem(item.Type, usedCount);
+            }
+
+            InventorySystem.Inst.AddItem(selectedType, metaData.CountPerCraft * createCount);
         }
         else
         {

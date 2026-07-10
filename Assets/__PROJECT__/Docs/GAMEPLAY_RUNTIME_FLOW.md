@@ -202,6 +202,7 @@ Runtime behavior:
 6. In `Retreating` or `ReturningToDefensePoint`, survivor moves to the configured defense point and may vault over `Obstacle` objects.
 7. Rescue survivors can spawn at wave start from `SurvivorRescueSpawner`; `enableRescueSpawn` can disable this wave spawn feature, and `SurvivorRescueSpawnProfileSO` decides whether the current wave attempts a spawn and which chance to use.
 8. Spawned rescue survivors move from zombie spawn points to the final rear point, wait for treatment, move to the hospital, hide for the treatment timer, return, and then wait for role selection.
+   Rescue movement can complete either by reaching the exact target transform within the configured arrival distance or by reaching the end of a valid/partial NavMesh path, so off-NavMesh target placement near the rear or hospital point does not leave the survivor stuck in a moving interaction status.
 9. Treated survivors can become `constructionWorker` or `engineer` through `SurvivorInteractionController`; role Mesh/Material values switch by `SurvivorRole` list index and `normal`/`wounded` visual condition when configured.
 10. Engineers can be clicked first and then assigned by selecting a turret target button in the engineer buff target UI.
 11. The selected engineer moves to the target turret's standby/build point before the turret receives the stackable damage buff through `TurretEngineerBuffReceiver`.

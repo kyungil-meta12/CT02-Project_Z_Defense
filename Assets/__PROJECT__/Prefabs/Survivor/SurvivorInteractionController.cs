@@ -300,7 +300,17 @@ public class SurvivorInteractionController : MonoBehaviour
             return "Engineer";
         }
 
-        return "Moving";
+        if (survivor.IsMovingForInteraction)
+        {
+            return "Moving";
+        }
+
+        if (survivor.IsWaitingForInteraction)
+        {
+            return "Waiting";
+        }
+
+        return "Survivor";
     }
 
     // 버튼 표시 상태를 변경한다

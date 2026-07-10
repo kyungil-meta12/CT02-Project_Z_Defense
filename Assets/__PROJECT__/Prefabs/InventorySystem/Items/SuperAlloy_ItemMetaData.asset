@@ -23,6 +23,7 @@ MonoBehaviour:
     Count: 5
   Decomposable: 0
   ItemsFromDecompose: []
+  SellCoinCount: 5000
   Name: "\uD569\uC131 \uC54C\uB8E8\uBBF8\uB284"
   InfoText: "\uAC15\uD654\uB41C \uC54C\uB8E8\uBBF8\uB284."
   ItemImage: {fileID: 21300000, guid: e2af96b47cccbad49b9fbe8b11236334, type: 3}

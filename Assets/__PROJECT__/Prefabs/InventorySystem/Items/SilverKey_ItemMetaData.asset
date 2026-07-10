@@ -19,6 +19,7 @@ MonoBehaviour:
   ItemsToCreate: []
   Decomposable: 0
   ItemsFromDecompose: []
+  SellCoinCount: 5000
   Name: "\uAE08\uC18D \uC5F4\uC1E0"
   InfoText: "\uAE08\uC18D\uC73C\uB85C \uB9CC\uB4E4\uC5B4\uC9C4 \uC5F4\uC1E0. \uC5B4\uB514\uC5D0
     \uC4F0\uC774\uB294 \uC5F4\uC1E0\uC778\uC9C0\uB294 \uBAA8\uB978\uB2E4."

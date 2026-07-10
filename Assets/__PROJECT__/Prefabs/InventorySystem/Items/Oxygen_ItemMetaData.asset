@@ -19,6 +19,7 @@ MonoBehaviour:
   ItemsToCreate: []
   Decomposable: 0
   ItemsFromDecompose: []
+  SellCoinCount: 5000
   Name: "\uC0B0\uC18C"
   InfoText: "\uB300\uAE30 \uC911\uC5D0 \uB9CE\uC774 \uC874\uC7AC\uD558\uB294 \uAE30\uCCB4."
   ItemImage: {fileID: 21300000, guid: a82b6c7ac6f4ce04d911da867ad0e9f2, type: 3}

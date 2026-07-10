@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 using WaypointsFree;
 
 public class SellerTruckMovement : MonoBehaviour
@@ -7,12 +8,13 @@ public class SellerTruckMovement : MonoBehaviour
     public int stopPointIndex;
     public float stayDuration;
     public GameObject button;
+    public Image image;
 
     private float originMoveSpeed;
     private float originLookAtSpeed;
     private WaypointsTraveler traveler;
     private bool isLeaving = false;
-    private float leaveTime = 0f;
+    private float stayTime = 0f;
 
     void Awake()
     {
@@ -20,6 +22,8 @@ public class SellerTruckMovement : MonoBehaviour
         originMoveSpeed = traveler.MoveSpeed;
         originLookAtSpeed = traveler.LookAtSpeed;
         button.SetActive(false);
+        stayTime = stayDuration;
+        image.fillAmount = 0f;
     }
 
     void Update()
@@ -46,13 +50,15 @@ public class SellerTruckMovement : MonoBehaviour
             // 도착 지점 대기
             else if (!traveler.IsMoving)
             {
-                leaveTime += Time.deltaTime;
-                if (leaveTime >= stayDuration)
+                stayTime -= Time.deltaTime;
+                image.fillAmount = stayTime / stayDuration;
+                if (stayTime <= 0f)
                 {
-                    leaveTime = 0f;
+                    image.fillAmount = 0f;
+                    stayTime = stayDuration;
                     traveler.Move(true);
                     isLeaving = true;
-                     button.SetActive(false);
+                    button.SetActive(false);
                 }
             }
         }
@@ -74,7 +80,9 @@ public class SellerTruckMovement : MonoBehaviour
         traveler.Move(true);
         traveler.MoveSpeed = originMoveSpeed;
         traveler.LookAtSpeed = originLookAtSpeed;
-        leaveTime = 0f;
+        stayTime = stayDuration;
+        button.SetActive(false);
+        image.fillAmount = 0f;
         isLeaving = false;
     }
 }

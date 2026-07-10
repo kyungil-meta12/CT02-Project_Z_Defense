@@ -19,6 +19,7 @@ MonoBehaviour:
   ItemsToCreate: []
   Decomposable: 0
   ItemsFromDecompose: []
+  SellCoinCount: 5000
   Name: "\uC124\uACC4\uB3C4"
   InfoText: "\uC124\uACC4 \uB370\uC774\uD130\uAC00 \uB2F4\uAE34 USB. \uC5B4\uB518\uAC00
     \uC4F8\uBAA8\uAC00 \uC788\uC744 \uAC83 \uAC19\uB2E4."

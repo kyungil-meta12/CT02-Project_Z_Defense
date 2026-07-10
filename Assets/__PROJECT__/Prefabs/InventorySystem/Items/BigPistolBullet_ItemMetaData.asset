@@ -25,6 +25,7 @@ MonoBehaviour:
   - Type: 8
     Min: 1
     Max: 5
+  SellCoinCount: 5000
   Name: "\uB300\uAD6C\uACBD \uAD8C\uCD1D \uD0C4\uC57D"
   InfoText: "\uB300\uAD6C\uACBD \uAD8C\uCD1D \uD0C4\uC57D."
   ItemImage: {fileID: 21300000, guid: 9553a3907a34a4441b7517e31a207462, type: 3}

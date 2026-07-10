@@ -46,6 +46,7 @@ public class ItemMetaDataSo : ScriptableObject
     [Header("제작에 필요한 아이템 목록")] public List<ItemCraftData> ItemsToCreate;
     [Header("분해 가능 여부")] public bool Decomposable;
     [Header("분해 시 나오는 아이템들")] public List<ItemDecomposeData> ItemsFromDecompose;
+    [Header("아이템 판매 시 얻는 코인 개수")] public int SellCoinCount;
     [Header("표시할 아이템 이름 텍스트")] public string Name;
     [Header("표시할 아이템 설명 텍스트")][TextArea(3, 10)] public string InfoText;
     [Header("표시할 아이템 이미지")] public Sprite ItemImage;

@@ -23,6 +23,7 @@ MonoBehaviour:
     Count: 20
   Decomposable: 0
   ItemsFromDecompose: []
+  SellCoinCount: 5000
   Name: "H\uBE54"
   InfoText: "\uAC74\uBB3C\uC744 \uC9C0\uC744 \uB54C \uC0AC\uC6A9\uB418\uB294 H \uBAA8\uC591\uC758
     \uCCA0\uADFC."

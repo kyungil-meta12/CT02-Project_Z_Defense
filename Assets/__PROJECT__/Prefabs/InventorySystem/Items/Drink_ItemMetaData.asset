@@ -22,6 +22,7 @@ MonoBehaviour:
   - Type: 42
     Min: 5
     Max: 10
+  SellCoinCount: 5000
   Name: "\uC74C\uB8CC\uC218 \uCEF5"
   InfoText: "\uB204\uAD70\uAC00 \uB9C8\uC2DC\uB2E4 \uB0A8\uAE34 \uC74C\uB8CC\uC218\uAC00
     \uBC18\uCBE4 \uB4E4\uC5B4\uC788\uB294 \uCEF5."

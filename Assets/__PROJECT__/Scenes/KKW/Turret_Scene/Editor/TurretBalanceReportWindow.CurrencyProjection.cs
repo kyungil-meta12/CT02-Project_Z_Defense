@@ -21,16 +21,15 @@ internal static class TurretBalanceReportCurrencyProjector
     private static bool hasLoadedRelations;
     private static string loadedRelationSignature = string.Empty;
 
-    // 터렛 리포트 결과에서 설치/업그레이드/진화 비용에 필요한 재화 범위를 만든다
+    // 터렛 리포트 결과에서 업그레이드/진화 비용에 직접 필요한 재화 범위를 만든다
     public static HashSet<RewardCurrencyType> BuildTurretCurrencyScope(TurretBalanceReportResult report)
     {
         HashSet<RewardCurrencyType> directCosts = new HashSet<RewardCurrencyType>();
         if (report == null)
         {
-            return ExpandCurrencyScope(directCosts);
+            return directCosts;
         }
 
-        AddTurretPlacementCosts(directCosts);
         for (int i = 0; i < report.SpeciesDetailRows.Count; i++)
         {
             TurretSpeciesDetailRow row = report.SpeciesDetailRows[i];
@@ -46,7 +45,7 @@ internal static class TurretBalanceReportCurrencyProjector
             }
         }
 
-        return ExpandCurrencyScope(directCosts);
+        return directCosts;
     }
 
     // 터렛 상점 엔트리의 설치 비용 재화를 비용 범위에 추가한다

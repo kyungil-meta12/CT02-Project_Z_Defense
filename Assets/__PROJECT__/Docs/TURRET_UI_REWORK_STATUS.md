@@ -536,13 +536,15 @@ Detail_Popup_Panel
 ### Completed
 
 - `TurretDamageMeterUI`는 `Awake`에서 `CloseButtonFrame`, `OpenButtonFrame`, `Button` 참조를 이름 기반으로 찾지 않는다.
-- `TurretDamageMeterUI`의 `참조 다시 연결` 컨텍스트 메뉴는 에디터 세팅 보조용으로만 유지한다. Play Mode 정상 동작은 Inspector에 저장된 직접 참조를 기준으로 한다.
+- `TurretDamageMeterUI`의 `참조 다시 연결` 컨텍스트 메뉴와 이름 기반 에디터 보강 코드를 제거했다. Play Mode 정상 동작은 Inspector에 저장된 직접 참조만 기준으로 한다.
 - `TurretDamageMeterUI`는 `Row Items`, `Close Button Frame`, `Open Button Frame`, `Close Button`, `Open Button` 누락을 시작 시 한국어 경고로 알린다.
-- `TurretDamageMeterManager`는 같은 오브젝트의 `TurretDamageMeterUI`를 런타임 `GetComponent`로 보강하지 않고 `Meter UI` 직접 참조로 사용한다.
+- `TurretDamageMeterManager`는 같은 오브젝트의 `TurretDamageMeterUI`를 `GetComponent`로 보강하지 않고 `Meter UI` 직접 참조로만 사용한다.
 - `TurretDamageMeterRowUI`는 런타임에 `CanvasGroup`을 `AddComponent`로 보강하지 않는다.
-- `TurretDamageMeterRowUI`는 `RequireComponent(typeof(CanvasGroup))`를 사용하며, `Rank/Name/Damage TMP`, `Bar Fill Image`, `CanvasGroup` 누락을 시작 시 한국어 경고로 알린다.
+- `TurretDamageMeterRowUI`는 `CanvasGroup`을 `GetComponent`로 보강하지 않고 Inspector 직접 참조로만 사용하며, `Rank/Name/Damage TMP`, `Bar Fill Image`, `CanvasGroup` 누락을 시작 시 한국어 경고로 알린다.
 - Main 씬의 `DamageMeterPanel`에서 `TurretDamageMeterManager.meterUI`, `TurretDamageMeterUI` 접기/펼치기 버튼, `DamageMeterRow_1~8`의 `CanvasGroup` 참조를 직접 연결했다.
 - Play Mode에서 딜 미터기 표시, Row 갱신, 접기/펼치기 동작이 정상 작동하는 것을 확인했다.
+- `TurretDamageMeterUI.foldDuration`은 접기 페이드아웃과 펼치기 페이드인에 함께 사용한다. 펼칠 때도 Row가 접힘 위치에서 순위 위치로 이동하면서 `0 -> 1` 알파로 표시된다.
+- 딜 미터기 Row의 터렛 이름은 현재 티어 레벨을 함께 표시한다. 예: `센티널 포스트 Lv.45`.
 
 ### Current Rule
 

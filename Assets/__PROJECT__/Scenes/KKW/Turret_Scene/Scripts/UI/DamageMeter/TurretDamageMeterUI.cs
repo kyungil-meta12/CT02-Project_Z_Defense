@@ -1,7 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Serialization;
 using UnityEngine.UI;
 
 /// <summary>
@@ -13,7 +12,6 @@ public sealed class TurretDamageMeterUI : MonoBehaviour
     [Header("행 참조")]
     [SerializeField] private TurretDamageMeterRowUI[] rowItems;
     [Tooltip("Row 참조가 비어 있거나 슬롯 위치 캐시에 실패했을 때만 사용하는 예비 간격입니다.")]
-    [FormerlySerializedAs("rowSpacing")]
     [SerializeField, Min(1.0f)] private float fallbackRowSpacing = 68.0f;
 
     [Header("색상")]
@@ -45,44 +43,6 @@ public sealed class TurretDamageMeterUI : MonoBehaviour
         CacheRowTargetPositions();
         BindFoldButtons();
         RefreshFoldButtonFrames();
-    }
-
-    // 에디터에서 컴포넌트를 추가할 때 하위 참조를 한 번 보강한다
-    private void Reset()
-    {
-        BindChildReferences();
-    }
-
-    // 에디터 컨텍스트 메뉴에서 하위 UI 참조를 다시 연결한다
-    [ContextMenu("참조 다시 연결")]
-    private void BindChildReferences()
-    {
-        if (rowItems == null || rowItems.Length == 0)
-        {
-            rowItems = GetComponentsInChildren<TurretDamageMeterRowUI>(true);
-        }
-
-        if (closeButtonFrame == null)
-        {
-            Transform closeFrame = FindChildByName(transform, "CloseButtonFrame");
-            closeButtonFrame = closeFrame != null ? closeFrame.gameObject : null;
-        }
-
-        if (openButtonFrame == null)
-        {
-            Transform openFrame = FindChildByName(transform, "OpenButtonFrame");
-            openButtonFrame = openFrame != null ? openFrame.gameObject : null;
-        }
-
-        if (closeButton == null && closeButtonFrame != null)
-        {
-            closeButton = closeButtonFrame.GetComponentInChildren<Button>(true);
-        }
-
-        if (openButton == null && openButtonFrame != null)
-        {
-            openButton = openButtonFrame.GetComponentInChildren<Button>(true);
-        }
     }
 
     // 제거 시 버튼 이벤트 구독을 해제한다
@@ -125,7 +85,7 @@ public sealed class TurretDamageMeterUI : MonoBehaviour
             float totalPercent = totalDamage > 0.0f ? entry.TotalDamage / totalDamage : 0.0f;
             float barRatio = topDamage > 0.0f ? entry.TotalDamage / topDamage : 0.0f;
             Color barColor = ResolveBarColor(entry);
-            row.Refresh(i + 1, entry.DisplayName, entry.TotalDamage, totalPercent, barRatio, barColor);
+            row.Refresh(i + 1, entry.DisplayNameWithLevel, entry.TotalDamage, totalPercent, barRatio, barColor);
 
             if (isFoldAnimationRunning)
             {
@@ -222,7 +182,6 @@ public sealed class TurretDamageMeterUI : MonoBehaviour
 
         int visibleCount = GetSafeVisibleCount();
         float foldedY = GetFoldedTargetY();
-        float elapsedDelay = 0.0f;
         if (visibleCount <= 0)
         {
             isFolded = false;
@@ -238,31 +197,18 @@ public sealed class TurretDamageMeterUI : MonoBehaviour
             if (row != null)
             {
                 row.SetVisible(true);
-                row.SetAlpha(1.0f);
+                row.SetAlpha(0.0f);
                 row.SetCurrentY(foldedY);
             }
         }
 
-        for (int i = 0; i < visibleCount; i++)
+        float elapsedTime = 0.0f;
+        while (elapsedTime < foldDuration)
         {
-            TurretDamageMeterRowUI row = rowItems[i];
-            if (row != null)
-            {
-                row.SetAlpha(1.0f);
-                row.SetTargetY(GetRowTargetY(i));
-            }
-
-            if (rowCascadeInterval > 0.0f)
-            {
-                elapsedDelay += rowCascadeInterval;
-                yield return new WaitForSeconds(rowCascadeInterval);
-            }
-        }
-
-        float remainTime = Mathf.Max(0.0f, foldDuration - elapsedDelay);
-        if (remainTime > 0.0f)
-        {
-            yield return new WaitForSeconds(remainTime);
+            elapsedTime += Time.deltaTime;
+            ApplyOpenTargets(visibleCount, elapsedTime);
+            SetVisibleRowsAlpha(visibleCount, elapsedTime / foldDuration);
+            yield return null;
         }
 
         SnapRowsToRankSlots(visibleCount);
@@ -270,6 +216,25 @@ public sealed class TurretDamageMeterUI : MonoBehaviour
         isFoldAnimationRunning = false;
         foldCoroutine = null;
         RefreshFoldButtonFrames();
+    }
+
+    // 펼치기 경과 시간에 맞춰 위 Row부터 순위 위치로 이동시킨다
+    private void ApplyOpenTargets(int visibleCount, float elapsedTime)
+    {
+        for (int i = 0; i < visibleCount; i++)
+        {
+            float rowDelay = i * rowCascadeInterval;
+            if (elapsedTime < Mathf.Min(rowDelay, foldDuration))
+            {
+                continue;
+            }
+
+            TurretDamageMeterRowUI row = rowItems[i];
+            if (row != null)
+            {
+                row.SetTargetY(GetRowTargetY(i));
+            }
+        }
     }
 
     // 접기 시작 전 표시 Row의 활성 상태와 투명도를 초기화한다
@@ -458,32 +423,6 @@ public sealed class TurretDamageMeterUI : MonoBehaviour
     private float GetFoldedTargetY()
     {
         return GetRowTargetY(0) + foldedYOffset;
-    }
-
-    // 에디터 참조 연결용으로 하위 계층에서 이름이 일치하는 Transform을 찾는다
-    private static Transform FindChildByName(Transform root, string childName)
-    {
-        if (root == null || string.IsNullOrEmpty(childName))
-        {
-            return null;
-        }
-
-        for (int i = 0; i < root.childCount; i++)
-        {
-            Transform child = root.GetChild(i);
-            if (child.name == childName)
-            {
-                return child;
-            }
-
-            Transform found = FindChildByName(child, childName);
-            if (found != null)
-            {
-                return found;
-            }
-        }
-
-        return null;
     }
 
     // Row 슬롯 위치 캐시가 없으면 다시 만든다

@@ -39,6 +39,22 @@ public sealed class TurretDamageMeterSource : MonoBehaviour
         }
     }
 
+    public string DisplayNameWithLevel
+    {
+        get
+        {
+            return DisplayName + " Lv." + CurrentTierLevel;
+        }
+    }
+
+    public int CurrentTierLevel
+    {
+        get
+        {
+            return runtimeController == null ? 1 : Mathf.Max(1, runtimeController.CurrentTierLevel);
+        }
+    }
+
     public Sprite Icon
     {
         get

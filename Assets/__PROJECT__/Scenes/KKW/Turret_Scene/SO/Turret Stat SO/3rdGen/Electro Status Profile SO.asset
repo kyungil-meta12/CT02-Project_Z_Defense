@@ -1,0 +1,90 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bd4320149a981ef4ead73cb0a8cbe08e, type: 3}
+  m_Name: Electro Status Profile SO
+  m_EditorClassIdentifier: Assembly-CSharp::ElectroStatusProfileSO
+  maxChainTargets: 10
+  chainRadius: 20
+  chainDamageFalloffPerJump: 0.05
+  chainTargetLayerMask:
+    serializedVersion: 2
+    m_Bits: 1152
+  maxShockStackCount: 3
+  shockStackDuration: 15
+  shockStackVisualPrefab: {fileID: 7650930533217633329, guid: 1984f063e11ac39458b696f36d6d8b78, type: 3}
+  shockStackOrbitRadius: 0.55
+  shockStackVerticalOffset: 0.1
+  shockStackOrbitDegreesPerSecond: 180
+  shockStackVisualScale: {x: 0.4, y: 0.4, z: 0.4}
+  hideBackSideShockStackVisuals: 0
+  backSideHideDotThreshold: 0
+  useShockStackBackSideAlphaFade: 1
+  shockStackFrontAlpha: 1
+  shockStackBackAlpha: 0.16
+  shockStackAlphaFadeSharpness: 1.25
+  shockStackAlphaLerpSpeed: 14
+  useShockStackChargedVisualMode: 1
+  chargedShockStackVisualThreshold: 3
+  subtleShockStackDisabledChildNames:
+  - TriangleShape
+  - Flare
+  - Volt
+  useBossShockStackOrbitRadius: 1
+  bossShockStackOrbitRadius: 1.8
+  useBossShockStackVisualScale: 1
+  bossShockStackVisualScale: {x: 0.85, y: 0.85, z: 0.85}
+  canElectroHitTriggerOverload: 0
+  canNonElectroDamageTriggerOverload: 1
+  overloadDamageMultiplier: 1
+  overloadMaxHpDamageRatio: 0.2
+  bossOverloadMaxHpDamageRatio: 0.05
+  overloadStunDuration: 3.5
+  overloadImpactEffectPrefab: {fileID: 3485206932582624865, guid: 161a959f1c835224b96e68f5ef7f7730, type: 3}
+  overloadImpactEffectDuration: 2
+  overloadImpactEffectOffset: {x: 0, y: -2, z: 0}
+  overloadImpactEffectScale: {x: 2, y: 2, z: 2}
+  useBossOverloadImpactEffectOffset: 1
+  bossOverloadImpactEffectOffset: {x: 0, y: -2, z: 0}
+  useBossOverloadImpactEffectScale: 1
+  bossOverloadImpactEffectScale: {x: 3, y: 3, z: 3}
+  overloadStunEffectPrefab: {fileID: 1763937973439912649, guid: 041a5f19ad2042948b457e27cdc19a6c, type: 3}
+  overloadStunEffectDuration: 3.5
+  overloadStunEffectOffset: {x: 0, y: 1.2, z: 0}
+  overloadStunEffectScale: {x: 1, y: 1, z: 1}
+  useBossOverloadStunEffectOffset: 1
+  bossOverloadStunEffectOffset: {x: 0, y: 2.6, z: 0}
+  useBossOverloadStunEffectScale: 1
+  bossOverloadStunEffectScale: {x: 2, y: 2, z: 2}
+  stunDuration: 1
+  stunDurationFalloffPerJump: 0.01
+  minimumStunDuration: 0.1
+  bossHitStunDurationMultiplier: 0
+  bossStunDurationMultiplier: 1
+  playChainLinkEffect: 1
+  chainLinkEffectPrefab: {fileID: 3485206932582624865, guid: 3a9c3931b20d4d9cb6934b337c65174e, type: 3}
+  chainLinkEffectDuration: 0.8
+  chainLinkVerticalOffset: 0.15
+  chainLinkSourceAxis: {x: 0, y: 0, z: 1}
+  useChainLinkEndpointFit: 1
+  chainLinkLocalStartPoint: {x: 0, y: 0, z: 0}
+  chainLinkLocalEndPoint: {x: 0, y: 0, z: 15}
+  chainLinkLocalPositionOffset: {x: 0, y: 0, z: 0}
+  chainLinkRotationEulerOffset: {x: 0, y: 0, z: 0}
+  chainLinkLengthScaleMultiplier: 0.3
+  chainLinkThicknessScale: 0.3
+  playChainCoreLine: 1
+  chainCoreLineMaterial: {fileID: 2100000, guid: 5923168c41505a341b20182ce7444fa2, type: 2}
+  chainCoreLineStartColor: {r: 0.7, g: 1, b: 1, a: 0.95}
+  chainCoreLineEndColor: {r: 1, g: 0.7, b: 1, a: 0.85}
+  chainCoreLineWidth: 0.06
+  chainCoreLineStartDelay: 0.2
+  chainCoreLineDuration: 0.22

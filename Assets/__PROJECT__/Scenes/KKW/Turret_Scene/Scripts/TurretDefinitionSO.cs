@@ -1,4 +1,5 @@
 using UnityEngine;
+using ProjectZDefense.Audio;
 
 /// <summary>
 /// 터렛의 정체성, 프리팹, 스탯, 성장, 비용, VFX, 상태이상, 진화 프로필을 연결하는 최상위 정의 에셋.
@@ -34,6 +35,9 @@ public class TurretDefinitionSO : ScriptableObject
     public int maxEngineerSeatCount;
     [Header("데미지 표시")]
     public TurretDamagePolishProfileSO damagePolishProfile;
+
+    [Header("사운드")]
+    public TurretAudioProfileSO audioProfile;
 
     [Header("상태이상")]
     public FrostStatusProfileSO frostStatusProfile;

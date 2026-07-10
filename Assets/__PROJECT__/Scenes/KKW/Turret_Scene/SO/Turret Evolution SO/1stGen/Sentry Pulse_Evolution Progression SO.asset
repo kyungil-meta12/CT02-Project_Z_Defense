@@ -1,0 +1,33 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 19af981c52e265f4e9f72f7798c8a9d0, type: 3}
+  m_Name: Sentry Pulse_Evolution Progression SO
+  m_EditorClassIdentifier: Assembly-CSharp::TurretEvolutionProgressionSO
+  evolutionEntries:
+  - requiredLevel: 20
+    targetDefinition: {fileID: 11400000, guid: bcc03ca370729424c90ceaa906afacad, type: 2}
+    displayName: Pulse Repeater
+    evolutionCosts:
+    - currencyType: 0
+      amount: 30000
+    - currencyType: 20
+      amount: 4
+    - currencyType: 31
+      amount: 6
+    - currencyType: 32
+      amount: 30
+    - currencyType: 41
+      amount: 1
+    evolutionIcon: {fileID: 21300000, guid: 81af4025f5ced134ca17c65720216c04, type: 3}
+    evolutionEffectPrefab: {fileID: 640602461530948004, guid: 938be4f127f81d348a60fe4019a9422c, type: 3}
+    evolutionEffectLocalOffset: {x: 0, y: 0, z: 0}
+    evolutionEffectDuration: 2

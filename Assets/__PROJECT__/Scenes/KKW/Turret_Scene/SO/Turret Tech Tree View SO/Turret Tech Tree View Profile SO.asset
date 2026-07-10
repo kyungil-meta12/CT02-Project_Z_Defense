@@ -1,0 +1,138 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7f6b15d4b03003f4bbf22a2d54f6d19e, type: 3}
+  m_Name: Turret Tech Tree View Profile SO
+  m_EditorClassIdentifier: Assembly-CSharp::TurretTechTreeViewProfileSO
+  defaultUnlockedDefinitions:
+  - {fileID: 11400000, guid: bfd04d6c347d461469139eb424cb49cd, type: 2}
+  nodes:
+  - definition: {fileID: 11400000, guid: bfd04d6c347d461469139eb424cb49cd, type: 2}
+    overrideIcon: {fileID: 0}
+    previewClip: {fileID: 32900000, guid: e9f06459c9f9378438ae35344113e290, type: 3}
+  - definition: {fileID: 11400000, guid: e5955b277b702c74ca73600f4b86801f, type: 2}
+    overrideIcon: {fileID: 0}
+    previewClip: {fileID: 32900000, guid: 57e6688b91ac6c545b915e34777a6ac5, type: 3}
+  - definition: {fileID: 11400000, guid: 75ea21aabcb3d674386eda38663d41be, type: 2}
+    overrideIcon: {fileID: 0}
+    previewClip: {fileID: 32900000, guid: f9357beece6a87640a777160535339b5, type: 3}
+  - definition: {fileID: 11400000, guid: bcc03ca370729424c90ceaa906afacad, type: 2}
+    overrideIcon: {fileID: 0}
+    previewClip: {fileID: 32900000, guid: c2878fea46f66e14c8155622881ac83d, type: 3}
+  - definition: {fileID: 11400000, guid: 9286c83b02e9eb54fa44fe5285239739, type: 2}
+    overrideIcon: {fileID: 0}
+    previewClip: {fileID: 32900000, guid: 42466bd78d737e242855d855e4c80bcc, type: 3}
+  - definition: {fileID: 11400000, guid: bb9773d7cb329194a9ba37840394d17c, type: 2}
+    overrideIcon: {fileID: 0}
+    previewClip: {fileID: 32900000, guid: ef7f7b816a1e9f14ea4733281ee1a232, type: 3}
+  - definition: {fileID: 11400000, guid: 21cbd98a84130b14b954c6358ceb8bd7, type: 2}
+    overrideIcon: {fileID: 0}
+    previewClip: {fileID: 32900000, guid: 8ac642ef11f6cee4ba5f7ecf1392ad3d, type: 3}
+  - definition: {fileID: 11400000, guid: 073e9f52d86e1bd4e95f9de5ec8f9e98, type: 2}
+    overrideIcon: {fileID: 0}
+    previewClip: {fileID: 32900000, guid: 7ea5480389b5edf4baba9d8a8a195e0e, type: 3}
+  - definition: {fileID: 11400000, guid: 6695fa1da961ac6439d54235bf64ac91, type: 2}
+    overrideIcon: {fileID: 0}
+    previewClip: {fileID: 32900000, guid: 2f0204f8b16aef74eac87b243451a151, type: 3}
+  - definition: {fileID: 11400000, guid: ba54f087d839ad148bf20de35a924f3e, type: 2}
+    overrideIcon: {fileID: 0}
+    previewClip: {fileID: 32900000, guid: f1d9bbcffbf9e0d49a58b196c88f0d00, type: 3}
+  - definition: {fileID: 11400000, guid: 69b37bddf9bc40f409deee8dd4c22c20, type: 2}
+    overrideIcon: {fileID: 0}
+    previewClip: {fileID: 32900000, guid: af7513a760769d846a0e3cbf96df8eb2, type: 3}
+  - definition: {fileID: 11400000, guid: e3255630eacade14c9ea3c8e2a68ef51, type: 2}
+    overrideIcon: {fileID: 0}
+    previewClip: {fileID: 32900000, guid: 67e8d306167d25d4ba5062d9caf27d28, type: 3}
+  - definition: {fileID: 11400000, guid: b983107fd1105fa4680fffecbb742ade, type: 2}
+    overrideIcon: {fileID: 0}
+    previewClip: {fileID: 32900000, guid: 1512366882a568048999dd97732b6a0f, type: 3}
+  - definition: {fileID: 11400000, guid: af19dfddc877ad2479ffca10af167259, type: 2}
+    overrideIcon: {fileID: 0}
+    previewClip: {fileID: 32900000, guid: 383f95c037fe6b641bda669469615c0f, type: 3}
+  - definition: {fileID: 11400000, guid: fb3a01d2afec206479d7f4f009796f03, type: 2}
+    overrideIcon: {fileID: 0}
+    previewClip: {fileID: 32900000, guid: f561b4fca8cbd7a4889310c15969c8ab, type: 3}
+  - definition: {fileID: 11400000, guid: edfcad8a981803a4e9782726a8d7a79b, type: 2}
+    overrideIcon: {fileID: 0}
+    previewClip: {fileID: 32900000, guid: 62bb3d3458bef124c9b99939850867c1, type: 3}
+  - definition: {fileID: 11400000, guid: 18c253335f774cc429bcd672178a747b, type: 2}
+    overrideIcon: {fileID: 0}
+    previewClip: {fileID: 32900000, guid: a831447e182262d458f217f74c6e7158, type: 3}
+  - definition: {fileID: 11400000, guid: 1273db7c65a849d47afd23d6d50afdb5, type: 2}
+    overrideIcon: {fileID: 0}
+    previewClip: {fileID: 32900000, guid: 0c2113880388fd14da6bdea7f01a9fc3, type: 3}
+  - definition: {fileID: 11400000, guid: 797c041972bbbcd4db465bd169c1be8b, type: 2}
+    overrideIcon: {fileID: 0}
+    previewClip: {fileID: 32900000, guid: bc3cb528ff4ff2845ab0846a1f163f2d, type: 3}
+  - definition: {fileID: 11400000, guid: fba36abffbd756848a9aa2db6e586eb1, type: 2}
+    overrideIcon: {fileID: 0}
+    previewClip: {fileID: 32900000, guid: f433aa88a7b3bc04ba81071901020145, type: 3}
+  - definition: {fileID: 11400000, guid: 2b1501f0ff64271439a419503ca3bffb, type: 2}
+    overrideIcon: {fileID: 0}
+    previewClip: {fileID: 32900000, guid: 5de3a727ae709824cb8583b04f4beb86, type: 3}
+  - definition: {fileID: 11400000, guid: 4c081d1a4319d8a438895035101f960b, type: 2}
+    overrideIcon: {fileID: 0}
+    previewClip: {fileID: 32900000, guid: 57701825db2ba704599b9ef850001f69, type: 3}
+  - definition: {fileID: 11400000, guid: 00ada75978f968d48a5cbeeab1eeddd9, type: 2}
+    overrideIcon: {fileID: 0}
+    previewClip: {fileID: 32900000, guid: f6442ba1df27e0540a25b9bb6c5eda31, type: 3}
+  - definition: {fileID: 11400000, guid: 092e2d5f247fdfc41ae6add565260b8a, type: 2}
+    overrideIcon: {fileID: 0}
+    previewClip: {fileID: 32900000, guid: d37e69a4b27df6f44a9407b1871475f8, type: 3}
+  - definition: {fileID: 11400000, guid: 031151f1ef378fd42bf4be24b3fe8b2b, type: 2}
+    overrideIcon: {fileID: 0}
+    previewClip: {fileID: 32900000, guid: 89974582a22797e47a8167b6d5d7d266, type: 3}
+  - definition: {fileID: 11400000, guid: f13a503c5de607a4c99e1b47a804e7c8, type: 2}
+    overrideIcon: {fileID: 0}
+    previewClip: {fileID: 32900000, guid: 5ee757e6a34e72641aa992679e82bd6e, type: 3}
+  - definition: {fileID: 11400000, guid: a2449861c7d0bc0489813683948de1c0, type: 2}
+    overrideIcon: {fileID: 0}
+    previewClip: {fileID: 32900000, guid: f615b0c6e8ca0db45a61cc817354e886, type: 3}
+  - definition: {fileID: 11400000, guid: 9d0b292809c540243818bd7563489b41, type: 2}
+    overrideIcon: {fileID: 0}
+    previewClip: {fileID: 32900000, guid: d8e47e432ab15c04886921aed69407bc, type: 3}
+  - definition: {fileID: 11400000, guid: fcae11b6916875340bb1026270ebff00, type: 2}
+    overrideIcon: {fileID: 0}
+    previewClip: {fileID: 32900000, guid: 1504f08f3787d474ca5b1985fa300bd4, type: 3}
+  - definition: {fileID: 11400000, guid: 5313aa0eda7a9704095355d7b500ebdd, type: 2}
+    overrideIcon: {fileID: 0}
+    previewClip: {fileID: 32900000, guid: 44403a804f51049469773c96496ddc0e, type: 3}
+  - definition: {fileID: 11400000, guid: 8bd64e3106b9773428d74f44ebda12f8, type: 2}
+    overrideIcon: {fileID: 0}
+    previewClip: {fileID: 32900000, guid: 5449af63914f95b489b3b97b0da1bedb, type: 3}
+  - definition: {fileID: 11400000, guid: 2762d9636628f4a498fd2c6d73057418, type: 2}
+    overrideIcon: {fileID: 0}
+    previewClip: {fileID: 32900000, guid: 4f85790a41fbdf941b4574368b270d2e, type: 3}
+  - definition: {fileID: 11400000, guid: 9ed0a462473ebe84e8781e5d2e8891dd, type: 2}
+    overrideIcon: {fileID: 0}
+    previewClip: {fileID: 32900000, guid: 585a4ffb317842545a20af94d086e36c, type: 3}
+  lockedNodeColor: {r: 1, g: 1, b: 1, a: 1}
+  blockedByLevelNodeColor: {r: 1, g: 1, b: 1, a: 1}
+  blockedByCostNodeColor: {r: 1, g: 1, b: 1, a: 1}
+  readyNodeColor: {r: 1, g: 1, b: 1, a: 1}
+  unlockedNodeColor: {r: 1, g: 1, b: 1, a: 1}
+  lockedLineColor: {r: 1, g: 1, b: 1, a: 1}
+  blockedByLevelLineColor: {r: 1, g: 1, b: 1, a: 1}
+  blockedByCostLineColor: {r: 1, g: 1, b: 1, a: 1}
+  readyLineColor: {r: 1, g: 1, b: 1, a: 1}
+  unlockedLineColor: {r: 0.86, g: 0.68, b: 0.32, a: 1}
+  lockedText: "\uC774\uC804 \uD130\uB81B \uD544\uC694"
+  blockedByLevelText: "\uB808\uBCA8 \uBD80\uC871"
+  blockedByCostText: "\uC7AC\uB8CC \uBD80\uC871"
+  readyText: "\uC9C4\uD654 \uAC00\uB2A5"
+  unlockedText: "\uD574\uAE08 \uC644\uB8CC"
+  usePreviewVideoFade: 1
+  previewVideoFadeInDuration: 0.5
+  previewVideoFadeOutDuration: 0.5
+  useIncompleteLinePulse: 1
+  incompleteLinePulseDuration: 2
+  incompleteLinePulseMinAlpha: 0.1
+  incompleteLinePulseMaxAlpha: 0.5

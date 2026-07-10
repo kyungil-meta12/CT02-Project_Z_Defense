@@ -1,0 +1,41 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 28db854c229931b498137181f212c559, type: 3}
+  m_Name: Frost_Turret_Definition
+  m_EditorClassIdentifier: Assembly-CSharp::TurretDefinitionSO
+  turretId: frost_turret
+  displayName: "\uAE00\uB808\uC774\uC15C \uCF54\uC5B4"
+  shortDescription: "<nobr>\uAE30\uC220\uC758</nobr> <nobr>\uADF9\uD55C\uC5D0</nobr>
+    <nobr>\uB3C4\uB2EC\uD55C</nobr> <nobr>\uCD5C\uCCA8\uB2E8</nobr> <nobr>\uBE59\uACB0</nobr>
+    <nobr>\uC81C\uC5B4</nobr> <nobr>\uD3EC\uD0D1\uC785\uB2C8\uB2E4.</nobr> <nobr>\uB2E4\uC218\uC758</nobr>
+    <nobr>\uC801\uC5D0\uAC8C</nobr> <nobr>\uADF9\uC800\uC628</nobr> <nobr>\uB808\uC774\uC800\uB97C</nobr>
+    <nobr>\uC0AC\uACA9\uD574</nobr> <nobr>\uC18D\uB3C4\uB97C</nobr> <nobr>\uB2A6\uCD94\uBA70,</nobr>
+    <nobr>\uC644\uC804\uD788</nobr> <nobr>\uC5BC\uC5B4\uBD99\uC740</nobr> <nobr>\uC801\uC774</nobr>
+    <nobr>\uD30C\uAD34\uB420</nobr> <nobr>\uB54C</nobr> <nobr>\uC8FC\uBCC0\uC5D0</nobr>
+    <nobr>\uCE58\uBA85\uC801\uC778</nobr> <nobr>\uD30C\uD3B8</nobr> <nobr>\uD53C\uD574\uB97C</nobr>
+    <nobr>\uC785\uD799\uB2C8\uB2E4.</nobr>"
+  uiIcon: {fileID: 21300000, guid: e1cad33291e68d0438b7e91113b30ed9, type: 3}
+  basePrefab: {fileID: 8581458487753932061, guid: c5531d7a9900bd5449481e7ab8b5d38e, type: 3}
+  baseStatProfile: {fileID: 11400000, guid: 3e539e920b4590140936dec798b6eccc, type: 2}
+  maxLevel: 0
+  statGrowthProfile: {fileID: 11400000, guid: cb5fd5cef245289468361a63ae3c3f4b, type: 2}
+  upgradeCostProfile: {fileID: 11400000, guid: e176241f7f18e3c48817bb9a8b2ac9fc, type: 2}
+  vfxProgressionProfile: {fileID: 11400000, guid: 8d3dcb154cd189842aa6f5684378e5dc, type: 2}
+  projectileScaleProgressionProfile: {fileID: 11400000, guid: 248471f5e12ab6043be08d17bd77a3e9, type: 2}
+  evolutionProgressionProfile: {fileID: 0}
+  maxEngineerSeatCount: 3
+  damagePolishProfile: {fileID: 11400000, guid: c339c81c2f8b931419ad9d5f507da2f8, type: 2}
+  audioProfile: {fileID: 11400000, guid: 39f6a443f0d9dd544bc74c18f89b0ad5, type: 2}
+  frostStatusProfile: {fileID: 11400000, guid: fcbb36803b42a734e8e2046af3bc547e, type: 2}
+  poisonStatusProfile: {fileID: 0}
+  electroStatusProfile: {fileID: 0}
+  ignitionStatusProfile: {fileID: 0}

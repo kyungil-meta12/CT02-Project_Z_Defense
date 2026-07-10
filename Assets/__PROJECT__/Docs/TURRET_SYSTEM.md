@@ -94,11 +94,11 @@ Display names are being remade for UI presentation. Keep asset names, prefab nam
 
 | Type | Role |
 | --- | --- |
-| `TurretDefinitionSO` | Top-level turret identity, prefab, base stat profile, growth, upgrade cost profile, VFX progression, projectile scale progression, status profile, evolution progression, max level, engineer seat limit. |
+| `TurretDefinitionSO` | Top-level turret identity, prefab, base stat profile, growth, upgrade cost profile, VFX progression, projectile scale progression, audio profile, status profile, evolution progression, max level, engineer seat limit. |
 | `TurretStatProfileSO` | Base combat values for tier level 1: damage, range, fire interval, projectile speed, projectile count, pierce count. |
 | `TurretStatGrowthProfileSO` | Tier-level-based growth calculation. Damage uses max-level target damage with a log curve, while non-damage stats keep per-level or interval growth. |
 | `TurretUpgradeCostProfileSO` | Calculates upgrade costs from current tier level to target tier level. |
-| `TurretVFXProfileSO` | Attack VFX selection data: projectile prefab or beam prefab, optional beam attack profile reference, muzzle VFX, muzzle duration. Audio is intentionally removed until the project-level sound system is rebuilt. |
+| `TurretVFXProfileSO` | Attack VFX selection data: projectile prefab or beam prefab, optional beam attack profile reference, muzzle VFX, muzzle duration. Audio belongs to `TurretAudioProfileSO` and `TurretAudioController` through the project-level audio system. |
 | `TurretDamagePolishProfileSO` | Optional per-turret damage polish rules: random damage variance, critical hits, heavy hits, and damage popup type. Leave empty to keep deterministic legacy damage. |
 | `BeamAttackProfileSO` | Beam-specific attack rules: damage tick interval, damage multiplier, DPS interpretation, target mode, pierce radius, max targets, and damage layer mask. |
 | `FrostStatusProfileSO` | Frost-specific status rules: slow buildup, max slow, freeze timing, freeze explosion, max-HP damage, secondary explosion slow, related VFX references, and optional primary-target max-HP damage growth. |

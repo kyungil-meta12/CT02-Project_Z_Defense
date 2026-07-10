@@ -1,0 +1,37 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 28db854c229931b498137181f212c559, type: 3}
+  m_Name: sentinel_01_Definition
+  m_EditorClassIdentifier: Assembly-CSharp::TurretDefinitionSO
+  turretId: sentinel_01
+  displayName: "\uC13C\uD2F0\uB110 \uD3EC\uC2A4\uD2B8"
+  shortDescription: "<nobr>\uAC00\uC7A5</nobr> <nobr>\uB110\uB9AC</nobr> <nobr>\uC4F0\uC774\uB294</nobr>
+    <nobr>\uD45C\uC900</nobr> <nobr>\uC790\uB3D9</nobr> <nobr>\uBC29\uC5B4</nobr>
+    <nobr>\uD3EC\uD0D1\uC785\uB2C8\uB2E4.</nobr> <nobr>\uAE30\uBCF8</nobr> <nobr>\uD654\uB825\uC740</nobr>
+    <nobr>\uC57D\uD558\uC9C0\uB9CC,</nobr> <nobr>\uC720\uC9C0\uBCF4\uC218\uAC00</nobr>
+    <nobr>\uC27D\uACE0</nobr> <nobr>\uC2E0\uB8B0\uB3C4\uAC00</nobr> <nobr>\uB192\uC2B5\uB2C8\uB2E4.</nobr>"
+  uiIcon: {fileID: 21300000, guid: 8715555073c678346914bd6e857a57b4, type: 3}
+  basePrefab: {fileID: 4672393858745932496, guid: e413d47f110c2694fbfb33e7712ccd89, type: 3}
+  baseStatProfile: {fileID: 11400000, guid: 9bbe5828d5cd65f4ebb42f2add75f289, type: 2}
+  maxLevel: 0
+  statGrowthProfile: {fileID: 11400000, guid: fb0d8868cc4724d4baa808ca88424edf, type: 2}
+  upgradeCostProfile: {fileID: 11400000, guid: cf5c77d3454c3f64f89a77984fed0380, type: 2}
+  vfxProgressionProfile: {fileID: 11400000, guid: 1a96b709960be014fa3cec0b17415ae5, type: 2}
+  projectileScaleProgressionProfile: {fileID: 11400000, guid: 99fc20b3fb287164ba7429ee544f3dd3, type: 2}
+  evolutionProgressionProfile: {fileID: 11400000, guid: a27a549c505800e4f99f2b4104b0a143, type: 2}
+  maxEngineerSeatCount: 1
+  damagePolishProfile: {fileID: 11400000, guid: cf692703c3b242447b3194158e1afab4, type: 2}
+  audioProfile: {fileID: 11400000, guid: 9d07b1f68182be140b11f57eeac9dc61, type: 2}
+  frostStatusProfile: {fileID: 0}
+  poisonStatusProfile: {fileID: 0}
+  electroStatusProfile: {fileID: 0}
+  ignitionStatusProfile: {fileID: 0}

@@ -2,6 +2,7 @@
 using System;
 using UnityEngine;
 using ProjectZDefense.StatusEffects;
+using ProjectZDefense.Audio;
 
 /// <summary>
 /// 터렛 Definition을 런타임 터렛 오브젝트에 적용하고 레벨업, 진화, 비용 소모를 중계한다.
@@ -23,6 +24,7 @@ public class TurretDefinitionRuntimeController : MonoBehaviour
     [SerializeField] private Turret targetTurret;
     [SerializeField] private FiringEvent targetFiringEvent;
     [SerializeField] private TurretDamageMeterSource damageMeterSource;
+    [SerializeField] private TurretAudioController audioController;
     [SerializeField] private string currentTurretName;
     [SerializeField] private string availableEvolutionNames;
 
@@ -150,6 +152,7 @@ public class TurretDefinitionRuntimeController : MonoBehaviour
 
         ApplyDamageMeterSource();
         ApplyDamagePolishProfile();
+        ApplyAudioProfile();
 
         if (applyVFXToTurret)
         {
@@ -546,6 +549,26 @@ public class TurretDefinitionRuntimeController : MonoBehaviour
         }
     }
 
+    // 현재 터렛 정의에 연결된 오디오 프로필을 터렛 사운드 컨트롤러에 전달한다
+    private void ApplyAudioProfile()
+    {
+        if (audioController == null && turretDefinition.audioProfile != null)
+        {
+            audioController = GetComponent<TurretAudioController>();
+            if (audioController == null)
+            {
+                audioController = gameObject.AddComponent<TurretAudioController>();
+            }
+        }
+
+        if (audioController == null)
+        {
+            return;
+        }
+
+        audioController.SetAudioProfile(turretDefinition.audioProfile);
+    }
+
     // 터렛과 하위 런타임 수신자에 딜 미터기 출처를 적용한다
     private void ApplyDamageMeterSource()
     {
@@ -747,6 +770,11 @@ public class TurretDefinitionRuntimeController : MonoBehaviour
         if (damageMeterSource == null)
         {
             damageMeterSource = GetComponent<TurretDamageMeterSource>();
+        }
+
+        if (audioController == null)
+        {
+            audioController = GetComponent<TurretAudioController>();
         }
     }
 

@@ -1,0 +1,38 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 28db854c229931b498137181f212c559, type: 3}
+  m_Name: Laser_Blue_Definition 2
+  m_EditorClassIdentifier: Assembly-CSharp::TurretDefinitionSO
+  turretId: laser_blue_2
+  displayName: "\uBE14\uB8E8 \uB79C\uC2A4"
+  shortDescription: "<nobr>\uCF54\uC5B4</nobr> <nobr>\uB0C9\uAC01</nobr> <nobr>\uC131\uB2A5\uC744</nobr>
+    <nobr>\uAC1C\uC120\uD558\uC5EC</nobr> <nobr>\uC5F0\uC0AC</nobr> <nobr>\uC18D\uB3C4\uB97C</nobr>
+    <nobr>\uD55C\uCE35</nobr> <nobr>\uB354</nobr> <nobr>\uB04C\uC5B4\uC62C\uB9B0</nobr>
+    <nobr>\uD3EC\uD0D1\uC785\uB2C8\uB2E4.</nobr> <nobr>\uC9C0\uC18D\uC801\uC778</nobr>
+    <nobr>\uD654\uB825</nobr> <nobr>\uD22C\uC0AC\uB85C</nobr> <nobr>\uC804\uC120\uC758</nobr>
+    <nobr>\uACF5\uBC31\uC744</nobr> <nobr>\uC644\uBCBD\uD558\uAC8C</nobr> <nobr>\uBA54\uC6C1\uB2C8\uB2E4.</nobr>"
+  uiIcon: {fileID: 21300000, guid: 60d5237a2a019694fa914c945ad173ad, type: 3}
+  basePrefab: {fileID: 8424379378197233485, guid: 484773cbfa529ec41a91f51c36bfd9e5, type: 3}
+  baseStatProfile: {fileID: 11400000, guid: 9432bcee7da77ee409ed33d8ed87b7d0, type: 2}
+  maxLevel: 0
+  statGrowthProfile: {fileID: 11400000, guid: c06fabf7f7edc97489c94588ff575dbd, type: 2}
+  upgradeCostProfile: {fileID: 11400000, guid: 950c1e9c61cf4a74a8d4ca134be374cb, type: 2}
+  vfxProgressionProfile: {fileID: 11400000, guid: 68a9c0ab1e394e441a41483f55bee13f, type: 2}
+  projectileScaleProgressionProfile: {fileID: 11400000, guid: d8336bfba01554b4d9d2a2a1c2078c11, type: 2}
+  evolutionProgressionProfile: {fileID: 11400000, guid: b3da8d9be5ba3724587bebef4520519d, type: 2}
+  maxEngineerSeatCount: 2
+  damagePolishProfile: {fileID: 11400000, guid: 06a8ce65b2b96534787c9a4d100109fd, type: 2}
+  audioProfile: {fileID: 11400000, guid: 62bbb8e808eac834e99382d66607f9d3, type: 2}
+  frostStatusProfile: {fileID: 0}
+  poisonStatusProfile: {fileID: 0}
+  electroStatusProfile: {fileID: 0}
+  ignitionStatusProfile: {fileID: 0}

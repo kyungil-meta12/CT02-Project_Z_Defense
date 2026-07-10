@@ -1,0 +1,35 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b7681e4b6a2747abb51add1e561cb8f9, type: 3}
+  m_Name: Frost_Turret_Status_Profile_SO
+  m_EditorClassIdentifier: Assembly-CSharp::FrostStatusProfileSO
+  slowBuildUpDuration: 1.5
+  maxSlowRatio: 1
+  slowHoldDuration: 3
+  freezeTriggerRatio: 1
+  freezeDuration: 3.8
+  freezeEffectPrefab: {fileID: 1497850087004499017, guid: 0a1a0ac7410509441951e89be9c0cda2, type: 3}
+  freezeEffectDuration: 3.8
+  freezeDeathEffectPrefab: {fileID: 6648929964555825526, guid: aea6ed05ed89be74e9aee6d22cab59d8, type: 3}
+  freezeDeathEffectDuration: 2
+  freezeExplosionDamageDelay: 2.8
+  freezeCooldownPerTarget: 8
+  freezeExplosionRadius: 2.5
+  freezeExplosionDamage: 200
+  freezePrimaryTargetMaxHpDamageRatio: 0.8
+  freezeExplosionLayerMask:
+    serializedVersion: 2
+    m_Bits: 1152
+  freezeExplosionSlowRatio: 0.3
+  freezeExplosionSlowDuration: 1
+  freezePrimaryTargetMaxHpDamageRatioPerLevel: 0
+  maxFreezePrimaryTargetMaxHpDamageRatio: 0.8

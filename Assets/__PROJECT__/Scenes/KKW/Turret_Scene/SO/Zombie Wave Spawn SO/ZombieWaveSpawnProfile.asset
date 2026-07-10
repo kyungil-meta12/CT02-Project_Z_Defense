@@ -1,0 +1,866 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fbb2664d11b84f08854c9359c79e66c4, type: 3}
+  m_Name: ZombieWaveSpawnProfile
+  m_EditorClassIdentifier: Assembly-CSharp::ZombieWaveSpawnProfileSO
+  normalZombiePrefabMap:
+  - zombieType: 0
+    prefab: {fileID: 3408621799653841791, guid: 423d2cc959960cd4f9d4174d0642e39d, type: 3}
+  - zombieType: 1
+    prefab: {fileID: 1215362862075642498, guid: 65a82c17ce051644591d9f9eeae5214d, type: 3}
+  - zombieType: 2
+    prefab: {fileID: 7279457544772802571, guid: 4138310e37cea2b4995176284a8d2afd, type: 3}
+  - zombieType: 3
+    prefab: {fileID: 2806085393236536966, guid: 44b09035b4b6858428756597f0435352, type: 3}
+  - zombieType: 4
+    prefab: {fileID: 679630874896210552, guid: 3f31f67b17568834aba48e4f7d1f65a2, type: 3}
+  - zombieType: 5
+    prefab: {fileID: 6155069076198933064, guid: 8d7e564ad29d6444e95bd73dccd8448d, type: 3}
+  - zombieType: 6
+    prefab: {fileID: 5502594719600009177, guid: ec29304ae13577d41b67fb3957589ed2, type: 3}
+  - zombieType: 7
+    prefab: {fileID: 9179889507590658349, guid: e184adc49f6f3f74cbc19d4aa94e413c, type: 3}
+  - zombieType: 8
+    prefab: {fileID: 8995856843111674874, guid: 75ae153e155f0cb48b04e499cf3879fe, type: 3}
+  - zombieType: 9
+    prefab: {fileID: 2309557971949119179, guid: 1cb91dd203660544dbe151af06c53e45, type: 3}
+  - zombieType: 10
+    prefab: {fileID: 3548795353269295209, guid: 50609f28fd8b4834ca979bc6d24b928d, type: 3}
+  - zombieType: 11
+    prefab: {fileID: 8127937686484480081, guid: 9f51896ed91ab8a488f64c4c54d0afdb, type: 3}
+  - zombieType: 12
+    prefab: {fileID: 1620414590043270787, guid: b292ceeedefe34f4d9ef632c831301db, type: 3}
+  - zombieType: 13
+    prefab: {fileID: 2198761140652240216, guid: 4696f3a76ac50b74dba3cd8982cf1807, type: 3}
+  - zombieType: 14
+    prefab: {fileID: 7715568713718172981, guid: a1fd445e88254c34b9adbc7ec7ff31c4, type: 3}
+  - zombieType: 15
+    prefab: {fileID: 288951159815105055, guid: 9d373745a79705049b0ed54fd177094e, type: 3}
+  bossZombiePrefabMap:
+  - bossType: 2
+    prefab: {fileID: 5496418273564551380, guid: bb3feed03de6ffc478b034fa5b6ed38f, type: 3}
+  - bossType: 0
+    prefab: {fileID: 4401505760050390836, guid: 05a79271ac3da344298794ee3568a586, type: 3}
+  - bossType: 1
+    prefab: {fileID: 7451463094761099968, guid: 8d82f2b7c62a03949a3eac43f1107dca, type: 3}
+  bossSpawnSchedules:
+  - bossType: 0
+    firstWave: 10
+    waveInterval: 5
+  - bossType: 1
+    firstWave: 20
+    waveInterval: 10
+  - bossType: 2
+    firstWave: 30
+    waveInterval: 15
+  stages:
+  - minWave: 1
+    maxWave: 9
+    spawnInterval: 2.5
+    spawnCount: 10
+    spawnBossAsLastEnemy: 0
+    normalZombieEntries:
+    - zombieType: 0
+      weight: 1
+      minWave: 1
+      maxWave: 0
+    - zombieType: 1
+      weight: 1
+      minWave: 1
+      maxWave: 0
+    - zombieType: 2
+      weight: 1
+      minWave: 1
+      maxWave: 0
+    bossZombieEntries:
+    - bossType: 0
+      weight: 1
+      minWave: 1
+      maxWave: 0
+    - bossType: 1
+      weight: 1
+      minWave: 1
+      maxWave: 0
+    - bossType: 2
+      weight: 1
+      minWave: 1
+      maxWave: 0
+    hpMultiplier: 1
+    attackDamageMultiplier: 1
+    moveAttackSpeedMultiplier: 1
+    rewardMultiplier: 1
+  - minWave: 10
+    maxWave: 25
+    spawnInterval: 2.2
+    spawnCount: 15
+    spawnBossAsLastEnemy: 1
+    normalZombieEntries:
+    - zombieType: 0
+      weight: 7
+      minWave: 1
+      maxWave: 0
+    - zombieType: 1
+      weight: 7
+      minWave: 1
+      maxWave: 0
+    - zombieType: 2
+      weight: 7
+      minWave: 1
+      maxWave: 0
+    - zombieType: 3
+      weight: 3
+      minWave: 1
+      maxWave: 0
+    - zombieType: 4
+      weight: 3
+      minWave: 1
+      maxWave: 0
+    - zombieType: 5
+      weight: 3
+      minWave: 1
+      maxWave: 0
+    - zombieType: 6
+      weight: 3
+      minWave: 1
+      maxWave: 0
+    bossZombieEntries:
+    - bossType: 0
+      weight: 1
+      minWave: 1
+      maxWave: 0
+    - bossType: 1
+      weight: 1
+      minWave: 1
+      maxWave: 0
+    - bossType: 2
+      weight: 1
+      minWave: 1
+      maxWave: 0
+    hpMultiplier: 3
+    attackDamageMultiplier: 2.5
+    moveAttackSpeedMultiplier: 1
+    rewardMultiplier: 1.2
+  - minWave: 26
+    maxWave: 50
+    spawnInterval: 1.9
+    spawnCount: 20
+    spawnBossAsLastEnemy: 1
+    normalZombieEntries:
+    - zombieType: 0
+      weight: 45
+      minWave: 1
+      maxWave: 0
+    - zombieType: 1
+      weight: 45
+      minWave: 1
+      maxWave: 0
+    - zombieType: 2
+      weight: 45
+      minWave: 1
+      maxWave: 0
+    - zombieType: 3
+      weight: 45
+      minWave: 1
+      maxWave: 0
+    - zombieType: 4
+      weight: 45
+      minWave: 1
+      maxWave: 0
+    - zombieType: 5
+      weight: 45
+      minWave: 1
+      maxWave: 0
+    - zombieType: 6
+      weight: 45
+      minWave: 1
+      maxWave: 0
+    - zombieType: 7
+      weight: 10
+      minWave: 1
+      maxWave: 0
+    bossZombieEntries:
+    - bossType: 0
+      weight: 1
+      minWave: 1
+      maxWave: 0
+    - bossType: 1
+      weight: 1
+      minWave: 1
+      maxWave: 0
+    - bossType: 2
+      weight: 1
+      minWave: 1
+      maxWave: 0
+    hpMultiplier: 6
+    attackDamageMultiplier: 3
+    moveAttackSpeedMultiplier: 1.02
+    rewardMultiplier: 1.5
+  - minWave: 51
+    maxWave: 75
+    spawnInterval: 1.7
+    spawnCount: 25
+    spawnBossAsLastEnemy: 1
+    normalZombieEntries:
+    - zombieType: 0
+      weight: 15
+      minWave: 1
+      maxWave: 0
+    - zombieType: 1
+      weight: 15
+      minWave: 1
+      maxWave: 0
+    - zombieType: 2
+      weight: 15
+      minWave: 1
+      maxWave: 0
+    - zombieType: 3
+      weight: 60
+      minWave: 1
+      maxWave: 0
+    - zombieType: 4
+      weight: 60
+      minWave: 1
+      maxWave: 0
+    - zombieType: 5
+      weight: 60
+      minWave: 1
+      maxWave: 0
+    - zombieType: 6
+      weight: 60
+      minWave: 1
+      maxWave: 0
+    - zombieType: 7
+      weight: 25
+      minWave: 1
+      maxWave: 0
+    bossZombieEntries:
+    - bossType: 0
+      weight: 1
+      minWave: 1
+      maxWave: 0
+    - bossType: 1
+      weight: 1
+      minWave: 1
+      maxWave: 0
+    - bossType: 2
+      weight: 1
+      minWave: 1
+      maxWave: 0
+    hpMultiplier: 12
+    attackDamageMultiplier: 4
+    moveAttackSpeedMultiplier: 1.04
+    rewardMultiplier: 1.9
+  - minWave: 76
+    maxWave: 100
+    spawnInterval: 1.6
+    spawnCount: 30
+    spawnBossAsLastEnemy: 1
+    normalZombieEntries:
+    - zombieType: 3
+      weight: 55
+      minWave: 1
+      maxWave: 0
+    - zombieType: 4
+      weight: 55
+      minWave: 1
+      maxWave: 0
+    - zombieType: 5
+      weight: 55
+      minWave: 1
+      maxWave: 0
+    - zombieType: 6
+      weight: 55
+      minWave: 1
+      maxWave: 0
+    - zombieType: 7
+      weight: 35
+      minWave: 1
+      maxWave: 0
+    - zombieType: 8
+      weight: 10
+      minWave: 1
+      maxWave: 0
+    - zombieType: 9
+      weight: 10
+      minWave: 1
+      maxWave: 0
+    - zombieType: 10
+      weight: 10
+      minWave: 1
+      maxWave: 0
+    bossZombieEntries:
+    - bossType: 0
+      weight: 1
+      minWave: 1
+      maxWave: 0
+    - bossType: 1
+      weight: 1
+      minWave: 1
+      maxWave: 0
+    - bossType: 2
+      weight: 1
+      minWave: 1
+      maxWave: 0
+    hpMultiplier: 18
+    attackDamageMultiplier: 5.5
+    moveAttackSpeedMultiplier: 1.06
+    rewardMultiplier: 2.5
+  - minWave: 101
+    maxWave: 130
+    spawnInterval: 1.5
+    spawnCount: 35
+    spawnBossAsLastEnemy: 1
+    normalZombieEntries:
+    - zombieType: 3
+      weight: 25
+      minWave: 1
+      maxWave: 0
+    - zombieType: 4
+      weight: 25
+      minWave: 1
+      maxWave: 0
+    - zombieType: 5
+      weight: 25
+      minWave: 1
+      maxWave: 0
+    - zombieType: 6
+      weight: 25
+      minWave: 1
+      maxWave: 0
+    - zombieType: 7
+      weight: 45
+      minWave: 1
+      maxWave: 0
+    - zombieType: 8
+      weight: 30
+      minWave: 1
+      maxWave: 0
+    - zombieType: 9
+      weight: 30
+      minWave: 1
+      maxWave: 0
+    - zombieType: 10
+      weight: 30
+      minWave: 1
+      maxWave: 0
+    bossZombieEntries:
+    - bossType: 0
+      weight: 1
+      minWave: 1
+      maxWave: 0
+    - bossType: 1
+      weight: 1
+      minWave: 1
+      maxWave: 0
+    - bossType: 2
+      weight: 1
+      minWave: 1
+      maxWave: 0
+    hpMultiplier: 20
+    attackDamageMultiplier: 7
+    moveAttackSpeedMultiplier: 1.08
+    rewardMultiplier: 3.3
+  - minWave: 131
+    maxWave: 160
+    spawnInterval: 1.4
+    spawnCount: 40
+    spawnBossAsLastEnemy: 1
+    normalZombieEntries:
+    - zombieType: 3
+      weight: 10
+      minWave: 1
+      maxWave: 0
+    - zombieType: 4
+      weight: 10
+      minWave: 1
+      maxWave: 0
+    - zombieType: 5
+      weight: 10
+      minWave: 1
+      maxWave: 0
+    - zombieType: 6
+      weight: 10
+      minWave: 1
+      maxWave: 0
+    - zombieType: 7
+      weight: 40
+      minWave: 1
+      maxWave: 0
+    - zombieType: 8
+      weight: 45
+      minWave: 1
+      maxWave: 0
+    - zombieType: 9
+      weight: 45
+      minWave: 1
+      maxWave: 0
+    - zombieType: 10
+      weight: 45
+      minWave: 1
+      maxWave: 0
+    - zombieType: 11
+      weight: 5
+      minWave: 1
+      maxWave: 0
+    - zombieType: 12
+      weight: 5
+      minWave: 1
+      maxWave: 0
+    - zombieType: 13
+      weight: 5
+      minWave: 1
+      maxWave: 0
+    bossZombieEntries:
+    - bossType: 0
+      weight: 1
+      minWave: 1
+      maxWave: 0
+    - bossType: 1
+      weight: 1
+      minWave: 1
+      maxWave: 0
+    - bossType: 2
+      weight: 1
+      minWave: 1
+      maxWave: 0
+    hpMultiplier: 24
+    attackDamageMultiplier: 9
+    moveAttackSpeedMultiplier: 1.1
+    rewardMultiplier: 4.4
+  - minWave: 161
+    maxWave: 200
+    spawnInterval: 1.3
+    spawnCount: 45
+    spawnBossAsLastEnemy: 1
+    normalZombieEntries:
+    - zombieType: 3
+      weight: 10
+      minWave: 1
+      maxWave: 0
+    - zombieType: 4
+      weight: 10
+      minWave: 1
+      maxWave: 0
+    - zombieType: 5
+      weight: 10
+      minWave: 1
+      maxWave: 0
+    - zombieType: 6
+      weight: 10
+      minWave: 1
+      maxWave: 0
+    - zombieType: 7
+      weight: 20
+      minWave: 1
+      maxWave: 0
+    - zombieType: 8
+      weight: 45
+      minWave: 1
+      maxWave: 0
+    - zombieType: 9
+      weight: 45
+      minWave: 1
+      maxWave: 0
+    - zombieType: 10
+      weight: 45
+      minWave: 1
+      maxWave: 0
+    - zombieType: 11
+      weight: 25
+      minWave: 1
+      maxWave: 0
+    - zombieType: 12
+      weight: 25
+      minWave: 1
+      maxWave: 0
+    - zombieType: 13
+      weight: 25
+      minWave: 1
+      maxWave: 0
+    bossZombieEntries:
+    - bossType: 0
+      weight: 1
+      minWave: 1
+      maxWave: 0
+    - bossType: 1
+      weight: 1
+      minWave: 1
+      maxWave: 0
+    - bossType: 2
+      weight: 1
+      minWave: 1
+      maxWave: 0
+    hpMultiplier: 40
+    attackDamageMultiplier: 12
+    moveAttackSpeedMultiplier: 1.12
+    rewardMultiplier: 6
+  - minWave: 201
+    maxWave: 240
+    spawnInterval: 1.2
+    spawnCount: 50
+    spawnBossAsLastEnemy: 1
+    normalZombieEntries:
+    - zombieType: 7
+      weight: 15
+      minWave: 1
+      maxWave: 0
+    - zombieType: 8
+      weight: 45
+      minWave: 1
+      maxWave: 0
+    - zombieType: 9
+      weight: 45
+      minWave: 1
+      maxWave: 0
+    - zombieType: 10
+      weight: 45
+      minWave: 1
+      maxWave: 0
+    - zombieType: 13
+      weight: 40
+      minWave: 1
+      maxWave: 0
+    - zombieType: 12
+      weight: 40
+      minWave: 1
+      maxWave: 0
+    - zombieType: 11
+      weight: 40
+      minWave: 1
+      maxWave: 0
+    bossZombieEntries:
+    - bossType: 0
+      weight: 1
+      minWave: 1
+      maxWave: 0
+    - bossType: 1
+      weight: 1
+      minWave: 1
+      maxWave: 0
+    - bossType: 2
+      weight: 1
+      minWave: 1
+      maxWave: 0
+    hpMultiplier: 65
+    attackDamageMultiplier: 16
+    moveAttackSpeedMultiplier: 1.14
+    rewardMultiplier: 8
+  - minWave: 241
+    maxWave: 280
+    spawnInterval: 1.16
+    spawnCount: 55
+    spawnBossAsLastEnemy: 1
+    normalZombieEntries:
+    - zombieType: 7
+      weight: 5
+      minWave: 1
+      maxWave: 0
+    - zombieType: 8
+      weight: 45
+      minWave: 1
+      maxWave: 0
+    - zombieType: 9
+      weight: 45
+      minWave: 1
+      maxWave: 0
+    - zombieType: 10
+      weight: 45
+      minWave: 1
+      maxWave: 0
+    - zombieType: 13
+      weight: 45
+      minWave: 1
+      maxWave: 0
+    - zombieType: 12
+      weight: 45
+      minWave: 1
+      maxWave: 0
+    - zombieType: 11
+      weight: 45
+      minWave: 1
+      maxWave: 0
+    - zombieType: 14
+      weight: 5
+      minWave: 1
+      maxWave: 0
+    - zombieType: 15
+      weight: 5
+      minWave: 1
+      maxWave: 0
+    bossZombieEntries:
+    - bossType: 0
+      weight: 1
+      minWave: 1
+      maxWave: 0
+    - bossType: 1
+      weight: 1
+      minWave: 1
+      maxWave: 0
+    - bossType: 2
+      weight: 1
+      minWave: 1
+      maxWave: 0
+    hpMultiplier: 100
+    attackDamageMultiplier: 20
+    moveAttackSpeedMultiplier: 1.16
+    rewardMultiplier: 10.5
+  - minWave: 281
+    maxWave: 320
+    spawnInterval: 1.13
+    spawnCount: 60
+    spawnBossAsLastEnemy: 1
+    normalZombieEntries:
+    - zombieType: 15
+      weight: 20
+      minWave: 1
+      maxWave: 0
+    - zombieType: 8
+      weight: 25
+      minWave: 1
+      maxWave: 0
+    - zombieType: 9
+      weight: 25
+      minWave: 1
+      maxWave: 0
+    - zombieType: 10
+      weight: 25
+      minWave: 1
+      maxWave: 0
+    - zombieType: 13
+      weight: 55
+      minWave: 1
+      maxWave: 0
+    - zombieType: 12
+      weight: 55
+      minWave: 1
+      maxWave: 0
+    - zombieType: 11
+      weight: 55
+      minWave: 1
+      maxWave: 0
+    - zombieType: 14
+      weight: 20
+      minWave: 1
+      maxWave: 0
+    bossZombieEntries:
+    - bossType: 0
+      weight: 1
+      minWave: 1
+      maxWave: 0
+    - bossType: 1
+      weight: 1
+      minWave: 1
+      maxWave: 0
+    - bossType: 2
+      weight: 1
+      minWave: 1
+      maxWave: 0
+    hpMultiplier: 150
+    attackDamageMultiplier: 26
+    moveAttackSpeedMultiplier: 1.18
+    rewardMultiplier: 14
+  - minWave: 321
+    maxWave: 360
+    spawnInterval: 1.1
+    spawnCount: 70
+    spawnBossAsLastEnemy: 1
+    normalZombieEntries:
+    - zombieType: 15
+      weight: 30
+      minWave: 1
+      maxWave: 0
+    - zombieType: 8
+      weight: 15
+      minWave: 1
+      maxWave: 0
+    - zombieType: 9
+      weight: 15
+      minWave: 1
+      maxWave: 0
+    - zombieType: 10
+      weight: 15
+      minWave: 1
+      maxWave: 0
+    - zombieType: 13
+      weight: 55
+      minWave: 1
+      maxWave: 0
+    - zombieType: 12
+      weight: 55
+      minWave: 1
+      maxWave: 0
+    - zombieType: 11
+      weight: 55
+      minWave: 1
+      maxWave: 0
+    - zombieType: 14
+      weight: 30
+      minWave: 1
+      maxWave: 0
+    bossZombieEntries:
+    - bossType: 0
+      weight: 1
+      minWave: 1
+      maxWave: 0
+    - bossType: 1
+      weight: 1
+      minWave: 1
+      maxWave: 0
+    - bossType: 2
+      weight: 1
+      minWave: 1
+      maxWave: 0
+    hpMultiplier: 210
+    attackDamageMultiplier: 33
+    moveAttackSpeedMultiplier: 1.2
+    rewardMultiplier: 18.5
+  - minWave: 361
+    maxWave: 400
+    spawnInterval: 1.06
+    spawnCount: 80
+    spawnBossAsLastEnemy: 1
+    normalZombieEntries:
+    - zombieType: 15
+      weight: 50
+      minWave: 1
+      maxWave: 0
+    - zombieType: 8
+      weight: 5
+      minWave: 1
+      maxWave: 0
+    - zombieType: 9
+      weight: 5
+      minWave: 1
+      maxWave: 0
+    - zombieType: 10
+      weight: 5
+      minWave: 1
+      maxWave: 0
+    - zombieType: 13
+      weight: 45
+      minWave: 1
+      maxWave: 0
+    - zombieType: 12
+      weight: 45
+      minWave: 1
+      maxWave: 0
+    - zombieType: 11
+      weight: 45
+      minWave: 1
+      maxWave: 0
+    - zombieType: 14
+      weight: 50
+      minWave: 1
+      maxWave: 0
+    bossZombieEntries:
+    - bossType: 0
+      weight: 1
+      minWave: 1
+      maxWave: 0
+    - bossType: 1
+      weight: 1
+      minWave: 1
+      maxWave: 0
+    - bossType: 2
+      weight: 1
+      minWave: 1
+      maxWave: 0
+    hpMultiplier: 300
+    attackDamageMultiplier: 37
+    moveAttackSpeedMultiplier: 1.22
+    rewardMultiplier: 24
+  - minWave: 401
+    maxWave: 450
+    spawnInterval: 1.03
+    spawnCount: 90
+    spawnBossAsLastEnemy: 1
+    normalZombieEntries:
+    - zombieType: 13
+      weight: 35
+      minWave: 1
+      maxWave: 0
+    - zombieType: 11
+      weight: 35
+      minWave: 1
+      maxWave: 0
+    - zombieType: 12
+      weight: 35
+      minWave: 1
+      maxWave: 0
+    - zombieType: 15
+      weight: 65
+      minWave: 1
+      maxWave: 0
+    - zombieType: 14
+      weight: 65
+      minWave: 1
+      maxWave: 0
+    bossZombieEntries:
+    - bossType: 0
+      weight: 1
+      minWave: 1
+      maxWave: 0
+    - bossType: 1
+      weight: 1
+      minWave: 1
+      maxWave: 0
+    - bossType: 2
+      weight: 1
+      minWave: 1
+      maxWave: 0
+    hpMultiplier: 400
+    attackDamageMultiplier: 35
+    moveAttackSpeedMultiplier: 1.24
+    rewardMultiplier: 31
+  - minWave: 451
+    maxWave: 500
+    spawnInterval: 1
+    spawnCount: 100
+    spawnBossAsLastEnemy: 1
+    normalZombieEntries:
+    - zombieType: 13
+      weight: 35
+      minWave: 1
+      maxWave: 0
+    - zombieType: 11
+      weight: 35
+      minWave: 1
+      maxWave: 0
+    - zombieType: 12
+      weight: 35
+      minWave: 1
+      maxWave: 0
+    - zombieType: 15
+      weight: 65
+      minWave: 1
+      maxWave: 0
+    - zombieType: 14
+      weight: 65
+      minWave: 1
+      maxWave: 0
+    bossZombieEntries:
+    - bossType: 0
+      weight: 1
+      minWave: 1
+      maxWave: 0
+    - bossType: 1
+      weight: 1
+      minWave: 1
+      maxWave: 0
+    - bossType: 2
+      weight: 1
+      minWave: 1
+      maxWave: 0
+    hpMultiplier: 500
+    attackDamageMultiplier: 40
+    moveAttackSpeedMultiplier: 1.26
+    rewardMultiplier: 40

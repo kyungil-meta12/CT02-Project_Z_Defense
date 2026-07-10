@@ -52,6 +52,8 @@
 - `DescriptionPopup > TurretDescriptionPopupBackground > MiddlePanel > DetailInfoPanel` 아래 `CriticalChance`, `HeavyHitChance` TMP를 상세 수치 표시 대상에 추가했다.
 - `TurretDetailPopupUI`는 현재 선택 터렛의 `TurretDefinitionSO.damagePolishProfile`에서 치명타/강타 확률을 읽어 백분율로 표시한다.
 - Damage Polish Profile이 비어 있으면 치명타/강타 확률은 `0%`로 표시한다.
+- `TotalKills`, `DamageDeviation` TMP를 추가로 연결할 수 있다. `TotalKills`는 터렛 진화 후에도 이어지는 누적 처치 수를 표시하고, 팝업이 열려 있는 동안 낮은 주기로 실시간 갱신된다.
+- `DamageDeviation`은 `TurretDamagePolishProfileSO`의 데미지 편차 배율을 1배율 기준 `±10%` 같은 짧은 형식으로 표시하며, 편차가 없으면 `없음`으로 표시한다.
 - 선택된 터렛이 없을 때는 다른 상세 수치와 동일하게 `-`를 표시한다.
 - 기존 `statText` 단일 상세 문자열 경로는 제거했다. 상세 팝업은 `DetailInfoPanel`의 개별 TMP를 기준으로만 표시한다.
 
@@ -181,6 +183,7 @@
 - `TurretSelectPopupUI`, `TurretInfoPopupUI`, `TurretDetailPopupUI`, `TurretUpgradePopupUI`의 Damage 표시값을 `damage * projectileCount / fireInterval` 계산값에서 `TurretRuntimeStat.damage`로 변경했다.
 - `TurretUpgradePopupUI`의 Damage 변화량도 DPS 변화율이 아니라 `currentStat.damage` 대비 `nextStat.damage` 변화율로 계산한다.
 - 자동 참조 경로는 `Damage`, `NextDamage`, `DamageDelta`를 우선 찾고, 기존 `DPS`, `NextDPS`, `DPSDelta`를 fallback으로 유지한다.
+- 이후 `TurretDetailPopupUI`는 상세 팝업 Inspector 직접 참조 기준으로 정리되어 `DPS` fallback을 더 이상 유지하지 않는다.
 
 ## Known Weak Points
 
@@ -517,7 +520,8 @@ Detail_Popup_Panel
 - `TurretDetailPopupUI.detailUpgradeFrame` 레거시 필드는 제거했다. 후보 미리보기에서는 `Detail Upgrade Button` 오브젝트 자체를 숨긴다.
 - `TurretEvolutionPopupUI.resourceSlotFrames`와 업그레이드/진화 `resourceItemDefaultSprites`는 인스펙터 연결 대상에서 제거했다. 재화 표시는 이름 TMP, 수량 TMP, 아이콘 Image 배열만 직접 연결한다.
 - `TurretDetailPopupUI.statText` 레거시 필드는 제거했다. Unity 씬 YAML에 남은 `statText` 값은 리컴파일 후 씬 저장 시 정리되는 잔여 직렬화 데이터다.
-- `TurretDetailPopupUI`와 `TurretUpgradePopupUI`의 인스펙터 필드명은 `Dps` 대신 `Damage` 기준으로 정리했다. 기존 씬 연결은 `FormerlySerializedAs`로 유지한다.
+- `TurretDetailPopupUI`의 `dpsText` 직렬화 호환과 `DPS` 자동 참조 fallback은 제거했다. 상세 팝업은 `Damage`, `TotalKills`, `DamageDeviation` 계층명과 Inspector 직접 참조를 기준으로 한다.
+- `TurretUpgradePopupUI`의 인스펙터 필드명은 `Dps` 대신 `Damage` 기준으로 정리했다. 기존 씬 연결은 `FormerlySerializedAs`로 유지한다.
 
 ### Current Rule
 

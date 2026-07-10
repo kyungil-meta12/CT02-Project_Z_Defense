@@ -7,6 +7,7 @@ using UnityEngine;
 public sealed class TurretDamageMeterSource : MonoBehaviour
 {
     private TurretDefinitionRuntimeController runtimeController;
+    private int totalKillCount;
 
     public TurretDefinitionRuntimeController RuntimeController
     {
@@ -56,6 +57,14 @@ public sealed class TurretDamageMeterSource : MonoBehaviour
         }
     }
 
+    public int TotalKillCount
+    {
+        get
+        {
+            return totalKillCount;
+        }
+    }
+
     // 컴포넌트가 생성될 때 터렛 런타임 컨트롤러를 캐시한다
     private void Awake()
     {
@@ -73,6 +82,23 @@ public sealed class TurretDamageMeterSource : MonoBehaviour
     private void OnDisable()
     {
         TurretDamageMeterManager.UnregisterSource(this);
+    }
+
+    // 이 터렛 출처의 누적 처치 수를 1 증가시킨다
+    public void AddKill()
+    {
+        totalKillCount++;
+    }
+
+    // 진화로 새 터렛 인스턴스가 생성될 때 누적 처치 수를 이어받는다
+    public void CopyLifetimeStatsFrom(TurretDamageMeterSource source)
+    {
+        if (source == null || source == this)
+        {
+            return;
+        }
+
+        totalKillCount = Mathf.Max(0, source.totalKillCount);
     }
 
     // 데미지 출처가 참조할 터렛 런타임 컨트롤러를 수집한다

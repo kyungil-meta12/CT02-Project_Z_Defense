@@ -1,7 +1,6 @@
 using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
-using UnityEngine.Serialization;
 using UnityEngine.UI;
 
 /// <summary>
@@ -18,7 +17,6 @@ public class TurretDetailPopupUI : TurretPopupPageUI
 
     [Header("상세 수치")]
     [SerializeField] private TMP_Text levelText;
-    [FormerlySerializedAs("dpsText")]
     [SerializeField] private TMP_Text damageText;
     [SerializeField] private TMP_Text fireRateText;
     [SerializeField] private TMP_Text bulletSpeedText;
@@ -26,6 +24,11 @@ public class TurretDetailPopupUI : TurretPopupPageUI
     [SerializeField] private TMP_Text rangeText;
     [SerializeField] private TMP_Text criticalChanceText;
     [SerializeField] private TMP_Text heavyHitChanceText;
+    [SerializeField] private TMP_Text totalKillsText;
+    [SerializeField] private TMP_Text damageDeviationText;
+
+    [Header("실시간 갱신")]
+    [SerializeField, Min(0.05f)] private float totalKillsRefreshInterval = 0.15f;
 
     [Header("버튼")]
     [SerializeField] private Button detailUpgradeButton;
@@ -39,8 +42,13 @@ public class TurretDetailPopupUI : TurretPopupPageUI
     private string rangeTextTemplate;
     private string criticalChanceTextTemplate;
     private string heavyHitChanceTextTemplate;
+    private string totalKillsTextTemplate;
+    private string damageDeviationTextTemplate;
     private bool isPreviewMode;
     private TurretDefinitionSO previewDefinition;
+    private TurretDamageMeterSource currentDamageMeterSource;
+    private float totalKillsRefreshTimer;
+    private int displayedTotalKills = -1;
 
     public event UnityAction UpgradeRequested;
 
@@ -66,6 +74,24 @@ public class TurretDetailPopupUI : TurretPopupPageUI
         base.OnDestroy();
     }
 
+    // 팝업이 열려 있는 동안 누적 처치 수 표시만 낮은 주기로 갱신한다
+    private void Update()
+    {
+        if (isPreviewMode || !CurrentContext.IsValid || totalKillsText == null)
+        {
+            return;
+        }
+
+        totalKillsRefreshTimer -= Time.unscaledDeltaTime;
+        if (totalKillsRefreshTimer > 0.0f)
+        {
+            return;
+        }
+
+        totalKillsRefreshTimer = totalKillsRefreshInterval;
+        RefreshTotalKillsText();
+    }
+
     // 선택된 터렛의 현재 기본 스탯을 상세 팝업에 표시한다
     public override void Show(TurretSelectionContext context)
     {
@@ -74,6 +100,9 @@ public class TurretDetailPopupUI : TurretPopupPageUI
         base.Show(context);
         CacheTextTemplates();
         SetPreviewButtonState(false);
+        currentDamageMeterSource = ResolveDamageMeterSource(CurrentContext.Turret);
+        totalKillsRefreshTimer = 0.0f;
+        displayedTotalKills = -1;
         RefreshHeader();
         RefreshStatText();
     }
@@ -88,11 +117,20 @@ public class TurretDetailPopupUI : TurretPopupPageUI
 
         isPreviewMode = true;
         previewDefinition = definition;
+        currentDamageMeterSource = null;
         base.Show(default);
         CacheTextTemplates();
         SetPreviewButtonState(true);
         RefreshPreviewHeader();
         RefreshPreviewStatText();
+    }
+
+    // 팝업을 숨길 때 실시간 갱신 대상 참조를 정리한다
+    public override void Hide()
+    {
+        currentDamageMeterSource = null;
+        displayedTotalKills = -1;
+        base.Hide();
     }
 
     [ContextMenu("참조 다시 연결")]
@@ -103,13 +141,15 @@ public class TurretDetailPopupUI : TurretPopupPageUI
         currentTurretNameText = currentTurretNameText != null ? currentTurretNameText : FindFirstDescriptionComponent<TMP_Text>(searchRoot, "HighPanel/CurrentTurretNameFrame/CurrentTurretName", "CurrentTurretNameFrame/CurrentTurretName");
         turretImage = ResolveTurretIconImage(searchRoot, turretImage);
         levelText = levelText != null ? levelText : FindDescriptionComponent<TMP_Text>("MiddlePanel/DetailInfoPanel/Level", searchRoot);
-        damageText = damageText != null ? damageText : FindFirstDescriptionComponent<TMP_Text>(searchRoot, "MiddlePanel/DetailInfoPanel/Damage", "MiddlePanel/DetailInfoPanel/DPS");
+        damageText = damageText != null ? damageText : FindDescriptionComponent<TMP_Text>("MiddlePanel/DetailInfoPanel/Damage", searchRoot);
         fireRateText = fireRateText != null ? fireRateText : FindDescriptionComponent<TMP_Text>("MiddlePanel/DetailInfoPanel/FireRate", searchRoot);
         bulletSpeedText = bulletSpeedText != null ? bulletSpeedText : FindDescriptionComponent<TMP_Text>("MiddlePanel/DetailInfoPanel/BulletSpeed", searchRoot);
         pierceCountText = pierceCountText != null ? pierceCountText : FindDescriptionComponent<TMP_Text>("MiddlePanel/DetailInfoPanel/PierceCount", searchRoot);
         rangeText = rangeText != null ? rangeText : FindDescriptionComponent<TMP_Text>("MiddlePanel/DetailInfoPanel/Range", searchRoot);
         criticalChanceText = criticalChanceText != null ? criticalChanceText : FindDescriptionComponent<TMP_Text>("MiddlePanel/DetailInfoPanel/CriticalChance", searchRoot);
         heavyHitChanceText = heavyHitChanceText != null ? heavyHitChanceText : FindDescriptionComponent<TMP_Text>("MiddlePanel/DetailInfoPanel/HeavyHitChance", searchRoot);
+        totalKillsText = totalKillsText != null ? totalKillsText : FindDescriptionComponent<TMP_Text>("MiddlePanel/DetailInfoPanel/TotalKills", searchRoot);
+        damageDeviationText = damageDeviationText != null ? damageDeviationText : FindDescriptionComponent<TMP_Text>("MiddlePanel/DetailInfoPanel/DamageDeviation", searchRoot);
         detailUpgradeButton = detailUpgradeButton != null ? detailUpgradeButton : FindFirstDescriptionComponent<Button>(searchRoot, "LowPanel/UpgradeFrame/Upgrade", "LowPanel/UpgradeButton", "LowPanel/Upgrade");
     }
 
@@ -200,6 +240,16 @@ public class TurretDetailPopupUI : TurretPopupPageUI
         {
             heavyHitChanceTextTemplate = heavyHitChanceText.text;
         }
+
+        if (totalKillsText != null && string.IsNullOrEmpty(totalKillsTextTemplate))
+        {
+            totalKillsTextTemplate = totalKillsText.text;
+        }
+
+        if (damageDeviationText != null && string.IsNullOrEmpty(damageDeviationTextTemplate))
+        {
+            damageDeviationTextTemplate = damageDeviationText.text;
+        }
     }
 
     // 현재 터렛의 이름과 대표 이미지를 상세 팝업에 반영한다
@@ -242,6 +292,7 @@ public class TurretDetailPopupUI : TurretPopupPageUI
         TurretRuntimeStat stat = CurrentContext.CalculateCurrentStat();
         TurretDamagePolishProfileSO damagePolishProfile = CurrentContext.Definition == null ? null : CurrentContext.Definition.damagePolishProfile;
         SetDetailStatTexts(CurrentContext.Turret.CurrentTierLevel, stat, damagePolishProfile);
+        RefreshTotalKillsText();
     }
 
     // 미리보기 대상 터렛의 1레벨 상세 수치를 표시한다
@@ -256,6 +307,7 @@ public class TurretDetailPopupUI : TurretPopupPageUI
         TurretRuntimeStat stat = TurretStatCalculator.Calculate(previewDefinition, PREVIEW_LEVEL);
         TurretDamagePolishProfileSO damagePolishProfile = previewDefinition.damagePolishProfile;
         SetDetailStatTexts(PREVIEW_LEVEL, stat, damagePolishProfile);
+        SetText(totalKillsText, ApplyTemplate(totalKillsTextTemplate, "-"));
     }
 
     // 상세 수치 TMP 템플릿에 현재 터렛 스탯을 반영한다
@@ -269,6 +321,7 @@ public class TurretDetailPopupUI : TurretPopupPageUI
         SetText(rangeText, ApplyTemplate(rangeTextTemplate, FormatValue(stat.range)));
         SetText(criticalChanceText, ApplyTemplate(criticalChanceTextTemplate, FormatChance(GetCriticalChance(damagePolishProfile))));
         SetText(heavyHitChanceText, ApplyTemplate(heavyHitChanceTextTemplate, FormatChance(GetHeavyHitChance(damagePolishProfile))));
+        SetText(damageDeviationText, ApplyTemplate(damageDeviationTextTemplate, FormatDamageDeviation(damagePolishProfile)));
     }
 
     // 유효하지 않은 선택 상태에서 상세 수치 TMP를 비운다
@@ -282,6 +335,22 @@ public class TurretDetailPopupUI : TurretPopupPageUI
         SetText(rangeText, ApplyTemplate(rangeTextTemplate, "-"));
         SetText(criticalChanceText, ApplyTemplate(criticalChanceTextTemplate, "-"));
         SetText(heavyHitChanceText, ApplyTemplate(heavyHitChanceTextTemplate, "-"));
+        SetText(totalKillsText, ApplyTemplate(totalKillsTextTemplate, "-"));
+        SetText(damageDeviationText, ApplyTemplate(damageDeviationTextTemplate, "-"));
+        displayedTotalKills = -1;
+    }
+
+    // 현재 터렛 출처의 누적 처치 수를 표시한다
+    private void RefreshTotalKillsText()
+    {
+        int totalKills = currentDamageMeterSource == null ? 0 : currentDamageMeterSource.TotalKillCount;
+        if (displayedTotalKills == totalKills)
+        {
+            return;
+        }
+
+        displayedTotalKills = totalKills;
+        SetText(totalKillsText, ApplyTemplate(totalKillsTextTemplate, totalKills.ToString()));
     }
 
     // 단일 스탯 값을 소수점 둘째 자리까지 표시한다
@@ -296,6 +365,30 @@ public class TurretDetailPopupUI : TurretPopupPageUI
         return Mathf.Clamp01(chance).ToString("0.#%");
     }
 
+    // 데미지 편차 배율을 백분율 범위로 표시한다
+    private static string FormatDamageDeviation(TurretDamagePolishProfileSO damagePolishProfile)
+    {
+        if (damagePolishProfile == null || !damagePolishProfile.UseDamageVariance)
+        {
+            return "없음";
+        }
+
+        float lowerDeviation = Mathf.Max(0.0f, 1.0f - damagePolishProfile.MinDamageMultiplier);
+        float upperDeviation = Mathf.Max(0.0f, damagePolishProfile.MaxDamageMultiplier - 1.0f);
+        if (Mathf.Approximately(lowerDeviation, upperDeviation))
+        {
+            return "±" + FormatDeviationPercent(upperDeviation);
+        }
+
+        return "-" + FormatDeviationPercent(lowerDeviation) + " / +" + FormatDeviationPercent(upperDeviation);
+    }
+
+    // 1배율 기준 편차를 백분율 문자열로 변환한다
+    private static string FormatDeviationPercent(float deviation)
+    {
+        return Mathf.Max(0.0f, deviation).ToString("0.#%");
+    }
+
     // 데미지 폴리싱 프로필에서 치명타 확률을 반환한다
     private static float GetCriticalChance(TurretDamagePolishProfileSO damagePolishProfile)
     {
@@ -306,6 +399,12 @@ public class TurretDetailPopupUI : TurretPopupPageUI
     private static float GetHeavyHitChance(TurretDamagePolishProfileSO damagePolishProfile)
     {
         return damagePolishProfile == null ? 0.0f : damagePolishProfile.HeavyHitChance;
+    }
+
+    // 선택된 터렛에서 누적 처치 수 출처 컴포넌트를 가져온다
+    private static TurretDamageMeterSource ResolveDamageMeterSource(TurretDefinitionRuntimeController turret)
+    {
+        return turret == null ? null : turret.GetComponent<TurretDamageMeterSource>();
     }
 
     // 터렛 정의의 표시 이름을 반환한다
@@ -432,6 +531,11 @@ public class TurretDetailPopupUI : TurretPopupPageUI
         if (criticalChanceText == null || heavyHitChanceText == null)
         {
             Debug.LogWarning("[TurretDetailPopupUI] 치명타/강타 확률 TMP 참조가 비어 있습니다.", this);
+        }
+
+        if (totalKillsText == null || damageDeviationText == null)
+        {
+            Debug.LogWarning("[TurretDetailPopupUI] 누적 처치/데미지 편차 TMP 참조가 비어 있습니다.", this);
         }
 
         if (turretImage == null)

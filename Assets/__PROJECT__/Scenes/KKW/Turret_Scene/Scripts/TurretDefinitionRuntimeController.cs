@@ -321,8 +321,27 @@ public class TurretDefinitionRuntimeController : MonoBehaviour
         }
 
         evolvedRuntimeController.SetDefinition(evolutionEntry.targetDefinition, totalLevel, 1);
+        CopyDamageMeterLifetimeStats(evolvedRuntimeController);
         Destroy(gameObject);
         return evolvedRuntimeController;
+    }
+
+    // 진화 전 터렛의 누적 전투 표시값을 새 터렛 출처에 복사한다
+    private void CopyDamageMeterLifetimeStats(TurretDefinitionRuntimeController evolvedRuntimeController)
+    {
+        if (evolvedRuntimeController == null)
+        {
+            return;
+        }
+
+        EnsureDamageMeterSource();
+        evolvedRuntimeController.EnsureDamageMeterSource();
+        if (damageMeterSource == null || evolvedRuntimeController.damageMeterSource == null)
+        {
+            return;
+        }
+
+        evolvedRuntimeController.damageMeterSource.CopyLifetimeStatsFrom(damageMeterSource);
     }
 
     // 진화 대상 프리팹이 슬롯 부모 스케일을 중복 상속하지 않도록 로컬 스케일을 계산한다

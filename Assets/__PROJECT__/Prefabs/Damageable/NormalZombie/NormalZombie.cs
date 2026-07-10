@@ -52,6 +52,7 @@ public class NormalZombie : PoolObject, IDamageable, IAimPointProvider, IFrostSt
     private PoisonStatusRuntime poisonStatusRuntime;
     private ElectroStatusRuntime electroStatusRuntime;
     private IgnitionStatusRuntime ignitionStatusRuntime;
+    private TurretDamageMeterSource lastDamageSource;
     private float electroStunRemainingDuration;
     private bool electroStunActive;
 
@@ -102,6 +103,7 @@ public class NormalZombie : PoolObject, IDamageable, IAimPointProvider, IFrostSt
         IsAlive = true;
         attackState = false;
         attackTarget = null;
+        lastDamageSource = null;
         ResetFrostStatus();
         ResetPoisonStatus();
         ResetElectroStatus();
@@ -128,6 +130,7 @@ public class NormalZombie : PoolObject, IDamageable, IAimPointProvider, IFrostSt
     // 풀로 반환될 때 남아있는 상태이상과 빙결 이펙트를 정리한다
     public override void OnDespawn()
     {
+        lastDamageSource = null;
         ResetFrostStatus();
         ResetPoisonStatus();
         ResetElectroStatus();
@@ -346,6 +349,7 @@ public class NormalZombie : PoolObject, IDamageable, IAimPointProvider, IFrostSt
         CurrHp = Mathf.Clamp(CurrHp, 0f, TotalHp);
         float appliedDamage = Mathf.Max(0f, beforeHp - CurrHp);
         TurretDamageMeterManager.ReportDamage(damageInfo.DamageSource, appliedDamage);
+        CacheLastDamageSource(damageInfo.DamageSource, appliedDamage);
         hpUI.gameObject.SetActive(true);
         hpUI.InputCurrHp(CurrHp);
 
@@ -741,8 +745,32 @@ public class NormalZombie : PoolObject, IDamageable, IAimPointProvider, IFrostSt
             GameManager.Inst.IncreaseKillCount();
         }
 
+        ReportTurretKill();
         GrantKillReward();  // rewardResult를 이 메서드 내부에서 얻는다.
         SpawnKillRewardVisualsAndDrops();
+    }
+
+    // 마지막으로 실제 피해를 준 터렛 출처를 처치 기여자로 저장한다
+    private void CacheLastDamageSource(TurretDamageMeterSource damageSource, float appliedDamage)
+    {
+        if (damageSource == null || appliedDamage <= 0.0f)
+        {
+            return;
+        }
+
+        lastDamageSource = damageSource;
+    }
+
+    // 사망 시 마지막 피해 터렛의 누적 처치 수를 증가시킨다
+    private void ReportTurretKill()
+    {
+        if (lastDamageSource == null)
+        {
+            return;
+        }
+
+        lastDamageSource.AddKill();
+        lastDamageSource = null;
     }
 
     // 계산된 처치 보상 결과를 바탕으로 드롭 아이템과 코인 파티클을 생성한다

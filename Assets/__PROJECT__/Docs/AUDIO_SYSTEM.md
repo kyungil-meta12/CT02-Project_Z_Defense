@@ -14,8 +14,8 @@ Project-level runtime audio system for SFX, BGM, UI sounds, and turret audio eve
 | `ProjectBgmPlayer` | Scene component that plays a configured BGM cue on enable and stops it on disable. |
 | `UIButtonAudioFeedback` | UI component that plays click, hover, and select cues through `ProjectAudioManager`. |
 | `ProjectAudioVolumeSlider` | UI slider binding for Master, SFX, BGM, or UI volume. |
-| `TurretAudioProfileSO` | Turret-specific event-to-cue map for fire, impact, beam, status, skill, evolution, and placement sounds. |
-| `TurretAudioController` | Runtime turret adapter that plays profile events and owns loop handles such as beam loop and projectile loop. |
+| `TurretAudioProfileSO` | Turret-specific event-to-cue map for fire, charge, reload, impact, beam, status, skill, evolution, and placement sounds. |
+| `TurretAudioController` | Runtime turret adapter that plays profile events and owns loop handles such as beam, projectile, charge, fire, and reload loops. |
 
 ## Audio Buses
 
@@ -41,6 +41,9 @@ Current volume buses:
 
 - Turret code should call `TurretAudioController.Play(TurretAudioEvent)` instead of playing `AudioSource` directly.
 - Beam, flame, or sustained attack sounds should use `BeamStart`, `BeamLoop`, and `BeamStop`.
+- Charge attacks should use `ChargeStart`, `ChargeLoop`, and `ChargeRelease`, then stop `ChargeLoop` before firing.
+- Repeating attacks can use `FireLoop` and `FireEnd` instead of one one-shot per projectile.
+- Reload-style attacks should use `ReloadStart`, optional `ReloadLoop`, and `ReloadEnd`.
 - Damage ticks, DoT ticks, beam ticks, and chain ticks should not play one sound per tick.
 - High-frequency turrets should use cooldowns or loop sounds instead of one one-shot per projectile.
 - Meaningful events such as evolution, skill burst, status burst, and boss-impact moments should have higher priority than repeated impact sounds.

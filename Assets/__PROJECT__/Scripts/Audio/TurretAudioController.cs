@@ -13,6 +13,9 @@ namespace ProjectZDefense.Audio
 
         private ProjectAudioHandle beamLoopHandle;
         private ProjectAudioHandle projectileLoopHandle;
+        private ProjectAudioHandle chargeLoopHandle;
+        private ProjectAudioHandle fireLoopHandle;
+        private ProjectAudioHandle reloadLoopHandle;
 
         // 비활성화 시 루프 사운드를 정리한다
         private void OnDisable()
@@ -78,6 +81,56 @@ namespace ProjectZDefense.Audio
             projectileLoopHandle = default;
         }
 
+        // 차징 루프 사운드를 명시적으로 정지한다
+        public void StopChargeLoop()
+        {
+            chargeLoopHandle.Stop();
+            chargeLoopHandle = default;
+        }
+
+        // 연사 루프 사운드를 명시적으로 정지한다
+        public void StopFireLoop()
+        {
+            fireLoopHandle.Stop();
+            fireLoopHandle = default;
+        }
+
+        // 재장전 루프 사운드를 명시적으로 정지한다
+        public void StopReloadLoop()
+        {
+            reloadLoopHandle.Stop();
+            reloadLoopHandle = default;
+        }
+
+        // 지정한 루프 이벤트에 해당하는 사운드를 정지한다
+        public void StopLoop(TurretAudioEvent audioEvent)
+        {
+            switch (audioEvent)
+            {
+                case TurretAudioEvent.BeamLoop:
+                    StopBeamLoop();
+                    break;
+                case TurretAudioEvent.ProjectileLoop:
+                    StopProjectileLoop();
+                    break;
+                case TurretAudioEvent.ChargeLoop:
+                    StopChargeLoop();
+                    break;
+                case TurretAudioEvent.FireLoop:
+                    StopFireLoop();
+                    break;
+                case TurretAudioEvent.ReloadLoop:
+                    StopReloadLoop();
+                    break;
+            }
+        }
+
+        // 모든 루프 사운드를 외부에서 명시적으로 정지한다
+        public void StopAllLoops()
+        {
+            StopLoopingSounds();
+        }
+
         // 재생 이벤트에 맞는 방식으로 큐를 재생한다
         private static ProjectAudioHandle PlayCue(AudioCueSO cue, Transform emitter, float volumeScale, bool followEmitter)
         {
@@ -107,6 +160,18 @@ namespace ProjectZDefense.Audio
                     projectileLoopHandle.Stop();
                     projectileLoopHandle = handle;
                     break;
+                case TurretAudioEvent.ChargeLoop:
+                    chargeLoopHandle.Stop();
+                    chargeLoopHandle = handle;
+                    break;
+                case TurretAudioEvent.FireLoop:
+                    fireLoopHandle.Stop();
+                    fireLoopHandle = handle;
+                    break;
+                case TurretAudioEvent.ReloadLoop:
+                    reloadLoopHandle.Stop();
+                    reloadLoopHandle = handle;
+                    break;
             }
         }
 
@@ -115,6 +180,9 @@ namespace ProjectZDefense.Audio
         {
             StopBeamLoop();
             StopProjectileLoop();
+            StopChargeLoop();
+            StopFireLoop();
+            StopReloadLoop();
         }
     }
 }

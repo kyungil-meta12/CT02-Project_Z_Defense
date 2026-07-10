@@ -63,12 +63,6 @@ public sealed class TurretDamageMeterManager : MonoBehaviour
         FlushPendingSources();
     }
 
-    // 에디터에서 컴포넌트를 추가할 때 같은 오브젝트의 UI 참조를 연결한다
-    private void Reset()
-    {
-        meterUI = GetComponent<TurretDamageMeterUI>();
-    }
-
     // 활성화될 때 현재 웨이브 번호를 기록한다
     private void OnEnable()
     {
@@ -358,6 +352,14 @@ public sealed class TurretDamageMeterEntry
         get
         {
             return Source == null ? string.Empty : Source.DisplayName;
+        }
+    }
+
+    public string DisplayNameWithLevel
+    {
+        get
+        {
+            return Source == null ? string.Empty : Source.DisplayNameWithLevel;
         }
     }
 

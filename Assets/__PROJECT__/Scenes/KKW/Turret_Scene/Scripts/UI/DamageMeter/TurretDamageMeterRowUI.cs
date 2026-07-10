@@ -41,18 +41,11 @@ public sealed class TurretDamageMeterRowUI : MonoBehaviour
         ValidateRequiredReferences();
         CacheBarFillRect();
         CacheMaxBarWidth();
-        CacheCanvasGroup();
 
         if (rectTransform != null)
         {
             targetY = rectTransform.anchoredPosition.y;
         }
-    }
-
-    // 에디터에서 컴포넌트를 추가할 때 같은 오브젝트의 CanvasGroup을 연결한다
-    private void Reset()
-    {
-        canvasGroup = GetComponent<CanvasGroup>();
     }
 
     // 매 프레임 목표 Y 위치로 부드럽게 이동한다
@@ -86,7 +79,6 @@ public sealed class TurretDamageMeterRowUI : MonoBehaviour
     // Row의 전체 투명도를 변경한다
     public void SetAlpha(float alpha)
     {
-        CacheCanvasGroup();
         if (canvasGroup == null)
         {
             return;
@@ -247,20 +239,9 @@ public sealed class TurretDamageMeterRowUI : MonoBehaviour
             Debug.LogWarning("[딜 미터 행 UI] Bar Fill Image 참조가 비어 있어 그래프를 표시할 수 없습니다.", this);
         }
 
-        if (canvasGroup == null && GetComponent<CanvasGroup>() == null)
+        if (canvasGroup == null)
         {
             Debug.LogWarning("[딜 미터 행 UI] CanvasGroup 참조가 비어 있어 접기 투명도 연출을 적용할 수 없습니다.", this);
         }
-    }
-
-    // Row 전체 투명도 제어용 CanvasGroup을 캐시한다
-    private void CacheCanvasGroup()
-    {
-        if (canvasGroup != null)
-        {
-            return;
-        }
-
-        canvasGroup = GetComponent<CanvasGroup>();
     }
 }

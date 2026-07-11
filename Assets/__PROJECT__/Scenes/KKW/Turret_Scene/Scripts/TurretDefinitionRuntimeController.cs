@@ -25,6 +25,7 @@ public class TurretDefinitionRuntimeController : MonoBehaviour
     [SerializeField] private FiringEvent targetFiringEvent;
     [SerializeField] private TurretDamageMeterSource damageMeterSource;
     [SerializeField] private TurretAudioController audioController;
+    [SerializeField] private TurretAudioFireEventRelay audioFireEventRelay;
     [SerializeField] private string currentTurretName;
     [SerializeField] private string availableEvolutionNames;
 
@@ -152,7 +153,7 @@ public class TurretDefinitionRuntimeController : MonoBehaviour
 
         ApplyDamageMeterSource();
         ApplyDamagePolishProfile();
-        ApplyAudioProfile();
+        ApplyAudioProfile(runtimeStat.fireInterval);
 
         if (applyVFXToTurret)
         {
@@ -550,7 +551,7 @@ public class TurretDefinitionRuntimeController : MonoBehaviour
     }
 
     // 현재 터렛 정의에 연결된 오디오 프로필을 터렛 사운드 컨트롤러에 전달한다
-    private void ApplyAudioProfile()
+    private void ApplyAudioProfile(float fireInterval)
     {
         if (audioController == null && turretDefinition.audioProfile != null)
         {
@@ -566,7 +567,23 @@ public class TurretDefinitionRuntimeController : MonoBehaviour
             return;
         }
 
+        EnsureAudioFireEventRelay();
         audioController.SetAudioProfile(turretDefinition.audioProfile);
+        audioController.SetTriggerInterval(TurretAudioEvent.Fire, fireInterval);
+    }
+
+    // 터렛 발사 이벤트를 오디오 이벤트로 변환하는 릴레이를 준비한다
+    private void EnsureAudioFireEventRelay()
+    {
+        if (audioFireEventRelay == null)
+        {
+            audioFireEventRelay = GetComponent<TurretAudioFireEventRelay>();
+        }
+
+        if (audioFireEventRelay == null)
+        {
+            audioFireEventRelay = gameObject.AddComponent<TurretAudioFireEventRelay>();
+        }
     }
 
     // 터렛과 하위 런타임 수신자에 딜 미터기 출처를 적용한다
@@ -775,6 +792,11 @@ public class TurretDefinitionRuntimeController : MonoBehaviour
         if (audioController == null)
         {
             audioController = GetComponent<TurretAudioController>();
+        }
+
+        if (audioFireEventRelay == null)
+        {
+            audioFireEventRelay = GetComponent<TurretAudioFireEventRelay>();
         }
     }
 

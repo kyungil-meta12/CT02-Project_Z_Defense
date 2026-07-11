@@ -13,7 +13,15 @@ MonoBehaviour:
   m_Name: Laser_Blue_1
   m_EditorClassIdentifier: Assembly-CSharp::ProjectZDefense.Audio.TurretAudioProfileSO
   entries:
-  - audioEvent: 0
-    cue: {fileID: 11400000, guid: d7d208401c391cb4a80b3f8efd4865d5, type: 2}
+  - audioEvent: 16
+    cue: {fileID: 11400000, guid: 0ca6932ab4ab83d40b238a5d94ba4400, type: 2}
     volumeScale: 1
-    followEmitter: 0
+    followEmitter: 1
+    playAfterTriggerEvent: 0
+    triggerEvent: 0
+    delayAfterTrigger: 0
+    cancelPreviousDelayedSameEvent: 0
+    sustainWhileTriggerContinues: 1
+    stopDelayAfterLastTrigger: 0.2
+    playEndEventWhenSustainStops: 0
+    sustainEndEvent: 0

@@ -283,6 +283,8 @@ MonoBehaviour:
   statProfileApplier: {fileID: -8611196808681773507}
   targetTurret: {fileID: -5691196549830874599}
   targetFiringEvent: {fileID: 1903308736497104700}
+  damageMeterSource: {fileID: 0}
+  audioController: {fileID: 0}
   currentTurretName: 
   availableEvolutionNames: 
 --- !u!114 &1257144162829510071

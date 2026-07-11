@@ -296,6 +296,7 @@ public class ProjectileHitDetector : MonoBehaviour
     // HOVL 투사체의 공통 피격 루틴을 호출하고 없으면 풀 반환으로 대체한다
     private void HandleProjectileImpact(Vector3 hitPoint, Vector3 hitNormal)
     {
+        PlayImpactAudio();
         CacheProjectileMover();
         if (projectileMover == null)
         {
@@ -309,6 +310,17 @@ public class ProjectileHitDetector : MonoBehaviour
         }
 
         projectileMover.HandleExternalHit(hitPoint, hitNormal);
+    }
+
+    // 최종 투사체 충돌 사운드를 재생한다
+    private void PlayImpactAudio()
+    {
+        if (damageDealer == null)
+        {
+            return;
+        }
+
+        damageDealer.PlayImpactAudio(transform);
     }
 
     // 투사체 하위 콜라이더를 트리거로 설정해 보정 판정과 충돌 판정을 함께 사용한다
@@ -370,10 +382,12 @@ public class ProjectileHitDetector : MonoBehaviour
         CacheProjectileMover();
         if (projectileMover == null)
         {
+            PlayImpactAudio();
             PooledProjectileReturner.ReturnOrDestroy(gameObject);
             return true;
         }
 
+        PlayImpactAudio();
         projectileMover.HandleExternalHit(hit.point, hit.normal);
         return true;
     }
@@ -396,6 +410,7 @@ public class ProjectileHitDetector : MonoBehaviour
         CacheProjectileMover();
         if (projectileMover == null)
         {
+            PlayImpactAudio();
             PooledProjectileReturner.ReturnOrDestroy(gameObject);
             return true;
         }
@@ -405,6 +420,7 @@ public class ProjectileHitDetector : MonoBehaviour
             return true;
         }
 
+        PlayImpactAudio();
         projectileMover.HandleExternalHit(hitPoint, hitNormal.normalized);
         return true;
     }

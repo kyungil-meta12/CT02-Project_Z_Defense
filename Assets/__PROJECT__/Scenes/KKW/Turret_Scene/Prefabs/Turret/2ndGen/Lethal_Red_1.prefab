@@ -414,6 +414,7 @@ MonoBehaviour:
   targetTurret: {fileID: -4505934844743637725}
   targetFiringEvent: {fileID: -1648731669191798185}
   damageMeterSource: {fileID: 0}
+  audioController: {fileID: 0}
   currentTurretName: 
   availableEvolutionNames: 
 --- !u!114 &-7340393647741254719

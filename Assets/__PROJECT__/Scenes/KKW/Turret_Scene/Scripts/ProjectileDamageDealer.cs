@@ -22,6 +22,8 @@ public class ProjectileDamageDealer : MonoBehaviour
     private ElectroStatusPayload electroStatusPayload;
     private TurretDamagePolishProfileSO damagePolishProfile;
     private TurretDamageMeterSource damageMeterSource;
+    private ProjectZDefense.Audio.ITurretAudioEventPlayer audioEventPlayer;
+    private bool hasPlayedImpactAudio;
 
     public bool HasReachedPierceLimit
     {
@@ -85,6 +87,8 @@ public class ProjectileDamageDealer : MonoBehaviour
         electroStatusPayload = electroStatusPayload_;
         damagePolishProfile = damagePolishProfile_;
         damageMeterSource = damageMeterSource_;
+        audioEventPlayer = ResolveAudioEventPlayer(damageMeterSource);
+        hasPlayedImpactAudio = false;
         poisonStatusPayload.damageSource = damageMeterSource;
         electroStatusPayload.damageSource = damageMeterSource;
         hitDamageables.Clear();
@@ -92,6 +96,29 @@ public class ProjectileDamageDealer : MonoBehaviour
         enabled = true;
 
         InitHitDetector(target);
+    }
+
+    // 투사체가 최종 충돌했을 때 Impact 사운드를 한 번 재생한다
+    public void PlayImpactAudio(Transform emitter)
+    {
+        if (hasPlayedImpactAudio || audioEventPlayer == null)
+        {
+            return;
+        }
+
+        hasPlayedImpactAudio = true;
+        audioEventPlayer.Play(ProjectZDefense.Audio.TurretAudioEvent.Impact, emitter);
+    }
+
+    // 데미지 출처 오브젝트에서 터렛 오디오 이벤트 플레이어를 찾는다
+    private static ProjectZDefense.Audio.ITurretAudioEventPlayer ResolveAudioEventPlayer(TurretDamageMeterSource damageMeterSource)
+    {
+        if (damageMeterSource == null)
+        {
+            return null;
+        }
+
+        return damageMeterSource.GetComponent<ProjectZDefense.Audio.TurretAudioController>();
     }
 
     // 충돌한 콜라이더에서 데미지 대상 컴포넌트를 찾아 데미지를 적용한다

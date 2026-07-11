@@ -16,6 +16,7 @@ Project-level runtime audio system for SFX, BGM, UI sounds, and turret audio eve
 | `ProjectAudioVolumeSlider` | UI slider binding for Master, SFX, BGM, or UI volume. |
 | `TurretAudioProfileSO` | Turret-specific event-to-cue map for fire, charge, reload, impact, beam, status, skill, evolution, and placement sounds. |
 | `TurretAudioController` | Runtime turret adapter that plays profile events and owns loop handles such as beam, projectile, charge, fire, and reload loops. |
+| `TurretAudioFireEventRelay` | Project-level adapter that listens to the external turret `Fired` event and forwards it as `TurretAudioEvent.Fire`. |
 
 ## Audio Buses
 
@@ -35,15 +36,19 @@ Current volume buses:
 - Use `maxTotalVoices`, `maxSfxVoices`, `maxBgmVoices`, and `maxUiVoices` to keep late-wave audio bounded.
 - `AudioCueSO.maxSimultaneous` limits duplicate instances of the same cue.
 - `AudioCueSO.minInterval` prevents rapid repeated cue spam.
-- Higher-priority sounds can steal lower-priority sounds when global or bus limits are full.
+- Priority follows Unity `AudioSource.priority`: lower numbers are more important. Higher-priority cues can steal lower-priority sounds when global or bus limits are full.
 
 ## Turret Rules
 
-- Turret code should call `TurretAudioController.Play(TurretAudioEvent)` instead of playing `AudioSource` directly.
+- Project-owned adapters should call `TurretAudioController.Play(TurretAudioEvent)` instead of playing `AudioSource` directly.
+- External turret code should expose gameplay timing events only; audio mapping belongs to `TurretAudioProfileSO`, `TurretAudioController`, and small project-level relay components.
 - Beam, flame, or sustained attack sounds should use `BeamStart`, `BeamLoop`, and `BeamStop`.
 - Charge attacks should use `ChargeStart`, `ChargeLoop`, and `ChargeRelease`, then stop `ChargeLoop` before firing.
 - Repeating attacks can use `FireLoop` and `FireEnd` instead of one one-shot per projectile.
+- Fast repeated attacks can keep `FireLoop` alive from repeated `Fire` trigger events, then stop it after a short no-fire grace time and optionally play `FireEnd`.
 - Reload-style attacks should use `ReloadStart`, optional `ReloadLoop`, and `ReloadEnd`.
+- A profile entry can be configured as a delayed event after another trigger event. Current Sentinel-01 uses `ReloadStart` 0.5 seconds after `Fire`.
+- Delayed entries can also use a trigger-interval ratio instead of fixed seconds. Charge-style turrets such as Plasma Yellow should schedule `ChargeStart` from repeated `Fire` using the current runtime fire interval, so level-based attack-speed changes keep the charge timing proportional.
 - Damage ticks, DoT ticks, beam ticks, and chain ticks should not play one sound per tick.
 - High-frequency turrets should use cooldowns or loop sounds instead of one one-shot per projectile.
 - Meaningful events such as evolution, skill burst, status burst, and boss-impact moments should have higher priority than repeated impact sounds.

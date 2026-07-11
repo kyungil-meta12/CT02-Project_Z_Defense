@@ -17,7 +17,15 @@ MonoBehaviour:
     cue: {fileID: 11400000, guid: c550b5d611ad09b48a9b22a778837b30, type: 2}
     volumeScale: 1
     followEmitter: 0
+    playAfterTriggerEvent: 0
+    triggerEvent: 0
+    delayAfterTrigger: 0
+    cancelPreviousDelayedSameEvent: 0
   - audioEvent: 18
     cue: {fileID: 11400000, guid: 3cbe58edcfea869448da57a00ee0ecbb, type: 2}
     volumeScale: 1
     followEmitter: 0
+    playAfterTriggerEvent: 1
+    triggerEvent: 0
+    delayAfterTrigger: 0.75
+    cancelPreviousDelayedSameEvent: 1

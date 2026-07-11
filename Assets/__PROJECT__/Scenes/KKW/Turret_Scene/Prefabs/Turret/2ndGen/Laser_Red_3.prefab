@@ -173,7 +173,7 @@ MonoBehaviour:
   closeRangePredictionDistance: 2
   closeRangeFireDistance: 2
   closeRangeTurretAngleAttack: 60
-  requireAimAngleBeforeFire: 1
+  requireAimAngleBeforeFire: 0
   fireTick: 0.1
   targetSearchInterval: 0.1
   aimPointLerpSpeed: 18
@@ -283,6 +283,8 @@ MonoBehaviour:
   statProfileApplier: {fileID: 6942358795013291800}
   targetTurret: {fileID: 2976829187842507852}
   targetFiringEvent: {fileID: 6782653667121079455}
+  damageMeterSource: {fileID: 0}
+  audioController: {fileID: 0}
   currentTurretName: 
   availableEvolutionNames: 
 --- !u!114 &6040610870682390392

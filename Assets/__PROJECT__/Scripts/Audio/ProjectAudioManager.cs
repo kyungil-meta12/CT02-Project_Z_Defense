@@ -230,6 +230,11 @@ namespace ProjectZDefense.Audio
         private void PrewarmSources()
         {
             int count = Mathf.Max(0, prewarmSourceCount);
+            if (maxSourceCount > 0)
+            {
+                count = Mathf.Min(count, maxSourceCount);
+            }
+
             for (int i = 0; i < count; i++)
             {
                 inactiveSources.Push(CreateSource());
@@ -244,7 +249,7 @@ namespace ProjectZDefense.Audio
                 return inactiveSources.Pop();
             }
 
-            if (activeSources.Count + inactiveSources.Count >= maxSourceCount)
+            if (maxSourceCount > 0 && activeSources.Count + inactiveSources.Count >= maxSourceCount)
             {
                 return null;
             }
@@ -443,12 +448,12 @@ namespace ProjectZDefense.Audio
         private PooledAudioSource FindLowestPrioritySource(int priority, ProjectAudioBus? bus)
         {
             PooledAudioSource selected = null;
-            int selectedPriority = -1;
+            int selectedPriority = int.MinValue;
 
             for (int i = 0; i < activeSources.Count; i++)
             {
                 PooledAudioSource source = activeSources[i];
-                if (source == null || source.Priority < priority)
+                if (source == null || source.Priority <= priority)
                 {
                     continue;
                 }

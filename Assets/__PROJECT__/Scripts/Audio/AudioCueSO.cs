@@ -27,6 +27,7 @@ namespace ProjectZDefense.Audio
         [SerializeField] private float maxDistance = 28f;
 
         [Header("중복 제한")]
+        [Tooltip("Unity AudioSource 우선순위와 동일하게 0에 가까울수록 중요도가 높습니다.")]
         [SerializeField] private int priority = 128;
         [SerializeField] private float minInterval = 0f;
         [SerializeField] private int maxSimultaneous = 4;

@@ -14,6 +14,18 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ProjectZDefense.Audio.TurretAudioProfileSO
   entries:
   - audioEvent: 0
+    cue: {fileID: 11400000, guid: 0410ddd14a6d4f041b42334642ba3820, type: 2}
+    volumeScale: 1
+    followEmitter: 0
+    playAfterTriggerEvent: 0
+    triggerEvent: 0
+    delayAfterTrigger: 0
+    cancelPreviousDelayedSameEvent: 0
+  - audioEvent: 18
     cue: {fileID: 11400000, guid: 70d4431bcbec1c04f8a87f8b6b679eb8, type: 2}
     volumeScale: 1
     followEmitter: 0
+    playAfterTriggerEvent: 1
+    triggerEvent: 0
+    delayAfterTrigger: 1
+    cancelPreviousDelayedSameEvent: 1

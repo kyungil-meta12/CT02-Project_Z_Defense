@@ -4,11 +4,30 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
+#if UNITY_EDITOR
+using UnityEditor;
+[CustomEditor(typeof(GameManager))] 
+public class WaveController : Editor
+{
+    public override void OnInspectorGUI()
+    {
+        DrawDefaultInspector();
+        GameManager script = (GameManager)target;
+        GUILayout.Space(10);
+        if (GUILayout.Button("웨이브 증가"))
+        {
+            script.InvokeIncreaseWave();
+        }
+    }
+}
+#endif
+
 /// <summary>
 /// 웨이브 진행, 게임 배속, 방어선 상태, 생존자/장애물 등록을 관리한다.
 /// </summary>
 public class GameManager : MonoBehaviour
 {
+
     [Header("웨이브 실패시 웨이브 감소 수치")]
     public int waveDecrease = 1;
     private const int DEFAULT_DEFENSE_LINE_COUNT = 4;
@@ -142,13 +161,19 @@ public class GameManager : MonoBehaviour
         // 킬 카운트가 목표 킬 카운트에 도달할 시 웨이브를 증가시킨다
         if(DestKillCount > 0 && KillCount == DestKillCount)
         {
-            CompleteZombieDpsMeasurementWave();
-            KillCount = 0;
-            Wave++;
-            InventorySystem.Inst.AddCoinBouns(waveClearCoinBonusPercentage);
-            OnWaveIncrease?.Invoke(Wave);
-            BeginZombieDpsMeasurementWave();
+            InvokeIncreaseWave();
         }
+    }
+
+    public void InvokeIncreaseWave()
+    {
+        CompleteZombieDpsMeasurementWave();
+        KillCount = 0;
+        Wave++;
+        InventorySystem.Inst.AddCoinBouns(waveClearCoinBonusPercentage);
+        OnWaveIncrease?.Invoke(Wave);
+        OnWaveIncrease?.Invoke(Wave);
+        BeginZombieDpsMeasurementWave();
     }
 
     /// <summary>

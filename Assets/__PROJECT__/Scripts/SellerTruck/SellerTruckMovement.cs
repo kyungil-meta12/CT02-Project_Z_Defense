@@ -155,4 +155,13 @@ public class SellerTruckMovement : MonoBehaviour
     {
         return stayTime / stayDuration;
     }
+    
+    /// <summary>
+    /// 떠나는 상태를 리턴한다.
+    /// </summary>
+    /// <returns></returns>
+    public bool GetLeaveState()
+    {
+        return isLeaving;
+    }
 }

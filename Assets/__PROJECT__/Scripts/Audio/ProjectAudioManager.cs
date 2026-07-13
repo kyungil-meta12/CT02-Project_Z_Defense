@@ -206,7 +206,7 @@ namespace ProjectZDefense.Audio
                 return Inst;
             }
 
-            ProjectAudioManager manager = FindObjectOfType<ProjectAudioManager>();
+            ProjectAudioManager manager = FindAnyObjectByType<ProjectAudioManager>();
             if (manager != null)
             {
                 Inst = manager;

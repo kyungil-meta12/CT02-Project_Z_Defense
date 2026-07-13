@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-using CodeStage.AntiCheat.EditorCode.Processors;
 using UnityEngine;
 using UnityEngine.UI;
 using WaypointsFree;
@@ -11,6 +9,8 @@ public class SellerTruckMovement : MonoBehaviour
     public GameObject button;
     public Image image;
     public TransactionPopup popup;
+    public GameObject survivors;
+    public LayerMask groundMask;
     [Header("나타나는 웨이브 단위")] public int appearWaveUnit; 
     [Header("테스트 모드")] public bool testMode;
 
@@ -26,6 +26,7 @@ public class SellerTruckMovement : MonoBehaviour
         traveler = GetComponent<WaypointsTraveler>();
         originMoveSpeed = traveler.MoveSpeed;
         originLookAtSpeed = traveler.LookAtSpeed;
+        survivors.SetActive(false);
     }
 
     void Start()
@@ -51,6 +52,7 @@ public class SellerTruckMovement : MonoBehaviour
     }
 
     public void OnWaveIncrease(int wave)
+
     {
         if(wave >= appearWaveUnit && wave % appearWaveUnit == 0) // appearWaveUnit마다 트럭이 나타난다.
         {
@@ -80,6 +82,25 @@ public class SellerTruckMovement : MonoBehaviour
                     traveler.LookAtSpeed = 0f;
                     traveler.Move(false);
                     button.SetActive(true);
+                    survivors.SetActive(true);
+                    survivors.transform.position = transform.position + transform.forward * 10f;
+
+                    var childCount = survivors.transform.childCount;
+
+                    // 땅 높이에 맞춘다
+                    for(int i = 0; i < childCount; i ++)
+                    {
+                        var child = survivors.transform.GetChild(i);
+                        var childPos = child.transform.position;
+                        childPos.y = 5f;
+                        child.transform.position = childPos;
+                        var raycast = Physics.RaycastAll(child.transform.position, Vector3.down, 10f, groundMask);
+                        if(raycast.Length > 0)
+                        {
+                            childPos.y = raycast[0].point.y;
+                            child.transform.position = childPos;
+                        }
+                    }
 
                     // 팝업 실행
                     popup.Init();
@@ -98,6 +119,7 @@ public class SellerTruckMovement : MonoBehaviour
                     traveler.Move(true);
                     isLeaving = true;
                     button.SetActive(false);
+                    survivors.SetActive(false);
                 }
             }
         }

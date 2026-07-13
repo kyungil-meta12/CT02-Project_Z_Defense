@@ -28,6 +28,6 @@ MonoBehaviour:
     - currencyType: 41
       amount: 1
     evolutionIcon: {fileID: 21300000, guid: 7c4ef125d1c37e84e85958119b80e944, type: 3}
-    evolutionEffectPrefab: {fileID: 640602461530948004, guid: 938be4f127f81d348a60fe4019a9422c, type: 3}
+    evolutionEffectPrefab: {fileID: 2834388740668858265, guid: fa0c4befa7b961848b29062ae21efa85, type: 3}
     evolutionEffectLocalOffset: {x: 0, y: 0, z: 0}
     evolutionEffectDuration: 2

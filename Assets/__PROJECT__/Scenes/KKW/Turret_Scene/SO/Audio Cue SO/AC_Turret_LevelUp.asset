@@ -10,12 +10,12 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f5a3d739db38e584dae58421ff6a3d45, type: 3}
-  m_Name: Turret_Base_Placement Available_Audio Cue SO
+  m_Name: AC_Turret_LevelUp
   m_EditorClassIdentifier: Assembly-CSharp::ProjectZDefense.Audio.AudioCueSO
   bus: 0
   playbackMode: 0
   clips:
-  - {fileID: 8300000, guid: 6c333c23ce72a92408a85de7cfd19200, type: 3}
+  - {fileID: 8300000, guid: a17c77289a0ad9244b0c57a8d0f156cc, type: 3}
   mixerGroup: {fileID: 0}
   volume: 1
   volumeRandomRange: 0
@@ -24,7 +24,7 @@ MonoBehaviour:
   spatialBlend: 1
   minDistance: 4
   maxDistance: 28
-  priority: 128
-  minInterval: 0.3
+  priority: 130
+  minInterval: 0.08
   maxSimultaneous: 4
   replaceOldestWhenLimited: 0

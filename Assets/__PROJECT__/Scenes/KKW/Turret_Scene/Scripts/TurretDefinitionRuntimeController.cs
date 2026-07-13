@@ -260,6 +260,7 @@ public class TurretDefinitionRuntimeController : MonoBehaviour
         turretDefinition = evolutionEntry.targetDefinition;
         level = 1;
         Apply();
+        PlayAudioEvent(TurretAudioEvent.Evolution);
         return true;
     }
 
@@ -325,6 +326,7 @@ public class TurretDefinitionRuntimeController : MonoBehaviour
         }
 
         evolvedRuntimeController.SetDefinition(evolutionEntry.targetDefinition, totalLevel, 1);
+        evolvedRuntimeController.PlayAudioEvent(TurretAudioEvent.Evolution);
         CopyDamageMeterLifetimeStats(evolvedRuntimeController);
         Destroy(gameObject);
         return evolvedRuntimeController;
@@ -460,6 +462,7 @@ public class TurretDefinitionRuntimeController : MonoBehaviour
         }
 
         SetLevel(level + levelAmount);
+        PlayAudioEvent(TurretAudioEvent.LevelUp);
         TurretEconomyLogUtility.LogResult("업그레이드", GetCurrentTurretLogName(), costs, true, this);
         return true;
     }

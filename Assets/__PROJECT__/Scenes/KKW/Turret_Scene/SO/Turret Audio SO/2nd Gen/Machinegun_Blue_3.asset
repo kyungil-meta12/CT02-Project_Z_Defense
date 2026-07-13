@@ -1,4 +1,4 @@
-%YAML 1.1
+﻿%YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
 --- !u!114 &11400000
 MonoBehaviour:
@@ -21,11 +21,43 @@ MonoBehaviour:
     triggerEvent: 0
     delayAfterTrigger: 0
     cancelPreviousDelayedSameEvent: 0
-  - audioEvent: 6
-    cue: {fileID: 11400000, guid: 3da6567c3e05ef14889255d985d9d46a, type: 2}
+    useTriggerIntervalDelay: 0
+    triggerIntervalDelayRatio: 0
+    minDelayAfterTrigger: 0
+    maxDelayAfterTrigger: 0
+    sustainWhileTriggerContinues: 0
+    stopDelayAfterLastTrigger: 0
+    playEndEventWhenSustainStops: 0
+    sustainEndEvent: 0
+  - audioEvent: 23
+    cue: {fileID: 11400000, guid: 70a0f436ffd71f04daf63e0d46f9ec89, type: 2}
     volumeScale: 1
     followEmitter: 0
-    playAfterTriggerEvent: 1
+    playAfterTriggerEvent: 0
     triggerEvent: 0
-    delayAfterTrigger: 0.08
+    delayAfterTrigger: 0
     cancelPreviousDelayedSameEvent: 0
+    useTriggerIntervalDelay: 0
+    triggerIntervalDelayRatio: 0
+    minDelayAfterTrigger: 0
+    maxDelayAfterTrigger: 0
+    sustainWhileTriggerContinues: 0
+    stopDelayAfterLastTrigger: 0
+    playEndEventWhenSustainStops: 0
+    sustainEndEvent: 0
+  - audioEvent: 10
+    cue: {fileID: 11400000, guid: fd602acb8f3b8744aa380c80c740c6c8, type: 2}
+    volumeScale: 1
+    followEmitter: 0
+    playAfterTriggerEvent: 0
+    triggerEvent: 0
+    delayAfterTrigger: 0
+    cancelPreviousDelayedSameEvent: 0
+    useTriggerIntervalDelay: 0
+    triggerIntervalDelayRatio: 0
+    minDelayAfterTrigger: 0
+    maxDelayAfterTrigger: 0
+    sustainWhileTriggerContinues: 0
+    stopDelayAfterLastTrigger: 0
+    playEndEventWhenSustainStops: 0
+    sustainEndEvent: 0

@@ -44,6 +44,8 @@ Current volume buses:
 - External turret code should expose gameplay timing events only; audio mapping belongs to `TurretAudioProfileSO`, `TurretAudioController`, and small project-level relay components.
 - Turret placement success should play `Placement` from the placed turret's `TurretAudioProfileSO`.
 - Turret placement valid-slot feedback should play `PlacementAvailable` from the currently selected turret definition's `TurretAudioProfileSO` only when the preview newly enters a valid slot.
+- Paid turret upgrade success should play `LevelUp` from the upgraded turret's current `TurretAudioProfileSO` after the new level has been applied.
+- Turret evolution success should play `Evolution` from the evolved result turret's `TurretAudioProfileSO`; the visual evolution effect remains owned by `TurretEvolutionProgressionSO`.
 - Projectile impact audio is triggered by `ProjectileHitDetector` through `ProjectileDamageDealer.PlayImpactAudio`. The damage dealer resolves the turret audio player from the turret's `TurretDamageMeterSource`, so gun and firing APIs do not carry audio parameters.
 - Beam, flame, or sustained attack sounds should use `BeamStart`, `BeamLoop`, and `BeamStop`.
 - Charge attacks should use `ChargeStart`, `ChargeLoop`, and `ChargeRelease`, then stop `ChargeLoop` before firing.
@@ -78,6 +80,7 @@ This section records the current in-progress setup so audio work can continue wi
 | `Plasma_Yellow` | `ChargeStart` should be scheduled from `Fire` using trigger-interval ratio instead of a fixed 0.7 second delay, so level-based attack-speed changes keep timing proportional. |
 | `Plasma_Yellow Impact` | `Impact` should play only when the projectile reaches its final impact/despawn path, not as a delayed event after `Fire`. |
 | Turret placement | `Placement` plays after a turret is successfully instantiated and its definition/audio profile has been applied. `PlacementAvailable` plays when placement preview newly enters a valid build slot, and does not repeat while staying on the same valid slot. |
+| Turret upgrade and evolution | `LevelUp` plays after a paid upgrade succeeds and the new level is applied. `Evolution` plays after the target evolution definition is applied, so the resulting turret profile owns the evolution sound. |
 
 ## Handoff Notes
 

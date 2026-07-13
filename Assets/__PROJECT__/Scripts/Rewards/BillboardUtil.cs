@@ -4,7 +4,7 @@ public static class BillboardUtil
 {
     public static void SetBillboard(RectTransform rt, Camera mainCam)
     {
-        var camRot = -mainCam.transform.rotation.eulerAngles;
+        var camRot = mainCam.transform.rotation.eulerAngles;
         rt.rotation = Quaternion.Euler(camRot);
     }
 

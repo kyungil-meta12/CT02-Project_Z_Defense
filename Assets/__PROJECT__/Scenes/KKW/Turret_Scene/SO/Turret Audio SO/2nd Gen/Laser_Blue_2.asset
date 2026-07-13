@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Laser_Blue_2
   m_EditorClassIdentifier: Assembly-CSharp::ProjectZDefense.Audio.TurretAudioProfileSO
   entries:
-  - audioEvent: 16
+  - audioEvent: 0
     cue: {fileID: 11400000, guid: 0ca6932ab4ab83d40b238a5d94ba4400, type: 2}
     volumeScale: 1
     followEmitter: 1

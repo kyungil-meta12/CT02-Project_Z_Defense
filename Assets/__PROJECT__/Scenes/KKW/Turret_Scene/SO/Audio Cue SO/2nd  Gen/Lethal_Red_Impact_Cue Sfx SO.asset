@@ -10,12 +10,12 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f5a3d739db38e584dae58421ff6a3d45, type: 3}
-  m_Name: Lethal_Green_Audio Cue Sfx SO
+  m_Name: Lethal_Red_Impact_Cue Sfx SO
   m_EditorClassIdentifier: Assembly-CSharp::ProjectZDefense.Audio.AudioCueSO
   bus: 0
   playbackMode: 0
   clips:
-  - {fileID: 8300000, guid: 3681e8a09c5ad524b916928658f016a3, type: 3}
+  - {fileID: 8300000, guid: e2ad0b70177612c4a9cf4d06bba605fd, type: 3}
   mixerGroup: {fileID: 0}
   volume: 1
   volumeRandomRange: 0
@@ -24,7 +24,7 @@ MonoBehaviour:
   spatialBlend: 1
   minDistance: 4
   maxDistance: 28
-  priority: 128
-  minInterval: 0
-  maxSimultaneous: 4
+  priority: 115
+  minInterval: 0.1
+  maxSimultaneous: 2
   replaceOldestWhenLimited: 0

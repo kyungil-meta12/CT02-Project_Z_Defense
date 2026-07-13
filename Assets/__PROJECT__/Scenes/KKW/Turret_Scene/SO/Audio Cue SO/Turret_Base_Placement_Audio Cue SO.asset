@@ -10,12 +10,12 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f5a3d739db38e584dae58421ff6a3d45, type: 3}
-  m_Name: Laser_Blue_Fire_Cue Sfx SO
+  m_Name: Turret_Base_Placement_Audio Cue SO
   m_EditorClassIdentifier: Assembly-CSharp::ProjectZDefense.Audio.AudioCueSO
   bus: 0
   playbackMode: 0
   clips:
-  - {fileID: 8300000, guid: 5d6081a0005da4a41826ffd4aa699dfa, type: 3}
+  - {fileID: 8300000, guid: 48a5c81bf35f78d498a429853ff79666, type: 3}
   mixerGroup: {fileID: 0}
   volume: 1
   volumeRandomRange: 0

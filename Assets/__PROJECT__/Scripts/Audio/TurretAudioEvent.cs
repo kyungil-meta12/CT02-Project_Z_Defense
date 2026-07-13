@@ -26,6 +26,7 @@ namespace ProjectZDefense.Audio
         ReloadStart = 18,
         ReloadLoop = 19,
         ReloadEnd = 20,
-        Empty = 21
+        Empty = 21,
+        PlacementAvailable = 22
     }
 }

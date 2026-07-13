@@ -15,7 +15,7 @@ MonoBehaviour:
   bus: 0
   playbackMode: 0
   clips:
-  - {fileID: 0}
+  - {fileID: 8300000, guid: 7a40bc8902c8a3141b27c7089d1575cf, type: 3}
   mixerGroup: {fileID: 0}
   volume: 1
   volumeRandomRange: 0

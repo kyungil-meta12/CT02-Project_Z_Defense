@@ -464,6 +464,18 @@ public class TurretDefinitionRuntimeController : MonoBehaviour
         return true;
     }
 
+    // 현재 터렛 인스턴스의 오디오 프로필로 지정 이벤트를 재생한다
+    public ProjectAudioHandle PlayAudioEvent(TurretAudioEvent audioEvent)
+    {
+        EnsureAudioController();
+        if (audioController == null)
+        {
+            return default;
+        }
+
+        return audioController.Play(audioEvent);
+    }
+
     // 총 레벨을 유지하면서 터렛 정의와 티어 레벨을 설정한다
     public void SetDefinition(TurretDefinitionSO turretDefinition_, int level_)
     {
@@ -553,14 +565,7 @@ public class TurretDefinitionRuntimeController : MonoBehaviour
     // 현재 터렛 정의에 연결된 오디오 프로필을 터렛 사운드 컨트롤러에 전달한다
     private void ApplyAudioProfile(float fireInterval)
     {
-        if (audioController == null && turretDefinition.audioProfile != null)
-        {
-            audioController = GetComponent<TurretAudioController>();
-            if (audioController == null)
-            {
-                audioController = gameObject.AddComponent<TurretAudioController>();
-            }
-        }
+        EnsureAudioController();
 
         if (audioController == null)
         {
@@ -570,6 +575,21 @@ public class TurretDefinitionRuntimeController : MonoBehaviour
         EnsureAudioFireEventRelay();
         audioController.SetAudioProfile(turretDefinition.audioProfile);
         audioController.SetTriggerInterval(TurretAudioEvent.Fire, fireInterval);
+    }
+
+    // 오디오 프로필이 있는 터렛에 필요한 오디오 컨트롤러를 준비한다
+    private void EnsureAudioController()
+    {
+        if (audioController != null || turretDefinition == null || turretDefinition.audioProfile == null)
+        {
+            return;
+        }
+
+        audioController = GetComponent<TurretAudioController>();
+        if (audioController == null)
+        {
+            audioController = gameObject.AddComponent<TurretAudioController>();
+        }
     }
 
     // 터렛 발사 이벤트를 오디오 이벤트로 변환하는 릴레이를 준비한다

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using ProjectZDefense.Audio;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
@@ -9,13 +10,13 @@ using UnityEngine.EventSystems;
 [DisallowMultipleComponent]
 public class TurretPlacementController : MonoBehaviour
 {
-    [Header("Raycast")]
+    [Header("레이캐스트")]
     [SerializeField] private Camera targetCamera;
     [SerializeField] private LayerMask turretBaseLayerMask = 1 << 11;
     [SerializeField] private LayerMask invalidPreviewLayerMask = ~0;
     [SerializeField, Min(1.0f)] private float maxRayDistance = 500.0f;
 
-    [Header("Preview")]
+    [Header("프리뷰")]
     [SerializeField] private bool hidePreviewWhenNoBase = true;
     [SerializeField] private bool showInvalidPreviewOnWorld = true;
     [SerializeField] private bool allowWorldClickPlacement = true;
@@ -44,6 +45,9 @@ public class TurretPlacementController : MonoBehaviour
     private Material runtimeInvalidPreviewMaterial;
     private Vector3 invalidPreviewReferenceScale = Vector3.one;
     private readonly RaycastHit[] slotRaycastHits = new RaycastHit[32];
+    private TurretBaseSlot lastAudioFeedbackSlot;
+    private TurretAudioController placementAudioController;
+    private bool wasPlacementAvailableForAudio;
 
     public event Action<TurretShopEntrySO> OnPlacementCountChanged;
 
@@ -113,6 +117,7 @@ public class TurretPlacementController : MonoBehaviour
         }
 
         activeShopEntry = shopEntry;
+        ResetPlacementAvailabilityAudioState();
         invalidPreviewReferenceScale = ResolveDefaultBuildPointScale();
         EnsurePreview();
         preview.Show(shopEntry.PreviewPrefab);
@@ -133,12 +138,15 @@ public class TurretPlacementController : MonoBehaviour
 
         if (hasSlot)
         {
+            UpdatePlacementAvailabilityAudio(hoveredSlot, canPlace);
             invalidPreviewReferenceScale = GetSafeReferenceScale(hoveredSlot.BuildPoint.lossyScale);
             preview.SetVisible(true);
             preview.SnapTo(hoveredSlot.BuildPoint, previewLocalOffset, previewScaleMultiplier);
             preview.SetVisualState(canPlace, GetValidPreviewMaterial(), GetInvalidPreviewMaterial(), validPreviewColor, invalidPreviewColor);
             return;
         }
+
+        UpdatePlacementAvailabilityAudio(null, false);
 
         if (showInvalidPreviewOnWorld && TryFindInvalidPreviewPose(screenPosition, out Vector3 invalidPosition, out Quaternion invalidRotation))
         {
@@ -195,6 +203,7 @@ public class TurretPlacementController : MonoBehaviour
     {
         activeShopEntry = null;
         hoveredSlot = null;
+        ResetPlacementAvailabilityAudioState();
         invalidPreviewReferenceScale = Vector3.one;
         if (preview != null)
         {
@@ -235,6 +244,66 @@ public class TurretPlacementController : MonoBehaviour
         int nextCount = GetPlacedCount(shopEntry) + 1;
         placedCountsByEntry[shopEntry] = nextCount;
         OnPlacementCountChanged?.Invoke(shopEntry);
+    }
+
+    // 배치 가능 상태로 새로 진입했을 때만 피드백 사운드를 재생한다
+    private void UpdatePlacementAvailabilityAudio(TurretBaseSlot slot, bool canPlace)
+    {
+        if (!canPlace || slot == null)
+        {
+            wasPlacementAvailableForAudio = false;
+            lastAudioFeedbackSlot = null;
+            return;
+        }
+
+        if (wasPlacementAvailableForAudio && lastAudioFeedbackSlot == slot)
+        {
+            return;
+        }
+
+        wasPlacementAvailableForAudio = true;
+        lastAudioFeedbackSlot = slot;
+        PlayPlacementAvailabilityAudio(slot);
+    }
+
+    // 현재 선택된 터렛 정의의 설치 가능 피드백 사운드를 재생한다
+    private void PlayPlacementAvailabilityAudio(TurretBaseSlot slot)
+    {
+        TurretAudioProfileSO audioProfile = activeShopEntry == null || activeShopEntry.TurretDefinition == null ? null : activeShopEntry.TurretDefinition.audioProfile;
+        if (audioProfile == null)
+        {
+            return;
+        }
+
+        TurretAudioController audioController = EnsurePlacementAudioController();
+        if (audioController == null)
+        {
+            return;
+        }
+
+        Transform emitter = slot.BuildPoint != null ? slot.BuildPoint : slot.transform;
+        audioController.SetAudioProfile(audioProfile);
+        audioController.SetDefaultEmitter(emitter);
+        audioController.Play(TurretAudioEvent.PlacementAvailable, emitter);
+    }
+
+    // 배치 프리뷰 피드백에 사용할 오디오 컨트롤러를 준비한다
+    private TurretAudioController EnsurePlacementAudioController()
+    {
+        if (placementAudioController != null)
+        {
+            return placementAudioController;
+        }
+
+        placementAudioController = gameObject.AddComponent<TurretAudioController>();
+        return placementAudioController;
+    }
+
+    // 설치 가능 피드백 사운드의 상태 캐시를 초기화한다
+    private void ResetPlacementAvailabilityAudioState()
+    {
+        wasPlacementAvailableForAudio = false;
+        lastAudioFeedbackSlot = null;
     }
 
     // 프리뷰 객체와 런타임 머티리얼을 준비한다
@@ -495,3 +564,4 @@ public class TurretPlacementController : MonoBehaviour
         return EventSystem.current.IsPointerOverGameObject();
     }
 }
+

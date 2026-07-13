@@ -3,7 +3,7 @@ using UnityEngine;
 namespace ProjectZDefense.Audio
 {
     /// <summary>
-    /// 터렛별 공격, 빔, 상태이상, 진화 사운드 이벤트와 오디오 큐 연결을 보관한다.
+    /// 터렛별 공격, 배치, 상태이상, 진화 사운드 이벤트와 오디오 큐 연결을 보관한다.
     /// </summary>
     [CreateAssetMenu(menuName = "Project Z Defense/Audio/Turret Audio Profile")]
     public class TurretAudioProfileSO : ScriptableObject

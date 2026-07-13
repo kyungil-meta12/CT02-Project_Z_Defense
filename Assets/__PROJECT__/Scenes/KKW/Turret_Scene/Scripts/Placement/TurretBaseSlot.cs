@@ -1,3 +1,4 @@
+using ProjectZDefense.Audio;
 using UnityEngine;
 
 /// <summary>
@@ -141,6 +142,11 @@ public class TurretBaseSlot : MonoBehaviour
         }
 
         currentTurret = placedTurret;
+        if (placedTurret != null)
+        {
+            placedTurret.PlayAudioEvent(TurretAudioEvent.Placement);
+        }
+
         TurretEconomyLogUtility.LogResult("설치", GetShopEntryName(shopEntry), placementCosts, true, this);
         return true;
     }

@@ -146,4 +146,13 @@ public class SellerTruckMovement : MonoBehaviour
         isLeaving = false;
         isRunning = false;
     }
+
+    /// <summary>
+    /// 현재 남은 대기 시간 비율을 리턴한다.
+    /// </summary>
+    /// <returns></returns>
+    public float GetNormalizedRemainTime()
+    {
+        return stayTime / stayDuration;
+    }
 }

@@ -14,7 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ProjectZDefense.Audio.AudioCueSO
   bus: 0
   playbackMode: 0
-  clips: []
+  clips:
+  - {fileID: 8300000, guid: 3681e8a09c5ad524b916928658f016a3, type: 3}
   mixerGroup: {fileID: 0}
   volume: 1
   volumeRandomRange: 0

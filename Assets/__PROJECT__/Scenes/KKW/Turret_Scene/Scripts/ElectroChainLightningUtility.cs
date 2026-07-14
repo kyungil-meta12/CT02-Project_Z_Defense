@@ -1,5 +1,7 @@
+using System.Collections;
 using UnityEngine;
 using ProjectZDefense.StatusEffects;
+using ProjectZDefense.Audio;
 
 /// <summary>
 /// Electro 투사체가 직접 적중한 대상 주변으로 체인 라이트닝 데미지를 전파한다.
@@ -7,6 +9,7 @@ using ProjectZDefense.StatusEffects;
 public static class ElectroChainLightningUtility
 {
     private const int CHAIN_BUFFER_SIZE = 32;
+    private const float CHAIN_IMPACT_AUDIO_DELAY_PER_JUMP = 0.04f;
 
     private static readonly Collider[] ChainHitBuffer = new Collider[CHAIN_BUFFER_SIZE];
     private static readonly IDamageable[] ChainedTargets = new IDamageable[CHAIN_BUFFER_SIZE];
@@ -37,6 +40,7 @@ public static class ElectroChainLightningUtility
             Vector3 nextPosition = ResolveTargetPosition(nextTarget, nextCollider, currentPosition);
             Transform nextTransform = ResolveTargetTransform(nextTarget);
             ElectroChainLinkEffectUtility.Play(payload, currentCollider, nextCollider, currentTransform, nextTransform, currentPosition, nextPosition);
+            PlayImpactAudio(payload, nextPosition, chainIndex);
             nextTarget.TakeDamage(new DamageInfo(chainDamage, DamagePopupType.Normal, DamagePopupPolicyResolver.ResolveChain(), payload.damageSource));
             ApplyElectroStatus(payload, nextTarget, chainIndex, sourceDamage);
             RegisterChainedTarget(nextTarget, ref chainedTargetCount);
@@ -212,6 +216,54 @@ public static class ElectroChainLightningUtility
         }
 
         electroReceiver.ApplyElectroStatus(payload, chainIndex, sourceDamage);
+    }
+
+    // Electro 피격 위치에서 터렛 Impact 사운드를 재생한다
+    public static void PlayImpactAudio(ElectroStatusPayload payload, Vector3 position)
+    {
+        if (!payload.hasElectroStatus || payload.damageSource == null)
+        {
+            return;
+        }
+
+        TurretAudioController audioController = payload.damageSource.GetComponent<TurretAudioController>();
+        if (audioController == null)
+        {
+            return;
+        }
+
+        audioController.PlayAt(TurretAudioEvent.Impact, position);
+    }
+
+    // 체인 순번에 맞춰 Electro 피격 사운드를 짧게 지연 재생한다
+    public static void PlayImpactAudio(ElectroStatusPayload payload, Vector3 position, int chainIndex)
+    {
+        float delay = Mathf.Max(0, chainIndex) * CHAIN_IMPACT_AUDIO_DELAY_PER_JUMP;
+        if (delay <= 0.0f)
+        {
+            PlayImpactAudio(payload, position);
+            return;
+        }
+
+        if (!payload.hasElectroStatus || payload.damageSource == null)
+        {
+            return;
+        }
+
+        payload.damageSource.StartCoroutine(PlayImpactAudioDelayed(payload, position, delay));
+    }
+
+    // 지연 시간이 지난 뒤 고정된 피격 위치에서 Electro Impact 사운드를 재생한다
+    private static IEnumerator PlayImpactAudioDelayed(ElectroStatusPayload payload, Vector3 position, float delay)
+    {
+        float remainingDelay = Mathf.Max(0.0f, delay);
+        while (remainingDelay > 0.0f)
+        {
+            remainingDelay -= Time.deltaTime;
+            yield return null;
+        }
+
+        PlayImpactAudio(payload, position);
     }
 
     // 데미지 대상의 위치를 컴포넌트 기준으로 확인하고 실패 시 대체 위치를 반환한다

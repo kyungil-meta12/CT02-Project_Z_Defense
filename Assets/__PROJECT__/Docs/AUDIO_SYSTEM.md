@@ -89,6 +89,10 @@ This section records the current in-progress setup so audio work can continue wi
 | `Frost_Turret BeamLoop` | `BeamLoop` uses `dark_portal_wind_loop_01` and stays active while the Frost beam VFX is visible, stopping through the shared `BeamFiringEvent` beam hide path. |
 | `Frost_Turret StatusFreeze` | `StatusFreeze` uses `casting_charge_matter_grow_01` as a one-shot pre-freeze sound on the target. `FrostStatusRuntime` starts it when the estimated remaining buildup time is within the configured cue clip length so the sound can lead into the freeze moment. |
 | `Frost_Turret StatusBurst` | `StatusBurst` uses `ice_spell_impact_shatter_03` at the delayed ice cube burst damage timing from `FrostFreezeExplosionDamageTimer`. |
+| `Electro_Turret Fire` | `Fire` uses `electric_surge_blast_01` through the standard `TurretAudioFireEventRelay` path when the Electro projectile is fired. |
+| `Electro_Turret Impact` | `Impact` randomizes between `taser_stun_gun_zap_electricity_03` and `taser_stun_gun_zap_electricity_04`. Electro projectiles bypass the generic projectile final-impact audio path and instead play Impact only on successfully damaged enemies, including every chain lightning target. Chain impact audio is staggered by a short per-jump delay so multiple linked hits do not collapse into one perceived sound. |
+| `Electro_Turret StatusApply` | `StatusApply` uses `electric_sparks_lightning_loop1` as a followed loop while a target is fully charged with the required Electro Shock stack count. `ElectroStatusRuntime` starts it when the stack threshold is reached and stops it when stacks expire, reset, or are consumed by Overload. |
+| `Electro_Turret StatusBurst` | `StatusBurst` uses `taser_stun_gun_zap_electricity_04` as a one-shot sound at the target center when Electro Overload consumes the charged Shock stacks. |
 | Turret placement | `Placement` plays after a turret is successfully instantiated and its definition/audio profile has been applied. `PlacementAvailable` plays when placement preview newly enters a valid build slot, and does not repeat while staying on the same valid slot. |
 | Turret upgrade and evolution | `LevelUp` plays after a paid upgrade succeeds and the new level is applied. `Evolution` plays after the target evolution definition is applied, so the resulting turret profile owns the evolution sound. |
 
@@ -113,4 +117,5 @@ This section records the current in-progress setup so audio work can continue wi
 
 - Do not add `AudioSource.PlayOneShot` calls directly in projectile, damage tick, beam tick, or status tick hot paths.
 - Prefer cue cooldowns, simultaneous limits, and loop handles for high-frequency gameplay.
+- Keep enemy-followed status loops conservative. Current Poison, Ignition, and Electro status loop cues use `maxSimultaneous = 8` so late-wave status audio does not consume most SFX voices.
 - Keep normal runtime logs disabled; missing references should be handled by null-safe skips unless profiling audio setup.

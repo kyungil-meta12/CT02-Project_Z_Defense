@@ -61,3 +61,35 @@ MonoBehaviour:
     stopDelayAfterLastTrigger: 0
     playEndEventWhenSustainStops: 0
     sustainEndEvent: 0
+  - audioEvent: 3
+    cue: {fileID: 11400000, guid: 76aa18626e2e4e2abbbf66cb271733fd, type: 2}
+    volumeScale: 1
+    followEmitter: 0
+    playAfterTriggerEvent: 0
+    triggerEvent: 0
+    delayAfterTrigger: 0
+    cancelPreviousDelayedSameEvent: 0
+    useTriggerIntervalDelay: 0
+    triggerIntervalDelayRatio: 0
+    minDelayAfterTrigger: 0
+    maxDelayAfterTrigger: 0
+    sustainWhileTriggerContinues: 0
+    stopDelayAfterLastTrigger: 0
+    playEndEventWhenSustainStops: 0
+    sustainEndEvent: 0
+  - audioEvent: 4
+    cue: {fileID: 11400000, guid: 75e82eb3072843d4a23248218b546efe, type: 2}
+    volumeScale: 1
+    followEmitter: 1
+    playAfterTriggerEvent: 0
+    triggerEvent: 0
+    delayAfterTrigger: 0
+    cancelPreviousDelayedSameEvent: 0
+    useTriggerIntervalDelay: 0
+    triggerIntervalDelayRatio: 0
+    minDelayAfterTrigger: 0
+    maxDelayAfterTrigger: 0
+    sustainWhileTriggerContinues: 0
+    stopDelayAfterLastTrigger: 0
+    playEndEventWhenSustainStops: 0
+    sustainEndEvent: 0

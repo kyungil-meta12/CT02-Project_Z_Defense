@@ -79,6 +79,7 @@ This section records the current in-progress setup so audio work can continue wi
 | `Laser_Blue_1` | Uses sustained `FireLoop` driven by repeated `Fire` trigger events. `FireLoop` stays alive while shots continue and stops after the configured no-fire grace time. |
 | `Plasma_Yellow` | `ChargeStart` should be scheduled from `Fire` using trigger-interval ratio instead of a fixed 0.7 second delay, so level-based attack-speed changes keep timing proportional. |
 | `Plasma_Yellow Impact` | `Impact` should play only when the projectile reaches its final impact/despawn path, not as a delayed event after `Fire`. |
+| `Poison_Turret StatusApply` | `StatusApply` uses `water_bubbling_02_loop` as a followed loop on enemies that newly enter Poison. `PoisonStatusRuntime` fades the loop in and out over about 0.5 seconds, and weak Poison spread by Poison death burst uses the same path. |
 | Turret placement | `Placement` plays after a turret is successfully instantiated and its definition/audio profile has been applied. `PlacementAvailable` plays when placement preview newly enters a valid build slot, and does not repeat while staying on the same valid slot. |
 | Turret upgrade and evolution | `LevelUp` plays after a paid upgrade succeeds and the new level is applied. `Evolution` plays after the target evolution definition is applied, so the resulting turret profile owns the evolution sound. |
 

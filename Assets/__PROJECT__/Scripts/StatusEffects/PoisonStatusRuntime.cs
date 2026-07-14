@@ -1,14 +1,18 @@
 ﻿using UnityEngine;
 using ProjectZDefense.StatusEffects;
+using ProjectZDefense.Audio;
 
 /// <summary>
 /// 대상 하나에 적용된 Poison 상태의 지속시간, 스택, 틱데미지, 처형 예고, 사망 폭발을 관리한다.
 /// </summary>
 public sealed class PoisonStatusRuntime : MonoBehaviour
 {
+    private const float POISON_AUDIO_FADE_DURATION = 0.5f;
+
     private IDamageable damageable;
     private StatusEffectVisualController statusEffectVisualController;
     private PoisonStatusPayload poisonStatusPayload;
+    private ProjectAudioHandle poisonLoopAudioHandle;
     private float poisonRemainingDuration;
     private float poisonTickTimer;
     private int poisonStackCount;
@@ -41,6 +45,7 @@ public sealed class PoisonStatusRuntime : MonoBehaviour
             return;
         }
 
+        bool wasPoisonStatusActive = poisonStatusActive;
         poisonStatusPayload = payload;
         int safeMaxStackCount = Mathf.Max(1, payload.maxStackCount);
 
@@ -60,6 +65,7 @@ public sealed class PoisonStatusRuntime : MonoBehaviour
         }
 
         poisonStatusActive = true;
+        PlayPoisonLoopAudioIfNeeded(payload, wasPoisonStatusActive);
         SetPoisonVisualActive(true);
         RefreshLethalPrediction();
     }
@@ -119,6 +125,7 @@ public sealed class PoisonStatusRuntime : MonoBehaviour
     // 풀 재사용이나 사망 시 Poison 상태를 초기화하고 비주얼을 끈다
     public void ResetStatus()
     {
+        StopPoisonLoopAudio();
         poisonStatusPayload = default;
         poisonRemainingDuration = 0.0f;
         poisonTickTimer = 0.0f;
@@ -127,6 +134,43 @@ public sealed class PoisonStatusRuntime : MonoBehaviour
         IsLethalPending = false;
         SetPoisonLethalVisualActive(false);
         SetPoisonVisualActive(false);
+    }
+
+    // 중독 상태 최초 진입 시 루프 사운드를 페이드 인으로 재생한다
+    private void PlayPoisonLoopAudioIfNeeded(PoisonStatusPayload payload, bool wasPoisonStatusActive)
+    {
+        if (wasPoisonStatusActive || payload.damageSource == null)
+        {
+            return;
+        }
+
+        TurretAudioController audioController = payload.damageSource.GetComponent<TurretAudioController>();
+        if (audioController == null)
+        {
+            return;
+        }
+
+        poisonLoopAudioHandle = audioController.Play(TurretAudioEvent.StatusApply, transform);
+        if (!poisonLoopAudioHandle.IsValid)
+        {
+            return;
+        }
+
+        poisonLoopAudioHandle.SetVolumeScale(0f);
+        poisonLoopAudioHandle.FadeToVolumeScale(1f, POISON_AUDIO_FADE_DURATION);
+    }
+
+    // 중독 상태 종료 시 루프 사운드를 페이드 아웃으로 정지한다
+    private void StopPoisonLoopAudio()
+    {
+        if (!poisonLoopAudioHandle.IsValid)
+        {
+            poisonLoopAudioHandle = default;
+            return;
+        }
+
+        poisonLoopAudioHandle.FadeOutAndStop(POISON_AUDIO_FADE_DURATION);
+        poisonLoopAudioHandle = default;
     }
 
     // 현재 중독 중첩 수에 맞는 최대체력 비례 틱데미지를 적용한다
@@ -203,4 +247,5 @@ public sealed class PoisonStatusRuntime : MonoBehaviour
         statusEffectVisualController.SetPoisonLethalIndicatorActive(isActive);
     }
 }
+
 

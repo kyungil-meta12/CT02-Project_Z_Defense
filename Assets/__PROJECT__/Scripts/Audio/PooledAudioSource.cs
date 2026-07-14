@@ -17,6 +17,12 @@ namespace ProjectZDefense.Audio
         private float runtimeVolumeScale = 1f;
         private bool returnWhenFinished;
         private bool isReturning;
+        private bool isFading;
+        private bool stopAfterFade;
+        private float fadeStartVolumeScale;
+        private float fadeTargetVolumeScale;
+        private float fadeDuration;
+        private float fadeElapsed;
         private int version;
 
         public AudioCueSO Cue => cue;
@@ -34,6 +40,8 @@ namespace ProjectZDefense.Audio
         // 추적 대상 위치와 재생 완료 상태를 갱신한다
         private void Update()
         {
+            UpdateFade(Time.unscaledDeltaTime);
+
             if (followTarget != null)
             {
                 transform.position = followTarget.position;
@@ -96,8 +104,34 @@ namespace ProjectZDefense.Audio
         // 재생 중 볼륨 배율을 변경한다
         public void SetRuntimeVolumeScale(float volumeScale)
         {
+            isFading = false;
+            stopAfterFade = false;
             runtimeVolumeScale = Mathf.Max(0f, volumeScale);
             RefreshVolume();
+        }
+
+        // 재생 중 볼륨 배율을 지정 시간 동안 보간하고 필요하면 정지한다
+        public void FadeToRuntimeVolumeScale(float volumeScale, float duration, bool stopAfterFade_)
+        {
+            float targetScale = Mathf.Max(0f, volumeScale);
+            float safeDuration = Mathf.Max(0f, duration);
+            if (safeDuration <= 0f)
+            {
+                SetRuntimeVolumeScale(targetScale);
+                if (stopAfterFade_)
+                {
+                    StopAndReturn();
+                }
+
+                return;
+            }
+
+            fadeStartVolumeScale = runtimeVolumeScale;
+            fadeTargetVolumeScale = targetScale;
+            fadeDuration = safeDuration;
+            fadeElapsed = 0f;
+            stopAfterFade = stopAfterFade_;
+            isFading = true;
         }
 
         // 현재 사운드를 멈추고 풀로 반환한다
@@ -140,6 +174,12 @@ namespace ProjectZDefense.Audio
             baseVolume = 0f;
             runtimeVolumeScale = 1f;
             returnWhenFinished = false;
+            isFading = false;
+            stopAfterFade = false;
+            fadeStartVolumeScale = 0f;
+            fadeTargetVolumeScale = 0f;
+            fadeDuration = 0f;
+            fadeElapsed = 0f;
 
             if (audioSource == null)
             {
@@ -149,6 +189,33 @@ namespace ProjectZDefense.Audio
             audioSource.clip = null;
             audioSource.loop = false;
             audioSource.playOnAwake = false;
+        }
+
+        // 진행 중인 볼륨 페이드를 갱신한다
+        private void UpdateFade(float deltaTime)
+        {
+            if (!isFading)
+            {
+                return;
+            }
+
+            fadeElapsed = Mathf.Min(fadeDuration, fadeElapsed + Mathf.Max(0f, deltaTime));
+            float ratio = fadeDuration > 0f ? fadeElapsed / fadeDuration : 1f;
+            runtimeVolumeScale = Mathf.Lerp(fadeStartVolumeScale, fadeTargetVolumeScale, ratio);
+            RefreshVolume();
+
+            if (fadeElapsed < fadeDuration)
+            {
+                return;
+            }
+
+            bool shouldStop = stopAfterFade;
+            isFading = false;
+            stopAfterFade = false;
+            if (shouldStop)
+            {
+                StopAndReturn();
+            }
         }
     }
 }

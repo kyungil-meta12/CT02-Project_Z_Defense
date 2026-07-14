@@ -38,5 +38,27 @@ namespace ProjectZDefense.Audio
 
             source.SetRuntimeVolumeScale(volumeScale);
         }
+
+        // 현재 핸들이 가리키는 사운드의 볼륨 배율을 지정 시간 동안 보간한다
+        public void FadeToVolumeScale(float volumeScale, float duration)
+        {
+            if (!IsValid)
+            {
+                return;
+            }
+
+            source.FadeToRuntimeVolumeScale(volumeScale, duration, false);
+        }
+
+        // 현재 핸들이 가리키는 사운드를 페이드 아웃한 뒤 정지한다
+        public void FadeOutAndStop(float duration)
+        {
+            if (!IsValid)
+            {
+                return;
+            }
+
+            source.FadeToRuntimeVolumeScale(0f, duration, true);
+        }
     }
 }

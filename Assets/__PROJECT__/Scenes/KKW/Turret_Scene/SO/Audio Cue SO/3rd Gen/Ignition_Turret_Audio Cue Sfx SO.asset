@@ -14,7 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ProjectZDefense.Audio.AudioCueSO
   bus: 0
   playbackMode: 0
-  clips: []
+  clips:
+  - {fileID: 8300000, guid: d9f746063b707474c858383543459b01, type: 3}
   mixerGroup: {fileID: 0}
   volume: 1
   volumeRandomRange: 0
@@ -23,7 +24,7 @@ MonoBehaviour:
   spatialBlend: 1
   minDistance: 4
   maxDistance: 28
-  priority: 128
-  minInterval: 0
+  priority: 112
+  minInterval: 0.5
   maxSimultaneous: 4
-  replaceOldestWhenLimited: 0
+  replaceOldestWhenLimited: 1

@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using ProjectZDefense.StatusEffects;
+using ProjectZDefense.Audio;
 
 /// <summary>
 /// 빙결 이펙트 재생 후 지정된 지연 시간에 폭발 데미지를 한 번 적용한다.
@@ -85,8 +86,26 @@ public class FrostFreezeExplosionDamageTimer : MonoBehaviour
 
         damagePending = false;
         UpdateFollowPosition();
+        PlayFreezeBurstAudio();
         FrostStatusEffectUtility.ApplyFreezePrimaryTargetDamage(payload, primaryTarget);
         FrostStatusEffectUtility.ApplyExplosionDamage(payload, explosionPosition, primaryTarget);
+    }
+
+    // 빙결 큐브가 깨지는 폭발 위치에서 파열 사운드를 재생한다
+    private void PlayFreezeBurstAudio()
+    {
+        if (payload.damageSource == null)
+        {
+            return;
+        }
+
+        TurretAudioController audioController = payload.damageSource.GetComponent<TurretAudioController>();
+        if (audioController == null)
+        {
+            return;
+        }
+
+        audioController.PlayAt(TurretAudioEvent.StatusBurst, explosionPosition);
     }
 
     // 원 빙결 대상의 현재 몸통 위치로 이펙트와 폭발 기준 위치를 갱신한다
@@ -124,3 +143,4 @@ public class FrostFreezeExplosionDamageTimer : MonoBehaviour
         damagePending = false;
     }
 }
+

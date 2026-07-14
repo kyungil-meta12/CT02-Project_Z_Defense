@@ -1,4 +1,5 @@
 using ProjectZDefense.StatusEffects;
+using ProjectZDefense.Audio;
 using UnityEngine;
 
 /// <summary>
@@ -17,6 +18,7 @@ public sealed class FrostStatusRuntime : MonoBehaviour
     private bool frostStatusDirty;
     private bool frostStatusActive;
     private bool canTriggerFreeze;
+    private bool frostFreezeChargeAudioPlayed;
     private FrostStatusPayload activeFreezePayload;
     private GameObject activeFrostFreezeEffect;
 
@@ -61,6 +63,8 @@ public sealed class FrostStatusRuntime : MonoBehaviour
             frostStatusDirty = true;
         }
 
+        PlayFreezeChargeAudioIfNeeded(payload, safeMaxSlowRatio, safeBuildUpDuration);
+
         if (canTriggerFreeze && payload.canTriggerFreeze && frostFreezeCooldownTimer <= 0.0f && frostSlowRatio >= payload.freezeTriggerRatio)
         {
             TriggerFrostFreeze(payload);
@@ -94,6 +98,7 @@ public sealed class FrostStatusRuntime : MonoBehaviour
         {
             frostSlowRatio = 0.0f;
             frostExposureTimer = 0.0f;
+            frostFreezeChargeAudioPlayed = false;
         }
 
         ApplyFrostSpeedModifier();
@@ -116,9 +121,58 @@ public sealed class FrostStatusRuntime : MonoBehaviour
         frostFreezeCooldownTimer = 0.0f;
         frostStatusDirty = false;
         frostStatusActive = false;
+        frostFreezeChargeAudioPlayed = false;
         activeFreezePayload = default;
         ApplySpeedMultiplier(1.0f);
         SetFrostVisualActive(false);
+    }
+
+    // 빙결 예상 시점에 맞춰 얼기 직전 사운드를 한 번 재생한다
+    private void PlayFreezeChargeAudioIfNeeded(FrostStatusPayload payload, float safeMaxSlowRatio, float safeBuildUpDuration)
+    {
+        if (frostFreezeChargeAudioPlayed || !canTriggerFreeze || !payload.canTriggerFreeze || frostFreezeCooldownTimer > 0.0f)
+        {
+            return;
+        }
+
+        if (payload.damageSource == null || safeMaxSlowRatio <= 0.0f || payload.freezeTriggerRatio > safeMaxSlowRatio)
+        {
+            return;
+        }
+
+        TurretAudioController audioController = payload.damageSource.GetComponent<TurretAudioController>();
+        if (audioController == null)
+        {
+            return;
+        }
+
+        float clipLength = audioController.GetMaxClipLength(TurretAudioEvent.StatusFreeze);
+        if (clipLength <= 0.0f)
+        {
+            return;
+        }
+
+        float requiredExposure = CalculateFreezeRequiredExposure(payload.freezeTriggerRatio, safeMaxSlowRatio, safeBuildUpDuration);
+        float remainingTime = Mathf.Max(0.0f, requiredExposure - frostExposureTimer);
+        if (remainingTime > clipLength)
+        {
+            return;
+        }
+
+        audioController.Play(TurretAudioEvent.StatusFreeze, transform);
+        frostFreezeChargeAudioPlayed = true;
+    }
+
+    // 슬로우 누적값이 빙결 임계치에 도달하는 데 필요한 노출 시간을 계산한다
+    private static float CalculateFreezeRequiredExposure(float freezeTriggerRatio, float safeMaxSlowRatio, float safeBuildUpDuration)
+    {
+        if (safeBuildUpDuration <= 0.0f)
+        {
+            return 0.0f;
+        }
+
+        float requiredBuildUpRatio = Mathf.Clamp01(freezeTriggerRatio / safeMaxSlowRatio);
+        return safeBuildUpDuration * requiredBuildUpRatio;
     }
 
     // Frost 누적치가 빙결 조건에 도달했을 때 이펙트와 폭발 데미지를 실행한다

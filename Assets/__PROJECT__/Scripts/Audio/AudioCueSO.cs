@@ -66,6 +66,29 @@ namespace ProjectZDefense.Audio
             return clips[Random.Range(0, clips.Length)];
         }
 
+        // 큐에 등록된 클립 중 가장 긴 재생 시간을 반환한다
+        public float GetMaxClipLength()
+        {
+            if (!HasClip())
+            {
+                return 0f;
+            }
+
+            float maxLength = 0f;
+            for (int i = 0; i < clips.Length; i++)
+            {
+                AudioClip clip = clips[i];
+                if (clip == null)
+                {
+                    continue;
+                }
+
+                maxLength = Mathf.Max(maxLength, clip.length);
+            }
+
+            return maxLength;
+        }
+
         // 랜덤 범위를 반영한 재생 볼륨을 계산한다
         public float GetVolume()
         {

@@ -1,6 +1,7 @@
 ﻿using ProjectZima.PolygonModularTurretsPack;
 using UnityEngine;
 using ProjectZDefense.StatusEffects;
+using ProjectZDefense.Audio;
 
 /// <summary>
 /// 투사체를 생성하지 않고 총구와 타겟 사이에 빔 VFX를 유지하며 빔 공격 규칙과 선택적 Frost 상태 효과를 적용한다.
@@ -181,7 +182,9 @@ public class BeamFiringEvent : FiringEvent
             return;
         }
 
+        bool hadActiveBeamVisual = HasActiveBeamVisual();
         UpdateBeamInstances();
+        PlayBeamStartAudioIfNeeded(hadActiveBeamVisual);
 
         if (!applyBeamDamage)
         {
@@ -227,7 +230,9 @@ public class BeamFiringEvent : FiringEvent
             return;
         }
 
+        bool hadActiveBeamVisual = HasActiveBeamVisual();
         UpdateBeamInstances();
+        PlayBeamStartAudioIfNeeded(hadActiveBeamVisual);
         UpdateDamageTick(Time.deltaTime);
     }
 
@@ -455,6 +460,45 @@ public class BeamFiringEvent : FiringEvent
         {
             beamInstance.BeamObject.SetActive(true);
         }
+    }
+
+    // 빔 VFX가 새로 켜진 순간에 시작 사운드를 한 번 재생한다
+    private void PlayBeamStartAudioIfNeeded(bool hadActiveBeamVisual)
+    {
+        if (hadActiveBeamVisual || !HasActiveBeamVisual() || damageMeterSource == null)
+        {
+            return;
+        }
+
+        TurretAudioController audioController = damageMeterSource.GetComponent<TurretAudioController>();
+        if (audioController == null)
+        {
+            return;
+        }
+
+        Transform emitter = ResolveBeamStartEmitter();
+        audioController.Play(TurretAudioEvent.BeamStart, emitter);
+        audioController.Play(TurretAudioEvent.BeamLoop, emitter);
+    }
+
+    // 빔 시작 사운드가 재생될 대표 총구 위치를 반환한다
+    private Transform ResolveBeamStartEmitter()
+    {
+        if (beamInstances == null)
+        {
+            return transform;
+        }
+
+        for (int i = 0; i < beamInstances.Length; i++)
+        {
+            BeamInstance beamInstance = beamInstances[i];
+            if (beamInstance.IsValid && beamInstance.BeamObject.activeInHierarchy)
+            {
+                return beamInstance.MuzzleTransform;
+            }
+        }
+
+        return transform;
     }
 
     // 빔 방향 정책에 따라 타겟 방향 또는 총구 정방향을 반환한다
@@ -925,6 +969,7 @@ public class BeamFiringEvent : FiringEvent
     // 생성된 빔 인스턴스를 모두 숨긴다
     private void HideBeamInstances()
     {
+        StopBeamLoopAudio();
         currentTarget = null;
         currentTargetTransform = null;
         currentDamageable = null;
@@ -949,6 +994,11 @@ public class BeamFiringEvent : FiringEvent
             return;
         }
 
+        if (HasActiveBeamVisual())
+        {
+            StopBeamLoopAudio();
+        }
+
         for (int i = 0; i < beamInstances.Length; i++)
         {
             BeamInstance beamInstance = beamInstances[i];
@@ -957,6 +1007,23 @@ public class BeamFiringEvent : FiringEvent
                 beamInstance.BeamObject.SetActive(false);
             }
         }
+    }
+
+    // 빔 VFX가 꺼질 때 루프 사운드를 정지한다
+    private void StopBeamLoopAudio()
+    {
+        if (damageMeterSource == null)
+        {
+            return;
+        }
+
+        TurretAudioController audioController = damageMeterSource.GetComponent<TurretAudioController>();
+        if (audioController == null)
+        {
+            return;
+        }
+
+        audioController.StopLoop(TurretAudioEvent.BeamLoop);
     }
 
     // 생성된 빔 인스턴스를 모두 제거한다
@@ -1031,3 +1098,4 @@ public class BeamFiringEvent : FiringEvent
         overloadReceiver.NotifyNonElectroDamageReceived(appliedDamage);
     }
 }
+

@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Ignition_Turret
   m_EditorClassIdentifier: Assembly-CSharp::ProjectZDefense.Audio.TurretAudioProfileSO
   entries:
-  - audioEvent: 0
+  - audioEvent: 3
     cue: {fileID: 11400000, guid: 56fe81f05c71d0048a958e368e48d06e, type: 2}
     volumeScale: 1
     followEmitter: 0
@@ -49,6 +49,38 @@ MonoBehaviour:
     cue: {fileID: 11400000, guid: fd602acb8f3b8744aa380c80c740c6c8, type: 2}
     volumeScale: 1
     followEmitter: 0
+    playAfterTriggerEvent: 0
+    triggerEvent: 0
+    delayAfterTrigger: 0
+    cancelPreviousDelayedSameEvent: 0
+    useTriggerIntervalDelay: 0
+    triggerIntervalDelayRatio: 0
+    minDelayAfterTrigger: 0
+    maxDelayAfterTrigger: 0
+    sustainWhileTriggerContinues: 0
+    stopDelayAfterLastTrigger: 0
+    playEndEventWhenSustainStops: 0
+    sustainEndEvent: 0
+  - audioEvent: 4
+    cue: {fileID: 11400000, guid: 1b2362d87ea14ca3be1ff5e9358da269, type: 2}
+    volumeScale: 1
+    followEmitter: 1
+    playAfterTriggerEvent: 0
+    triggerEvent: 0
+    delayAfterTrigger: 0
+    cancelPreviousDelayedSameEvent: 0
+    useTriggerIntervalDelay: 0
+    triggerIntervalDelayRatio: 0
+    minDelayAfterTrigger: 0
+    maxDelayAfterTrigger: 0
+    sustainWhileTriggerContinues: 0
+    stopDelayAfterLastTrigger: 0
+    playEndEventWhenSustainStops: 0
+    sustainEndEvent: 0
+  - audioEvent: 7
+    cue: {fileID: 11400000, guid: ea45c909c45643f6979878a428da5c48, type: 2}
+    volumeScale: 1
+    followEmitter: 1
     playAfterTriggerEvent: 0
     triggerEvent: 0
     delayAfterTrigger: 0

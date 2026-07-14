@@ -80,6 +80,11 @@ This section records the current in-progress setup so audio work can continue wi
 | `Plasma_Yellow` | `ChargeStart` should be scheduled from `Fire` using trigger-interval ratio instead of a fixed 0.7 second delay, so level-based attack-speed changes keep timing proportional. |
 | `Plasma_Yellow Impact` | `Impact` should play only when the projectile reaches its final impact/despawn path, not as a delayed event after `Fire`. |
 | `Poison_Turret StatusApply` | `StatusApply` uses `water_bubbling_02_loop` as a followed loop on enemies that newly enter Poison. `PoisonStatusRuntime` fades the loop in and out over about 0.5 seconds, and weak Poison spread by Poison death burst uses the same path. |
+| `Poison_Turret StatusBurst` | `StatusBurst` uses `explosion_far_distant_05` and plays once at the Poison death-burst position when a lethally poisoned enemy contaminates nearby enemies. |
+| `Poison_Turret StatusLethal` | `StatusLethal` uses `lighter_gas_sparks_flame_06` and plays once when the Poison lethal marker first turns on for a target. |
+| `Ignition_Turret BeamStart` | `BeamStart` uses `lighter_gas_flame_ignite_01` as a one-shot ignition sound. `BeamFiringEvent` triggers it only when the flame VFX turns on from an inactive state, not on damage ticks or repeated fire requests while the flame stays active. |
+| `Ignition_Turret BeamLoop` | `BeamLoop` uses `gas_leak_03_loop` and stays active while the flame VFX is visible. `BeamFiringEvent` stops the loop when the beam/flame objects are hidden. |
+| `Ignition_Turret StatusApply` | `StatusApply` uses `fire_burning_flames_crackle_loop_01` as a followed loop on enemies that newly enter Ignition burn. `IgnitionStatusRuntime` fades the loop in and out over about 0.5 seconds. |
 | Turret placement | `Placement` plays after a turret is successfully instantiated and its definition/audio profile has been applied. `PlacementAvailable` plays when placement preview newly enters a valid build slot, and does not repeat while staying on the same valid slot. |
 | Turret upgrade and evolution | `LevelUp` plays after a paid upgrade succeeds and the new level is applied. `Evolution` plays after the target evolution definition is applied, so the resulting turret profile owns the evolution sound. |
 

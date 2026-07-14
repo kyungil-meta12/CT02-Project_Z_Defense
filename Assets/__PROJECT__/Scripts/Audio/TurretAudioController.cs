@@ -122,6 +122,24 @@ namespace ProjectZDefense.Audio
             return handle;
         }
 
+        // 지정 월드 위치에서 터렛 사운드 이벤트를 재생한다
+        public ProjectAudioHandle PlayAt(TurretAudioEvent audioEvent, Vector3 position)
+        {
+            if (audioProfile == null)
+            {
+                return default;
+            }
+
+            if (!audioProfile.TryGetCue(audioEvent, out AudioCueSO cue, out float volumeScale, out _))
+            {
+                return default;
+            }
+
+            ProjectAudioHandle handle = ProjectAudioManager.PlayCueAt(cue, position, volumeScale);
+            StoreLoopHandle(audioEvent, handle);
+            return handle;
+        }
+
         // 빔 루프 사운드를 명시적으로 정지한다
         public void StopBeamLoop()
         {

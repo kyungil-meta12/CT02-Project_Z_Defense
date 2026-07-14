@@ -1,4 +1,5 @@
 using ProjectZDefense.StatusEffects;
+using ProjectZDefense.Audio;
 using UnityEngine;
 
 /// <summary>
@@ -6,12 +7,15 @@ using UnityEngine;
 /// </summary>
 public sealed class IgnitionStatusRuntime : MonoBehaviour
 {
+    private const float IGNITION_AUDIO_FADE_DURATION = 0.5f;
+
     private IDamageable damageable;
     private StatusEffectVisualController statusEffectVisualController;
     private FrostStatusRuntime frostStatusRuntime;
     private PoisonStatusRuntime poisonStatusRuntime;
     private ElectroStatusRuntime electroStatusRuntime;
     private IgnitionStatusPayload ignitionStatusPayload;
+    private ProjectAudioHandle ignitionLoopAudioHandle;
     private float ignitionRemainingDuration;
     private float ignitionTickTimer;
     private int ignitionStackCount;
@@ -40,6 +44,7 @@ public sealed class IgnitionStatusRuntime : MonoBehaviour
             return;
         }
 
+        bool wasIgnitionStatusActive = ignitionStatusActive;
         ignitionStatusPayload = payload;
         int safeMaxStackCount = Mathf.Max(1, payload.maxStackCount);
 
@@ -59,6 +64,7 @@ public sealed class IgnitionStatusRuntime : MonoBehaviour
         }
 
         ignitionStatusActive = true;
+        PlayIgnitionLoopAudioIfNeeded(payload, wasIgnitionStatusActive);
         TryActivateExistingStatusReaction();
         if (activeReactionType != IgnitionReactionType.None)
         {
@@ -115,6 +121,7 @@ public sealed class IgnitionStatusRuntime : MonoBehaviour
     // 풀 재사용이나 사망 시 Ignition 상태를 초기화한다
     public void ResetStatus()
     {
+        StopIgnitionLoopAudio();
         ignitionStatusPayload = default;
         ignitionRemainingDuration = 0.0f;
         ignitionTickTimer = 0.0f;
@@ -123,6 +130,43 @@ public sealed class IgnitionStatusRuntime : MonoBehaviour
         ignitionStatusActive = false;
         SetIgnitionBurnVisualActive(false);
         SetIgnitionReactionVisualActive(IgnitionReactionType.None);
+    }
+
+    // 연소 상태 최초 진입 시 루프 사운드를 페이드 인으로 재생한다
+    private void PlayIgnitionLoopAudioIfNeeded(IgnitionStatusPayload payload, bool wasIgnitionStatusActive)
+    {
+        if (wasIgnitionStatusActive || payload.damageSource == null)
+        {
+            return;
+        }
+
+        TurretAudioController audioController = payload.damageSource.GetComponent<TurretAudioController>();
+        if (audioController == null)
+        {
+            return;
+        }
+
+        ignitionLoopAudioHandle = audioController.Play(TurretAudioEvent.StatusApply, transform);
+        if (!ignitionLoopAudioHandle.IsValid)
+        {
+            return;
+        }
+
+        ignitionLoopAudioHandle.SetVolumeScale(0f);
+        ignitionLoopAudioHandle.FadeToVolumeScale(1f, IGNITION_AUDIO_FADE_DURATION);
+    }
+
+    // 연소 상태 종료 시 루프 사운드를 페이드 아웃으로 정지한다
+    private void StopIgnitionLoopAudio()
+    {
+        if (!ignitionLoopAudioHandle.IsValid)
+        {
+            ignitionLoopAudioHandle = default;
+            return;
+        }
+
+        ignitionLoopAudioHandle.FadeOutAndStop(IGNITION_AUDIO_FADE_DURATION);
+        ignitionLoopAudioHandle = default;
     }
 
     // 이미 적용된 다른 속성 상태가 있으면 최초 반응 타입을 결정한다

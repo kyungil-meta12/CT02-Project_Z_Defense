@@ -10,12 +10,12 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f5a3d739db38e584dae58421ff6a3d45, type: 3}
-  m_Name: Ignition_Turret_Audio Cue Sfx SO
+  m_Name: Ignition_Turret_StatusApply_Loop_Audio Cue Sfx SO
   m_EditorClassIdentifier: Assembly-CSharp::ProjectZDefense.Audio.AudioCueSO
   bus: 0
-  playbackMode: 0
+  playbackMode: 1
   clips:
-  - {fileID: 8300000, guid: d9f746063b707474c858383543459b01, type: 3}
+  - {fileID: 8300000, guid: a42d4b49939323c40848f2934392d683, type: 3}
   mixerGroup: {fileID: 0}
   volume: 1
   volumeRandomRange: 0
@@ -23,8 +23,8 @@ MonoBehaviour:
   pitchRandomRange: 0
   spatialBlend: 1
   minDistance: 4
-  maxDistance: 28
-  priority: 112
-  minInterval: 0.5
-  maxSimultaneous: 4
+  maxDistance: 24
+  priority: 170
+  minInterval: 0
+  maxSimultaneous: 12
   replaceOldestWhenLimited: 1

@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using ProjectZDefense.StatusEffects;
+using ProjectZDefense.Audio;
 
 /// <summary>
 /// Poison 처형 사망 폭발 이펙트 생성과 약한 범위 중독 적용을 공통 처리한다.
@@ -20,8 +21,26 @@ public static class PoisonDeathBurstEffectUtility
         }
 
         Vector3 burstPosition = position + profile.effectPositionOffset;
+        PlayBurstAudio(sourcePayload, burstPosition);
         SpawnBurstEffect(profile, burstPosition);
         ApplyWeakPoison(sourcePayload, profile, burstPosition, excludedTarget);
+    }
+
+    // Poison 사망 폭발 위치에서 상태 폭발 사운드를 재생한다
+    private static void PlayBurstAudio(PoisonStatusPayload sourcePayload, Vector3 position)
+    {
+        if (sourcePayload.damageSource == null)
+        {
+            return;
+        }
+
+        TurretAudioController audioController = sourcePayload.damageSource.GetComponent<TurretAudioController>();
+        if (audioController == null)
+        {
+            return;
+        }
+
+        audioController.PlayAt(TurretAudioEvent.StatusBurst, position);
     }
 
     // Poison 사망 폭발 이펙트를 풀링 기반으로 생성한다
@@ -151,3 +170,4 @@ public static class PoisonDeathBurstEffectUtility
         }
     }
 }
+

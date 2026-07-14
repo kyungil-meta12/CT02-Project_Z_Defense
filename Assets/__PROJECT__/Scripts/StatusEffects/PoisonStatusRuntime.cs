@@ -107,7 +107,9 @@ public sealed class PoisonStatusRuntime : MonoBehaviour
     // 현재 체력 기준으로 Poison 처형 예고 여부를 다시 계산한다
     public void RefreshLethalPrediction()
     {
+        bool wasLethalPending = IsLethalPending;
         IsLethalPending = IsPoisonDamageLethal();
+        PlayLethalMarkAudioIfNeeded(wasLethalPending);
         SetPoisonLethalVisualActive(IsLethalPending);
     }
 
@@ -171,6 +173,23 @@ public sealed class PoisonStatusRuntime : MonoBehaviour
 
         poisonLoopAudioHandle.FadeOutAndStop(POISON_AUDIO_FADE_DURATION);
         poisonLoopAudioHandle = default;
+    }
+
+    // 처형 예고 표시가 새로 켜질 때 알림 사운드를 재생한다
+    private void PlayLethalMarkAudioIfNeeded(bool wasLethalPending)
+    {
+        if (wasLethalPending || !IsLethalPending || poisonStatusPayload.damageSource == null)
+        {
+            return;
+        }
+
+        TurretAudioController audioController = poisonStatusPayload.damageSource.GetComponent<TurretAudioController>();
+        if (audioController == null)
+        {
+            return;
+        }
+
+        audioController.PlayAt(TurretAudioEvent.StatusLethal, transform.position);
     }
 
     // 현재 중독 중첩 수에 맞는 최대체력 비례 틱데미지를 적용한다

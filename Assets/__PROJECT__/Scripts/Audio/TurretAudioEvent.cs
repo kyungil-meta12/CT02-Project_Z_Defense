@@ -28,6 +28,7 @@ namespace ProjectZDefense.Audio
         ReloadEnd = 20,
         Empty = 21,
         PlacementAvailable = 22,
-        LevelUp = 23
+        LevelUp = 23,
+        StatusLethal = 24
     }
 }

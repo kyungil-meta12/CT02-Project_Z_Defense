@@ -140,6 +140,22 @@ namespace ProjectZDefense.Audio
             return handle;
         }
 
+        // 지정 이벤트에 연결된 가장 긴 클립 재생 시간을 반환한다
+        public float GetMaxClipLength(TurretAudioEvent audioEvent)
+        {
+            if (audioProfile == null)
+            {
+                return 0f;
+            }
+
+            if (!audioProfile.TryGetCue(audioEvent, out AudioCueSO cue, out _, out _))
+            {
+                return 0f;
+            }
+
+            return cue.GetMaxClipLength();
+        }
+
         // 빔 루프 사운드를 명시적으로 정지한다
         public void StopBeamLoop()
         {

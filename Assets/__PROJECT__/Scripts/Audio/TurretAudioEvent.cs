@@ -29,6 +29,7 @@ namespace ProjectZDefense.Audio
         Empty = 21,
         PlacementAvailable = 22,
         LevelUp = 23,
-        StatusLethal = 24
+        StatusLethal = 24,
+        StatusFreeze = 25
     }
 }

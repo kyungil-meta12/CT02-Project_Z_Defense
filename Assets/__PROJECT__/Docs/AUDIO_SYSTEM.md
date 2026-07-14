@@ -87,6 +87,8 @@ This section records the current in-progress setup so audio work can continue wi
 | `Ignition_Turret StatusApply` | `StatusApply` uses `fire_burning_flames_crackle_loop_01` as a followed loop on enemies that newly enter Ignition burn. `IgnitionStatusRuntime` fades the loop in and out over about 0.5 seconds. |
 | `Frost_Turret BeamStart` | `BeamStart` uses `wind_blizzard_storm_spell_light_01` as a one-shot beam start sound through the shared `BeamFiringEvent` beam-start trigger. |
 | `Frost_Turret BeamLoop` | `BeamLoop` uses `dark_portal_wind_loop_01` and stays active while the Frost beam VFX is visible, stopping through the shared `BeamFiringEvent` beam hide path. |
+| `Frost_Turret StatusFreeze` | `StatusFreeze` uses `casting_charge_matter_grow_01` as a one-shot pre-freeze sound on the target. `FrostStatusRuntime` starts it when the estimated remaining buildup time is within the configured cue clip length so the sound can lead into the freeze moment. |
+| `Frost_Turret StatusBurst` | `StatusBurst` uses `ice_spell_impact_shatter_03` at the delayed ice cube burst damage timing from `FrostFreezeExplosionDamageTimer`. |
 | Turret placement | `Placement` plays after a turret is successfully instantiated and its definition/audio profile has been applied. `PlacementAvailable` plays when placement preview newly enters a valid build slot, and does not repeat while staying on the same valid slot. |
 | Turret upgrade and evolution | `LevelUp` plays after a paid upgrade succeeds and the new level is applied. `Evolution` plays after the target evolution definition is applied, so the resulting turret profile owns the evolution sound. |
 

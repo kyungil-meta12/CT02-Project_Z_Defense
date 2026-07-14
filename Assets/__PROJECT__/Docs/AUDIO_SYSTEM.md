@@ -37,6 +37,7 @@ Current volume buses:
 - `AudioCueSO.maxSimultaneous` limits duplicate instances of the same cue.
 - `AudioCueSO.minInterval` prevents rapid repeated cue spam.
 - Priority follows Unity `AudioSource.priority`: lower numbers are more important. Higher-priority cues can steal lower-priority sounds when global or bus limits are full.
+- `AudioCueSO.volume`, `AudioCueSO.volumeRandomRange`, and turret profile `volumeScale` can be tuned up to 3x. Values above 1 use `PooledAudioSource` output gain because Unity `AudioSource.volume` is capped at 1, so tune per-cue volume first and use event profile scaling only when a specific turret event needs extra adjustment.
 
 ## Turret Rules
 
@@ -118,4 +119,5 @@ This section records the current in-progress setup so audio work can continue wi
 - Do not add `AudioSource.PlayOneShot` calls directly in projectile, damage tick, beam tick, or status tick hot paths.
 - Prefer cue cooldowns, simultaneous limits, and loop handles for high-frequency gameplay.
 - Keep enemy-followed status loops conservative. Current Poison, Ignition, and Electro status loop cues use `maxSimultaneous = 8` so late-wave status audio does not consume most SFX voices.
+- Avoid pushing every cue above 1x at once. The runtime caps final effective volume at 3x, but loud clips can still clip or distort when boosted heavily.
 - Keep normal runtime logs disabled; missing references should be handled by null-safe skips unless profiling audio setup.

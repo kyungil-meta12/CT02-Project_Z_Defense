@@ -9,6 +9,8 @@ namespace ProjectZDefense.Audio
     [CreateAssetMenu(menuName = "Project Z Defense/Audio/Audio Cue")]
     public class AudioCueSO : ScriptableObject
     {
+        private const float MAX_VOLUME_MULTIPLIER = 3f;
+
         [Header("기본 재생")]
         [SerializeField] private ProjectAudioBus bus = ProjectAudioBus.Sfx;
         [SerializeField] private ProjectAudioPlaybackMode playbackMode = ProjectAudioPlaybackMode.OneShot;
@@ -16,8 +18,8 @@ namespace ProjectZDefense.Audio
         [SerializeField] private AudioMixerGroup mixerGroup;
 
         [Header("볼륨과 피치")]
-        [SerializeField, Range(0f, 1f)] private float volume = 1f;
-        [SerializeField, Range(0f, 1f)] private float volumeRandomRange = 0f;
+        [SerializeField, Range(0f, MAX_VOLUME_MULTIPLIER)] private float volume = 1f;
+        [SerializeField, Range(0f, MAX_VOLUME_MULTIPLIER)] private float volumeRandomRange = 0f;
         [SerializeField] private float pitch = 1f;
         [SerializeField] private float pitchRandomRange = 0f;
 
@@ -94,11 +96,11 @@ namespace ProjectZDefense.Audio
         {
             if (volumeRandomRange <= 0f)
             {
-                return volume;
+                return Mathf.Clamp(volume, 0f, MAX_VOLUME_MULTIPLIER);
             }
 
             float min = Mathf.Max(0f, volume - volumeRandomRange);
-            float max = Mathf.Min(1f, volume + volumeRandomRange);
+            float max = Mathf.Min(MAX_VOLUME_MULTIPLIER, volume + volumeRandomRange);
             return Random.Range(min, max);
         }
 

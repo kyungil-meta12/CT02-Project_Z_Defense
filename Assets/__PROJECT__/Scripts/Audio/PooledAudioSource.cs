@@ -8,6 +8,8 @@ namespace ProjectZDefense.Audio
     [RequireComponent(typeof(AudioSource))]
     public class PooledAudioSource : MonoBehaviour
     {
+        private const float MAX_EFFECTIVE_VOLUME = 3f;
+
         private ProjectAudioManager owner;
         private AudioSource audioSource;
         private Transform followTarget;
@@ -15,6 +17,7 @@ namespace ProjectZDefense.Audio
         private ProjectAudioBus bus;
         private float baseVolume;
         private float runtimeVolumeScale = 1f;
+        private float outputGain = 1f;
         private bool returnWhenFinished;
         private bool isReturning;
         private bool isFading;
@@ -98,7 +101,9 @@ namespace ProjectZDefense.Audio
                 return;
             }
 
-            audioSource.volume = baseVolume * runtimeVolumeScale * owner.GetEffectiveVolume(bus);
+            float effectiveVolume = Mathf.Clamp(baseVolume * runtimeVolumeScale * owner.GetEffectiveVolume(bus), 0f, MAX_EFFECTIVE_VOLUME);
+            audioSource.volume = Mathf.Min(1f, effectiveVolume);
+            outputGain = effectiveVolume > 1f ? effectiveVolume : 1f;
         }
 
         // 재생 중 볼륨 배율을 변경한다
@@ -157,6 +162,20 @@ namespace ProjectZDefense.Audio
             }
         }
 
+        // AudioSource 볼륨 한계를 넘는 큐 볼륨을 샘플 단위 게인으로 보정한다
+        private void OnAudioFilterRead(float[] data, int channels)
+        {
+            if (outputGain <= 1f)
+            {
+                return;
+            }
+
+            for (int i = 0; i < data.Length; i++)
+            {
+                data[i] *= outputGain;
+            }
+        }
+
         // AudioSource 컴포넌트를 캐싱한다
         private void CacheAudioSource()
         {
@@ -173,6 +192,7 @@ namespace ProjectZDefense.Audio
             cue = null;
             baseVolume = 0f;
             runtimeVolumeScale = 1f;
+            outputGain = 1f;
             returnWhenFinished = false;
             isFading = false;
             stopAfterFade = false;

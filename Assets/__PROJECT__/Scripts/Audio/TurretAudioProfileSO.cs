@@ -8,13 +8,15 @@ namespace ProjectZDefense.Audio
     [CreateAssetMenu(menuName = "Project Z Defense/Audio/Turret Audio Profile")]
     public class TurretAudioProfileSO : ScriptableObject
     {
+        private const float MAX_EVENT_VOLUME_SCALE = 3f;
+
         [System.Serializable]
         private struct TurretAudioEntry
         {
             [Header("이벤트")]
             public TurretAudioEvent audioEvent;
             public AudioCueSO cue;
-            [Range(0f, 1f)] public float volumeScale;
+            [Range(0f, MAX_EVENT_VOLUME_SCALE)] public float volumeScale;
             public bool followEmitter;
 
             [Header("지연 재생")]

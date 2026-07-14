@@ -101,7 +101,7 @@ public class ProjectileDamageDealer : MonoBehaviour
     // 투사체가 최종 충돌했을 때 Impact 사운드를 한 번 재생한다
     public void PlayImpactAudio(Transform emitter)
     {
-        if (hasPlayedImpactAudio || audioEventPlayer == null)
+        if (electroStatusPayload.hasElectroStatus || hasPlayedImpactAudio || audioEventPlayer == null)
         {
             return;
         }
@@ -139,6 +139,7 @@ public class ProjectileDamageDealer : MonoBehaviour
         NotifyNonElectroDamageReceived(damageable, damageResult.Damage);
         DamagePopupPolicy popupPolicy = DamagePopupPolicyResolver.ResolveDirectHit(damageResult.PopupType);
         damageable.TakeDamage(new DamageInfo(damageResult.Damage, damageResult.PopupType, popupPolicy, damageMeterSource));
+        PlayElectroImpactAudio(hitCollider, damageable);
         hitDamageables.Add(damageable);
         ApplyPoisonStatus(damageable);
         ApplyElectroStatus(hitCollider, damageable, 0, damageResult.Damage);
@@ -150,6 +151,17 @@ public class ProjectileDamageDealer : MonoBehaviour
         }
 
         return true;
+    }
+
+    // Electro 직접 피격 대상 위치에서 Impact 사운드를 재생한다
+    private void PlayElectroImpactAudio(Collider hitCollider, IDamageable damageable)
+    {
+        if (!electroStatusPayload.hasElectroStatus)
+        {
+            return;
+        }
+
+        ElectroChainLightningUtility.PlayImpactAudio(electroStatusPayload, ResolveChainStartPosition(hitCollider, damageable));
     }
 
     // 현재 데미지 폴리싱 프로필에 따라 실제 적용할 데미지 결과를 계산한다

@@ -1,4 +1,5 @@
 using ProjectZDefense.StatusEffects;
+using ProjectZDefense.Audio;
 using UnityEngine;
 
 /// <summary>
@@ -17,6 +18,7 @@ public sealed class ElectroStatusRuntime : MonoBehaviour
     private Transform visualRoot;
     private Transform cachedCameraTransform;
     private IElectroStunRuntimeOwner stunOwner;
+    private ProjectAudioHandle chargedLoopAudioHandle;
     private GameObject activeOverloadStunEffect;
     private float overloadStunRemainingDuration;
     private float shockStackRemainingDuration;
@@ -85,6 +87,7 @@ public sealed class ElectroStatusRuntime : MonoBehaviour
         shockStackRemainingDuration = Mathf.Max(0.0f, payload.shockStackDuration);
         ApplyElectroStun(payload, chainIndex);
         RefreshShockStackVisuals();
+        PlayChargedLoopAudioIfNeeded();
     }
 
     // Shock 스택 유지시간과 회전 비주얼을 갱신한다
@@ -125,6 +128,7 @@ public sealed class ElectroStatusRuntime : MonoBehaviour
         shockStackRemainingDuration = 0.0f;
         orbitAngle = 0.0f;
         shockStackCount = 0;
+        StopChargedLoopAudio();
         CancelActiveOverloadStunEffect();
         ResetElectroStun();
         SetShockStackVisualCount(0);
@@ -136,6 +140,7 @@ public sealed class ElectroStatusRuntime : MonoBehaviour
         ElectroStatusPayload overloadPayload = activePayload;
         Vector3 effectCenter = ResolveVisualCenterPosition();
 
+        PlayOverloadBurstAudio(overloadPayload, effectCenter);
         PlayOverloadImpactEffect(overloadPayload, effectCenter);
         ApplyOverloadLongStun(overloadPayload, effectCenter);
         ClearShockStacksAfterOverload();
@@ -200,6 +205,23 @@ public sealed class ElectroStatusRuntime : MonoBehaviour
         activeOverloadStunEffect.transform.localScale = ResolveOverloadStunEffectScale(payload);
     }
 
+    // 과부하가 터지는 위치에서 전하 폭발 사운드를 재생한다
+    private void PlayOverloadBurstAudio(ElectroStatusPayload payload, Vector3 effectCenter)
+    {
+        if (payload.damageSource == null)
+        {
+            return;
+        }
+
+        TurretAudioController audioController = payload.damageSource.GetComponent<TurretAudioController>();
+        if (audioController == null)
+        {
+            return;
+        }
+
+        audioController.PlayAt(TurretAudioEvent.StatusBurst, effectCenter);
+    }
+
     // 과부하 단일 대상 데미지를 최대체력 비율로 적용한다
     private void ApplyOverloadDamage(ElectroStatusPayload payload)
     {
@@ -232,7 +254,37 @@ public sealed class ElectroStatusRuntime : MonoBehaviour
         shockStackRemainingDuration = 0.0f;
         orbitAngle = 0.0f;
         shockStackCount = 0;
+        StopChargedLoopAudio();
         SetShockStackVisualCount(0);
+    }
+
+    // Shock 스택이 완전 충전되었을 때 전하 루프 사운드를 시작한다
+    private void PlayChargedLoopAudioIfNeeded()
+    {
+        if (chargedLoopAudioHandle.IsValid || shockStackCount < ResolveRequiredOverloadStackCount())
+        {
+            return;
+        }
+
+        if (activePayload.damageSource == null)
+        {
+            return;
+        }
+
+        TurretAudioController audioController = activePayload.damageSource.GetComponent<TurretAudioController>();
+        if (audioController == null)
+        {
+            return;
+        }
+
+        chargedLoopAudioHandle = audioController.Play(TurretAudioEvent.StatusApply, transform);
+    }
+
+    // 활성 전하 루프 사운드를 정지한다
+    private void StopChargedLoopAudio()
+    {
+        chargedLoopAudioHandle.Stop();
+        chargedLoopAudioHandle = default;
     }
 
     // 과부하 긴 기절 차단 타이머를 갱신한다

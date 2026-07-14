@@ -67,6 +67,8 @@ Current volume buses:
 4. For UI buttons, set cues to bus `Ui` and assign them to `UIButtonAudioFeedback`.
 5. For turrets, create `TurretAudioProfileSO` assets from `Project Z Defense/Audio/Turret Audio Profile` and assign event entries.
 6. For settings UI, add `ProjectAudioVolumeSlider` to each Slider and choose Master, SFX, BGM, or UI.
+7. `MainMenuUI` opens the manually authored `AudioPanel` through explicit Inspector references: `Audio Panel`, `Audio Setting Button`, and `Audio Close Button`. Do not use runtime name search for this popup wiring.
+8. Audio setting sliders apply immediately through `ProjectAudioVolumeSlider` and save through `ProjectAudioManager`; no separate Apply or Save button is required.
 
 ## Current Turret Audio Setup
 

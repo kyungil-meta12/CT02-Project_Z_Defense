@@ -1,4 +1,4 @@
-%YAML 1.1
+﻿%YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
 --- !u!114 &11400000
 MonoBehaviour:
@@ -18,7 +18,7 @@ MonoBehaviour:
   - {fileID: 8300000, guid: 28e59959882d179459abeea840b645df, type: 3}
   - {fileID: 8300000, guid: 292234d6420465348ab4e5f09e90725c, type: 3}
   mixerGroup: {fileID: 0}
-  volume: 1
+  volume: 2
   volumeRandomRange: 0
   pitch: 1
   pitchRandomRange: 0

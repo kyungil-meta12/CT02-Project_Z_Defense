@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fcee5b0831fcbeb4c988027772714836, type: 3}
+  m_Name: ItemSellBuyCost
+  m_EditorClassIdentifier: Assembly-CSharp::ItemSellBuyCostSo
+  CostWithGrade:
+  - Grade: 4
+    CostToSell: 500
+    CostToBuy: 750
+  - Grade: 3
+    CostToSell: 1000
+    CostToBuy: 1500
+  - Grade: 2
+    CostToSell: 5000
+    CostToBuy: 7500
+  - Grade: 1
+    CostToSell: 50000
+    CostToBuy: 75000
+  - Grade: 0
+    CostToSell: 150000
+    CostToBuy: 200000

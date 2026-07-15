@@ -566,7 +566,7 @@ Detail_Popup_Panel
 - `TurretItemDescriptionRelationSlotUI`는 아이템 설명 팝업 하단 관계 슬롯 하나를 표시한다. 아이템 슬롯은 클릭 시 같은 팝업에서 해당 아이템으로 이동하고, 터렛 슬롯은 진화 대상 표시 전용으로 둔다.
 - `다음을 위해 필요` 모드는 현재 아이템을 재료로 사용하는 제작 결과 아이템들을 `ItemMetaDataSo.ItemsToCreate` 역참조로 표시하고, 현재 아이템을 진화 비용으로 사용하는 터렛 진화 대상도 함께 표시한다.
 - `제작시 필요 자원` 모드는 현재 아이템을 제작할 때 필요한 재료들을 현재 아이템의 `ItemMetaDataSo.ItemsToCreate` 목록 기준으로 표시한다.
-- 뒤로가기는 최근 아이템 탐색 히스토리를 사용하며, 히스토리 최대 개수는 `TurretItemDescriptionPopupUI.historyLimit`로 제한한다.
+- 뒤로가기는 최근 아이템 탐색 히스토리를 사용하며, 히스토리가 없으면 팝업을 닫는다. 히스토리 최대 개수는 `TurretItemDescriptionPopupUI.historyLimit`로 제한한다.
 
 ### Inspector Rules
 

@@ -448,12 +448,12 @@ public class TurretItemDescriptionPopupUI : MonoBehaviour
         SetToggle(craftInputToggle, currentRelationMode == RelationMode.CraftInput);
     }
 
-    // 뒤로가기 버튼 활성 상태를 현재 히스토리에 맞춘다
+    // 뒤로가기 버튼 활성 상태를 현재 팝업 표시 상태에 맞춘다
     private void RefreshBackButtonState()
     {
         if (backButton != null)
         {
-            backButton.interactable = history.Count > 0;
+            backButton.interactable = hasCurrentItem;
         }
     }
 

@@ -23,6 +23,7 @@ public class TurretEngineerBuffReceiver : MonoBehaviour
 
     public static event Action<TurretEngineerBuffReceiver> OnBuffStateChanged;
     public int EngineerCount => engineers.Count;
+    public int MaxEngineerSeatCount => GetMaxEngineerSeatCount();
     public float DamageBonusRatioPerEngineer => Mathf.Max(0.0f, damageBonusRatioPerEngineer);
 
     // 컴포넌트 추가 시 필요한 참조를 자동으로 수집한다
@@ -102,6 +103,77 @@ public class TurretEngineerBuffReceiver : MonoBehaviour
         if (engineers.Remove(engineer))
         {
             ApplyBuff();
+        }
+    }
+
+    // 등록 순서를 유지해 새 터렛 정원만큼 엔지니어를 이전하고 초과 인원은 집결지로 복귀시킨다
+    public void TransferEngineersTo(TurretEngineerBuffReceiver targetReceiver, TurretBaseSlot targetSlot)
+    {
+        RemoveMissingEngineers();
+        if (targetReceiver == this)
+        {
+            TrimExcessEngineersToCapacity();
+            return;
+        }
+
+        int availableSeatCount = targetReceiver == null || targetSlot == null
+            ? 0
+            : Mathf.Max(0, targetReceiver.MaxEngineerSeatCount - targetReceiver.EngineerCount);
+        int transferredCount = 0;
+
+        while (engineers.Count > 0 && transferredCount < availableSeatCount)
+        {
+            Survivor engineer = engineers[0];
+            if (engineer == null)
+            {
+                engineers.RemoveAt(0);
+                continue;
+            }
+
+            if (engineer.TryAssignEngineerToTurret(targetReceiver, targetSlot, null))
+            {
+                engineers.RemoveAt(0);
+                transferredCount++;
+                continue;
+            }
+
+            DismountEngineer(engineer);
+        }
+
+        while (engineers.Count > 0)
+        {
+            DismountEngineer(engineers[0]);
+        }
+
+        ApplyBuff();
+    }
+
+    // 현재 Definition의 탑승 정원을 초과한 후순위 엔지니어를 집결지로 복귀시킨다
+    public void TrimExcessEngineersToCapacity()
+    {
+        RemoveMissingEngineers();
+        int maxEngineerSeatCount = GetMaxEngineerSeatCount();
+        while (engineers.Count > maxEngineerSeatCount)
+        {
+            DismountEngineer(engineers[engineers.Count - 1]);
+        }
+
+        ApplyBuff();
+    }
+
+    // 엔지니어의 터렛 배치를 해제하고 실패 시에도 현재 수신기 목록에서 제거한다
+    private void DismountEngineer(Survivor engineer)
+    {
+        if (engineer == null)
+        {
+            engineers.RemoveAt(0);
+            return;
+        }
+
+        if (!engineer.TryDismountEngineerFromTurret())
+        {
+            engineers.Remove(engineer);
+            engineer.ReturnEngineerToGathering();
         }
     }
 

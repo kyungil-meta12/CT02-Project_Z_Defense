@@ -529,6 +529,18 @@ public class Survivor : MonoBehaviour
             return false;
         }
 
+        ReturnEngineerToGathering();
+        return true;
+    }
+
+    // 엔지니어의 기존 터렛 배치를 정리하고 집결 지점으로 복귀시킨다
+    public void ReturnEngineerToGathering()
+    {
+        if (role != SurvivorRole.engineer)
+        {
+            return;
+        }
+
         ClearEngineerAssignment();
         assignedTurretSlot = null;
         SetInteractionVisible(true);
@@ -537,12 +549,11 @@ public class Survivor : MonoBehaviour
         {
             defenseMoveTarget = null;
             ChangeState(SurvivorState.EngineerReady);
-            return true;
+            return;
         }
 
         defenseMoveTarget = finalRearPoint;
         ChangeState(SurvivorState.ReturningToEngineerGathering);
-        return true;
     }
 
     // NavMeshAgent 이동 수치를 지정한 정지 거리로 맞춘다

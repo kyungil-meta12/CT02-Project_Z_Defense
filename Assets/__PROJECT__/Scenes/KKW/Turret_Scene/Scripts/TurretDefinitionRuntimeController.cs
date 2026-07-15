@@ -256,10 +256,12 @@ public class TurretDefinitionRuntimeController : MonoBehaviour
             return false;
         }
 
+        TurretEngineerBuffReceiver engineerBuffReceiver = GetComponent<TurretEngineerBuffReceiver>();
         PlayEvolutionEffect(evolutionEntry);
         turretDefinition = evolutionEntry.targetDefinition;
         level = 1;
         Apply();
+        engineerBuffReceiver?.TrimExcessEngineersToCapacity();
         PlayAudioEvent(TurretAudioEvent.Evolution);
         MarkSaveStateDirty();
         return true;
@@ -308,6 +310,8 @@ public class TurretDefinitionRuntimeController : MonoBehaviour
 
         Transform currentTransform = transform;
         Transform parentTransform = currentTransform.parent;
+        TurretBaseSlot turretBaseSlot = GetComponentInParent<TurretBaseSlot>();
+        TurretEngineerBuffReceiver currentEngineerBuffReceiver = GetComponent<TurretEngineerBuffReceiver>();
         Vector3 localPosition = currentTransform.localPosition;
         Quaternion localRotation = currentTransform.localRotation;
         Vector3 localScale = ResolveEvolutionLocalScale(evolutionEntry.targetDefinition, parentTransform);
@@ -329,6 +333,23 @@ public class TurretDefinitionRuntimeController : MonoBehaviour
         evolvedRuntimeController.SetDefinition(evolutionEntry.targetDefinition, totalLevel, 1);
         evolvedRuntimeController.PlayAudioEvent(TurretAudioEvent.Evolution);
         CopyDamageMeterLifetimeStats(evolvedRuntimeController);
+
+        if (turretBaseSlot != null)
+        {
+            turretBaseSlot.SetCurrentTurret(evolvedRuntimeController);
+        }
+
+        if (currentEngineerBuffReceiver != null && currentEngineerBuffReceiver.EngineerCount > 0)
+        {
+            TurretEngineerBuffReceiver evolvedEngineerBuffReceiver = evolvedObject.GetComponent<TurretEngineerBuffReceiver>();
+            if (evolvedEngineerBuffReceiver == null && evolutionEntry.targetDefinition.maxEngineerSeatCount > 0)
+            {
+                evolvedEngineerBuffReceiver = evolvedObject.AddComponent<TurretEngineerBuffReceiver>();
+            }
+
+            currentEngineerBuffReceiver.TransferEngineersTo(evolvedEngineerBuffReceiver, turretBaseSlot);
+        }
+
         Destroy(gameObject);
         return evolvedRuntimeController;
     }

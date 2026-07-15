@@ -310,6 +310,8 @@ Runtime policy:
 - Turret shop entries use a stable `SaveId`, and their cumulative successful placement counts are saved so tiered placement costs cannot be reset by restarting the app.
 - After obstacle restoration and before defense-line availability is evaluated, saved turret prefabs are instantiated directly on their build points without placement or evolution costs, effects, or sounds.
 - Restored engineers remain unseated at the survivor rally point and must be assigned to a turret again.
+- When turret evolution replaces its prefab, seated engineers transfer to the new receiver in registration order up to the evolved turret's seat capacity.
+- Engineers exceeding the evolved capacity, or failing transfer, dismount and return to the survivor rally point; a missing rally point falls back to visible `EngineerReady` idle.
 
 ## Edge Cases To Check
 

@@ -687,6 +687,12 @@ public class ObstacleUpgradePopupUI : MonoBehaviour
     {
         if (InventorySystem.Inst != null)
         {
+            ItemMetaDataSo metaData = InventorySystem.Inst.GetMetaData(currencyType);
+            if (metaData != null && !string.IsNullOrWhiteSpace(metaData.Name))
+            {
+                return metaData.Name;
+            }
+
             string itemName = InventorySystem.Inst.GetName(currencyType);
             if (!string.IsNullOrWhiteSpace(itemName))
             {

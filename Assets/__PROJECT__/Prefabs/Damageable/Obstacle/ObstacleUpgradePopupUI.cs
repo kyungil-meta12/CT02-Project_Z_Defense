@@ -386,11 +386,6 @@ public class ObstacleUpgradePopupUI : MonoBehaviour
             return "파괴된 장애물은 다시 건설해야 합니다.";
         }
 
-        if (selectedObstacle.ReservedRepairer != null)
-        {
-            return "수리 예약 중에는 업그레이드할 수 없습니다.";
-        }
-
         if (selectedUpgradeController.IsMaxLevelReached)
         {
             return "최대 레벨에 도달했습니다.";

@@ -90,7 +90,7 @@ public class ObstacleUpgradeRuntimeController : MonoBehaviour
             return false;
         }
 
-        if (targetObstacle != null && (!targetObstacle.IsAlive || targetObstacle.ReservedRepairer != null))
+        if (targetObstacle != null && !targetObstacle.IsAlive)
         {
             return false;
         }
@@ -115,9 +115,9 @@ public class ObstacleUpgradeRuntimeController : MonoBehaviour
             return false;
         }
 
-        if (!targetObstacle.IsAlive || targetObstacle.ReservedRepairer != null)
+        if (!targetObstacle.IsAlive)
         {
-            Debug.LogWarning("[장애물 업그레이드] 파괴되었거나 수리 예약 중인 장애물은 업그레이드할 수 없습니다.", this);
+            Debug.LogWarning("[장애물 업그레이드] 파괴된 장애물은 업그레이드할 수 없습니다.", this);
             return false;
         }
 

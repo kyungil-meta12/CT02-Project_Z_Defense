@@ -14,6 +14,7 @@ Project-level runtime audio system for SFX, BGM, UI sounds, and turret audio eve
 | `ProjectBgmPlayer` | Scene component that plays a configured BGM cue on enable and stops it on disable. |
 | `UIButtonAudioFeedback` | UI component that plays click, hover, and select cues through `ProjectAudioManager`. |
 | `ProjectAudioVolumeSlider` | UI slider binding for Master, SFX, BGM, or UI volume. |
+| `ProjectAudioFeelBridge` | Scene bridge that mirrors `ProjectAudioManager` effective bus volumes to MoreMountains Feel `MMSoundManager` tracks. |
 | `TurretAudioProfileSO` | Turret-specific event-to-cue map for fire, charge, reload, impact, beam, status, skill, evolution, and placement sounds. |
 | `TurretAudioController` | Runtime turret adapter that plays profile events and owns loop handles such as beam, projectile, charge, fire, and reload loops. |
 | `TurretAudioFireEventRelay` | Project-level adapter that listens to the external turret `Fired` event and forwards it as `TurretAudioEvent.Fire`. |
@@ -27,6 +28,14 @@ Current volume buses:
 - `Ui`
 
 `ProjectAudioManager` also has a master volume. All volume setters can save to `PlayerPrefs`, so options UI can persist player settings without adding another storage layer.
+
+`ProjectAudioFeelBridge` keeps MoreMountains Feel feedback sounds under the same player-facing sliders. The default scene mapping is:
+
+- Project `Sfx` effective volume -> Feel `Sfx`
+- Project `Bgm` effective volume -> Feel `Music`
+- Project `Ui` effective volume -> Feel `UI`
+
+The bridge writes already-effective project bus volume values, including project master volume, into the Feel tracks. Keep the bridge's `Force Feel Master Track To Full Volume` enabled unless the Feel master track becomes the single project-wide master source; otherwise the project master volume can be applied twice.
 
 ## Pooling And Limits
 
@@ -69,6 +78,7 @@ Current volume buses:
 6. For settings UI, add `ProjectAudioVolumeSlider` to each Slider and choose Master, SFX, BGM, or UI.
 7. `MainMenuUI` opens the manually authored `AudioPanel` through explicit Inspector references: `Audio Panel`, `Audio Setting Button`, and `Audio Close Button`. Do not use runtime name search for this popup wiring.
 8. Audio setting sliders apply immediately through `ProjectAudioVolumeSlider` and save through `ProjectAudioManager`; no separate Apply or Save button is required.
+9. For MoreMountains Feel feedback sounds, keep one `ProjectAudioFeelBridge` on the scene `ProjectAudioManager` object. Assign feedback sound entries such as `Attack`, `TankSkill`, and `BoomerSkill` to the intended `MMSoundManagerTrack`; the bridge controls the track volume from the project audio sliders.
 
 ## Current Turret Audio Setup
 

@@ -1,4 +1,5 @@
 using IncrementalLib;
+using ProjectZDefense.Audio;
 using ProjectZima.PolygonModularTurretsPack;
 using System;
 using System.Collections.Generic;
@@ -181,8 +182,6 @@ public class InventoryUI : TouchBackHandler
         {
             contentDict.Add(c.Type, c);
         }
-
-        aSource = GetComponent<AudioSource>();
     }
 
     void Start()
@@ -313,6 +312,11 @@ public class InventoryUI : TouchBackHandler
 
         // 인벤토리 UI 숨기기
         OnCloseInventory();
+
+
+        aSource = GetComponent<AudioSource>();
+        aSource.volume = ProjectAudioManager.Inst.GetEffectiveVolume(ProjectAudioBus.Ui);
+        ProjectAudioManager.Inst.OnVolumeChanged += OnVolumeChanged; // 볼륨 변경 이벤트 구독
     }
 
     void OnDestroy()
@@ -320,6 +324,10 @@ public class InventoryUI : TouchBackHandler
         if (InventorySystem.Inst)
         {
             InventorySystem.Inst.OnItemCountChange -= OnItemValueChanged;
+        }
+        if(ProjectAudioManager.Inst)
+        {
+            ProjectAudioManager.Inst.OnVolumeChanged -= OnVolumeChanged;
         }
     }
 
@@ -356,6 +364,14 @@ public class InventoryUI : TouchBackHandler
         }
 
         UpdateTouchBackHandler();
+    }
+
+    public void OnVolumeChanged(ProjectAudioBus bus, float volume)
+    {
+        if(bus == ProjectAudioBus.Ui)
+        {
+            aSource.volume = volume;
+        }
     }
 
     // 아이템 개수가 변경 될 때마다 아이템에 해당하는 인덱스의 정보를 업데이트 한다.

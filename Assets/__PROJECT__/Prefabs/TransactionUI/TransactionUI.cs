@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using IncrementalLib;
+using ProjectZDefense.Audio;
 using TMPro;
 using Unity.Android.Gradle.Manifest;
 using UnityEngine;
@@ -147,6 +148,8 @@ public class TransactionUI : TouchBackHandler
         OnTouchBackAction += OnCloseTransactionUI;
 
         aSource = GetComponent<AudioSource>();
+        aSource.volume = ProjectAudioManager.Inst.GetEffectiveVolume(ProjectAudioBus.Ui);
+        ProjectAudioManager.Inst.OnVolumeChanged += OnVolumeChanged; 
     }
 
     void OnDestroy()
@@ -154,6 +157,10 @@ public class TransactionUI : TouchBackHandler
         if(InventorySystem.Inst)
         {
             InventorySystem.Inst.OnItemCountChange -= OnItemCountChange;
+        }
+        if(ProjectAudioManager.Inst)
+        {
+            ProjectAudioManager.Inst.OnVolumeChanged -= OnVolumeChanged;
         }
     }
 
@@ -186,6 +193,14 @@ public class TransactionUI : TouchBackHandler
         if(truckObject.GetLeaveState())
         {
             OnCloseTransactionUI();
+        }
+    }
+
+    public void OnVolumeChanged(ProjectAudioBus bus, float volume)
+    {
+        if(bus == ProjectAudioBus.Ui)
+        {
+            aSource.volume = volume;
         }
     }
 

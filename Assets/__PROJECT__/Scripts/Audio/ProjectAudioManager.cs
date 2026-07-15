@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 
 namespace ProjectZDefense.Audio
@@ -37,11 +39,15 @@ namespace ProjectZDefense.Audio
         private readonly List<PooledAudioSource> activeSources = new();
         private readonly Dictionary<int, float> lastPlayTimes = new();
         private Transform sourceContainer;
+        private List<ProjectAudioBus> busTypes = new();
 
         public float MasterVolume => masterVolume;
         public float SfxVolume => sfxVolume;
         public float BgmVolume => bgmVolume;
         public float UiVolume => uiVolume;
+
+        // 볼륨 변경 시 발생하는 이벤트
+        public Action<ProjectAudioBus, float> OnVolumeChanged;
 
         // 싱글톤과 풀을 초기화한다
         private void Awake()
@@ -66,6 +72,11 @@ namespace ProjectZDefense.Audio
 
             EnsureContainer();
             PrewarmSources();
+
+            foreach(ProjectAudioBus busType in Enum.GetValues(typeof(ProjectAudioBus)))
+            {
+                busTypes.Add(busType);
+            }
         }
 
         // 싱글톤 참조를 정리한다
@@ -159,6 +170,10 @@ namespace ProjectZDefense.Audio
             masterVolume = Mathf.Clamp01(volume);
             SaveVolumeIfNeeded(MasterVolumeKey, masterVolume, save);
             RefreshActiveVolumes();
+            foreach(var type in busTypes)
+            {
+                OnVolumeChanged?.Invoke(type, GetEffectiveVolume(type));
+            }
         }
 
         // SFX 볼륨을 설정하고 재생 중인 소스에 반영한다
@@ -167,6 +182,7 @@ namespace ProjectZDefense.Audio
             sfxVolume = Mathf.Clamp01(volume);
             SaveVolumeIfNeeded(SfxVolumeKey, sfxVolume, save);
             RefreshActiveVolumes();
+            OnVolumeChanged?.Invoke(ProjectAudioBus.Sfx, GetEffectiveVolume(ProjectAudioBus.Sfx));
         }
 
         // BGM 볼륨을 설정하고 재생 중인 소스에 반영한다
@@ -175,6 +191,7 @@ namespace ProjectZDefense.Audio
             bgmVolume = Mathf.Clamp01(volume);
             SaveVolumeIfNeeded(BgmVolumeKey, bgmVolume, save);
             RefreshActiveVolumes();
+            OnVolumeChanged?.Invoke(ProjectAudioBus.Bgm, GetEffectiveVolume(ProjectAudioBus.Bgm));
         }
 
         // UI 볼륨을 설정하고 재생 중인 소스에 반영한다
@@ -183,6 +200,7 @@ namespace ProjectZDefense.Audio
             uiVolume = Mathf.Clamp01(volume);
             SaveVolumeIfNeeded(UiVolumeKey, uiVolume, save);
             RefreshActiveVolumes();
+            OnVolumeChanged?.Invoke(ProjectAudioBus.Ui, GetEffectiveVolume(ProjectAudioBus.Ui));
         }
 
         // 재생이 끝난 오디오 소스를 풀로 되돌린다

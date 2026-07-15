@@ -564,14 +564,17 @@ Detail_Popup_Panel
 - `TurretItemDescriptionPopupUI`는 업그레이드/진화 필요 재화 슬롯에서 열린 아이템 설명, 관계 슬롯, 뒤로가기 히스토리, 인벤토리 열기 버튼을 담당한다.
 - `TurretItemDescriptionOpenButton`은 업그레이드/진화 비용 슬롯 버튼에 붙는 클릭 전달 컴포넌트다. 비용 UI가 갱신될 때 현재 슬롯의 `RewardCurrencyType`과 공용 팝업 참조를 받는다.
 - `TurretItemDescriptionRelationSlotUI`는 아이템 설명 팝업 하단 관계 슬롯 하나를 표시한다. 아이템 슬롯은 클릭 시 같은 팝업에서 해당 아이템으로 이동하고, 터렛 슬롯은 진화 대상 표시 전용으로 둔다.
-- 상단 `ItemCountText`는 현재 아이템의 보유량을 `InventorySystem.GetCountString()` 기준 `{수량}개 보유` 형식으로 표시한다.
+- 상단 `ItemCountText`는 현재 아이템의 보유량을 `InventorySystem.GetCountString()` 기준 `수량개 보유` 형식으로 표시한다.
+- 필요 재화 슬롯에서 처음 열릴 때의 기본 관계 모드는 `획득에 필요 자원`이다. 인벤토리 닫힘 복구 시에는 인벤토리 진입 직전의 관계 표시 모드를 유지한다.
 - `다음을 위해 필요` 모드는 현재 아이템을 재료로 사용하는 제작 결과 아이템들을 `ItemMetaDataSo.ItemsToCreate` 역참조로 표시하고, 현재 아이템을 진화 비용으로 사용하는 터렛 진화 대상도 함께 표시한다.
-- `제작시 필요 자원` 모드는 현재 아이템을 제작할 때 필요한 재료들을 현재 아이템의 `ItemMetaDataSo.ItemsToCreate` 목록 기준으로 표시한다.
+- `획득에 필요 자원` 모드는 현재 아이템을 제작할 때 필요한 재료들을 현재 아이템의 `ItemMetaDataSo.ItemsToCreate` 목록 기준으로 표시하고, 현재 아이템을 분해 결과로 제공하는 원본 아이템들을 전체 `ItemMetaDataSo.ItemsFromDecompose` 역참조로 함께 표시한다.
+- `획득에 필요 자원` 슬롯에서 제작 재료는 `제작 필요 n`, 분해 원본은 `분해 1개 / 획득 n~m` 형식으로 수량을 표시한다.
 - 뒤로가기는 최근 아이템 탐색 히스토리를 사용하며, 히스토리가 없으면 팝업을 닫는다. 히스토리 최대 개수는 `TurretItemDescriptionPopupUI.historyLimit`로 제한한다.
 - 인벤토리 버튼은 `ItemDiscriptionPopup`을 닫은 뒤 `TurretSelectionUIController.ClearSelection()`을 호출해 `TurretSelectPopup`, `UpgradePopup`, `EvolutionPopup` 같은 터렛 선택 팝업을 먼저 정리하고 `InventoryUI.OnOpenInventory()`를 호출한다. 터렛 팝업 배경이 남아 있으면 인벤토리 입력 레이캐스트가 막힐 수 있다.
 - 아이템 설명 팝업 경로로 인벤토리를 열 때는 닫기 직전 터렛 선택 컨텍스트와 표시 중인 터렛 팝업 종류를 저장한다. 해당 인벤토리가 닫히면 `TurretSelectionUIController.RestoreSelection()`으로 이전 `Select/Upgrade/Detail/Evolution/Skill` 팝업 또는 사거리 표시 상태를 복구한다.
 - 같은 경로에서 현재 아이템 설명 팝업의 아이템 타입, 관계 표시 모드, 뒤로가기 히스토리도 함께 저장한다. 인벤토리가 닫히면 터렛 UI를 먼저 복구한 뒤 `ItemDiscriptionPopup`을 다시 표시해 인벤토리 진입 직전의 아이템 설명 화면으로 돌아간다.
 - `InventoryUI.InventoryClosed` 이벤트는 실제로 열려 있던 인벤토리가 닫힐 때만 발생한다. `TurretItemDescriptionPopupUI`는 이 이벤트를 한 번만 구독해 일반 창고 아이콘 경로의 인벤토리 닫기와 섞이지 않도록 한다.
+- `CloseFrame` 버튼이 새 `ItemCountText`에 입력을 가로막히지 않도록 상단 표시용 TMP의 `raycastTarget`을 런타임에서 비활성화한다.
 
 ### Inspector Rules
 
@@ -582,6 +585,11 @@ Detail_Popup_Panel
 - `UpgradePopup`과 `EvolutionPopup`의 필요 재화 버튼마다 `TurretItemDescriptionOpenButton`을 붙이고, 각 팝업 UI의 `Item Description Popup`과 `Resource Item Buttons` 배열에 슬롯 순서대로 직접 연결한다.
 - 비용 슬롯 배열 순서는 기존 재화 이름/수량/이미지 배열 순서와 같아야 한다.
 - 이 팝업은 읽기 전용 정보 팝업이며 제작 실행은 기존 `InventoryUI`가 계속 담당한다.
+
+### Cleanup
+
+- `craftInputToggle` 전환 이후 씬/프리팹에 옛 `decomposeOutputToggle` 직렬화 필드가 남아 있지 않아 `FormerlySerializedAs("decomposeOutputToggle")` 호환 코드를 제거했다.
+- `TURRET_SYSTEM.md`의 `TurretItemDescriptionPopupUI` 설명에서 보유량 미표시 레거시 문구를 제거하고, 현재 보유량 표시/인벤토리 복구/Raycast Target 규칙으로 갱신했다.
 
 ## Next Work Plan
 

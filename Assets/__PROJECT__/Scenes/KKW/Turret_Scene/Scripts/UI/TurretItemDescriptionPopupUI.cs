@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using UnityEngine.Serialization;
 using UnityEngine.UI;
 
 /// <summary>
@@ -24,12 +25,12 @@ public class TurretItemDescriptionPopupUI : MonoBehaviour
     [Header("상단 아이템 정보")]
     [SerializeField] private TMP_Text itemNameText;
     [SerializeField] private TMP_Text itemDescriptionText;
-    [SerializeField] private TMP_Text itemOwnedCountText;
     [SerializeField] private Image itemImage;
 
     [Header("관계 표시 모드")]
     [SerializeField] private Toggle requiredForCraftToggle;
-    [SerializeField] private Toggle decomposeOutputToggle;
+    [FormerlySerializedAs("decomposeOutputToggle")]
+    [SerializeField] private Toggle craftInputToggle;
     [SerializeField] private TMP_Text relationTitleText;
 
     [Header("관계 슬롯")]
@@ -160,7 +161,6 @@ public class TurretItemDescriptionPopupUI : MonoBehaviour
 
         SetText(itemNameText, "{" + displayName + "}");
         SetText(itemDescriptionText, description);
-        SetText(itemOwnedCountText, "보유량: " + GetOwnedCountText(currentType));
         SetImage(itemImage, sprite);
     }
 
@@ -169,7 +169,6 @@ public class TurretItemDescriptionPopupUI : MonoBehaviour
     {
         SetText(itemNameText, string.Empty);
         SetText(itemDescriptionText, string.Empty);
-        SetText(itemOwnedCountText, string.Empty);
         SetImage(itemImage, null);
     }
 
@@ -303,7 +302,7 @@ public class TurretItemDescriptionPopupUI : MonoBehaviour
     private void RefreshRelationToggles()
     {
         SetToggle(requiredForCraftToggle, currentRelationMode == RelationMode.RequiredForCraft);
-        SetToggle(decomposeOutputToggle, currentRelationMode == RelationMode.CraftInput);
+        SetToggle(craftInputToggle, currentRelationMode == RelationMode.CraftInput);
     }
 
     // 뒤로가기 버튼 활성 상태를 현재 히스토리에 맞춘다
@@ -326,7 +325,7 @@ public class TurretItemDescriptionPopupUI : MonoBehaviour
     }
 
     // 제작 필요 재료 토글 입력을 처리한다
-    private void OnDecomposeOutputToggleChanged(bool isOn)
+    private void OnCraftInputToggleChanged(bool isOn)
     {
         if (isOn)
         {
@@ -375,12 +374,6 @@ public class TurretItemDescriptionPopupUI : MonoBehaviour
         return itemType.ToString();
     }
 
-    // 현재 보유량 표시 문자열을 반환한다
-    private static string GetOwnedCountText(RewardCurrencyType itemType)
-    {
-        return InventorySystem.Inst == null ? "0" : InventorySystem.Inst.GetCountString(itemType);
-    }
-
     // 팝업 루트 활성 상태를 변경한다
     private void SetRootActive(bool isActive)
     {
@@ -417,10 +410,10 @@ public class TurretItemDescriptionPopupUI : MonoBehaviour
             requiredForCraftToggle.onValueChanged.AddListener(OnRequiredForCraftToggleChanged);
         }
 
-        if (decomposeOutputToggle != null)
+        if (craftInputToggle != null)
         {
-            decomposeOutputToggle.onValueChanged.RemoveListener(OnDecomposeOutputToggleChanged);
-            decomposeOutputToggle.onValueChanged.AddListener(OnDecomposeOutputToggleChanged);
+            craftInputToggle.onValueChanged.RemoveListener(OnCraftInputToggleChanged);
+            craftInputToggle.onValueChanged.AddListener(OnCraftInputToggleChanged);
         }
     }
 
@@ -447,9 +440,9 @@ public class TurretItemDescriptionPopupUI : MonoBehaviour
             requiredForCraftToggle.onValueChanged.RemoveListener(OnRequiredForCraftToggleChanged);
         }
 
-        if (decomposeOutputToggle != null)
+        if (craftInputToggle != null)
         {
-            decomposeOutputToggle.onValueChanged.RemoveListener(OnDecomposeOutputToggleChanged);
+            craftInputToggle.onValueChanged.RemoveListener(OnCraftInputToggleChanged);
         }
     }
 
@@ -466,7 +459,7 @@ public class TurretItemDescriptionPopupUI : MonoBehaviour
             Debug.LogWarning("[TurretItemDescriptionPopupUI] 상단 아이템 정보 참조가 일부 비어 있습니다.", this);
         }
 
-        if (requiredForCraftToggle == null || decomposeOutputToggle == null)
+        if (requiredForCraftToggle == null || craftInputToggle == null)
         {
             Debug.LogWarning("[TurretItemDescriptionPopupUI] 관계 표시 토글 참조가 일부 비어 있습니다.", this);
         }

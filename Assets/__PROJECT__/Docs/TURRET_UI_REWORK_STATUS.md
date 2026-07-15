@@ -41,7 +41,7 @@
 
 - `RequireSorceText`는 큰 제목용 TMP이며 런타임에서 덮어쓰지 않는다. 씬에 입력된 `필요 재료` 문구를 유지한다.
 - `RequireSorceImagePanel` 아래 `RequireSorceImageFrame 1~8`은 진화 비용 표시 슬롯이다.
-- 각 슬롯은 `ItemName 1~8`, `ItemCount 1~8`, 아이템 이미지로 구성한다.
+- 각 슬롯은 `ItemName 1~8`, `ItemCount 1~8`, 아이템 이미지로 구성한다. 아이템 이미지는 각 `RequireSorceImageFrame` 하위의 자식 `Image` 컴포넌트에 표시하고, 프레임 Image 자체는 배경/프레임으로 유지한다.
 - 비용 아이템 이미지는 `InventorySystem.GetMetaData(currencyType).ItemImage`를 사용한다.
 - 아이템 이름은 `InventorySystem.GetName(currencyType)`을 우선 사용하고, 없으면 `RewardCurrencyType` 이름을 사용한다.
 - 수량은 `보유/필요` 형식으로 표시한다.
@@ -565,16 +565,16 @@ Detail_Popup_Panel
 - `TurretItemDescriptionOpenButton`은 업그레이드/진화 비용 슬롯 버튼에 붙는 클릭 전달 컴포넌트다. 비용 UI가 갱신될 때 현재 슬롯의 `RewardCurrencyType`과 공용 팝업 참조를 받는다.
 - `TurretItemDescriptionRelationSlotUI`는 아이템 설명 팝업 하단 관계 슬롯 하나를 표시하고, 클릭 시 같은 팝업에서 해당 아이템으로 이동한다.
 - `다음을 위해 필요` 모드는 현재 아이템을 재료로 사용하는 제작 결과 아이템들을 `ItemMetaDataSo.ItemsToCreate` 역참조로 표시한다.
-- `정제시 획득 자원` 모드는 현재 아이템의 `ItemMetaDataSo.ItemsFromDecompose` 결과를 표시한다.
+- `제작시 필요 자원` 모드는 현재 아이템을 제작할 때 필요한 재료들을 현재 아이템의 `ItemMetaDataSo.ItemsToCreate` 목록 기준으로 표시한다.
 - 뒤로가기는 최근 아이템 탐색 히스토리를 사용하며, 히스토리 최대 개수는 `TurretItemDescriptionPopupUI.historyLimit`로 제한한다.
 
 ### Inspector Rules
 
-- `ItemDiscriptionPopup` 오브젝트에는 `TurretItemDescriptionPopupUI`를 직접 붙이고 상단 TMP/Image, 토글, 닫기/뒤로가기/인벤토리 버튼, 관계 슬롯 배열, `InventoryUI`를 직접 연결한다.
+- `ItemDiscriptionPopup` 오브젝트에는 `TurretItemDescriptionPopupUI`를 직접 붙이고 상단 이름/설명 TMP, 아이콘 Image, 토글, 닫기/뒤로가기/인벤토리 버튼, 관계 슬롯 배열, `InventoryUI`를 직접 연결한다. 보유량 TMP는 사용하지 않는다.
 - 하단 관계 아이템 슬롯마다 `TurretItemDescriptionRelationSlotUI`를 붙이고 슬롯 루트, 버튼, 아이콘, 이름 TMP, 수량 TMP를 직접 연결한다.
 - `UpgradePopup`과 `EvolutionPopup`의 필요 재화 버튼마다 `TurretItemDescriptionOpenButton`을 붙이고, 각 팝업 UI의 `Item Description Popup`과 `Resource Item Buttons` 배열에 슬롯 순서대로 직접 연결한다.
 - 비용 슬롯 배열 순서는 기존 재화 이름/수량/이미지 배열 순서와 같아야 한다.
-- 이 팝업은 읽기 전용 정보 팝업이며 제작/분해 실행은 기존 `InventoryUI`가 계속 담당한다.
+- 이 팝업은 읽기 전용 정보 팝업이며 제작 실행은 기존 `InventoryUI`가 계속 담당한다.
 
 ## Next Work Plan
 

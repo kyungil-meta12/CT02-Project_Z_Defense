@@ -3,7 +3,7 @@ using UnityEngine;
 using UnityEngine.UI;
 
 /// <summary>
-/// 아이템 설명 팝업에서 제작/분해 관계 아이템 하나를 버튼 슬롯으로 표시한다.
+/// 아이템 설명 팝업에서 제작 관계 아이템 하나를 버튼 슬롯으로 표시한다.
 /// </summary>
 [DisallowMultipleComponent]
 public class TurretItemDescriptionRelationSlotUI : MonoBehaviour

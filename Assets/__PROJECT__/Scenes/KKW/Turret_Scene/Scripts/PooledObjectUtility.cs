@@ -37,11 +37,18 @@ public static class PooledObjectUtility
             projectile.AddComponent<PooledProjectileReturner>();
         }
 
+        ProjectileLifetimePolicy lifetimePolicy = projectile.GetComponent<ProjectileLifetimePolicy>();
+        if (lifetimePolicy == null)
+        {
+            lifetimePolicy = projectile.AddComponent<ProjectileLifetimePolicy>();
+        }
+
         if (projectile.GetComponent<HovlProjectilePierceGuard>() == null)
         {
             projectile.AddComponent<HovlProjectilePierceGuard>();
         }
 
+        lifetimePolicy.ApplyPolicy();
         return projectile;
     }
 

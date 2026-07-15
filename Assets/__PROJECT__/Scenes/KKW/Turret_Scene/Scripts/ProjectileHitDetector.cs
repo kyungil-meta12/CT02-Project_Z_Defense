@@ -9,7 +9,11 @@ public class ProjectileHitDetector : MonoBehaviour
 {
     private const int GROUND_LAYER_MASK = 1 << 3;
 
+    [Header("환경 충돌")]
+    [Tooltip("투사체가 일반 환경에 부딪혔을 때 피격 연출과 함께 종료할 레이어입니다.")]
     [SerializeField] private LayerMask environmentImpactLayerMask = GROUND_LAYER_MASK;
+    [Tooltip("투사체가 연출 없이 조용히 풀로 반환될 회수 경계 레이어입니다.")]
+    [SerializeField] private LayerMask projectileBoundaryLayerMask = 0;
 
     private readonly List<Collider> projectileColliders = new List<Collider>(4);
     private readonly RaycastHit[] movementHits = new RaycastHit[16];
@@ -145,6 +149,9 @@ public class ProjectileHitDetector : MonoBehaviour
         bool hasEnvironmentHit = false;
         RaycastHit nearestEnvironmentHit = default;
         float nearestEnvironmentDistance = float.MaxValue;
+        bool hasBoundaryHit = false;
+        RaycastHit nearestBoundaryHit = default;
+        float nearestBoundaryDistance = float.MaxValue;
 
         for (int i = 0; i < hitCount; i++)
         {
@@ -155,6 +162,13 @@ public class ProjectileHitDetector : MonoBehaviour
                 continue;
             }
 
+            if (IsProjectileBoundaryCollider(hitCollider) && movementHits[i].distance < nearestBoundaryDistance)
+            {
+                hasBoundaryHit = true;
+                nearestBoundaryHit = movementHits[i];
+                nearestBoundaryDistance = movementHits[i].distance;
+            }
+
             if (IsEnvironmentImpactLayer(hitCollider.gameObject.layer) && movementHits[i].distance < nearestEnvironmentDistance)
             {
                 hasEnvironmentHit = true;
@@ -163,6 +177,7 @@ public class ProjectileHitDetector : MonoBehaviour
             }
         }
 
+        float nearestTerminalDistance = Mathf.Min(nearestEnvironmentDistance, nearestBoundaryDistance);
         if (CanApplyMoreDamage())
         {
             for (int i = 0; i < hitCount; i++)
@@ -171,7 +186,7 @@ public class ProjectileHitDetector : MonoBehaviour
 
                 if (hitCollider == null ||
                     hitCollider.transform.IsChildOf(transform) ||
-                    movementHits[i].distance > nearestEnvironmentDistance + 0.0001f)
+                    movementHits[i].distance > nearestTerminalDistance + 0.0001f)
                 {
                     continue;
                 }
@@ -182,6 +197,13 @@ public class ProjectileHitDetector : MonoBehaviour
                     return;
                 }
             }
+        }
+
+        if (hasBoundaryHit && nearestBoundaryDistance <= nearestEnvironmentDistance)
+        {
+            TryHandleProjectileBoundary(nearestBoundaryHit.collider);
+            ClearMovementHits(hitCount);
+            return;
         }
 
         if (hasEnvironmentHit)
@@ -195,6 +217,11 @@ public class ProjectileHitDetector : MonoBehaviour
     // 단일 콜라이더 충돌에서 데미지 적용 후 필요한 경우 투사체를 종료한다
     private void TryApplyDamageAndReturn(Collider hitCollider)
     {
+        if (TryHandleProjectileBoundary(hitCollider))
+        {
+            return;
+        }
+
         if (!TryApplyDamage(hitCollider))
         {
             TryHandleEnvironmentImpact(hitCollider);
@@ -360,15 +387,44 @@ public class ProjectileHitDetector : MonoBehaviour
         return (environmentImpactLayerMask.value & (1 << layer)) != 0;
     }
 
+    // 지정 콜라이더가 투사체 회수 경계인지 확인한다
+    private bool IsProjectileBoundaryCollider(Collider hitCollider)
+    {
+        if (hitCollider == null)
+        {
+            return false;
+        }
+
+        if (hitCollider.GetComponentInParent<ProjectileBoundary>() != null)
+        {
+            return true;
+        }
+
+        return (projectileBoundaryLayerMask.value & (1 << hitCollider.gameObject.layer)) != 0;
+    }
+
     // 데미지 레이어와 환경 피격 레이어를 합친 보정 판정 마스크를 반환한다
     private int GetHitDetectionLayerMask()
     {
         if (damageDealer == null)
         {
-            return environmentImpactLayerMask.value;
+            return environmentImpactLayerMask.value | projectileBoundaryLayerMask.value;
         }
 
-        return damageDealer.DamageLayerMask.value | environmentImpactLayerMask.value;
+        return damageDealer.DamageLayerMask.value | environmentImpactLayerMask.value | projectileBoundaryLayerMask.value;
+    }
+
+    // 투사체 회수 경계에 닿으면 연출 없이 즉시 풀로 반환한다
+    private bool TryHandleProjectileBoundary(Collider hitCollider)
+    {
+        if (!IsProjectileBoundaryCollider(hitCollider))
+        {
+            return false;
+        }
+
+        enabled = false;
+        PooledProjectileReturner.ReturnOrDestroy(gameObject);
+        return true;
     }
 
     // RaycastHit 기반 환경 충돌을 HOVL 피격 처리로 넘긴다

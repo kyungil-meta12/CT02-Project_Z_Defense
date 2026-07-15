@@ -38,12 +38,16 @@ public class CurrencySaveData
     public List<CurrencySaveEntry> Currencies = new();
 }
 
-
+/// <summary>
+/// 저장 가능한 런타임 재화 지갑과 아이템 수량 변경 이벤트를 관리한다.
+/// </summary>
 public class InventorySystem : MonoBehaviour, ISaveable
 {
+    private const int DEBUG_COIN_GRANT_AMOUNT = 1000000;
+
     public static InventorySystem Inst;
 
-    [Header("Initial Wallet")]
+    [Header("초기 지갑")]
     [SerializeField] private bool applyInitialWalletOnAwake = true;
     [SerializeField] private bool applyInitialWalletOnlyWhenEmpty = true;
     [SerializeField] private bool logInitialWalletApply = true;
@@ -72,7 +76,7 @@ public class InventorySystem : MonoBehaviour, ISaveable
     /// </summary>
     public Array Types { get; private set; }
 
-
+    // 싱글톤과 메타데이터 캐시를 초기화한다
     void Awake()
     {
         if (Inst && Inst != this)
@@ -95,7 +99,7 @@ public class InventorySystem : MonoBehaviour, ISaveable
 
         Inst = this;
     }
-
+    // 저장 복원과 초기 지갑 적용을 처리한다
     void Start()
     {
         // 메타데이터 리스트 무결성 검사
@@ -106,7 +110,7 @@ public class InventorySystem : MonoBehaviour, ISaveable
         // 초기 자본 추가
         ApplyInitialWalletIfNeeded();
     }
-
+    // 저장 관리자 등록을 해제하고 싱글톤을 정리한다
     void OnDestroy()
     {
         if (SaveManager.Inst)
@@ -116,7 +120,7 @@ public class InventorySystem : MonoBehaviour, ISaveable
 
         Inst = null;
     }
-
+    // 인스펙터 초기 지갑 수량을 유효 범위로 보정한다
     void OnValidate()
     {
         if (initialWalletCurrencies == null)
@@ -172,7 +176,7 @@ public class InventorySystem : MonoBehaviour, ISaveable
         }
     }
 
-
+    // 초기 지갑 설정에 따라 시작 재화를 지급한다
     private void ApplyInitialWalletIfNeeded()
     {
         if (!applyInitialWalletOnAwake || initialWalletCurrencies == null)
@@ -230,6 +234,7 @@ public class InventorySystem : MonoBehaviour, ISaveable
     /// </summary>
     /// <param name="itemType"></param>
     /// <returns></returns>
+    // 지정 아이템의 현재 보유 수량을 반환한다
     public Incremental GetCount(RewardCurrencyType itemType)
     {
         return itemDict.ContainsKey(itemType) ? itemDict[itemType].Count : 0;
@@ -241,6 +246,7 @@ public class InventorySystem : MonoBehaviour, ISaveable
     /// </summary>
     /// <param name="itemType"></param>
     /// <returns></returns>
+    // 지정 아이템의 현재 보유 수량 표시 문자열을 반환한다
     public string GetCountString(RewardCurrencyType itemType)
     {
         return itemDict.ContainsKey(itemType) ? itemDict[itemType].CountString : "0";
@@ -261,6 +267,7 @@ public class InventorySystem : MonoBehaviour, ISaveable
     /// </summary>
     /// <param name="itemType"></param>
     /// <returns></returns>
+    // 지정 아이템의 설명 문자열을 반환한다
     public string GetInfoString(RewardCurrencyType itemType)
     {
         return itemDict.ContainsKey(itemType) ? itemDict[itemType].InfoText : "";
@@ -271,6 +278,7 @@ public class InventorySystem : MonoBehaviour, ISaveable
     /// </summary>
     /// <param name="itemType"></param>
     /// <returns></returns>
+    // 지정 아이템의 표시 이름을 반환한다
     public string GetName(RewardCurrencyType itemType)
     {
         return itemDict.ContainsKey(itemType) ? itemDict[itemType].Name : "";
@@ -282,6 +290,7 @@ public class InventorySystem : MonoBehaviour, ISaveable
     /// </summary>
     /// <param name="itemType"></param>
     /// <returns></returns>
+    // 지정 아이템 타입의 메타데이터를 반환한다
     public ItemMetaDataSo GetMetaData(RewardCurrencyType itemType)
     {
         if(itemMetaDataDict.ContainsKey(itemType))
@@ -301,6 +310,7 @@ public class InventorySystem : MonoBehaviour, ISaveable
     /// <param name="itemType"></param>
     /// <param name="amount"></param>
     /// <returns></returns>
+    // 지정 아이템을 필요한 수량만큼 사용할 수 있는지 확인한다
     public bool CanUseItem(RewardCurrencyType itemType, Incremental amount)
     {
         return itemDict.ContainsKey(itemType) && itemDict[itemType].Count >= amount;
@@ -312,6 +322,7 @@ public class InventorySystem : MonoBehaviour, ISaveable
     /// </summary>
     /// <param name="itemType"></param>
     /// <returns></returns>
+    // 지정 아이템을 하나 이상 보유했는지 확인한다
     public bool HasItem(RewardCurrencyType itemType)
     {
         return itemDict.ContainsKey(itemType) && itemDict[itemType].Count > 0;
@@ -322,6 +333,7 @@ public class InventorySystem : MonoBehaviour, ISaveable
     /// 인벤토리가 비어있는지 확인한다.
     /// </summary>
     /// <returns></returns>
+    // 현재 지갑에 기록된 아이템이 없는지 확인한다
     public bool IsEmpty()
     {
         return itemDict.Count == 0;
@@ -334,6 +346,7 @@ public class InventorySystem : MonoBehaviour, ISaveable
     /// </summary>
     /// <param name=""></param>
     /// <param name="amount"></param>
+    // 지정 아이템을 보유 수량에 추가하고 변경 이벤트를 발생시킨다
     public void AddItem(RewardCurrencyType itemType, Incremental amount)
     {
         if(amount <= 0)
@@ -392,6 +405,13 @@ public class InventorySystem : MonoBehaviour, ISaveable
         }
     }
 
+    // 인스펙터 디버그 버튼에서 코인 100만 개를 지급한다
+    public void AddDebugMillionCoins()
+    {
+        AddItem(RewardCurrencyType.Coin, DEBUG_COIN_GRANT_AMOUNT);
+        Debug.Log("[InventorySystem] 디버그 버튼으로 코인 100만 개를 지급했습니다.", this);
+    }
+
 
     /// <summary>
     ///  count 만큼 아이템을 소비한다. <para/>
@@ -400,6 +420,7 @@ public class InventorySystem : MonoBehaviour, ISaveable
     /// </summary>
     /// <param name="itemType"></param>
     /// <param name="amount"></param>
+    // 지정 아이템을 보유 수량에서 소비한다
     public bool UseItem(RewardCurrencyType itemType, Incremental amount)
     {
         if (amount <= 0)
@@ -443,6 +464,7 @@ public class InventorySystem : MonoBehaviour, ISaveable
     /// <param name="amount"></param>
     /// <param name="amountUsed"></param>
     /// <returns></returns>
+    // 보유 수량이 부족하면 가능한 만큼만 지정 아이템을 소비한다
     public bool ForceUseItem(RewardCurrencyType itemType, Incremental amount, ref Incremental amountUsed)
     {
         if (amount <= 0)
@@ -490,6 +512,7 @@ public class InventorySystem : MonoBehaviour, ISaveable
     /// <summary>
     /// 현재 보유한 모든 재화를 JSON 문자열로 직렬화한다. SaveManager가 저장 시점에 호출한다.
     /// </summary>
+    // 현재 보유 재화를 저장용 JSON 문자열로 직렬화한다
     public string CaptureSaveData()
     {
         CurrencySaveData saveData = new();
@@ -516,6 +539,7 @@ public class InventorySystem : MonoBehaviour, ISaveable
     /// <summary>
     /// 저장 파일에서 읽어온 JSON으로 재화를 복원한다. SaveManager.Register 시점에 호출된다.
     /// </summary>
+    // 저장 JSON에서 재화 보유량을 복원한다
     public void RestoreSaveData(string json)
     {
         CurrencySaveData saveData = JsonUtility.FromJson<CurrencySaveData>(json);
@@ -572,6 +596,7 @@ public class InventorySystem : MonoBehaviour, ISaveable
     /// 비용 데이터를 환불한다.
     /// </summary>
     /// <param name="cost"></param>
+    // 단일 비용 데이터를 지갑에 환불한다
     public void Refund(ResourceCost cost)
     {
         AddItem(cost.currencyType, cost.amount);
@@ -582,6 +607,7 @@ public class InventorySystem : MonoBehaviour, ISaveable
     /// 여러 비용 데이터를 순서대로 환불한다
     /// </summary>
     /// <param name="costArray"></param>
+    // 여러 비용 데이터를 순서대로 지갑에 환불한다
     public void Refund(ResourceCost[] costArray)
     {
         foreach(var cost in costArray)
@@ -734,7 +760,7 @@ public class InventorySystem : MonoBehaviour, ISaveable
             }
         }
     }
-
+    // 작은 수 표시 문자열에서 불필요한 소수점을 제거한다
     private string RemoveDemicalPoint(string str, Incremental incrementalInst)
     {
         if(incrementalInst >= 1000)

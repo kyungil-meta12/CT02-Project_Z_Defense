@@ -250,9 +250,10 @@ public class TransactionUI : TouchBackHandler
         data.SellCostText.color = hasItem ? Color.white : Color.softRed;
         data.BuyCostText.color = hasCoinEnough ? Color.white : Color.softRed;
 
+        SetImageBrightness(data.ItemImage, hasItem ? HAS_ITEM_BRIGHTNESS : NO_ITEM_BRIGHTNESS);
+        
         if(latestSelectedCell && buttonDict[latestSelectedCell].Type == type)
         {
-            SetImageBrightness(data.ItemImage, hasItem ? HAS_ITEM_BRIGHTNESS : NO_ITEM_BRIGHTNESS);
             SetTextButtonEnable(sellButton, sellEvent, sellButtonText, hasItem);
             SetTextButtonEnable(buyButton, buyEvent, buyButtonText, hasCoinEnough);
         }

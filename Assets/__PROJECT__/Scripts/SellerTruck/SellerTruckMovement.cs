@@ -1,3 +1,4 @@
+using ProjectZDefense.Audio;
 using UnityEngine;
 using UnityEngine.UI;
 using WaypointsFree;
@@ -13,6 +14,10 @@ public class SellerTruckMovement : MonoBehaviour
     public LayerMask groundMask;
     [Header("나타나는 웨이브 단위")] public int appearWaveUnit; 
     [Header("테스트 모드")] public bool testMode;
+
+    public AudioSource engineSound;
+    public AudioClip doorSound;
+    public AudioSource defaultAudioSource;
 
     private float originMoveSpeed;
     private float originLookAtSpeed;
@@ -41,6 +46,10 @@ public class SellerTruckMovement : MonoBehaviour
         {
             StopReset();
         }
+
+        defaultAudioSource.volume = ProjectAudioManager.Inst.GetEffectiveVolume(ProjectAudioBus.Sfx);
+        engineSound.volume = ProjectAudioManager.Inst.GetEffectiveVolume(ProjectAudioBus.Sfx);;
+        ProjectAudioManager.Inst.OnVolumeChanged += OnVolumeChanged;
     }
 
     void OnDestroy()
@@ -48,6 +57,19 @@ public class SellerTruckMovement : MonoBehaviour
         if(GameManager.Inst)
         {
             GameManager.Inst.OnWaveIncrease -= OnWaveIncrease;
+        }
+        if(ProjectAudioManager.Inst)
+        {
+            ProjectAudioManager.Inst.OnVolumeChanged += OnVolumeChanged;
+        }
+    }
+
+    public void OnVolumeChanged(ProjectAudioBus bus, float volume)
+    {
+        if(bus == ProjectAudioBus.Sfx)
+        {
+            defaultAudioSource.volume = volume;
+            engineSound.volume = volume;
         }
     }
 
@@ -104,6 +126,8 @@ public class SellerTruckMovement : MonoBehaviour
 
                     // 팝업 실행
                     popup.Init();
+
+                    defaultAudioSource.PlayOneShot(doorSound);
                 }
             }
 
@@ -120,6 +144,7 @@ public class SellerTruckMovement : MonoBehaviour
                     isLeaving = true;
                     button.SetActive(false);
                     survivors.SetActive(false);
+                    defaultAudioSource.PlayOneShot(doorSound);
                 }
             }
         }
@@ -130,10 +155,16 @@ public class SellerTruckMovement : MonoBehaviour
         {
             traveler.MoveSpeed = Mathf.Lerp(traveler.MoveSpeed, originMoveSpeed, Time.deltaTime);
             traveler.LookAtSpeed = Mathf.Lerp(traveler.LookAtSpeed, originLookAtSpeed, Time.deltaTime);
-            if(Vector3.Magnitude(transform.position - traveler.Waypoints.waypoints[traveler.Waypoints.waypoints.Count - 1].position) <= 3f)
+            if(traveler.positionIndex == traveler.Waypoints.waypoints.Count - 1)
             {
                 StopReset();
             }
+        }
+
+        // 속도에 따라 엔진 사운드의 높낮이 조절
+        if(engineSound.isPlaying)
+        {
+            engineSound.pitch = 1f + traveler.MoveSpeed * 0.1f;
         }
     }
 
@@ -151,6 +182,7 @@ public class SellerTruckMovement : MonoBehaviour
         image.fillAmount = 0f;
         isLeaving = false;
         isRunning = true;
+        engineSound.Play();
     }
 
     /// <summary>
@@ -167,6 +199,7 @@ public class SellerTruckMovement : MonoBehaviour
         image.fillAmount = 0f;
         isLeaving = false;
         isRunning = false;
+        engineSound.Stop();
     }
 
     /// <summary>

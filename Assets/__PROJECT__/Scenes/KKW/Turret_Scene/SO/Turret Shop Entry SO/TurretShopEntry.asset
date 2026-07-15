@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cb72d6a090114d54bc9063b0f8f2ce32, type: 3}
   m_Name: TurretShopEntry
   m_EditorClassIdentifier: 
-  displayName: 센티널 포스트
+  displayName: "\uC13C\uD2F0\uB110 \uD3EC\uC2A4\uD2B8"
   icon: {fileID: 21300000, guid: 8715555073c678346914bd6e857a57b4, type: 3}
   turretDefinition: {fileID: 11400000, guid: bfd04d6c347d461469139eb424cb49cd, type: 2}
   overridePrefab: {fileID: 0}
@@ -32,8 +32,12 @@ MonoBehaviour:
   - minPlacedCount: 3
     costs:
     - currencyType: 0
-      amount: 100000
+      amount: 50000
   - minPlacedCount: 4
+    costs:
+    - currencyType: 0
+      amount: 100000
+  - minPlacedCount: 5
     costs:
     - currencyType: 0
       amount: 300000
@@ -45,7 +49,3 @@ MonoBehaviour:
     costs:
     - currencyType: 0
       amount: 1000000
-  - minPlacedCount: 5
-    costs:
-    - currencyType: 0
-      amount: 10000000

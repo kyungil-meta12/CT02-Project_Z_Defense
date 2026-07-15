@@ -70,6 +70,7 @@ public class GameManager : MonoBehaviour, ISaveable
 
     public event Action<int> OnWaveIncrease; // 웨이브 증가 이벤트
     public event Action<int> OnWaveDecrease; // 웨이브 감소 이벤트
+    public event Action<int> OnFirstWaveReached; // 웨이브 최초 도달 이벤트
     private readonly List<Survivor> survivors = new List<Survivor>(16);
     private readonly List<ZombieSpawner> zombieSpawners = new List<ZombieSpawner>(2);
     private Coroutine gameOverCoroutine;
@@ -78,6 +79,7 @@ public class GameManager : MonoBehaviour, ISaveable
     private bool suppressDefenseLineRestore;
 
     public int Wave{ get; private set; } = 1;
+    public int HighestReachedWave { get; private set; }
     public int KillCount{ get; private set; }= 0; // 현재 킬 카운트
     public int DestKillCount{ get; private set; } = 0; // 목표 킬 카운트
 
@@ -121,6 +123,7 @@ public class GameManager : MonoBehaviour, ISaveable
         Inst = this;
 
         Wave = startWave;
+        HighestReachedWave = Mathf.Max(0, Wave - 1);
         SaveManager.Inst.Register(this);
         SetGameTimeScale(startTimeScale);
         BeginZombieDpsMeasurementWave();
@@ -179,11 +182,30 @@ public class GameManager : MonoBehaviour, ISaveable
         RebuildAllDefenseLines(true);
         KillCount = 0;
         Wave++;
+        bool isFirstWaveReached = TryMarkWaveAsReached(Wave);
         SaveManager.Inst?.MarkDirty();
         InventorySystem.Inst.AddCoinBouns(waveClearCoinBonusPercentage);
         OnWaveIncrease?.Invoke(Wave);
         OnWaveIncrease?.Invoke(Wave);
+        if (isFirstWaveReached)
+        {
+            OnFirstWaveReached?.Invoke(Wave);
+        }
         BeginZombieDpsMeasurementWave();
+    }
+
+    // 지정 웨이브가 최초 도달인지 확인하고 최고 도달 웨이브를 갱신한다
+    public bool TryMarkWaveAsReached(int wave)
+    {
+        int safeWave = Mathf.Max(1, wave);
+        if (safeWave <= HighestReachedWave)
+        {
+            return false;
+        }
+
+        HighestReachedWave = safeWave;
+        SaveManager.Inst?.MarkDirty();
+        return true;
     }
 
     /// <summary>
@@ -1213,7 +1235,8 @@ public class GameManager : MonoBehaviour, ISaveable
     {
         WaveSaveData saveData = new WaveSaveData
         {
-            Wave = Mathf.Max(1, Wave)
+            Wave = Mathf.Max(1, Wave),
+            HighestReachedWave = Mathf.Max(Mathf.Max(1, Wave), HighestReachedWave)
         };
 
         return JsonUtility.ToJson(saveData);
@@ -1229,6 +1252,7 @@ public class GameManager : MonoBehaviour, ISaveable
         }
 
         Wave = Mathf.Max(1, saveData.Wave);
+        HighestReachedWave = Mathf.Max(Wave, saveData.HighestReachedWave);
         KillCount = 0;
         DestKillCount = 0;
     }
@@ -1237,6 +1261,7 @@ public class GameManager : MonoBehaviour, ISaveable
     private class WaveSaveData
     {
         public int Wave;
+        public int HighestReachedWave;
     }
 
     // 실패 웨이브 이전의 마지막 보스 웨이브 다음 체크포인트를 계산한다

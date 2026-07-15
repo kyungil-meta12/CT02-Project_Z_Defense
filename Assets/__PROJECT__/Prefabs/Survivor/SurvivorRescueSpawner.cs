@@ -43,12 +43,13 @@ public class SurvivorRescueSpawner : MonoBehaviour
     {
         if (GameManager.Inst != null)
         {
-            GameManager.Inst.OnWaveIncrease += OnWaveIncrease;
+            GameManager.Inst.OnFirstWaveReached += OnFirstWaveReached;
         }
 
-        if (spawnOnStartWave)
+        int wave = GameManager.Inst == null ? 1 : GameManager.Inst.Wave;
+        bool isFirstWaveReached = GameManager.Inst == null || GameManager.Inst.TryMarkWaveAsReached(wave);
+        if (spawnOnStartWave && isFirstWaveReached)
         {
-            int wave = GameManager.Inst == null ? 1 : GameManager.Inst.Wave;
             TrySpawnSurvivor(wave);
         }
     }
@@ -58,12 +59,12 @@ public class SurvivorRescueSpawner : MonoBehaviour
     {
         if (GameManager.Inst != null)
         {
-            GameManager.Inst.OnWaveIncrease -= OnWaveIncrease;
+            GameManager.Inst.OnFirstWaveReached -= OnFirstWaveReached;
         }
     }
 
-    // 웨이브 증가 시 생존자 스폰을 확률적으로 시도한다
-    private void OnWaveIncrease(int wave)
+    // 웨이브를 최초로 진행할 때만 생존자 스폰을 확률적으로 시도한다
+    private void OnFirstWaveReached(int wave)
     {
         TrySpawnSurvivor(wave);
     }

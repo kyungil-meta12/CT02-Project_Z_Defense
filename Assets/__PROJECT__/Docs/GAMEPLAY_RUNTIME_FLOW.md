@@ -278,6 +278,14 @@ Runtime policy:
 - Currency earned before closing the app remains governed by the currency save section.
 - Current-wave kill count, remaining spawn count, turrets, obstacles, survivors, and wave bonus accumulation are not restored.
 - Missing save data uses the scene `startWave`; invalid saved wave values are clamped to wave 1.
+- The highest wave reached for the first time is saved with the current wave so rollback farming cannot repeat first-entry rewards.
+
+## Survivor Rescue Spawn Policy
+
+- `SurvivorRescueSpawner` rolls its configured spawn chance only when a wave is reached for the first time.
+- Replaying waves after a game-over checkpoint rollback does not attempt another survivor spawn.
+- Loading a saved current wave does not repeat its survivor spawn attempt.
+- `spawnOnStartWave` applies only when the starting wave has never been recorded as reached.
 
 ## Edge Cases To Check
 

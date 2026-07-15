@@ -741,7 +741,7 @@ public class TurretEvolutionPopupUI : TurretPopupPageUI
         for (int i = 0; i < MAX_RESOURCE_SLOT_COUNT; i++)
         {
             int slotNumber = i + 1;
-            Transform frame = FindFirstDescendantTransformByExactName(resourcePanel, "RequireSorceImageFrame " + slotNumber);
+            Transform frame = FindResourceSlotFrame(resourcePanel, "RequireSorceImageFrame " + slotNumber);
             resourceSlotFrames[i] = frame;
             resourceItemNameTexts[i] = FindResourceSlotText(resourcePanel, frame, "ItemName", slotNumber);
             resourceItemCountTexts[i] = FindResourceSlotText(resourcePanel, frame, "ItemCount", slotNumber);
@@ -1063,6 +1063,18 @@ public class TurretEvolutionPopupUI : TurretPopupPageUI
         return FindFirstDescendantByExactName<TMP_Text>(resourcePanel, baseName + " " + slotNumber);
     }
 
+    // 재료 패널의 직접 자식에서 슬롯 프레임을 찾는다
+    private static Transform FindResourceSlotFrame(Transform resourcePanel, string frameName)
+    {
+        Transform directFrame = FindDirectChildTransformByExactName(resourcePanel, frameName);
+        if (directFrame != null)
+        {
+            return directFrame;
+        }
+
+        return FindFirstDescendantTransformByExactName(resourcePanel, frameName);
+    }
+
     // 재료 프레임 아래에서 실제 아이템 아이콘 이미지를 찾는다
     private static Image FindResourceSlotImage(Transform frame)
     {
@@ -1071,7 +1083,59 @@ public class TurretEvolutionPopupUI : TurretPopupPageUI
             return null;
         }
 
+        Image directImage = FindDirectResourceSlotImage(frame);
+        if (directImage != null)
+        {
+            return directImage;
+        }
+
+        return FindDescendantResourceSlotImage(frame);
+    }
+
+    // 재료 프레임의 직접 자식 중 아이콘 표시용 이미지를 찾는다
+    private static Image FindDirectResourceSlotImage(Transform frame)
+    {
+        for (int i = 0; i < frame.childCount; i++)
+        {
+            Transform child = frame.GetChild(i);
+            if (child == null || !IsPreferredResourceSlotIconImageName(child.name, frame.name))
+            {
+                continue;
+            }
+
+            Image image = child.GetComponent<Image>();
+            if (image != null)
+            {
+                return image;
+            }
+        }
+
+        for (int i = 0; i < frame.childCount; i++)
+        {
+            Transform child = frame.GetChild(i);
+            Image image = child == null ? null : child.GetComponent<Image>();
+            if (image != null)
+            {
+                return image;
+            }
+        }
+
+        return null;
+    }
+
+    // 재료 프레임 하위에서 아이콘 표시용 이미지를 찾는다
+    private static Image FindDescendantResourceSlotImage(Transform frame)
+    {
         Image[] images = frame.GetComponentsInChildren<Image>(true);
+        for (int i = 0; i < images.Length; i++)
+        {
+            Image image = images[i];
+            if (image != null && image.transform != frame && IsPreferredResourceSlotIconImageName(image.name, frame.name))
+            {
+                return image;
+            }
+        }
+
         for (int i = 0; i < images.Length; i++)
         {
             Image image = images[i];
@@ -1081,7 +1145,13 @@ public class TurretEvolutionPopupUI : TurretPopupPageUI
             }
         }
 
-        return frame.GetComponent<Image>();
+        return null;
+    }
+
+    // 재료 슬롯 아이콘으로 우선 사용할 이름인지 확인한다
+    private static bool IsPreferredResourceSlotIconImageName(string imageName, string frameName)
+    {
+        return imageName == frameName || imageName == "Image" || imageName == "Image1" || imageName == "Image 1" || imageName == "Image_1" || imageName.StartsWith("Image", System.StringComparison.Ordinal);
     }
 
     // 이미지 참조에 스프라이트를 적용한다
@@ -1213,6 +1283,26 @@ public class TurretEvolutionPopupUI : TurretPopupPageUI
             if (candidate != null && candidate.name == targetName)
             {
                 return candidate;
+            }
+        }
+
+        return null;
+    }
+
+    // 직접 자식 중 정확한 이름의 Transform을 찾는다
+    private static Transform FindDirectChildTransformByExactName(Transform root, string targetName)
+    {
+        if (root == null || string.IsNullOrEmpty(targetName))
+        {
+            return null;
+        }
+
+        for (int i = 0; i < root.childCount; i++)
+        {
+            Transform child = root.GetChild(i);
+            if (child != null && child.name == targetName)
+            {
+                return child;
             }
         }
 

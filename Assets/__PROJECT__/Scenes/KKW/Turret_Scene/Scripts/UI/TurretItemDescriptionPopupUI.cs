@@ -5,7 +5,7 @@ using UnityEngine;
 using UnityEngine.UI;
 
 /// <summary>
-/// 터렛 업그레이드/진화 비용 슬롯에서 열린 아이템 설명과 제작/분해 관계 탐색을 담당한다.
+/// 터렛 업그레이드/진화 비용 슬롯에서 열린 아이템 설명과 제작 관계 탐색을 담당한다.
 /// </summary>
 [DisallowMultipleComponent]
 public class TurretItemDescriptionPopupUI : MonoBehaviour
@@ -13,7 +13,7 @@ public class TurretItemDescriptionPopupUI : MonoBehaviour
     private enum RelationMode
     {
         RequiredForCraft,
-        DecomposeOutput
+        CraftInput
     }
 
     private const int DEFAULT_HISTORY_LIMIT = 16;
@@ -191,8 +191,8 @@ public class TurretItemDescriptionPopupUI : MonoBehaviour
             return;
         }
 
-        SetText(relationTitleText, "분해 획득 자원");
-        FillDecomposeOutputSlots(metadata);
+        SetText(relationTitleText, "제작시 필요 자원");
+        FillCraftInputSlots(metadata);
     }
 
     // 현재 아이템을 재료로 사용하는 제작 결과 아이템을 슬롯에 채운다
@@ -231,18 +231,18 @@ public class TurretItemDescriptionPopupUI : MonoBehaviour
         }
     }
 
-    // 현재 아이템 분해 결과 아이템을 슬롯에 채운다
-    private void FillDecomposeOutputSlots(ItemMetaDataSo metadata)
+    // 현재 아이템 제작에 필요한 재료 아이템을 슬롯에 채운다
+    private void FillCraftInputSlots(ItemMetaDataSo metadata)
     {
-        if (!metadata.Decomposable || metadata.ItemsFromDecompose == null)
+        if (!metadata.Createable || metadata.ItemsToCreate == null)
         {
             return;
         }
 
-        for (int i = 0; i < metadata.ItemsFromDecompose.Count; i++)
+        for (int i = 0; i < metadata.ItemsToCreate.Count; i++)
         {
-            ItemDecomposeData decomposeData = metadata.ItemsFromDecompose[i];
-            if (!TryConfigureRelationSlot(i, decomposeData.Type, FormatDecomposeAmount(decomposeData)))
+            ItemCraftData craftData = metadata.ItemsToCreate[i];
+            if (!TryConfigureRelationSlot(i, craftData.Type, FormatCraftInputAmount(craftData)))
             {
                 return;
             }
@@ -292,19 +292,18 @@ public class TurretItemDescriptionPopupUI : MonoBehaviour
         return "제작 +" + resultCount + " / 필요 " + requiredCount;
     }
 
-    // 분해 결과 슬롯의 수량 표시 문구를 만든다
-    private static string FormatDecomposeAmount(ItemDecomposeData decomposeData)
+    // 제작 필요 재료 슬롯의 수량 표시 문구를 만든다
+    private static string FormatCraftInputAmount(ItemCraftData craftData)
     {
-        int min = Mathf.Max(0, decomposeData.Min);
-        int max = Mathf.Max(min, decomposeData.Max);
-        return min == max ? "획득 " + min : "획득 " + min + "~" + max;
+        int requiredCount = Mathf.Max(0, craftData.Count);
+        return "필요 " + requiredCount;
     }
 
     // 관계 모드 토글 상태를 현재 모드에 맞게 반영한다
     private void RefreshRelationToggles()
     {
         SetToggle(requiredForCraftToggle, currentRelationMode == RelationMode.RequiredForCraft);
-        SetToggle(decomposeOutputToggle, currentRelationMode == RelationMode.DecomposeOutput);
+        SetToggle(decomposeOutputToggle, currentRelationMode == RelationMode.CraftInput);
     }
 
     // 뒤로가기 버튼 활성 상태를 현재 히스토리에 맞춘다
@@ -326,12 +325,12 @@ public class TurretItemDescriptionPopupUI : MonoBehaviour
         }
     }
 
-    // 분해 관계 토글 입력을 처리한다
+    // 제작 필요 재료 토글 입력을 처리한다
     private void OnDecomposeOutputToggleChanged(bool isOn)
     {
         if (isOn)
         {
-            SetRelationMode(RelationMode.DecomposeOutput);
+            SetRelationMode(RelationMode.CraftInput);
             Refresh();
         }
     }

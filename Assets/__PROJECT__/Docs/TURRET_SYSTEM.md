@@ -981,6 +981,7 @@ Engineer buff policy:
 - `TurretEvolutionPopupUI` chooses `MiddlePanel_A`, `MiddlePanel_B`, or `MiddlePanel_C` by available evolution count. Use A for one candidate, B for two candidates, and C for three or more candidates. Current authored data uses C for four-candidate branches.
 - Clicking a `NextTurretImage` candidate should not evolve immediately. It selects the candidate, refreshes the candidate-specific `evolutionCosts`, and highlights that candidate's `NextTurretImageFrame`. The low-panel `Evolution` button performs the actual evolution for the selected candidate.
 - Evolution material slots live under `MiddleLowPanel/RequireSorceImagePanel` and are capped at eight visible slots. `RequireSorceText` is a static title and should not be overwritten at runtime.
+- Evolution material icons should be applied to an icon child Image under each `RequireSorceImageFrame`; the frame Image itself should remain a frame/background and not be used as the runtime icon target.
 - Empty evolution material slots should keep their authored placeholder image, currently `crosshair`, while clearing `ItemName` and `ItemCount` text.
 - `TurretRangeIndicator` renders one reusable world-space indicator for the currently selected turret.
 - `TurretRangeIndicator` can use a configured prefab such as `Marker circle simple cyan 1` for polished range presentation, while keeping the previous `LineRenderer` circle as a fallback when no prefab is assigned.

@@ -1222,7 +1222,7 @@ public class GameManager : MonoBehaviour, ISaveable
         DespawnAllZombies();
         RebuildAllDefenseLines();
         ReassignAllEngineers();
-        ResetConstructionWorkersForWaveRestart();
+        ResetSurvivorsForWaveRestart();
         PreparePreviousWaveRestart();
         
         yield return fadeWait;
@@ -1356,8 +1356,8 @@ public class GameManager : MonoBehaviour, ISaveable
         }
     }
 
-    // 웨이브 재시작 시 건축노동자의 후퇴 방어선 상태를 복구한다
-    private void ResetConstructionWorkersForWaveRestart()
+    // 웨이브 재시작 시 건축노동자의 후퇴 방어선 상태를 복구하고, 게이트 붕괴로 도피했던 나머지 생존자를 집결지로 복귀시킨다
+    private void ResetSurvivorsForWaveRestart()
     {
         Transform restoredPoint = GetRearDefenseLineRestoredPoint();
         if (restoredPoint == null)
@@ -1375,6 +1375,7 @@ public class GameManager : MonoBehaviour, ISaveable
             }
 
             survivor.ResetDefenseLineStateForWaveRestart(restoredPoint);
+            survivor.ResetGateRetreatStateForWaveRestart();
         }
     }
 
@@ -1948,12 +1949,52 @@ public class GameManager : MonoBehaviour, ISaveable
                 continue;
             }
 
+            // 게이트 붕괴 시에는 생존자마다 좀비 스포너 목적지 중 하나를 무작위로 배정해 흩어져 도망가는 것처럼 연출한다
+            Transform destination = retreatPoint;
+            if (isGateBreached && TryGetRandomFleeDestination(out Transform fleeDestination))
+            {
+                destination = fleeDestination;
+            }
+
             //Debug.Log($"[GameManager] {survivor.name}에게 방어선 {defenseLineIndex} 대피 명령 전달");
-            survivor.StartDefenseLineRetreat(defenseLineIndex, retreatPoint, isGateBreached);
+            survivor.StartDefenseLineRetreat(defenseLineIndex, destination, isGateBreached);
             retreatedCount++;
         }
 
         //Debug.Log($"[GameManager] {retreatedCount}명의 생존자에게 방어선 {defenseLineIndex} 대피 명령 전달 완료");
+    }
+
+    // 등록된 좀비 스포너의 destinations 중 하나를 무작위로 반환한다(생존자 도피 연출용)
+    private bool TryGetRandomFleeDestination(out Transform destination)
+    {
+        destination = null;
+        if (zombieSpawners.Count == 0)
+        {
+            return false;
+        }
+
+        int startIndex = UnityEngine.Random.Range(0, zombieSpawners.Count);
+        for (int offset = 0; offset < zombieSpawners.Count; offset++)
+        {
+            ZombieSpawner spawner = zombieSpawners[(startIndex + offset) % zombieSpawners.Count];
+            if (spawner == null || spawner.destinations == null || spawner.destinations.Length == 0)
+            {
+                continue;
+            }
+
+            int destinationStartIndex = UnityEngine.Random.Range(0, spawner.destinations.Length);
+            for (int i = 0; i < spawner.destinations.Length; i++)
+            {
+                Transform candidate = spawner.destinations[(destinationStartIndex + i) % spawner.destinations.Length];
+                if (candidate != null)
+                {
+                    destination = candidate;
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 
     // 등록된 생존자에게 방어선 복귀 명령을 전달한다

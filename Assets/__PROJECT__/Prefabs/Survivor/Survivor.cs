@@ -351,6 +351,26 @@ public class Survivor : MonoBehaviour
         ChangeState(SurvivorState.ReturningToDefensePoint);
     }
 
+    // 게이트 붕괴로 도피했던 생존자를 웨이브 재시작 시 집결지로 복귀시킨다 (건축노동자는 ResetDefenseLineStateForWaveRestart가 처리)
+    public void ResetGateRetreatStateForWaveRestart()
+    {
+        if (role == SurvivorRole.constructionWorker || activeDefenseLineIndex == NO_DEFENSE_LINE)
+        {
+            return;
+        }
+
+        activeDefenseLineIndex = NO_DEFENSE_LINE;
+
+        if (finalRearPoint == null || agent == null || !agent.enabled || !agent.isOnNavMesh)
+        {
+            ChangeState(GetIdleStateForRole());
+            return;
+        }
+
+        defenseMoveTarget = finalRearPoint;
+        ChangeState(SurvivorState.ReturningToDefensePoint);
+    }
+
     // 구출 생존자의 이동 기준 지점과 치료 시간을 설정한다
     public void ConfigureRescueFlow(Transform hospitalPoint_, Transform finalRearPoint_, float treatmentDuration)
     {

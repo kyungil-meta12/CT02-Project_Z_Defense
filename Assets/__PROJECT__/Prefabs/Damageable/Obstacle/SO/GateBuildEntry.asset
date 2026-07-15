@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: GateBuildEntry
   m_EditorClassIdentifier: Assembly-CSharp::ObstacleBuildEntrySO
   saveId: gate
-  displayName: Gate
+  displayName: "\uAC8C\uC774\uD2B8"
   icon: {fileID: 0}
   slotType: 1
   obstacleDefinition: {fileID: 11400000, guid: 781046f2fb8889548978708f03c908fe, type: 2}
@@ -23,3 +23,5 @@ MonoBehaviour:
   buildCosts:
   - currencyType: 0
     amount: 500
+  additionalCostPercentPerPlacement: 0
+  rebuildCostDiscount: 0.5

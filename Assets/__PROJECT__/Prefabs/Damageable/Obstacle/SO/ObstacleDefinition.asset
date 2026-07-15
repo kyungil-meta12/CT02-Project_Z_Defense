@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: ObstacleDefinition
   m_EditorClassIdentifier: Assembly-CSharp::ObstacleDefinitionSO
   obstacleId: 10
-  displayName: Obstacle
+  displayName: "\uC7A5\uC560\uBB3C"
   icon: {fileID: 0}
   slotType: 0
   obstacleSpec: {fileID: 11400000, guid: 97c7de20a7a9e514e80ff6a15ca48b15, type: 2}

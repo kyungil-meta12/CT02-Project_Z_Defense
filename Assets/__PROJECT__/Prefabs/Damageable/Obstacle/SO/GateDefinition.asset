@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: GateDefinition
   m_EditorClassIdentifier: Assembly-CSharp::ObstacleDefinitionSO
   obstacleId: 00
-  displayName: Gate
+  displayName: "\uAC8C\uC774\uD2B8"
   icon: {fileID: 0}
   slotType: 1
   obstacleSpec: {fileID: 11400000, guid: 7824d05712199cd43a6351f0a90b932e, type: 2}

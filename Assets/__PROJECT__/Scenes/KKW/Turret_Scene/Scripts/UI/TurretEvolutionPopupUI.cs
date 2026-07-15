@@ -14,6 +14,7 @@ public class TurretEvolutionPopupUI : TurretPopupPageUI
     private const string PANEL_A_PATH = BACKGROUND_PATH + "/MiddlePanel_A";
     private const string PANEL_B_PATH = BACKGROUND_PATH + "/MiddlePanel_B";
     private const string PANEL_C_PATH = BACKGROUND_PATH + "/MiddlePanel_C";
+    private const float UI_AUTO_REFRESH_INTERVAL = 1.0f;
 
     [Header("진화 패널")]
     [SerializeField] private GameObject oneBranchPanel;
@@ -54,6 +55,7 @@ public class TurretEvolutionPopupUI : TurretPopupPageUI
     private float pressedCandidateElapsedTime;
     private bool hasOpenedInfoByHold;
     private bool suppressNextCandidateClick;
+    private float uiRefreshTimer;
 
     // 컴포넌트 추가 시 현재 팝업 하위 참조를 자동으로 찾는다
     private void Reset()
@@ -75,6 +77,8 @@ public class TurretEvolutionPopupUI : TurretPopupPageUI
     // 후보 버튼을 누르고 있는 시간을 계산해 정보 팝업을 연다
     private void Update()
     {
+        UpdateAutoRefreshTimer();
+
         if (pressedCandidateIndex < 0 || hasOpenedInfoByHold)
         {
             return;
@@ -91,6 +95,25 @@ public class TurretEvolutionPopupUI : TurretPopupPageUI
         OpenEvolutionCandidateInfo(pressedCandidateIndex);
     }
 
+    // 팝업이 표시된 동안 1초마다 재화 보유량과 진화 가능 상태를 갱신한다
+    private void UpdateAutoRefreshTimer()
+    {
+        if (!IsVisible || !CurrentContext.IsValid)
+        {
+            uiRefreshTimer = 0.0f;
+            return;
+        }
+
+        uiRefreshTimer += Time.unscaledDeltaTime;
+        if (uiRefreshTimer < UI_AUTO_REFRESH_INTERVAL)
+        {
+            return;
+        }
+
+        uiRefreshTimer = 0.0f;
+        RefreshEvolutionTexts();
+    }
+
     // 파괴 시 버튼 이벤트를 해제한다
     protected override void OnDestroy()
     {
@@ -102,6 +125,7 @@ public class TurretEvolutionPopupUI : TurretPopupPageUI
     public override void Show(TurretSelectionContext context)
     {
         base.Show(context);
+        uiRefreshTimer = 0.0f;
         CacheTextTemplates();
         ClearCandidatePressState();
         RefreshEvolutionTexts();

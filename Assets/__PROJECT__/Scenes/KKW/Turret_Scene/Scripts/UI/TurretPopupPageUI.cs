@@ -25,6 +25,7 @@ public class TurretPopupPageUI : MonoBehaviour
 
     protected Button CloseButton => closeButton;
     protected Button BackButton => backButton;
+    protected bool IsVisible => popupRoot != null && popupRoot.activeInHierarchy;
 
     // 시작 전에 버튼 이벤트를 연결한다
     protected virtual void Awake()

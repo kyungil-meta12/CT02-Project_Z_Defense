@@ -18,6 +18,7 @@ public class TurretUpgradePopupUI : TurretPopupPageUI
     private const string POSITIVE_DELTA_PLUS_TEXT = "<color=#FF4040>+</color>";
     private const string INSUFFICIENT_COST_COLOR = "#FF4040";
     private const string UPGRADE_BACKGROUND_PATH = "TurretUpgradePopupBackground";
+    private const float UI_AUTO_REFRESH_INTERVAL = 1.0f;
 
     [Header("레벨 표시")]
     [SerializeField] private TMP_Text currentTurretNameText;
@@ -83,6 +84,7 @@ public class TurretUpgradePopupUI : TurretPopupPageUI
     private float upgradeHoldElapsedTime;
     private float upgradeHoldRepeatElapsedTime;
     private float upgradeHoldAccumulator;
+    private float uiRefreshTimer;
 
     public event UnityAction EvolutionPopupRequested;
 
@@ -118,6 +120,8 @@ public class TurretUpgradePopupUI : TurretPopupPageUI
     // 누르고 있는 동안 업그레이드 반복 속도를 점진적으로 증가시킨다
     private void Update()
     {
+        UpdateAutoRefreshTimer();
+
         if (!isUpgradeHolding)
         {
             return;
@@ -158,10 +162,30 @@ public class TurretUpgradePopupUI : TurretPopupPageUI
         }
     }
 
+    // 팝업이 표시된 동안 1초마다 재화 보유량과 버튼 상태를 갱신한다
+    private void UpdateAutoRefreshTimer()
+    {
+        if (!IsVisible || !CurrentContext.IsValid)
+        {
+            uiRefreshTimer = 0.0f;
+            return;
+        }
+
+        uiRefreshTimer += Time.unscaledDeltaTime;
+        if (uiRefreshTimer < UI_AUTO_REFRESH_INTERVAL)
+        {
+            return;
+        }
+
+        uiRefreshTimer = 0.0f;
+        RefreshUpgradeTexts();
+    }
+
     // 선택된 터렛의 업그레이드 팝업 기본 안내를 표시한다
     public override void Show(TurretSelectionContext context)
     {
         base.Show(context);
+        uiRefreshTimer = 0.0f;
         CacheTextTemplates();
         RefreshUpgradeTexts();
     }
@@ -768,12 +792,18 @@ public class TurretUpgradePopupUI : TurretPopupPageUI
         }
 
         int requiredAmount = Mathf.Max(0, cost.amount);
-        if (InventorySystem.Inst != null && !InventorySystem.Inst.CanUseItem(cost.currencyType, requiredAmount))
+        if (InventorySystem.Inst == null)
         {
-            return $"<color={INSUFFICIENT_COST_COLOR}>{InventorySystem.Inst.GetCountString(cost.currencyType)}/{requiredAmount}</color>";
+            return "0/" + requiredAmount;
         }
 
-        return requiredAmount.ToString();
+        string amountText = InventorySystem.Inst.GetCountString(cost.currencyType) + "/" + requiredAmount;
+        if (!InventorySystem.Inst.CanUseItem(cost.currencyType, requiredAmount))
+        {
+            return $"<color={INSUFFICIENT_COST_COLOR}>{amountText}</color>";
+        }
+
+        return amountText;
     }
 
     // 재화 슬롯 배열 중 사용할 수 있는 최대 슬롯 수를 반환한다

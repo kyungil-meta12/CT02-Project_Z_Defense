@@ -568,7 +568,8 @@ Detail_Popup_Panel
 - 필요 재화 슬롯에서 처음 열릴 때의 기본 관계 모드는 `획득에 필요 자원`이다. 인벤토리 닫힘 복구 시에는 인벤토리 진입 직전의 관계 표시 모드를 유지한다.
 - `다음을 위해 필요` 모드는 현재 아이템을 재료로 사용하는 제작 결과 아이템들을 `ItemMetaDataSo.ItemsToCreate` 역참조로 표시하고, 현재 아이템을 진화 비용으로 사용하는 터렛 진화 대상도 함께 표시한다.
 - `획득에 필요 자원` 모드는 현재 아이템을 제작할 때 필요한 재료들을 현재 아이템의 `ItemMetaDataSo.ItemsToCreate` 목록 기준으로 표시하고, 현재 아이템을 분해 결과로 제공하는 원본 아이템들을 전체 `ItemMetaDataSo.ItemsFromDecompose` 역참조로 함께 표시한다.
-- `획득에 필요 자원` 슬롯에서 제작 재료는 `제작 필요 n`, 분해 원본은 `분해 1개 / 획득 n~m` 형식으로 수량을 표시한다.
+- `획득에 필요 자원` 슬롯의 하단 라벨은 수량 없이 제작 재료면 `제작 필요`, 분해 원본이면 `분해 필요`로 표시한다.
+- `다음을 위해 필요` 슬롯의 하단 라벨도 수량 없이 제작 결과 아이템은 `제작 필요`, 진화 대상 터렛은 `진화 필요`로 표시한다.
 - 뒤로가기는 최근 아이템 탐색 히스토리를 사용하며, 히스토리가 없으면 팝업을 닫는다. 히스토리 최대 개수는 `TurretItemDescriptionPopupUI.historyLimit`로 제한한다.
 - 인벤토리 버튼은 `ItemDiscriptionPopup`을 닫은 뒤 `TurretSelectionUIController.ClearSelection()`을 호출해 `TurretSelectPopup`, `UpgradePopup`, `EvolutionPopup` 같은 터렛 선택 팝업을 먼저 정리하고 `InventoryUI.OnOpenInventory()`를 호출한다. 터렛 팝업 배경이 남아 있으면 인벤토리 입력 레이캐스트가 막힐 수 있다.
 - 아이템 설명 팝업 경로로 인벤토리를 열 때는 닫기 직전 터렛 선택 컨텍스트와 표시 중인 터렛 팝업 종류를 저장한다. 해당 인벤토리가 닫히면 `TurretSelectionUIController.RestoreSelection()`으로 이전 `Select/Upgrade/Detail/Evolution/Skill` 팝업 또는 사거리 표시 상태를 복구한다.
@@ -585,6 +586,7 @@ Detail_Popup_Panel
 - `UpgradePopup`과 `EvolutionPopup`의 필요 재화 버튼마다 `TurretItemDescriptionOpenButton`을 붙이고, 각 팝업 UI의 `Item Description Popup`과 `Resource Item Buttons` 배열에 슬롯 순서대로 직접 연결한다.
 - 비용 슬롯 배열 순서는 기존 재화 이름/수량/이미지 배열 순서와 같아야 한다.
 - 이 팝업은 읽기 전용 정보 팝업이며 제작 실행은 기존 `InventoryUI`가 계속 담당한다.
+- `RequireSorceImagePanel` 계열 재료 슬롯의 `ItemName` TMP는 같은 폰트 에셋, 중앙 정렬, 200x50 Rect, 폰트 크기 13을 기준으로 맞춘다. `ItemCount` 오브젝트를 숨기는 레이아웃에서는 이름 표시가 슬롯별로 튀지 않도록 `ItemName 1~8` 크기를 동일하게 유지한다.
 
 ### Cleanup
 

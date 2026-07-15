@@ -351,7 +351,7 @@ public class TurretItemDescriptionPopupUI : MonoBehaviour
                     continue;
                 }
 
-                if (!TryConfigureRelationSlot(slotIndex, candidateType, FormatRequiredForCraftAmount(candidateMetadata, craftData)))
+                if (!TryConfigureRelationSlot(slotIndex, candidateType, FormatRequiredForCraftAmount()))
                 {
                     return slotIndex;
                 }
@@ -401,7 +401,7 @@ public class TurretItemDescriptionPopupUI : MonoBehaviour
                 continue;
             }
 
-            if (!TryConfigureTurretRelationSlot(slotIndex, entry, FormatEvolutionCostAmount(matchingCost)))
+            if (!TryConfigureTurretRelationSlot(slotIndex, entry, FormatEvolutionCostAmount()))
             {
                 return false;
             }
@@ -451,7 +451,7 @@ public class TurretItemDescriptionPopupUI : MonoBehaviour
         for (int i = 0; i < metadata.ItemsToCreate.Count; i++)
         {
             ItemCraftData craftData = metadata.ItemsToCreate[i];
-            if (!TryConfigureRelationSlot(slotIndex, craftData.Type, FormatCraftInputAmount(craftData)))
+            if (!TryConfigureRelationSlot(slotIndex, craftData.Type, FormatCraftInputAmount()))
             {
                 return slotIndex;
             }
@@ -487,7 +487,7 @@ public class TurretItemDescriptionPopupUI : MonoBehaviour
                     continue;
                 }
 
-                if (!TryConfigureRelationSlot(slotIndex, candidateType, FormatDecomposeSourceAmount(decomposeData)))
+                if (!TryConfigureRelationSlot(slotIndex, candidateType, FormatDecomposeSourceAmount()))
                 {
                     return;
                 }
@@ -552,38 +552,27 @@ public class TurretItemDescriptionPopupUI : MonoBehaviour
     }
 
     // 제작 결과 슬롯의 수량 표시 문구를 만든다
-    private static string FormatRequiredForCraftAmount(ItemMetaDataSo targetMetadata, ItemCraftData craftData)
+    private static string FormatRequiredForCraftAmount()
     {
-        int resultCount = targetMetadata == null ? 0 : Mathf.Max(0, targetMetadata.CountPerCraft);
-        int requiredCount = Mathf.Max(0, craftData.Count);
-        return "제작 +" + resultCount + " / 필요 " + requiredCount;
+        return "제작 필요";
     }
 
     // 제작 필요 재료 슬롯의 수량 표시 문구를 만든다
-    private static string FormatCraftInputAmount(ItemCraftData craftData)
+    private static string FormatCraftInputAmount()
     {
-        int requiredCount = Mathf.Max(0, craftData.Count);
-        return "제작 필요 " + requiredCount;
+        return "제작 필요";
     }
 
     // 분해 원본 슬롯의 수량 표시 문구를 만든다
-    private static string FormatDecomposeSourceAmount(ItemDecomposeData decomposeData)
+    private static string FormatDecomposeSourceAmount()
     {
-        int minCount = Mathf.Max(0, decomposeData.Min);
-        int maxCount = Mathf.Max(minCount, decomposeData.Max);
-        if (minCount == maxCount)
-        {
-            return "분해 1개 / 획득 " + minCount;
-        }
-
-        return "분해 1개 / 획득 " + minCount + "~" + maxCount;
+        return "분해 필요";
     }
 
     // 터렛 진화 재료 슬롯의 수량 표시 문구를 만든다
-    private static string FormatEvolutionCostAmount(ResourceCost cost)
+    private static string FormatEvolutionCostAmount()
     {
-        int requiredCount = cost == null ? 0 : Mathf.Max(0, cost.amount);
-        return "진화 필요 " + requiredCount;
+        return "진화 필요";
     }
 
     // 진화 엔트리 표시 이름을 반환한다

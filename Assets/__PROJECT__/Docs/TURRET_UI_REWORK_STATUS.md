@@ -557,6 +557,25 @@ Detail_Popup_Panel
 - `Color Profile`이 비어 있으면 `Fallback Bar Color`를 사용한다. 터렛별 색상 정책이 필요하면 `TurretDamageMeterColorProfileSO`를 연결한다.
 - 딜 미터기의 데미지 집계는 `TurretDamageMeterManager.ReportDamage` 이벤트성 호출로 들어오고, 정렬/UI 반영은 dirty 플래그와 갱신 주기로 제한한다. 데미지마다 UI를 즉시 갱신하지 않는다.
 
+## 2026-07-16 Item Description Popup First Pass
+
+### Runtime Structure
+
+- `TurretItemDescriptionPopupUI`는 업그레이드/진화 필요 재화 슬롯에서 열린 아이템 설명, 관계 슬롯, 뒤로가기 히스토리, 인벤토리 열기 버튼을 담당한다.
+- `TurretItemDescriptionOpenButton`은 업그레이드/진화 비용 슬롯 버튼에 붙는 클릭 전달 컴포넌트다. 비용 UI가 갱신될 때 현재 슬롯의 `RewardCurrencyType`과 공용 팝업 참조를 받는다.
+- `TurretItemDescriptionRelationSlotUI`는 아이템 설명 팝업 하단 관계 슬롯 하나를 표시하고, 클릭 시 같은 팝업에서 해당 아이템으로 이동한다.
+- `다음을 위해 필요` 모드는 현재 아이템을 재료로 사용하는 제작 결과 아이템들을 `ItemMetaDataSo.ItemsToCreate` 역참조로 표시한다.
+- `정제시 획득 자원` 모드는 현재 아이템의 `ItemMetaDataSo.ItemsFromDecompose` 결과를 표시한다.
+- 뒤로가기는 최근 아이템 탐색 히스토리를 사용하며, 히스토리 최대 개수는 `TurretItemDescriptionPopupUI.historyLimit`로 제한한다.
+
+### Inspector Rules
+
+- `ItemDiscriptionPopup` 오브젝트에는 `TurretItemDescriptionPopupUI`를 직접 붙이고 상단 TMP/Image, 토글, 닫기/뒤로가기/인벤토리 버튼, 관계 슬롯 배열, `InventoryUI`를 직접 연결한다.
+- 하단 관계 아이템 슬롯마다 `TurretItemDescriptionRelationSlotUI`를 붙이고 슬롯 루트, 버튼, 아이콘, 이름 TMP, 수량 TMP를 직접 연결한다.
+- `UpgradePopup`과 `EvolutionPopup`의 필요 재화 버튼마다 `TurretItemDescriptionOpenButton`을 붙이고, 각 팝업 UI의 `Item Description Popup`과 `Resource Item Buttons` 배열에 슬롯 순서대로 직접 연결한다.
+- 비용 슬롯 배열 순서는 기존 재화 이름/수량/이미지 배열 순서와 같아야 한다.
+- 이 팝업은 읽기 전용 정보 팝업이며 제작/분해 실행은 기존 `InventoryUI`가 계속 담당한다.
+
 ## Next Work Plan
 
 1. 터렛 UI 시각 피드백 통일 기준을 먼저 정한다.

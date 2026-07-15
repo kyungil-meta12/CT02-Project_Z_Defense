@@ -1,4 +1,4 @@
-﻿%YAML 1.1
+%YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
 --- !u!114 &11400000
 MonoBehaviour:
@@ -28,4 +28,3 @@ MonoBehaviour:
   minInterval: 0
   maxSimultaneous: 8
   replaceOldestWhenLimited: 1
-

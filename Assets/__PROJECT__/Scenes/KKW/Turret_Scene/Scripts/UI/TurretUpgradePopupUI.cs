@@ -54,6 +54,10 @@ public class TurretUpgradePopupUI : TurretPopupPageUI
     [SerializeField] private TMP_Text[] resourceItemCountTexts = System.Array.Empty<TMP_Text>();
     [SerializeField] private Image[] resourceItemImages = System.Array.Empty<Image>();
 
+    [Header("아이템 설명 팝업")]
+    [SerializeField] private TurretItemDescriptionPopupUI itemDescriptionPopup;
+    [SerializeField] private TurretItemDescriptionOpenButton[] resourceItemButtons = System.Array.Empty<TurretItemDescriptionOpenButton>();
+
     [Header("버튼")]
     [SerializeField] private Button upgradeButton;
     [SerializeField] private EventTrigger upgradeButtonEventTrigger;
@@ -422,6 +426,7 @@ public class TurretUpgradePopupUI : TurretPopupPageUI
             SetText(GetTextAt(resourceItemNameTexts, visibleIndex), GetCurrencyDisplayName(cost.currencyType));
             SetText(countText, FormatCostAmountText(cost));
             SetImage(GetImageAt(resourceItemImages, visibleIndex), GetCurrencySprite(cost.currencyType));
+            ConfigureResourceButton(visibleIndex, cost.currencyType, true);
             visibleIndex++;
         }
 
@@ -780,6 +785,7 @@ public class TurretUpgradePopupUI : TurretPopupPageUI
             SetText(GetTextAt(resourceItemNameTexts, i), "-");
             SetText(GetTextAt(resourceItemCountTexts, i), "-");
             SetImage(GetImageAt(resourceItemImages, i), GetSpriteAt(resourceItemDefaultSprites, i));
+            ConfigureResourceButton(i, RewardCurrencyType.Coin, false);
         }
     }
 
@@ -830,6 +836,7 @@ public class TurretUpgradePopupUI : TurretPopupPageUI
         resourceItemCountTexts = resourceItemCountTexts ?? System.Array.Empty<TMP_Text>();
         resourceItemImages = resourceItemImages ?? System.Array.Empty<Image>();
         resourceItemDefaultSprites = resourceItemDefaultSprites ?? System.Array.Empty<Sprite>();
+        resourceItemButtons = resourceItemButtons ?? System.Array.Empty<TurretItemDescriptionOpenButton>();
     }
 
     // 재화 기본 스프라이트가 비어 있으면 현재 이미지 스프라이트를 기본값으로 저장한다
@@ -903,6 +910,34 @@ public class TurretUpgradePopupUI : TurretPopupPageUI
         {
             Debug.LogWarning("[TurretUpgradePopupUI] Upgrade Button EventTrigger 참조가 비어 있습니다.", this);
         }
+
+        if (itemDescriptionPopup == null)
+        {
+            Debug.LogWarning("[TurretUpgradePopupUI] Item Description Popup 참조가 비어 있습니다. 필요 재화 슬롯 클릭 정보가 열리지 않습니다.", this);
+        }
+    }
+
+    // 지정 재화 슬롯 버튼에 아이템 설명 팝업 진입 정보를 적용한다
+    private void ConfigureResourceButton(int index, RewardCurrencyType currencyType, bool hasCost)
+    {
+        if (resourceItemButtons == null || index < 0 || index >= resourceItemButtons.Length)
+        {
+            return;
+        }
+
+        TurretItemDescriptionOpenButton openButton = resourceItemButtons[index];
+        if (openButton == null)
+        {
+            return;
+        }
+
+        if (!hasCost || itemDescriptionPopup == null)
+        {
+            openButton.Clear();
+            return;
+        }
+
+        openButton.Configure(itemDescriptionPopup, currencyType, true);
     }
 
     // 지정 배열에서 안전하게 기본 슬롯 스프라이트를 얻는다

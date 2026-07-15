@@ -5,6 +5,8 @@ using UnityEngine;
 /// </summary>
 public static class PooledObjectUtility
 {
+    private const float PROJECTILE_FAILSAFE_RETURN_DELAY = 30.0f;
+
     // 일반 풀링 오브젝트를 지정 위치와 회전으로 생성한다
     public static GameObject Spawn(GameObject prefab, Vector3 position, Quaternion rotation)
     {
@@ -32,15 +34,10 @@ public static class PooledObjectUtility
             return null;
         }
 
-        if (projectile.GetComponent<PooledProjectileReturner>() == null)
+        PooledProjectileReturner returner = projectile.GetComponent<PooledProjectileReturner>();
+        if (returner == null)
         {
-            projectile.AddComponent<PooledProjectileReturner>();
-        }
-
-        ProjectileLifetimePolicy lifetimePolicy = projectile.GetComponent<ProjectileLifetimePolicy>();
-        if (lifetimePolicy == null)
-        {
-            lifetimePolicy = projectile.AddComponent<ProjectileLifetimePolicy>();
+            returner = projectile.AddComponent<PooledProjectileReturner>();
         }
 
         if (projectile.GetComponent<HovlProjectilePierceGuard>() == null)
@@ -48,7 +45,7 @@ public static class PooledObjectUtility
             projectile.AddComponent<HovlProjectilePierceGuard>();
         }
 
-        lifetimePolicy.ApplyPolicy();
+        returner.ReturnAfter(PROJECTILE_FAILSAFE_RETURN_DELAY);
         return projectile;
     }
 

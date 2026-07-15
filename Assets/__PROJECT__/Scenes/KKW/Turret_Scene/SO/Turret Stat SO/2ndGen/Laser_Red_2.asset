@@ -15,6 +15,6 @@ MonoBehaviour:
   damage: 447.4989
   range: 57
   fireInterval: 0.2857
-  projectileSpeed: 85
+  projectileSpeed: 65
   projectileCount: 1
   pierceCount: 0

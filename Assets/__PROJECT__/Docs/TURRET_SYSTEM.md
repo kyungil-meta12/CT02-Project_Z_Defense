@@ -1001,7 +1001,7 @@ Engineer buff policy:
 - Projectile scale must be applied every spawn.
 - Projectile speed, damage, pierce count, target/collider state, and collision ignores must be refreshed every spawn.
 - Projectile lifetime is no longer the primary range limiter. `TargetFinder.radius` limits target acquisition and target retention, while spawned projectiles can continue by inertia until they hit a damage target, normal environment, or a `ProjectileBoundary`.
-- `ProjectileLifetimePolicy` is added automatically by `PooledObjectUtility.SpawnProjectile` and replaces short legacy mover timers with a long failsafe return timer, currently 30 seconds by default. Treat this as a pool-leak safety net, not as normal projectile range tuning.
+- Projectile mover lifetime timers have been removed from the legacy projectile movers. `PooledObjectUtility.SpawnProjectile` schedules only a shared 30-second failsafe return through `PooledProjectileReturner`; treat this as a pool-leak safety net, not as normal projectile range tuning.
 - Place `ProjectileBoundary` marker components on off-camera boundary colliders used to collect missed projectiles. Boundary hits should silently return the projectile without impact audio or hit VFX.
 - For fast projectiles, put boundary colliders on a layer already included in `ProjectileHitDetector.environmentImpactLayerMask`, or explicitly include the boundary layer in `projectileBoundaryLayerMask`, so movement raycast correction can catch the boundary instead of relying only on trigger events.
 - `ProjectileComponentCache` caches frequently reused projectile components and colliders on pooled projectile instances to avoid repeated hierarchy scans during firing.

@@ -1,4 +1,4 @@
-%YAML 1.1
+﻿%YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
 --- !u!1 &1143056303235178
 GameObject:
@@ -4913,7 +4913,6 @@ MonoBehaviour:
   col: {fileID: 135783597193828132}
   lightSourse: {fileID: 0}
   notDestroy: 1
-  lifeTime: 5
   detachedLifeTime: 1
 --- !u!135 &135783597193828132
 SphereCollider:

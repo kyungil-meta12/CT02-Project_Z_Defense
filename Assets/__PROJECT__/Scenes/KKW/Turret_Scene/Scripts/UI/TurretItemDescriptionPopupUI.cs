@@ -36,6 +36,9 @@ public class TurretItemDescriptionPopupUI : MonoBehaviour
     [Header("관계 슬롯")]
     [SerializeField] private TurretItemDescriptionRelationSlotUI[] relationSlots = Array.Empty<TurretItemDescriptionRelationSlotUI>();
 
+    [Header("관련 터렛")]
+    [SerializeField] private TurretDefinitionSO[] relatedTurretDefinitions = Array.Empty<TurretDefinitionSO>();
+
     [Header("버튼")]
     [SerializeField] private Button closeButton;
     [SerializeField] private Button backButton;
@@ -185,7 +188,7 @@ public class TurretItemDescriptionPopupUI : MonoBehaviour
 
         if (currentRelationMode == RelationMode.RequiredForCraft)
         {
-            SetText(relationTitleText, "제작 가능 아이템");
+            SetText(relationTitleText, "다음을 위해 필요");
             FillRequiredForCraftSlots();
             return;
         }
@@ -194,15 +197,22 @@ public class TurretItemDescriptionPopupUI : MonoBehaviour
         FillCraftInputSlots(metadata);
     }
 
-    // 현재 아이템을 재료로 사용하는 제작 결과 아이템을 슬롯에 채운다
+    // 현재 아이템을 재료로 사용하는 제작 결과 아이템과 진화 대상 터렛을 슬롯에 채운다
     private void FillRequiredForCraftSlots()
+    {
+        int slotIndex = FillRequiredForCraftItemSlots(0);
+        FillRequiredForEvolutionTurretSlots(slotIndex);
+    }
+
+    // 현재 아이템을 재료로 사용하는 제작 결과 아이템을 슬롯에 채운다
+    private int FillRequiredForCraftItemSlots(int startSlotIndex)
     {
         if (InventorySystem.Inst == null || InventorySystem.Inst.Types == null)
         {
-            return;
+            return startSlotIndex;
         }
 
-        int slotIndex = 0;
+        int slotIndex = startSlotIndex;
         foreach (RewardCurrencyType candidateType in InventorySystem.Inst.Types)
         {
             ItemMetaDataSo candidateMetadata = InventorySystem.Inst.GetMetaData(candidateType);
@@ -221,13 +231,83 @@ public class TurretItemDescriptionPopupUI : MonoBehaviour
 
                 if (!TryConfigureRelationSlot(slotIndex, candidateType, FormatRequiredForCraftAmount(candidateMetadata, craftData)))
                 {
-                    return;
+                    return slotIndex;
                 }
 
                 slotIndex++;
                 break;
             }
         }
+
+        return slotIndex;
+    }
+
+    // 현재 아이템을 진화 재료로 사용하는 터렛을 슬롯에 채운다
+    private void FillRequiredForEvolutionTurretSlots(int startSlotIndex)
+    {
+        if (relatedTurretDefinitions == null)
+        {
+            return;
+        }
+
+        int slotIndex = startSlotIndex;
+        for (int i = 0; i < relatedTurretDefinitions.Length; i++)
+        {
+            TurretDefinitionSO sourceDefinition = relatedTurretDefinitions[i];
+            TurretEvolutionProgressionSO progression = sourceDefinition == null ? null : sourceDefinition.evolutionProgressionProfile;
+            if (progression == null || progression.evolutionEntries == null)
+            {
+                continue;
+            }
+
+            if (!TryFillEvolutionEntryRelationSlots(progression.evolutionEntries, ref slotIndex))
+            {
+                return;
+            }
+        }
+    }
+
+    // 진화 엔트리 배열에서 현재 아이템을 요구하는 터렛 슬롯을 채운다
+    private bool TryFillEvolutionEntryRelationSlots(TurretEvolutionEntry[] entries, ref int slotIndex)
+    {
+        for (int i = 0; i < entries.Length; i++)
+        {
+            TurretEvolutionEntry entry = entries[i];
+            ResourceCost matchingCost = FindMatchingEvolutionCost(entry);
+            if (matchingCost == null)
+            {
+                continue;
+            }
+
+            if (!TryConfigureTurretRelationSlot(slotIndex, entry, FormatEvolutionCostAmount(matchingCost)))
+            {
+                return false;
+            }
+
+            slotIndex++;
+        }
+
+        return true;
+    }
+
+    // 진화 엔트리에서 현재 아이템과 일치하는 비용을 찾는다
+    private ResourceCost FindMatchingEvolutionCost(TurretEvolutionEntry entry)
+    {
+        if (entry == null || entry.targetDefinition == null || entry.evolutionCosts == null)
+        {
+            return null;
+        }
+
+        for (int i = 0; i < entry.evolutionCosts.Length; i++)
+        {
+            ResourceCost cost = entry.evolutionCosts[i];
+            if (cost != null && cost.currencyType.Equals(currentType))
+            {
+                return cost;
+            }
+        }
+
+        return null;
     }
 
     // 현재 아이템 제작에 필요한 재료 아이템을 슬롯에 채운다
@@ -266,6 +346,24 @@ public class TurretItemDescriptionPopupUI : MonoBehaviour
         return true;
     }
 
+    // 지정 슬롯에 터렛 진화 관계 정보를 표시한다
+    private bool TryConfigureTurretRelationSlot(int slotIndex, TurretEvolutionEntry entry, string amountText)
+    {
+        if (relationSlots == null || slotIndex < 0 || slotIndex >= relationSlots.Length)
+        {
+            return false;
+        }
+
+        TurretItemDescriptionRelationSlotUI slot = relationSlots[slotIndex];
+        if (slot == null)
+        {
+            return true;
+        }
+
+        slot.ConfigureTurret(GetEvolutionDisplayName(entry), GetEvolutionIcon(entry), amountText);
+        return true;
+    }
+
     // 모든 관계 슬롯을 빈 상태로 돌린다
     private void ClearAllRelationSlots()
     {
@@ -296,6 +394,51 @@ public class TurretItemDescriptionPopupUI : MonoBehaviour
     {
         int requiredCount = Mathf.Max(0, craftData.Count);
         return "필요 " + requiredCount;
+    }
+
+    // 터렛 진화 재료 슬롯의 수량 표시 문구를 만든다
+    private static string FormatEvolutionCostAmount(ResourceCost cost)
+    {
+        int requiredCount = cost == null ? 0 : Mathf.Max(0, cost.amount);
+        return "진화 필요 " + requiredCount;
+    }
+
+    // 진화 엔트리 표시 이름을 반환한다
+    private static string GetEvolutionDisplayName(TurretEvolutionEntry entry)
+    {
+        if (entry == null)
+        {
+            return string.Empty;
+        }
+
+        TurretDefinitionSO targetDefinition = entry.targetDefinition;
+        if (targetDefinition != null && !string.IsNullOrWhiteSpace(targetDefinition.displayName))
+        {
+            return targetDefinition.displayName;
+        }
+
+        if (!string.IsNullOrWhiteSpace(entry.displayName))
+        {
+            return entry.displayName;
+        }
+
+        return targetDefinition == null ? string.Empty : targetDefinition.name;
+    }
+
+    // 진화 엔트리 표시 아이콘을 반환한다
+    private static Sprite GetEvolutionIcon(TurretEvolutionEntry entry)
+    {
+        if (entry == null)
+        {
+            return null;
+        }
+
+        if (entry.targetDefinition != null && entry.targetDefinition.uiIcon != null)
+        {
+            return entry.targetDefinition.uiIcon;
+        }
+
+        return entry.evolutionIcon;
     }
 
     // 관계 모드 토글 상태를 현재 모드에 맞게 반영한다

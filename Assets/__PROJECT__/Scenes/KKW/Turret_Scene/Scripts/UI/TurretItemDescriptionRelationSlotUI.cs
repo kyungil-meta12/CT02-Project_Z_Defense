@@ -3,7 +3,7 @@ using UnityEngine;
 using UnityEngine.UI;
 
 /// <summary>
-/// 아이템 설명 팝업에서 제작 관계 아이템 하나를 버튼 슬롯으로 표시한다.
+/// 아이템 설명 팝업에서 제작 관계 아이템 또는 관련 터렛 하나를 슬롯으로 표시한다.
 /// </summary>
 [DisallowMultipleComponent]
 public class TurretItemDescriptionRelationSlotUI : MonoBehaviour
@@ -63,6 +63,19 @@ public class TurretItemDescriptionRelationSlotUI : MonoBehaviour
         SetRootActive(true);
         SetButtonInteractable(true);
         SetItemVisual(itemType_);
+        SetText(itemAmountText, amountText);
+    }
+
+    // 지정 터렛 관계 정보를 표시 전용 슬롯에 표시한다
+    public void ConfigureTurret(string turretName, Sprite turretIcon, string amountText)
+    {
+        owner = null;
+        hasItemType = false;
+
+        SetRootActive(true);
+        SetButtonInteractable(false);
+        SetText(itemNameText, turretName);
+        SetImage(itemImage, turretIcon);
         SetText(itemAmountText, amountText);
     }
 

@@ -697,19 +697,8 @@ public class TurretEvolutionCostCsvEditorTool : EditorWindow
             return false;
         }
 
-        string text;
-        try
+        if (!TryReadCsvText(path, out string text))
         {
-            using (FileStream stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
-            using (StreamReader reader = new StreamReader(stream, Encoding.UTF8, true))
-            {
-                text = reader.ReadToEnd();
-            }
-        }
-        catch (IOException exception)
-        {
-            AddMessage("CSV 파일을 읽을 수 없습니다. Excel에서 저장 중이거나 파일을 독점 잠금 중일 수 있습니다.");
-            AddMessage(exception.Message);
             return false;
         }
 
@@ -722,6 +711,127 @@ public class TurretEvolutionCostCsvEditorTool : EditorWindow
         }
 
         return true;
+    }
+
+    // CSV 파일을 UTF-8, UTF-16, CP949 순서로 판별해 읽는다
+    private bool TryReadCsvText(string path, out string csvText)
+    {
+        csvText = string.Empty;
+        byte[] bytes;
+        try
+        {
+            using (FileStream stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+            {
+                bytes = new byte[stream.Length];
+                int totalRead = 0;
+                while (totalRead < bytes.Length)
+                {
+                    int read = stream.Read(bytes, totalRead, bytes.Length - totalRead);
+                    if (read <= 0)
+                    {
+                        break;
+                    }
+
+                    totalRead += read;
+                }
+            }
+        }
+        catch (IOException exception)
+        {
+            AddMessage("CSV 파일을 읽을 수 없습니다. Excel에서 저장 중이거나 파일을 독점 잠금 중일 수 있습니다.");
+            AddMessage(exception.Message);
+            return false;
+        }
+        catch (UnauthorizedAccessException exception)
+        {
+            AddMessage("CSV 파일 접근 권한이 없습니다: " + path);
+            AddMessage(exception.Message);
+            return false;
+        }
+
+        if (HasUtf8Bom(bytes))
+        {
+            csvText = new UTF8Encoding(true, false).GetString(bytes, 3, bytes.Length - 3);
+            return true;
+        }
+
+        if (HasUtf16LittleEndianBom(bytes))
+        {
+            csvText = Encoding.Unicode.GetString(bytes, 2, bytes.Length - 2);
+            AddMessage("CSV를 UTF-16 LE 인코딩으로 읽었습니다: " + path);
+            return true;
+        }
+
+        if (HasUtf16BigEndianBom(bytes))
+        {
+            csvText = Encoding.BigEndianUnicode.GetString(bytes, 2, bytes.Length - 2);
+            AddMessage("CSV를 UTF-16 BE 인코딩으로 읽었습니다: " + path);
+            return true;
+        }
+
+        if (TryDecodeStrictUtf8(bytes, out csvText))
+        {
+            return true;
+        }
+
+        if (TryDecodeCp949(bytes, out csvText))
+        {
+            AddMessage("CSV가 UTF-8이 아니어서 CP949(한국어 Windows CSV)로 읽었습니다: " + path);
+            return true;
+        }
+
+        csvText = Encoding.Default.GetString(bytes);
+        AddMessage("CSV가 UTF-8/UTF-16/CP949로 명확히 읽히지 않아 OS 기본 인코딩으로 읽었습니다: " + path);
+        return true;
+    }
+
+    // UTF-8 BOM이 있는지 확인한다
+    private static bool HasUtf8Bom(byte[] bytes)
+    {
+        return bytes.Length >= 3 && bytes[0] == 0xEF && bytes[1] == 0xBB && bytes[2] == 0xBF;
+    }
+
+    // UTF-16 LE BOM이 있는지 확인한다
+    private static bool HasUtf16LittleEndianBom(byte[] bytes)
+    {
+        return bytes.Length >= 2 && bytes[0] == 0xFF && bytes[1] == 0xFE;
+    }
+
+    // UTF-16 BE BOM이 있는지 확인한다
+    private static bool HasUtf16BigEndianBom(byte[] bytes)
+    {
+        return bytes.Length >= 2 && bytes[0] == 0xFE && bytes[1] == 0xFF;
+    }
+
+    // 엄격한 UTF-8 디코딩을 시도한다
+    private static bool TryDecodeStrictUtf8(byte[] bytes, out string text)
+    {
+        try
+        {
+            text = new UTF8Encoding(false, true).GetString(bytes);
+            return true;
+        }
+        catch (DecoderFallbackException)
+        {
+            text = string.Empty;
+            return false;
+        }
+    }
+
+    // CP949 디코딩을 시도한다
+    private static bool TryDecodeCp949(byte[] bytes, out string text)
+    {
+        text = string.Empty;
+        try
+        {
+            Encoding encoding = Encoding.GetEncoding(949, EncoderFallback.ExceptionFallback, DecoderFallback.ExceptionFallback);
+            text = encoding.GetString(bytes);
+            return true;
+        }
+        catch (Exception)
+        {
+            return false;
+        }
     }
 
     // CSV 테이블에서 실제 헤더 행을 찾아 컬럼 인덱스 맵으로 변환한다

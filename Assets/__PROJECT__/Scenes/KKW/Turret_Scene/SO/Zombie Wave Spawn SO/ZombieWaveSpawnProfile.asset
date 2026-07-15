@@ -62,6 +62,9 @@ MonoBehaviour:
   - bossType: 2
     firstWave: 30
     waveInterval: 15
+  postFinalWaveFallbackIntervalWaves: 50
+  postFinalWaveHpMultiplierIncrease: 100
+  postFinalWaveAttackDamageMultiplierIncrease: 5
   stages:
   - minWave: 1
     maxWave: 9
@@ -146,7 +149,7 @@ MonoBehaviour:
       minWave: 1
       maxWave: 0
     hpMultiplier: 3
-    attackDamageMultiplier: 2.5
+    attackDamageMultiplier: 1.5
     moveAttackSpeedMultiplier: 1
     rewardMultiplier: 1.2
   - minWave: 26
@@ -201,7 +204,7 @@ MonoBehaviour:
       minWave: 1
       maxWave: 0
     hpMultiplier: 6
-    attackDamageMultiplier: 3
+    attackDamageMultiplier: 2.5
     moveAttackSpeedMultiplier: 1.02
     rewardMultiplier: 1.5
   - minWave: 51
@@ -256,7 +259,7 @@ MonoBehaviour:
       minWave: 1
       maxWave: 0
     hpMultiplier: 12
-    attackDamageMultiplier: 4
+    attackDamageMultiplier: 3.5
     moveAttackSpeedMultiplier: 1.04
     rewardMultiplier: 1.9
   - minWave: 76
@@ -311,7 +314,7 @@ MonoBehaviour:
       minWave: 1
       maxWave: 0
     hpMultiplier: 18
-    attackDamageMultiplier: 5.5
+    attackDamageMultiplier: 5
     moveAttackSpeedMultiplier: 1.06
     rewardMultiplier: 2.5
   - minWave: 101

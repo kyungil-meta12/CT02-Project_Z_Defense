@@ -9,6 +9,8 @@ using UnityEngine.UI;
 [DisallowMultipleComponent]
 public class TurretSelectPopupUI : MonoBehaviour
 {
+    private const int ENGINEER_SEAT_BUTTON_COUNT = 4;
+
     [Header("표시 루트")]
     [SerializeField] private GameObject popupRoot;
 
@@ -32,6 +34,14 @@ public class TurretSelectPopupUI : MonoBehaviour
     [Header("스킬 상태")]
     [SerializeField] private bool disableSkillButtonUntilImplemented = true;
 
+    [Header("엔지니어 좌석")]
+    [SerializeField] private GameObject engineerSeatButtonPrefab;
+    [SerializeField] private RectTransform engineerSeatButtonRoot;
+
+    private readonly Button[] engineerSeatButtons = new Button[ENGINEER_SEAT_BUTTON_COUNT];
+    private readonly TMP_Text[] engineerSeatBuffTexts = new TMP_Text[ENGINEER_SEAT_BUTTON_COUNT];
+
+    private TurretSelectionContext currentContext;
     private string levelTextTemplate;
     private string damageTextTemplate;
     private string fireRateTextTemplate;
@@ -53,6 +63,7 @@ public class TurretSelectPopupUI : MonoBehaviour
         ValidateRequiredReferences();
         CacheTextTemplates();
         BindButtonListeners();
+        CreateEngineerSeatButtons();
     }
 
     // 파괴 시 버튼 이벤트를 해제한다
@@ -64,9 +75,11 @@ public class TurretSelectPopupUI : MonoBehaviour
     // 선택된 터렛 컨텍스트로 선택 허브 팝업을 표시한다
     public void Show(TurretSelectionContext context)
     {
+        currentContext = context;
         CacheTextTemplates();
         RefreshTexts(context);
         RefreshSkillState();
+        RefreshEngineerSeatButtons();
 
         if (popupRoot != null)
         {
@@ -196,6 +209,101 @@ public class TurretSelectPopupUI : MonoBehaviour
             skillButton.interactable = !disableSkillButtonUntilImplemented;
         }
 
+    }
+
+    // 게임 시작 시 엔지니어 좌석 버튼을 미리 생성해 배열에 보관한다
+    private void CreateEngineerSeatButtons()
+    {
+        if (engineerSeatButtonPrefab == null || engineerSeatButtonRoot == null)
+        {
+            Debug.LogWarning("[TurretSelectPopupUI] 엔지니어 좌석 버튼 프리팹 또는 부모 루트 참조가 비어 있습니다.", this);
+            return;
+        }
+
+        for (int i = 0; i < engineerSeatButtons.Length; i++)
+        {
+            GameObject seatButtonObject = Instantiate(engineerSeatButtonPrefab, engineerSeatButtonRoot);
+            Button seatButton = seatButtonObject.GetComponent<Button>();
+            if (seatButton == null)
+            {
+                Debug.LogWarning("[TurretSelectPopupUI] 엔지니어 좌석 버튼 프리팹에 Button 컴포넌트가 없습니다.", this);
+                continue;
+            }
+
+            int seatIndex = i;
+            seatButton.onClick.AddListener(() => OnEngineerSeatButtonClicked(seatIndex));
+            seatButton.gameObject.SetActive(false);
+            engineerSeatButtons[i] = seatButton;
+            engineerSeatBuffTexts[i] = seatButtonObject.GetComponentInChildren<TMP_Text>(true);
+        }
+    }
+
+    // 현재 터렛 정의의 최대 좌석 수와 탑승 상태에 맞춰 좌석 버튼을 갱신한다
+    private void RefreshEngineerSeatButtons()
+    {
+        TurretDefinitionRuntimeController turret = currentContext.IsValid ? currentContext.Turret : null;
+        TurretDefinitionSO definition = currentContext.Definition;
+        TurretEngineerBuffReceiver buffReceiver = turret == null ? null : turret.GetComponent<TurretEngineerBuffReceiver>();
+        int maxSeatCount = definition == null ? 0 : Mathf.Max(0, definition.maxEngineerSeatCount);
+        int activeSeatCount = Mathf.Min(maxSeatCount, engineerSeatButtons.Length);
+
+        for (int i = 0; i < engineerSeatButtons.Length; i++)
+        {
+            Button seatButton = engineerSeatButtons[i];
+            if (seatButton == null)
+            {
+                continue;
+            }
+
+            bool isSeatVisible = i < activeSeatCount;
+            seatButton.gameObject.SetActive(isSeatVisible);
+            if (!isSeatVisible)
+            {
+                continue;
+            }
+
+            Survivor engineer = buffReceiver == null ? null : buffReceiver.GetEngineerAt(i);
+            seatButton.interactable = engineer != null;
+            SetText(engineerSeatBuffTexts[i], FormatEngineerSeatBuffText(engineer, buffReceiver));
+        }
+    }
+
+    // 좌석 버튼 클릭 시 탑승 중인 엔지니어를 하차시킨다
+    private void OnEngineerSeatButtonClicked(int seatIndex)
+    {
+        if (!currentContext.IsValid)
+        {
+            return;
+        }
+
+        TurretEngineerBuffReceiver buffReceiver = currentContext.Turret.GetComponent<TurretEngineerBuffReceiver>();
+        Survivor engineer = buffReceiver == null ? null : buffReceiver.GetEngineerAt(seatIndex);
+        if (engineer == null || !engineer.TryDismountEngineerFromTurret())
+        {
+            Debug.LogWarning("[TurretSelectPopupUI] 엔지니어 하차 요청을 처리하지 못했습니다.", this);
+        }
+
+        RefreshEngineerSeatButtons();
+    }
+
+    // 좌석에 탑승 중인 엔지니어가 적용하는 버프 수치를 UI 문자열로 변환한다
+    private static string FormatEngineerSeatBuffText(Survivor engineer, TurretEngineerBuffReceiver buffReceiver)
+    {
+        if (engineer == null || buffReceiver == null || buffReceiver.DamageBonusRatioPerEngineer <= 0.0f)
+        {
+            return string.Empty;
+        }
+
+        return $"+{buffReceiver.DamageBonusRatioPerEngineer * 100.0f:0.#}%";
+    }
+
+    // 텍스트 참조가 있을 때만 문자열을 적용한다
+    private static void SetText(TMP_Text targetText, string value)
+    {
+        if (targetText != null)
+        {
+            targetText.text = value;
+        }
     }
 
     // 템플릿의 중괄호 자리만 값으로 교체한다

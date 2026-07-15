@@ -1026,6 +1026,7 @@ MonoBehaviour:
   - rid: 2874150998530588672
   - rid: 2874150998530588673
   - rid: 2874150998530588674
+  - rid: 8430879580361064552
   m_OriginalGraph: {fileID: 7975423680840885449, guid: 6d8160182f9095b408b4e7b93f6ee8fb, type: 2}
   m_IsInitialised: 0
   m_IsStarted: 0
@@ -1064,6 +1065,14 @@ MonoBehaviour:
           m_Value1: 16015792196410389436
         Name: AttackDistance
         m_Value: 2
+    - rid: 8430879580361064552
+      type: {class: 'BlackboardVariable`1[[System.Int32, mscorlib]]', ns: Unity.Behavior, asm: Unity.Behavior}
+      data:
+        GUID:
+          m_Value0: 2649449507249476219
+          m_Value1: 5865627585007866158
+        Name: maxAttackCount
+        m_Value: 10
 --- !u!136 &6951844493432217934
 CapsuleCollider:
   m_ObjectHideFlags: 0
@@ -1113,8 +1122,8 @@ MonoBehaviour:
   bossSkillTargetLayerMask:
     serializedVersion: 2
     m_Bits: 512
-  tankSkillRadius: 4
-  boomerSkillRadius: 3
+  tankSkillRadius: 10
+  boomerSkillRadius: 5
   boomerSkillMaxHpDamageRatioPerTick: 0.05
   aoeHitBufferSize: 16
   screamerSkillRadius: 10

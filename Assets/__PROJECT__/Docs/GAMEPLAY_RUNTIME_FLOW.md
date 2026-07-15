@@ -287,6 +287,14 @@ Runtime policy:
 - Loading a saved current wave does not repeat its survivor spawn attempt.
 - `spawnOnStartWave` applies only when the starting wave has never been recorded as reached.
 
+## Survivor Save And Restore Flow
+
+- The wave save section records every registered survivor's role and the treatment or role-selection stage of unassigned survivors.
+- Loading creates the saved survivor roster from the rescue survivor prefab in a grid around the final rear gathering point.
+- Construction workers return to normal work idle, while engineers return to unassigned engineer idle even if they were mounted on a turret when saved.
+- Untreated survivors return as wounded and treatment-ready; treated survivors without a role return role-selection-ready.
+- Position, HP, movement target, repair reservation, defense-line state, and engineer turret assignment are not saved.
+
 ## Edge Cases To Check
 
 - `GameManager.Inst` missing when prefabs enable.

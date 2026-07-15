@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.AI;
 
 /// <summary>
 /// 웨이브 시작 시 확률에 따라 좀비 스폰 지점에서 구출 대상 생존자를 생성한다.
@@ -17,6 +18,11 @@ public class SurvivorRescueSpawner : MonoBehaviour
     [SerializeField] private Transform finalRearPoint;
     [SerializeField] private Transform hospitalPoint;
     [SerializeField, Min(0f)] private float treatmentDuration = 8f;
+
+    [Header("불러오기 배치")]
+    [SerializeField, Min(1)] private int restoreGridColumns = 4;
+    [SerializeField, Min(0.1f)] private float restoreGridSpacing = 1.5f;
+    [SerializeField, Min(0.1f)] private float restoreNavMeshSampleDistance = 2f;
 
     public bool IsRescueSpawnEnabled => enableRescueSpawn;
 
@@ -44,6 +50,7 @@ public class SurvivorRescueSpawner : MonoBehaviour
         if (GameManager.Inst != null)
         {
             GameManager.Inst.OnFirstWaveReached += OnFirstWaveReached;
+            RestoreSavedSurvivors();
         }
 
         int wave = GameManager.Inst == null ? 1 : GameManager.Inst.Wave;
@@ -93,6 +100,62 @@ public class SurvivorRescueSpawner : MonoBehaviour
         survivor.ConfigureRescueFlow(hospitalPoint, finalRearPoint, treatmentDuration);
         survivor.SetPosition(spawnPoint);
         survivor.StartRescueRun(finalRearPoint);
+    }
+
+    // 저장된 생존자 명단을 집결지 주변 격자에 순서대로 복원한다
+    private void RestoreSavedSurvivors()
+    {
+        int restoreCount = GameManager.Inst.GetPendingSurvivorRestoreCount();
+        if (restoreCount <= 0)
+        {
+            return;
+        }
+
+        if (survivorPrefab == null || finalRearPoint == null)
+        {
+            Debug.LogWarning("[SurvivorRescueSpawner] 생존자 복원에 필요한 프리팹 또는 집결지가 없어 복원을 보류합니다.", this);
+            return;
+        }
+
+        GameManager.Inst.BeginSurvivorRestore();
+        int safeColumns = Mathf.Max(1, restoreGridColumns);
+        float safeSpacing = Mathf.Max(0.1f, restoreGridSpacing);
+
+        for (int i = 0; i < restoreCount; i++)
+        {
+            if (!GameManager.Inst.TryGetPendingSurvivorRestoreEntry(i, out SurvivorSaveEntry saveEntry))
+            {
+                continue;
+            }
+
+            Vector3 restorePosition = CalculateRestorePosition(i, safeColumns, safeSpacing);
+            Survivor survivor = Instantiate(survivorPrefab, restorePosition, finalRearPoint.rotation);
+            if (survivor == null)
+            {
+                continue;
+            }
+
+            survivor.RestoreSaveEntry(saveEntry, hospitalPoint, finalRearPoint, treatmentDuration);
+        }
+
+        GameManager.Inst.CompleteSurvivorRestore();
+    }
+
+    // 집결지 기준 격자 위치를 계산하고 가까운 NavMesh 위치로 보정한다
+    private Vector3 CalculateRestorePosition(int index, int columns, float spacing)
+    {
+        int row = index / columns;
+        int column = index % columns;
+        float centeredColumn = column - (columns - 1) * 0.5f;
+        Vector3 candidate = finalRearPoint.position + finalRearPoint.right * (centeredColumn * spacing) - finalRearPoint.forward * (row * spacing);
+
+        if (NavMesh.SamplePosition(candidate, out NavMeshHit hit, Mathf.Max(0.1f, restoreNavMeshSampleDistance), NavMesh.AllAreas))
+        {
+            return hit.position;
+        }
+
+        Debug.LogWarning($"[SurvivorRescueSpawner] {index + 1}번째 생존자의 NavMesh 복원 위치를 찾지 못해 집결지 위치를 사용합니다.", this);
+        return finalRearPoint.position;
     }
 
     // 현재 웨이브의 프로필 확률을 기준으로 스폰 여부를 결정한다

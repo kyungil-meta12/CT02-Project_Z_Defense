@@ -160,6 +160,47 @@ public class Survivor : MonoBehaviour
     public bool IsMovingForInteraction => IsAgentMoveState() && agent != null && agent.enabled && agent.isOnNavMesh && agent.desiredVelocity.sqrMagnitude > 0.01f;
     public bool IsWaitingForInteraction => role == SurvivorRole.survivor && !CanRequestTreatment && !CanAssignRole && !IsMovingForInteraction;
 
+    // 현재 역할과 치료 진행 상태를 저장 항목으로 반환한다
+    public SurvivorSaveEntry CaptureSaveEntry()
+    {
+        return new SurvivorSaveEntry
+        {
+            Role = role,
+            RestoreStage = GetRestoreStage()
+        };
+    }
+
+    // 저장된 역할과 치료 진행 상태를 집결지 대기 상태로 복원한다
+    public void RestoreSaveEntry(SurvivorSaveEntry saveEntry, Transform hospitalPoint_, Transform finalRearPoint_, float treatmentDuration)
+    {
+        if (saveEntry == null)
+        {
+            return;
+        }
+
+        ConfigureRescueFlow(hospitalPoint_, finalRearPoint_, treatmentDuration);
+        ClearRepairTarget();
+        ClearEngineerAssignment();
+        assignedTurretSlot = null;
+        defenseMoveTarget = null;
+        activeDefenseLineIndex = NO_DEFENSE_LINE;
+        isInitializedAsRescueSurvivor = false;
+        role = saveEntry.Role;
+        SetInteractionVisible(true);
+
+        if (role == SurvivorRole.survivor && saveEntry.RestoreStage == SurvivorRestoreStage.TreatmentPending)
+        {
+            visualCondition = SurvivorVisualCondition.Wounded;
+            ApplyRoleVisual();
+            ChangeState(SurvivorState.TreatmentReady);
+            return;
+        }
+
+        visualCondition = SurvivorVisualCondition.Normal;
+        ApplyRoleVisual();
+        ChangeState(role == SurvivorRole.survivor ? SurvivorState.RoleSelectionReady : GetIdleStateForRole());
+    }
+
     // 필요한 컴포넌트와 애니메이터 파라미터를 초기화한다
     private void Awake()
     {
@@ -389,6 +430,7 @@ public class Survivor : MonoBehaviour
         ClearRepairTarget();
         ClearEngineerAssignment();
         ChangeState(GetIdleStateForRole());
+        GameManager.Inst?.MarkSurvivorStateDirty();
         return true;
     }
 
@@ -760,6 +802,7 @@ public class Survivor : MonoBehaviour
         if (finalRearPoint == null)
         {
             ChangeState(SurvivorState.RoleSelectionReady);
+            GameManager.Inst?.MarkSurvivorStateDirty();
             return;
         }
 
@@ -1417,6 +1460,7 @@ public class Survivor : MonoBehaviour
                 break;
             case SurvivorState.ReturningFromHospital:
                 ChangeState(SurvivorState.RoleSelectionReady);
+                GameManager.Inst?.MarkSurvivorStateDirty();
                 break;
             case SurvivorState.ReturningToEngineerGathering:
                 ChangeState(SurvivorState.EngineerReady);
@@ -1434,6 +1478,22 @@ public class Survivor : MonoBehaviour
     private SurvivorState GetIdleStateForRole()
     {
         return role == SurvivorRole.engineer ? SurvivorState.EngineerReady : SurvivorState.Idle;
+    }
+
+    // 현재 런타임 상태를 저장 가능한 치료 진행 단계로 정규화한다
+    private SurvivorRestoreStage GetRestoreStage()
+    {
+        if (role != SurvivorRole.survivor)
+        {
+            return SurvivorRestoreStage.RoleSelectionPending;
+        }
+
+        if (state == SurvivorState.ReturningFromHospital || state == SurvivorState.RoleSelectionReady)
+        {
+            return SurvivorRestoreStage.RoleSelectionPending;
+        }
+
+        return SurvivorRestoreStage.TreatmentPending;
     }
 
     // 엔지니어 터렛 배치 등록을 해제한다

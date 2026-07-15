@@ -72,11 +72,13 @@ public class GameManager : MonoBehaviour, ISaveable
     public event Action<int> OnWaveDecrease; // 웨이브 감소 이벤트
     public event Action<int> OnFirstWaveReached; // 웨이브 최초 도달 이벤트
     private readonly List<Survivor> survivors = new List<Survivor>(16);
+    private readonly List<SurvivorSaveEntry> pendingSurvivorRestoreEntries = new List<SurvivorSaveEntry>(16);
     private readonly List<ZombieSpawner> zombieSpawners = new List<ZombieSpawner>(2);
     private Coroutine gameOverCoroutine;
     private Coroutine quitGameCoroutine;
     private bool isWaveProgressionPaused;
     private bool suppressDefenseLineRestore;
+    private bool isRestoringSurvivors;
 
     public int Wave{ get; private set; } = 1;
     public int HighestReachedWave { get; private set; }
@@ -256,6 +258,7 @@ public class GameManager : MonoBehaviour, ISaveable
         }
 
         survivors.Add(survivor);
+        MarkSurvivorStateDirty();
     }
 
     // 생존자를 방어선 이벤트 수신 대상에서 해제한다
@@ -267,6 +270,47 @@ public class GameManager : MonoBehaviour, ISaveable
         }
 
         survivors.Remove(survivor);
+    }
+
+    // 생존자 명단이나 역할 변경을 저장 대상으로 표시한다
+    public void MarkSurvivorStateDirty()
+    {
+        if (!isRestoringSurvivors)
+        {
+            SaveManager.Inst?.MarkDirty();
+        }
+    }
+
+    // 복원 대기 중인 생존자 저장 항목 수를 반환한다
+    public int GetPendingSurvivorRestoreCount()
+    {
+        return pendingSurvivorRestoreEntries.Count;
+    }
+
+    // 지정 인덱스의 생존자 복원 항목을 반환한다
+    public bool TryGetPendingSurvivorRestoreEntry(int index, out SurvivorSaveEntry saveEntry)
+    {
+        if (index < 0 || index >= pendingSurvivorRestoreEntries.Count)
+        {
+            saveEntry = null;
+            return false;
+        }
+
+        saveEntry = pendingSurvivorRestoreEntries[index];
+        return saveEntry != null;
+    }
+
+    // 생존자 생성 중 등록 이벤트가 저장을 다시 더럽히지 않도록 복원 상태를 시작한다
+    public void BeginSurvivorRestore()
+    {
+        isRestoringSurvivors = true;
+    }
+
+    // 생존자 복원을 완료하고 캐시된 저장 명단을 비운다
+    public void CompleteSurvivorRestore()
+    {
+        pendingSurvivorRestoreEntries.Clear();
+        isRestoringSurvivors = false;
     }
 
     // 좀비 스포너를 게임오버 리셋 대상으로 등록한다
@@ -1239,6 +1283,15 @@ public class GameManager : MonoBehaviour, ISaveable
             HighestReachedWave = Mathf.Max(Mathf.Max(1, Wave), HighestReachedWave)
         };
 
+        for (int i = 0; i < survivors.Count; i++)
+        {
+            Survivor survivor = survivors[i];
+            if (survivor != null)
+            {
+                saveData.Survivors.Add(survivor.CaptureSaveEntry());
+            }
+        }
+
         return JsonUtility.ToJson(saveData);
     }
 
@@ -1253,6 +1306,18 @@ public class GameManager : MonoBehaviour, ISaveable
 
         Wave = Mathf.Max(1, saveData.Wave);
         HighestReachedWave = Mathf.Max(Wave, saveData.HighestReachedWave);
+        pendingSurvivorRestoreEntries.Clear();
+        if (saveData.Survivors != null)
+        {
+            for (int i = 0; i < saveData.Survivors.Count; i++)
+            {
+                SurvivorSaveEntry saveEntry = saveData.Survivors[i];
+                if (saveEntry != null)
+                {
+                    pendingSurvivorRestoreEntries.Add(saveEntry);
+                }
+            }
+        }
         KillCount = 0;
         DestKillCount = 0;
     }
@@ -1262,6 +1327,7 @@ public class GameManager : MonoBehaviour, ISaveable
     {
         public int Wave;
         public int HighestReachedWave;
+        public List<SurvivorSaveEntry> Survivors = new List<SurvivorSaveEntry>();
     }
 
     // 실패 웨이브 이전의 마지막 보스 웨이브 다음 체크포인트를 계산한다

@@ -8,21 +8,28 @@ using UnityEngine.EventSystems;
 [DisallowMultipleComponent]
 public class ObstaclePlacementController : MonoBehaviour
 {
-    [Header("Raycast")]
+    [Header("레이캐스트")]
     [SerializeField] private Camera targetCamera;
     [SerializeField] private LayerMask obstacleSlotLayerMask = 1 << 9;
+    [SerializeField] private LayerMask invalidPreviewLayerMask = ~0;
     [SerializeField, Min(1.0f)] private float maxRayDistance = 500.0f;
 
-    [Header("Preview")]
+    [Header("프리뷰")]
+    [SerializeField] private bool showInvalidPreviewOnWorld = true;
     [SerializeField] private Material validPreviewMaterial;
     [SerializeField] private Material invalidPreviewMaterial;
     [SerializeField] private Color validPreviewColor = new Color(0.2f, 1.0f, 0.35f, 0.45f);
     [SerializeField] private Color invalidPreviewColor = new Color(1.0f, 0.12f, 0.08f, 0.45f);
     [SerializeField] private Vector3 previewLocalOffset = Vector3.zero;
+    [SerializeField] private Vector3 invalidPreviewEulerAngles = Vector3.zero;
     [SerializeField, Min(0.01f)] private float previewScaleMultiplier = 1.0f;
+    [SerializeField, Min(0.01f)] private float invalidWorldPreviewScaleMultiplier = 1.0f;
+    [SerializeField] private bool useInvalidPreviewPlacementPlane = true;
+    [SerializeField] private float invalidPreviewPlaneY;
+    [SerializeField, Range(0.0f, 0.45f)] private float invalidPreviewViewportPadding = 0.06f;
     [SerializeField] private bool createRuntimePreviewMaterials = true;
 
-    [Header("Debug")]
+    [Header("디버그")]
     [SerializeField] private bool logPlacementResults = true;
 
     private TurretPlacementPreview preview;
@@ -31,6 +38,9 @@ public class ObstaclePlacementController : MonoBehaviour
     private GameObject currentPreviewPrefab;
     private Material runtimeValidPreviewMaterial;
     private Material runtimeInvalidPreviewMaterial;
+    private Vector3 invalidPreviewReferenceScale = Vector3.one;
+    private readonly RaycastHit[] slotRaycastHits = new RaycastHit[32];
+    private readonly RaycastHit[] invalidPreviewRaycastHits = new RaycastHit[32];
 
     // 설치 항목의 배치 성공 횟수가 바뀌어 표시 비용을 다시 계산해야 할 때 발생한다
     public event Action<ObstacleBuildEntrySO> OnPlacementCountChanged;
@@ -101,6 +111,7 @@ public class ObstaclePlacementController : MonoBehaviour
         }
 
         activeBuildEntry = buildEntry;
+        invalidPreviewReferenceScale = ResolveDefaultBuildPointScale();
         EnsurePreview();
         currentPreviewPrefab = buildEntry.PreviewPrefab;
         preview.Show(currentPreviewPrefab);
@@ -119,23 +130,27 @@ public class ObstaclePlacementController : MonoBehaviour
         bool hasSlot = hoveredSlot != null && hoveredSlot.BuildPoint != null;
         bool canPlace = hasSlot && hoveredSlot.CanPlaceEntry(activeBuildEntry);
 
-        if (!hasSlot)
+        if (hasSlot)
         {
-            preview.SetVisible(false);
+            int previewLevel = hoveredSlot.GetPlacementLevelForEntry(activeBuildEntry);
+            EnsurePreviewPrefab(activeBuildEntry.GetPreviewPrefabForLevel(previewLevel));
+            invalidPreviewReferenceScale = GetSafeReferenceScale(hoveredSlot.BuildPoint.lossyScale);
+            preview.SetVisible(true);
+            preview.SnapTo(hoveredSlot.BuildPoint, previewLocalOffset, activeBuildEntry.GetPlacementLocalRotationForLevel(previewLevel), previewScaleMultiplier);
+            preview.SetVisualState(canPlace, GetValidPreviewMaterial(), GetInvalidPreviewMaterial(), validPreviewColor, invalidPreviewColor);
             return;
         }
 
-        int previewLevel = hoveredSlot.GetPlacementLevelForEntry(activeBuildEntry);
-        GameObject previewPrefab = activeBuildEntry.GetPreviewPrefabForLevel(previewLevel);
-        if (previewPrefab != currentPreviewPrefab)
+        EnsurePreviewPrefab(activeBuildEntry.GetPreviewPrefabForLevel(1));
+        if (showInvalidPreviewOnWorld && TryFindInvalidPreviewPose(screenPosition, out Vector3 invalidPosition, out Quaternion invalidRotation))
         {
-            currentPreviewPrefab = previewPrefab;
-            preview.Show(currentPreviewPrefab);
+            preview.SetVisible(true);
+            preview.SetPose(invalidPosition, invalidRotation, invalidWorldPreviewScaleMultiplier, invalidPreviewReferenceScale);
+            preview.SetVisualState(false, GetValidPreviewMaterial(), GetInvalidPreviewMaterial(), validPreviewColor, invalidPreviewColor);
+            return;
         }
 
-        preview.SetVisible(true);
-        preview.SnapTo(hoveredSlot.BuildPoint, previewLocalOffset, activeBuildEntry.GetPlacementLocalRotationForLevel(previewLevel), previewScaleMultiplier);
-        preview.SetVisualState(canPlace, GetValidPreviewMaterial(), GetInvalidPreviewMaterial(), validPreviewColor, invalidPreviewColor);
+        preview.SetVisible(false);
     }
 
     // 현재 포인터 위치의 슬롯에 배치를 확정한다
@@ -201,6 +216,18 @@ public class ObstaclePlacementController : MonoBehaviour
         }
 
         EnsureRuntimePreviewMaterials();
+    }
+
+    // 현재 프리뷰가 지정 프리팹과 다를 때만 새 프리뷰를 생성한다
+    private void EnsurePreviewPrefab(GameObject previewPrefab)
+    {
+        if (previewPrefab == currentPreviewPrefab)
+        {
+            return;
+        }
+
+        currentPreviewPrefab = previewPrefab;
+        preview.Show(currentPreviewPrefab);
     }
 
     // 유효 슬롯 프리뷰에 사용할 머티리얼을 반환한다
@@ -303,12 +330,118 @@ public class ObstaclePlacementController : MonoBehaviour
         }
 
         Ray ray = targetCamera.ScreenPointToRay(screenPosition);
-        if (!Physics.Raycast(ray, out hit, maxRayDistance, obstacleSlotLayerMask, QueryTriggerInteraction.Collide))
+        int hitCount = Physics.RaycastNonAlloc(ray, slotRaycastHits, maxRayDistance, obstacleSlotLayerMask, QueryTriggerInteraction.Collide);
+        if (hitCount <= 0)
         {
             return null;
         }
 
-        return hit.collider.GetComponentInParent<ObstacleBuildSlot>();
+        ObstacleBuildSlot closestSlot = null;
+        float closestDistance = float.MaxValue;
+        for (int i = 0; i < hitCount; i++)
+        {
+            RaycastHit candidateHit = slotRaycastHits[i];
+            if (candidateHit.collider == null || candidateHit.distance >= closestDistance)
+            {
+                continue;
+            }
+
+            ObstacleBuildSlot candidateSlot = candidateHit.collider.GetComponentInParent<ObstacleBuildSlot>();
+            if (candidateSlot == null)
+            {
+                continue;
+            }
+
+            hit = candidateHit;
+            closestSlot = candidateSlot;
+            closestDistance = candidateHit.distance;
+        }
+
+        return closestSlot;
+    }
+
+    // 슬롯 밖 포인터 위치에서 설치 불가 프리뷰의 월드 포즈를 계산한다
+    private bool TryFindInvalidPreviewPose(Vector2 screenPosition, out Vector3 position, out Quaternion rotation)
+    {
+        position = Vector3.zero;
+        rotation = Quaternion.Euler(invalidPreviewEulerAngles);
+
+        if (targetCamera == null)
+        {
+            targetCamera = Camera.main;
+        }
+
+        if (targetCamera == null)
+        {
+            return false;
+        }
+
+        Vector3 viewportPoint = targetCamera.ScreenToViewportPoint(screenPosition);
+        if (viewportPoint.x < invalidPreviewViewportPadding ||
+            viewportPoint.x > 1.0f - invalidPreviewViewportPadding ||
+            viewportPoint.y < invalidPreviewViewportPadding ||
+            viewportPoint.y > 1.0f - invalidPreviewViewportPadding)
+        {
+            return false;
+        }
+
+        Ray ray = targetCamera.ScreenPointToRay(screenPosition);
+        if (useInvalidPreviewPlacementPlane)
+        {
+            Plane placementPlane = new Plane(Vector3.up, new Vector3(0.0f, invalidPreviewPlaneY, 0.0f));
+            if (!placementPlane.Raycast(ray, out float enter))
+            {
+                return false;
+            }
+
+            position = ray.GetPoint(enter) + previewLocalOffset;
+            return true;
+        }
+
+        int hitCount = Physics.RaycastNonAlloc(ray, invalidPreviewRaycastHits, maxRayDistance, invalidPreviewLayerMask, QueryTriggerInteraction.Ignore);
+        float closestDistance = float.MaxValue;
+        bool found = false;
+        for (int i = 0; i < hitCount; i++)
+        {
+            RaycastHit candidateHit = invalidPreviewRaycastHits[i];
+            if (candidateHit.collider == null || candidateHit.distance >= closestDistance)
+            {
+                continue;
+            }
+
+            position = candidateHit.point + previewLocalOffset;
+            closestDistance = candidateHit.distance;
+            found = true;
+        }
+
+        return found;
+    }
+
+    // 씬의 장애물 슬롯에서 월드 프리뷰 스케일 기준값을 한 번 찾는다
+    private static Vector3 ResolveDefaultBuildPointScale()
+    {
+        ObstacleBuildSlot[] slots = FindObjectsByType<ObstacleBuildSlot>(FindObjectsSortMode.None);
+        for (int i = 0; i < slots.Length; i++)
+        {
+            ObstacleBuildSlot slot = slots[i];
+            if (slot == null || slot.BuildPoint == null)
+            {
+                continue;
+            }
+
+            return GetSafeReferenceScale(slot.BuildPoint.lossyScale);
+        }
+
+        return Vector3.one;
+    }
+
+    // 참조 Transform 스케일을 프리뷰에 사용할 수 있는 양수 값으로 보정한다
+    private static Vector3 GetSafeReferenceScale(Vector3 scale)
+    {
+        return new Vector3(
+            Mathf.Max(0.01f, Mathf.Abs(scale.x)),
+            Mathf.Max(0.01f, Mathf.Abs(scale.y)),
+            Mathf.Max(0.01f, Mathf.Abs(scale.z)));
     }
 
     // 배치 컨트롤러 단계에서 발생한 배치 실패 사유를 콘솔에 출력하고, 플레이어에게도 경고 팝업으로 알린다

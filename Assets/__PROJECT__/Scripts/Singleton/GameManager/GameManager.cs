@@ -165,9 +165,11 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    // 웨이브 성공 보상과 장애물 전체 복구를 적용한 뒤 다음 웨이브를 시작한다
     public void InvokeIncreaseWave()
     {
         CompleteZombieDpsMeasurementWave();
+        RebuildAllDefenseLines(true);
         KillCount = 0;
         Wave++;
         InventorySystem.Inst.AddCoinBouns(waveClearCoinBonusPercentage);
@@ -1060,8 +1062,8 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    // 저장된 슬롯 진행도를 기준으로 모든 방어선을 다시 배치한다
-    private void RebuildAllDefenseLines()
+    // 저장된 슬롯 진행도를 기준으로 모든 방어선을 다시 배치하고 필요하면 생존자 복귀를 알린다
+    private void RebuildAllDefenseLines(bool notifyRestoredDefenseLines = false)
     {
         suppressDefenseLineRestore = true;
 
@@ -1072,6 +1074,8 @@ public class GameManager : MonoBehaviour
             {
                 continue;
             }
+
+            bool wasBreached = defenseLine.isBreached;
 
             if (defenseLine.obstacleSlots == null)
             {
@@ -1093,8 +1097,16 @@ public class GameManager : MonoBehaviour
             }
 
             bool isFullyBuilt = IsDefenseLineFullyBuilt(i);
-            defenseLine.isBreached = !isFullyBuilt;
-            ApplyDefenseLineTurretBaseState(i, isFullyBuilt);
+            if (notifyRestoredDefenseLines && wasBreached && isFullyBuilt)
+            {
+                defenseLine.isBreached = true;
+                NotifyDefenseLineRestored(i);
+            }
+            else
+            {
+                defenseLine.isBreached = !isFullyBuilt;
+                ApplyDefenseLineTurretBaseState(i, isFullyBuilt);
+            }
         }
 
         suppressDefenseLineRestore = false;

@@ -112,14 +112,15 @@ Important policy:
 5. When the pointer enters a slot, preview snaps to the slot `BuildPoint` and shows its valid or invalid placement color.
 6. If the slot has stored destroyed-obstacle progress for the same `ObstacleDefinitionSO` or stable build-entry `SaveId`, preview and placement use the inherited level's prefab and rebuild discount. A valid discounted rebuild uses a sky-blue preview.
 7. While hovering a rebuild slot, the placement button cost shows the final discounted amount and discount rate. Leaving the slot or ending placement restores the normal placement price.
-8. Placement is valid only when the slot is empty, the entry type matches the slot type, and `ItemManager` can afford the entry's effective `ResourceCost[]`.
-9. Placement is allowed only on the defense line directly in front of the contiguous restored defense-line block from the rear. For example, if only the rear gate line at index `3` is restored, obstacles can be placed only on line `2`; once line `2` is fully restored, placement advances to line `1`.
-10. `ObstacleBuildSlot.CanPlaceEntry` checks slot availability, type match, defense-line placement order, and effective cost availability through `ItemManager.CanAfford`.
-11. `ObstacleBuildSlot.TryPlace` deducts the same effective costs shown by the preview using `ItemManager.TrySpend` before instantiating the obstacle under `BuildPoint`.
-12. If the obstacle prefab is invalid and placement fails after spending, the deducted costs are refunded.
-13. The placed obstacle receives its `ObstacleDefinitionSO` and inherited or initial level through `ObstacleUpgradeRuntimeController`.
-14. The placed obstacle is assigned to the slot and `GameManager.NotifyObstaclePlaced` is called.
-15. If the line was breached and all registered slots on that defense line are occupied again, `GameManager.NotifyDefenseLineRestored` restores that defense line.
+8. After saved obstacles are restored, placement buttons refresh their normal prices from the restored slot-progress counts without requiring a drag input.
+9. Placement is valid only when the slot is empty, the entry type matches the slot type, and `ItemManager` can afford the entry's effective `ResourceCost[]`.
+10. Placement is allowed only on the defense line directly in front of the contiguous restored defense-line block from the rear. For example, if only the rear gate line at index `3` is restored, obstacles can be placed only on line `2`; once line `2` is fully restored, placement advances to line `1`.
+11. `ObstacleBuildSlot.CanPlaceEntry` checks slot availability, type match, defense-line placement order, and effective cost availability through `ItemManager.CanAfford`.
+12. `ObstacleBuildSlot.TryPlace` deducts the same effective costs shown by the preview using `ItemManager.TrySpend` before instantiating the obstacle under `BuildPoint`.
+13. If the obstacle prefab is invalid and placement fails after spending, the deducted costs are refunded.
+14. The placed obstacle receives its `ObstacleDefinitionSO` and inherited or initial level through `ObstacleUpgradeRuntimeController`.
+15. The placed obstacle is assigned to the slot and `GameManager.NotifyObstaclePlaced` is called.
+16. If the line was breached and all registered slots on that defense line are occupied again, `GameManager.NotifyDefenseLineRestored` restores that defense line.
 
 `ObstaclePlacementUI` remains available as an optional runtime rebuild helper, but manual scene buttons are the default setup.
 

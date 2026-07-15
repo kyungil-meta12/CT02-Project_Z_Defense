@@ -21,6 +21,8 @@ public class ObstaclePlacementSlotUI : MonoBehaviour, IBeginDragHandler, IDragHa
     [SerializeField] private ObstaclePlacementController placementController;
     [SerializeField] private ObstacleBuildEntrySO buildEntry;
 
+    private GameManager subscribedGameManager;
+
     // 자동 생성된 버튼에 빌드 항목과 컨트롤러를 주입한다
     public void Initialize(ObstacleBuildEntrySO buildEntry_, ObstaclePlacementController placementController_)
     {
@@ -35,12 +37,14 @@ public class ObstaclePlacementSlotUI : MonoBehaviour, IBeginDragHandler, IDragHa
     private void OnEnable()
     {
         SubscribePlacementController();
+        SubscribeGameManager();
     }
 
     // 비활성화 시 배치 컨트롤러 이벤트 구독을 해제한다
     private void OnDisable()
     {
         UnsubscribePlacementController();
+        UnsubscribeGameManager();
     }
 
     // 인스펙터에서 기본 UI 참조와 컨트롤러를 자동으로 찾는다
@@ -65,6 +69,13 @@ public class ObstaclePlacementSlotUI : MonoBehaviour, IBeginDragHandler, IDragHa
     private void Awake()
     {
         ResolveController();
+        Refresh();
+    }
+
+    // 시작 시 늦게 생성된 GameManager 구독을 보완하고 현재 비용을 다시 표시한다
+    private void Start()
+    {
+        SubscribeGameManager();
         Refresh();
     }
 
@@ -174,6 +185,39 @@ public class ObstaclePlacementSlotUI : MonoBehaviour, IBeginDragHandler, IDragHa
 
         placementController.OnPlacementCountChanged -= OnPlacementCountChanged;
         placementController.OnPlacementCostPreviewChanged -= OnPlacementCostPreviewChanged;
+    }
+
+    // 저장 장애물 복원 완료 이벤트를 중복 없이 구독한다
+    private void SubscribeGameManager()
+    {
+        GameManager gameManager = GameManager.Inst;
+        if (gameManager == null || subscribedGameManager == gameManager)
+        {
+            return;
+        }
+
+        UnsubscribeGameManager();
+        subscribedGameManager = gameManager;
+        subscribedGameManager.OnObstaclePlacementsRestored -= OnObstaclePlacementsRestored;
+        subscribedGameManager.OnObstaclePlacementsRestored += OnObstaclePlacementsRestored;
+    }
+
+    // 현재 구독 중인 저장 장애물 복원 이벤트를 해제한다
+    private void UnsubscribeGameManager()
+    {
+        if (subscribedGameManager == null)
+        {
+            return;
+        }
+
+        subscribedGameManager.OnObstaclePlacementsRestored -= OnObstaclePlacementsRestored;
+        subscribedGameManager = null;
+    }
+
+    // 저장 장애물이 복원되면 현재 슬롯 진행도 수 기준으로 일반 설치비용을 다시 표시한다
+    private void OnObstaclePlacementsRestored()
+    {
+        Refresh();
     }
 
     // 같은 빌드 항목의 설치 횟수가 바뀌면 비용 표시를 갱신한다

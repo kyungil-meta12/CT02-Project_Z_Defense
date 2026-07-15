@@ -71,6 +71,7 @@ public class GameManager : MonoBehaviour, ISaveable
     public event Action<int> OnWaveIncrease; // 웨이브 증가 이벤트
     public event Action<int> OnWaveDecrease; // 웨이브 감소 이벤트
     public event Action<int> OnFirstWaveReached; // 웨이브 최초 도달 이벤트
+    public event Action OnObstaclePlacementsRestored; // 저장 장애물 복원 후 비용 UI 갱신 이벤트
     private readonly List<Survivor> survivors = new List<Survivor>(16);
     private readonly List<SurvivorSaveEntry> pendingSurvivorRestoreEntries = new List<SurvivorSaveEntry>(16);
     private readonly List<ObstaclePlacementSaveEntry> pendingObstacleRestoreEntries = new List<ObstaclePlacementSaveEntry>(16);
@@ -974,10 +975,9 @@ public class GameManager : MonoBehaviour, ISaveable
         EnsureDefaultDefenseLineEntries();
         TryRestorePendingObstaclePlacements();
         TryRestorePendingTurretPlacementCounts();
-        hasStartedTurretRestorePhase = true;
-        TryRestorePendingTurretPlacements();
-        LogPendingObstacleRestoreFailures();
-        LogPendingTurretRestoreFailures();
+
+        // 터렛 베이스 슬롯의 활성 상태를 먼저 확정해야 TryRestorePendingTurretPlacements()에서
+        // TurretBaseSlot.CanPlace(isActiveAndEnabled)가 올바르게 평가된다.
         for (int i = 0; i < defenseLines.Count; i++)
         {
             DefenseLineEntry defenseLine = defenseLines[i];
@@ -988,7 +988,17 @@ public class GameManager : MonoBehaviour, ISaveable
 
             defenseLine.isBreached = !IsDefenseLineFullyBuilt(i);
             ApplyDefenseLineTurretBaseState(i, !defenseLine.isBreached);
-            if (defenseLine.isBreached)
+        }
+
+        hasStartedTurretRestorePhase = true;
+        TryRestorePendingTurretPlacements();
+        LogPendingObstacleRestoreFailures();
+        LogPendingTurretRestoreFailures();
+
+        for (int i = 0; i < defenseLines.Count; i++)
+        {
+            DefenseLineEntry defenseLine = defenseLines[i];
+            if (defenseLine != null && defenseLine.isBreached && HasRegisteredDefenseLineSlots(defenseLine))
             {
                 CommandSurvivorsToRetreat(i, defenseLine.retreatPoint, IsGateDefenseLine(defenseLine));
             }
@@ -1567,6 +1577,7 @@ public class GameManager : MonoBehaviour, ISaveable
             return;
         }
 
+        bool restoredAny = false;
         isRestoringObstacles = true;
         try
         {
@@ -1583,6 +1594,7 @@ public class GameManager : MonoBehaviour, ISaveable
                 if (slot.TryRestoreSaveEntry(saveEntry, buildEntry, out _))
                 {
                     pendingObstacleRestoreEntries.RemoveAt(i);
+                    restoredAny = true;
                 }
                 else
                 {
@@ -1593,6 +1605,11 @@ public class GameManager : MonoBehaviour, ISaveable
         finally
         {
             isRestoringObstacles = false;
+        }
+
+        if (restoredAny)
+        {
+            OnObstaclePlacementsRestored?.Invoke();
         }
     }
 

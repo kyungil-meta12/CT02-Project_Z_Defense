@@ -28,8 +28,6 @@ public class WaveController : Editor
 public class GameManager : MonoBehaviour
 {
 
-    [Header("웨이브 실패시 웨이브 감소 수치")]
-    public int waveDecrease = 1;
     private const int DEFAULT_DEFENSE_LINE_COUNT = 4;
     private const float DEFAULT_FIXED_DELTA_TIME = 0.02f;
     private const float MIN_TIME_SCALE = 0.01f;
@@ -1172,10 +1170,10 @@ public class GameManager : MonoBehaviour
         return null;
     }
 
-    // 현재 웨이브의 이전 웨이브를 처음부터 다시 시작할 수 있도록 준비한다
+    // 마지막 보스 웨이브 다음 체크포인트부터 다시 시작할 수 있도록 준비한다
     private void PreparePreviousWaveRestart()
     {
-        Wave = Mathf.Max(1, Wave - waveDecrease);
+        Wave = ResolveBossCheckpointRestartWave(Wave);
         KillCount = 0;
         DestKillCount = 0;
         // 웨이브 실패 패널티: 그동안 모은 코인량을 초기화해 클리어 보너스에 누적되지 않도록 한다.
@@ -1197,6 +1195,36 @@ public class GameManager : MonoBehaviour
         InputDestKillCount(totalSpawnCount);
         OnWaveDecrease?.Invoke(Wave);
         BeginZombieDpsMeasurementWave();
+    }
+
+    // 실패 웨이브 이전의 마지막 보스 웨이브 다음 체크포인트를 계산한다
+    private int ResolveBossCheckpointRestartWave(int failedWave)
+    {
+        int safeFailedWave = Mathf.Max(1, failedWave);
+        for (int candidateWave = safeFailedWave - 1; candidateWave >= 1; candidateWave--)
+        {
+            if (IsBossWave(candidateWave))
+            {
+                return candidateWave + 1;
+            }
+        }
+
+        return 1;
+    }
+
+    // 등록된 스포너 중 하나라도 지정 웨이브에 보스를 출현시키는지 확인한다
+    private bool IsBossWave(int wave)
+    {
+        for (int i = zombieSpawners.Count - 1; i >= 0; i--)
+        {
+            ZombieSpawner zombieSpawner = zombieSpawners[i];
+            if (zombieSpawner != null && zombieSpawner.IsBossWave(wave))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     // 현재 웨이브의 좀비 DPS 측정을 시작한다

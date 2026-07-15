@@ -88,6 +88,27 @@ public class ZombieWaveSpawnProfileSO : ScriptableObject
         return bossSpawnSchedules != null && bossSpawnSchedules.Length > 0;
     }
 
+    // 지정 웨이브에 보스가 출현하도록 설정되어 있는지 확인한다
+    public bool IsBossWave(int wave)
+    {
+        int safeWave = Mathf.Max(1, wave);
+        if (HasBossSpawnSchedules())
+        {
+            for (int i = 0; i < bossSpawnSchedules.Length; i++)
+            {
+                BossZombieSpawnSchedule schedule = bossSpawnSchedules[i];
+                if (schedule != null && schedule.IsScheduledForWave(safeWave))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        return ShouldSpawnBossAsLastEnemy(safeWave, false);
+    }
+
     // 현재 웨이브에 출현할 보스 타입을 스케줄 순서대로 채운다
     public int FillScheduledBossZombieTypes(int wave, List<BossZombieType> results)
     {

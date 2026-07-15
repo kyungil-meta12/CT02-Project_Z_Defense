@@ -86,6 +86,12 @@ public class ZombieSpawner : MonoBehaviour
         spawnEnabled = true;
     }
 
+    // 활성 웨이브 프로필을 기준으로 지정 웨이브의 보스 출현 여부를 반환한다
+    public bool IsBossWave(int wave)
+    {
+        return waveSpawnProfile != null && waveSpawnProfile.IsBossWave(wave);
+    }
+
     // 지정 웨이브를 처음부터 다시 스폰할 수 있도록 준비하고 목표 스폰 수를 반환한다
     public int PrepareWaveForRestart(int wave)
     {

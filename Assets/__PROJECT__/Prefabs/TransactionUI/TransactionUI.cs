@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using IncrementalLib;
+using ProjectZDefense.Audio;
 using TMPro;
 using Unity.Android.Gradle.Manifest;
 using UnityEngine;
@@ -14,12 +15,12 @@ public struct TransactionCellData
     public TextMeshProUGUI NameText;
     public TextMeshProUGUI CountText;
     public TextMeshProUGUI SellCostText;
-     public TextMeshProUGUI BuyCostText;
+    public TextMeshProUGUI BuyCostText;
     public int SellCost;
     public int BuyCost;
 }
 
-public class TransactionUI : MonoBehaviour
+public class TransactionUI : TouchBackHandler
 {
     const float NO_ITEM_BRIGHTNESS = 0.4f;
     const float HAS_ITEM_BRIGHTNESS = 1f;
@@ -43,6 +44,11 @@ public class TransactionUI : MonoBehaviour
     [Header("자동 판매 상태 진입 시간")] public float autoExecuteEnterTime;
     [Header("자동 판매 실행 간격")] public float autoExecuteInterval;
 
+    [Header("열기/닫기 사운드")] public AudioClip openCloseSound;
+    [Header("셀 클릭 사운드")] public AudioClip cellClickSound;
+    [Header("거래 사운드")] public AudioClip dealSound;
+    [Header("자동 실행 사운드")] public AudioClip autoExecuteSound;
+
     private Dictionary<Button, TransactionCellData> buttonDict = new();
     private Dictionary<RewardCurrencyType, TransactionCellData> typeDict = new();
     private Button latestSelectedCell;
@@ -56,6 +62,8 @@ public class TransactionUI : MonoBehaviour
     private List<ItemSellBuyCost> costList;
     public bool BatchMode{ get; set; } = false;
     private bool openState = false;
+
+    private AudioSource aSource;
 
     void Start()
     {
@@ -115,8 +123,6 @@ public class TransactionUI : MonoBehaviour
             typeDict.Add(type, newData);
         }
 
-        // 구매 항목
-
 
         InventorySystem.Inst.OnItemCountChange += OnItemCountChange;
 
@@ -132,12 +138,18 @@ public class TransactionUI : MonoBehaviour
         // 자동 판매 실행기 설정
         autoSell.SetExecuteEnterTime(autoExecuteEnterTime);
         autoSell.SetExecuteInterval(autoExecuteInterval);
-        autoSell.RegisterAction(SellItem);
+        autoSell.RegisterAction(AutoSellItem);
 
         // 자동 구매 실행기 설정
         autoBuy.SetExecuteEnterTime(autoExecuteEnterTime);
         autoBuy.SetExecuteInterval (autoExecuteInterval);
-        autoBuy.RegisterAction(BuyItem);
+        autoBuy.RegisterAction(AutoBuyItem);
+
+        OnTouchBackAction += OnCloseTransactionUI;
+
+        aSource = GetComponent<AudioSource>();
+        aSource.volume = ProjectAudioManager.Inst.GetEffectiveVolume(ProjectAudioBus.Ui);
+        ProjectAudioManager.Inst.OnVolumeChanged += OnVolumeChanged; 
     }
 
     void OnDestroy()
@@ -145,6 +157,10 @@ public class TransactionUI : MonoBehaviour
         if(InventorySystem.Inst)
         {
             InventorySystem.Inst.OnItemCountChange -= OnItemCountChange;
+        }
+        if(ProjectAudioManager.Inst)
+        {
+            ProjectAudioManager.Inst.OnVolumeChanged -= OnVolumeChanged;
         }
     }
 
@@ -154,6 +170,9 @@ public class TransactionUI : MonoBehaviour
         {
             return;
         }
+
+        // 뒤로가기 버튼 인식 업데이트
+        UpdateTouchBackHandler();
         
         // 자동 판매 실행 업데이트
         autoSell.Update();
@@ -174,6 +193,14 @@ public class TransactionUI : MonoBehaviour
         if(truckObject.GetLeaveState())
         {
             OnCloseTransactionUI();
+        }
+    }
+
+    public void OnVolumeChanged(ProjectAudioBus bus, float volume)
+    {
+        if(bus == ProjectAudioBus.Ui)
+        {
+            aSource.volume = volume;
         }
     }
 
@@ -203,6 +230,7 @@ public class TransactionUI : MonoBehaviour
         if(latestSelectedCell && buttonDict[latestSelectedCell].Type == data.Type)
         {
             infoCount.text = "보유량: " + InventorySystem.Inst.GetCountString(data.Type);
+            infoCount.color = InventorySystem.Inst.HasItem(data.Type) ? Color.white : Color.softRed;
         }
     }
 
@@ -222,9 +250,10 @@ public class TransactionUI : MonoBehaviour
         data.SellCostText.color = hasItem ? Color.white : Color.softRed;
         data.BuyCostText.color = hasCoinEnough ? Color.white : Color.softRed;
 
+        SetImageBrightness(data.ItemImage, hasItem ? HAS_ITEM_BRIGHTNESS : NO_ITEM_BRIGHTNESS);
+        
         if(latestSelectedCell && buttonDict[latestSelectedCell].Type == type)
         {
-            SetImageBrightness(data.ItemImage, hasItem ? HAS_ITEM_BRIGHTNESS : NO_ITEM_BRIGHTNESS);
             SetTextButtonEnable(sellButton, sellEvent, sellButtonText, hasItem);
             SetTextButtonEnable(buyButton, buyEvent, buyButtonText, hasCoinEnough);
         }
@@ -268,6 +297,8 @@ public class TransactionUI : MonoBehaviour
         UIManager.Inst.HideGameUI();
 
         openState = true;
+
+        PlayOpenCloseSound();
     }
 
     /// <summary>
@@ -278,6 +309,24 @@ public class TransactionUI : MonoBehaviour
         mainContent.SetActive(false);
         UIManager.Inst.RevertGameUI();
         openState = false;
+    }
+
+    public void OnCloseButtonClick()
+    {
+        OnCloseTransactionUI();   
+        PlayOpenCloseSound();
+    }
+
+    void AutoSellItem()
+    {
+        PlayAutoExeSound();
+        SellItem();
+    }
+
+    void AutoBuyItem()
+    {
+        PlayAutoExeSound();
+        BuyItem();
     }
 
     /// <summary>
@@ -373,6 +422,8 @@ public class TransactionUI : MonoBehaviour
         // 코인을 충분히 가지고 있다면 구매 버튼을 활성화 한다.
         bool hasCoinEnough = InventorySystem.Inst.CanUseItem(RewardCurrencyType.Coin, data.BuyCost);
         SetTextButtonEnable(buyButton, buyEvent, buyButtonText, hasCoinEnough);
+
+        PlayCellClickSound();
     }
 
     public void OnSellButtonDown()
@@ -387,6 +438,7 @@ public class TransactionUI : MonoBehaviour
             SellItem();
         }
         autoSell.SetPressState(false);
+        PlayDealSound();
     }
 
     public void OnBuyButtonDown()
@@ -401,6 +453,7 @@ public class TransactionUI : MonoBehaviour
             BuyItem();
         }
         autoBuy.SetPressState(false);
+        PlayDealSound();
     }
 
     /// <summary>
@@ -463,5 +516,25 @@ public class TransactionUI : MonoBehaviour
         var color = image.color;
         color.a = flag ? 1f : 0f;
         image.color = color;
+    }
+
+    private void PlayOpenCloseSound()
+    {
+        aSource.PlayOneShot(openCloseSound);
+    }
+
+    private void PlayCellClickSound()
+    {
+        aSource.PlayOneShot(cellClickSound);
+    }
+
+    private void PlayDealSound()
+    {
+        aSource.PlayOneShot(dealSound);
+    }
+
+    private void PlayAutoExeSound()
+    {
+        aSource.PlayOneShot(autoExecuteSound);
     }
 }

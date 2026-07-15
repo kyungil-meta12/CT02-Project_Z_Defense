@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using ProjectZDefense.Audio;
 using UnityEngine;
 using UnityEngine.UI;
 using WaypointsFree;
@@ -11,8 +13,13 @@ public class SellerTruckMovement : MonoBehaviour
     public TransactionPopup popup;
     public GameObject survivors;
     public LayerMask groundMask;
+    public GameObject[] particleObjects;
     [Header("나타나는 웨이브 단위")] public int appearWaveUnit; 
     [Header("테스트 모드")] public bool testMode;
+
+    public AudioSource engineSound;
+    public AudioClip doorSound;
+    public AudioSource defaultAudioSource;
 
     private float originMoveSpeed;
     private float originLookAtSpeed;
@@ -21,12 +28,24 @@ public class SellerTruckMovement : MonoBehaviour
     private float stayTime = 0f;
     private bool isRunning = false;
 
+    private List<ParticleSystem> particles = new();
+
     void Awake()
     {
         traveler = GetComponent<WaypointsTraveler>();
         originMoveSpeed = traveler.MoveSpeed;
         originLookAtSpeed = traveler.LookAtSpeed;
         survivors.SetActive(false);
+
+        // 모든 파티클 오브젝트를 리스트에 저장
+        foreach(var o in particleObjects)
+        {
+            var particleComp = o.GetComponentInChildren<ParticleSystem>();
+            if(particleComp)
+            {
+                particles.Add(particleComp);
+            }
+        }
     }
 
     void Start()
@@ -41,6 +60,10 @@ public class SellerTruckMovement : MonoBehaviour
         {
             StopReset();
         }
+
+        defaultAudioSource.volume = ProjectAudioManager.Inst.GetEffectiveVolume(ProjectAudioBus.Sfx);
+        engineSound.volume = ProjectAudioManager.Inst.GetEffectiveVolume(ProjectAudioBus.Sfx);;
+        ProjectAudioManager.Inst.OnVolumeChanged += OnVolumeChanged;
     }
 
     void OnDestroy()
@@ -48,6 +71,19 @@ public class SellerTruckMovement : MonoBehaviour
         if(GameManager.Inst)
         {
             GameManager.Inst.OnWaveIncrease -= OnWaveIncrease;
+        }
+        if(ProjectAudioManager.Inst)
+        {
+            ProjectAudioManager.Inst.OnVolumeChanged += OnVolumeChanged;
+        }
+    }
+
+    public void OnVolumeChanged(ProjectAudioBus bus, float volume)
+    {
+        if(bus == ProjectAudioBus.Sfx)
+        {
+            defaultAudioSource.volume = volume;
+            engineSound.volume = volume;
         }
     }
 
@@ -104,6 +140,8 @@ public class SellerTruckMovement : MonoBehaviour
 
                     // 팝업 실행
                     popup.Init();
+
+                    defaultAudioSource.PlayOneShot(doorSound);
                 }
             }
 
@@ -120,6 +158,7 @@ public class SellerTruckMovement : MonoBehaviour
                     isLeaving = true;
                     button.SetActive(false);
                     survivors.SetActive(false);
+                    defaultAudioSource.PlayOneShot(doorSound);
                 }
             }
         }
@@ -130,10 +169,16 @@ public class SellerTruckMovement : MonoBehaviour
         {
             traveler.MoveSpeed = Mathf.Lerp(traveler.MoveSpeed, originMoveSpeed, Time.deltaTime);
             traveler.LookAtSpeed = Mathf.Lerp(traveler.LookAtSpeed, originLookAtSpeed, Time.deltaTime);
-            if(Vector3.Magnitude(transform.position - traveler.Waypoints.waypoints[traveler.Waypoints.waypoints.Count - 1].position) <= 3f)
+            if(traveler.positionIndex == traveler.Waypoints.waypoints.Count - 1)
             {
                 StopReset();
             }
+        }
+
+        // 속도에 따라 엔진 사운드의 높낮이 조절
+        if(engineSound.isPlaying)
+        {
+            engineSound.pitch = 1f + traveler.MoveSpeed * 0.1f;
         }
     }
 
@@ -151,6 +196,11 @@ public class SellerTruckMovement : MonoBehaviour
         image.fillAmount = 0f;
         isLeaving = false;
         isRunning = true;
+        engineSound.Play();
+        foreach(var particle in particles)
+        {
+            particle.Play();
+        }
     }
 
     /// <summary>
@@ -167,6 +217,11 @@ public class SellerTruckMovement : MonoBehaviour
         image.fillAmount = 0f;
         isLeaving = false;
         isRunning = false;
+        foreach(var particle in particles)
+        {
+            particle.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+        }
+        engineSound.Stop();
     }
 
     /// <summary>

@@ -1,4 +1,5 @@
 using IncrementalLib;
+using ProjectZima.PolygonModularTurretsPack;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -84,6 +85,12 @@ public class InventoryUI : TouchBackHandler
     [Header("자동 실행 진입 시간")] public float autoExecuteEnterTime;
     [Header("자동 실행 간격")] public float autoExecuteInterval;
 
+    [Header("셀 클릭 사운드")] public AudioClip cellClickSound;
+    [Header("탭 클릭 사운드")] public AudioClip tabClickSound;
+    [Header("제작 사운드")] public AudioClip makeSound;
+    [Header("분해 사운드")] public AudioClip decomposeSound;
+    [Header("자동 제작 및 분해 사운드")] public AudioClip autoExecuteSound;
+
     public bool BatchWorkMode { get; set; } = false;
 
     private EventTrigger makeButtonEvent;
@@ -138,16 +145,19 @@ public class InventoryUI : TouchBackHandler
     ButtonAutoExecute makeAutoExecute = new();
     ButtonAutoExecute decompAutoExecute = new();
 
+    // 사운드 재생기
+    private AudioSource aSource;
+
     // 인벤토리를 닫은 상태로 시작
     void Awake()
     {
         makeAutoExecute.SetExecuteEnterTime(autoExecuteEnterTime);
         makeAutoExecute.SetExecuteInterval(autoExecuteInterval);
-        makeAutoExecute.RegisterAction(MakeItem);
+        makeAutoExecute.RegisterAction(AutoMakeItem);
 
         decompAutoExecute.SetExecuteEnterTime(autoExecuteEnterTime);
         decompAutoExecute.SetExecuteInterval(autoExecuteInterval);
-        decompAutoExecute.RegisterAction(DecomposeItem);
+        decompAutoExecute.RegisterAction(AutoDecomposeItem);
 
         var buttonColor = makeButton.colors;
         buttonColor.disabledColor = disableButtonColor;
@@ -171,6 +181,8 @@ public class InventoryUI : TouchBackHandler
         {
             contentDict.Add(c.Type, c);
         }
+
+        aSource = GetComponent<AudioSource>();
     }
 
     void Start()
@@ -385,6 +397,7 @@ public class InventoryUI : TouchBackHandler
         SetToInventoryTab();
         UIManager.Inst.HideGameUI();
         openState = true;
+        PlayTabClickSound();
     }
 
     /// <summary>
@@ -416,6 +429,8 @@ public class InventoryUI : TouchBackHandler
         var metaData = InventorySystem.Inst.GetMetaData(selectedType);
         SetInfoText(metaData);
         SetInfoImage(metaData);
+
+        PlayCellClickSound();
     }
 
     /// <summary>
@@ -465,6 +480,8 @@ public class InventoryUI : TouchBackHandler
            
         // 테두리 활성화
         itemViewerRect.gameObject.SetActive(true);
+
+        PlayCellClickSound();
     }
 
     /// <summary>
@@ -515,6 +532,8 @@ public class InventoryUI : TouchBackHandler
 
         // 테두리 활성화
         itemViewerRect.gameObject.SetActive(true);
+
+        PlayCellClickSound();
     }
 
     /// <summary>
@@ -535,12 +554,19 @@ public class InventoryUI : TouchBackHandler
         itemPopupOwnCountText.color = hasItem ? Color.white : Color.red;
     }
 
+    public void OnCloseButtonClick()
+    {
+        OnCloseInventory();
+        PlayTabClickSound();   
+    }
+
     public void OnInventoryTabClick()
     {
         if (!GetContentObject(ContentType.Inventory).activeInHierarchy)
         {
             SetToInventoryTab();
         }
+        PlayTabClickSound();
     }
 
     public void OnCraftTabClick()
@@ -549,6 +575,7 @@ public class InventoryUI : TouchBackHandler
         {
             SetToCraftTab();
         }
+        PlayTabClickSound();
     }
 
     public void OnDecomposeTabClick()
@@ -557,6 +584,7 @@ public class InventoryUI : TouchBackHandler
         {
             SetToDecomposeTab();
         }
+        PlayTabClickSound();
     }
 
     public void OnMakeButtonDown()
@@ -571,6 +599,7 @@ public class InventoryUI : TouchBackHandler
             MakeItem();
         }
         makeAutoExecute.SetPressState(false);
+        PlayMakeSound();
     }
 
     public void OnDecomposeButtonDown()
@@ -585,6 +614,7 @@ public class InventoryUI : TouchBackHandler
             DecomposeItem();
         }
         decompAutoExecute.SetPressState(false);
+        PlayDecomposeSound();
     }
 
     /// <summary>
@@ -647,6 +677,25 @@ public class InventoryUI : TouchBackHandler
 
         print("[InventoryUI] 아이템 분해 완료");
     }
+
+    /// <summary>
+    ///  아이템 자동 제작 메서드
+    /// </summary>
+    private void AutoMakeItem()
+    {
+        MakeItem();
+        PlayAutoExeSound();
+    }
+
+    /// <summary>
+    /// 아이템 자동 분해 메서드
+    /// </summary>
+    private void AutoDecomposeItem()
+    {
+        DecomposeItem();
+        PlayAutoExeSound();    
+    }
+    
 
     /// <summary>
     /// 아이템을 제작한다.
@@ -1045,5 +1094,30 @@ public class InventoryUI : TouchBackHandler
                 SetImageBrightness(cell.Value.CellImage, itemEnough ? HAS_ITEM_BRIGHTNESS : NO_ITEM_BRIGHTNESS);
             }
         }
+    }
+
+    private void PlayTabClickSound()
+    {
+        aSource.PlayOneShot(tabClickSound);
+    }
+
+    private void PlayCellClickSound()
+    {
+        aSource.PlayOneShot(cellClickSound);
+    }
+
+    private void PlayMakeSound()
+    {
+        aSource.PlayOneShot(makeSound);
+    }
+
+    private void PlayDecomposeSound()
+    {
+        aSource.PlayOneShot(decomposeSound);
+    }
+
+    private void PlayAutoExeSound()
+    {
+        aSource.PlayOneShot(autoExecuteSound);
     }
 }

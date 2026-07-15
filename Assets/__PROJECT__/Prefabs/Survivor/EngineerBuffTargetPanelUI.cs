@@ -148,12 +148,12 @@ public class EngineerBuffTargetPanelUI : MonoBehaviour
     }
 
     // 버튼에 표시할 터렛 대상 이름을 만든다
-    private static string CreateTargetLabel(TurretBaseSlot slot, int displayIndex)
+    private static string CreateTargetLabel(TurretBaseSlot slot)
     {
         TurretDefinitionRuntimeController currentTurret = slot == null ? null : slot.RefreshAndGetCurrentTurret();
         if (currentTurret == null)
         {
-            return "대상 " + displayIndex + " - 비어있음";
+            return "-";
         }
 
         string turretName = currentTurret.CurrentTurretName;
@@ -162,7 +162,7 @@ public class EngineerBuffTargetPanelUI : MonoBehaviour
             turretName = currentTurret.name;
         }
 
-        return "대상 " + displayIndex + " - " + turretName;
+        return turretName;
     }
 
     // 등록된 터렛 베이스와 버튼을 1:1로 갱신한다
@@ -180,7 +180,7 @@ public class EngineerBuffTargetPanelUI : MonoBehaviour
 
             TurretBaseSlot slot = i < targetSlots.Length ? targetSlots[i] : null;
             bool isInteractable = IsValidTargetSlot(slot);
-            targetButton.Configure(this, slot, CreateTargetLabel(slot, i + 1), isInteractable);
+            targetButton.Configure(this, slot, CreateTargetLabel(slot), isInteractable);
             targetButton.gameObject.SetActive(true);
 
             if (isInteractable)

@@ -22,7 +22,6 @@ public class ObstaclePlacementController : MonoBehaviour
     [SerializeField] private Color rebuildPreviewColor = new Color(0.2f, 0.8f, 1.0f, 0.55f);
     [SerializeField] private Color invalidPreviewColor = new Color(1.0f, 0.12f, 0.08f, 0.45f);
     [SerializeField] private Vector3 previewLocalOffset = Vector3.zero;
-    [SerializeField] private Vector3 invalidPreviewEulerAngles = Vector3.zero;
     [SerializeField, Min(0.01f)] private float previewScaleMultiplier = 1.0f;
     [SerializeField, Min(0.01f)] private float invalidWorldPreviewScaleMultiplier = 1.0f;
     [SerializeField] private bool useInvalidPreviewPlacementPlane = true;
@@ -441,7 +440,7 @@ public class ObstaclePlacementController : MonoBehaviour
     private bool TryFindInvalidPreviewPose(Vector2 screenPosition, out Vector3 position, out Quaternion rotation)
     {
         position = Vector3.zero;
-        rotation = Quaternion.Euler(invalidPreviewEulerAngles);
+        rotation = activeBuildEntry != null ? activeBuildEntry.GetPlacementLocalRotationForLevel(1) : Quaternion.identity;
 
         if (targetCamera == null)
         {

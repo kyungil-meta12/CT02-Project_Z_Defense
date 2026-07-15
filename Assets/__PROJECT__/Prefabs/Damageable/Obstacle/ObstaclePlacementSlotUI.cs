@@ -10,14 +10,14 @@ using UnityEngine.UI;
 [DisallowMultipleComponent]
 public class ObstaclePlacementSlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler, IPointerClickHandler
 {
-    [Header("References")]
+    [Header("참조")]
     [SerializeField] private Image iconImage;
     [SerializeField] private Text nameText;
     [SerializeField] private TMP_Text tmpNameText;
     [SerializeField] private Text costText;
     [SerializeField] private TMP_Text tmpCostText;
 
-    [Header("Manual Placement")]
+    [Header("수동 배치")]
     [SerializeField] private ObstaclePlacementController placementController;
     [SerializeField] private ObstacleBuildEntrySO buildEntry;
 
@@ -160,6 +160,8 @@ public class ObstaclePlacementSlotUI : MonoBehaviour, IBeginDragHandler, IDragHa
 
         placementController.OnPlacementCountChanged -= OnPlacementCountChanged;
         placementController.OnPlacementCountChanged += OnPlacementCountChanged;
+        placementController.OnPlacementCostPreviewChanged -= OnPlacementCostPreviewChanged;
+        placementController.OnPlacementCostPreviewChanged += OnPlacementCostPreviewChanged;
     }
 
     // 배치 성공 횟수 변경 이벤트 구독을 해제한다
@@ -171,6 +173,7 @@ public class ObstaclePlacementSlotUI : MonoBehaviour, IBeginDragHandler, IDragHa
         }
 
         placementController.OnPlacementCountChanged -= OnPlacementCountChanged;
+        placementController.OnPlacementCostPreviewChanged -= OnPlacementCostPreviewChanged;
     }
 
     // 같은 빌드 항목의 설치 횟수가 바뀌면 비용 표시를 갱신한다
@@ -182,6 +185,23 @@ public class ObstaclePlacementSlotUI : MonoBehaviour, IBeginDragHandler, IDragHa
         }
 
         Refresh();
+    }
+
+    // 현재 버튼 엔트리의 드래그 비용과 재설치 할인율을 비용 텍스트에 반영한다
+    private void OnPlacementCostPreviewChanged(ObstacleBuildEntrySO changedBuildEntry, ResourceCost[] costs, bool isRebuild, float discountRate)
+    {
+        if (changedBuildEntry != buildEntry)
+        {
+            return;
+        }
+
+        string costLabel = FormatCosts(costs);
+        if (isRebuild)
+        {
+            costLabel = $"{costLabel} ({Mathf.RoundToInt(discountRate * 100.0f)}% 할인)";
+        }
+
+        SetCostLabel(costLabel);
     }
 
     // 빌드 항목 정보를 버튼의 아이콘과 텍스트에 반영한다
@@ -214,6 +234,12 @@ public class ObstaclePlacementSlotUI : MonoBehaviour, IBeginDragHandler, IDragHa
 
         // 설치 횟수에 따라 오르는 실효 비용(GetPlacementCosts)을 표시해야 실제 결제 비용과 갈라지지 않는다.
         string costLabel = FormatCosts(GetCurrentPlacementCosts());
+        SetCostLabel(costLabel);
+    }
+
+    // 일반 Text와 TMP 비용 라벨에 같은 문자열을 적용한다
+    private void SetCostLabel(string costLabel)
+    {
         if (costText != null)
         {
             costText.text = costLabel;

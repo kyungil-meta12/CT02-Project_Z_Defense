@@ -108,6 +108,7 @@ public class ObstacleBuildEntrySO : ScriptableObject
     }
 
     public float AdditionalCostPercentPerPlacement => additionalCostPercentPerPlacement;
+    public float RebuildCostDiscount => Mathf.Clamp01(rebuildCostDiscount);
     public string SaveId => saveId;
 
     public ResourceCost[] BuildCosts

@@ -17,8 +17,10 @@ public class ObstaclePlacementController : MonoBehaviour
     [Header("프리뷰")]
     [SerializeField] private bool showInvalidPreviewOnWorld = true;
     [SerializeField] private Material validPreviewMaterial;
+    [SerializeField] private Material rebuildPreviewMaterial;
     [SerializeField] private Material invalidPreviewMaterial;
     [SerializeField] private Color validPreviewColor = new Color(0.2f, 1.0f, 0.35f, 0.45f);
+    [SerializeField] private Color rebuildPreviewColor = new Color(0.2f, 0.8f, 1.0f, 0.55f);
     [SerializeField] private Color invalidPreviewColor = new Color(1.0f, 0.12f, 0.08f, 0.45f);
     [SerializeField] private Vector3 previewLocalOffset = Vector3.zero;
     [SerializeField] private Vector3 invalidPreviewEulerAngles = Vector3.zero;
@@ -37,13 +39,21 @@ public class ObstaclePlacementController : MonoBehaviour
     private ObstacleBuildSlot hoveredSlot;
     private GameObject currentPreviewPrefab;
     private Material runtimeValidPreviewMaterial;
+    private Material runtimeRebuildPreviewMaterial;
     private Material runtimeInvalidPreviewMaterial;
     private Vector3 invalidPreviewReferenceScale = Vector3.one;
     private readonly RaycastHit[] slotRaycastHits = new RaycastHit[32];
     private readonly RaycastHit[] invalidPreviewRaycastHits = new RaycastHit[32];
+    private ObstacleBuildSlot lastCostPreviewSlot;
+    private ObstacleBuildEntrySO lastCostPreviewEntry;
+    private ResourceCost[] currentPreviewCosts = Array.Empty<ResourceCost>();
+    private bool currentPreviewIsRebuild;
 
     // 설치 항목의 배치 성공 횟수가 바뀌어 표시 비용을 다시 계산해야 할 때 발생한다
     public event Action<ObstacleBuildEntrySO> OnPlacementCountChanged;
+
+    // 드래그 위치에 따른 최종 비용과 재설치 할인 상태가 바뀔 때 발생한다
+    public event Action<ObstacleBuildEntrySO, ResourceCost[], bool, float> OnPlacementCostPreviewChanged;
 
     public bool IsPlacing
     {
@@ -128,7 +138,8 @@ public class ObstaclePlacementController : MonoBehaviour
 
         hoveredSlot = FindSlot(screenPosition, out _);
         bool hasSlot = hoveredSlot != null && hoveredSlot.BuildPoint != null;
-        bool canPlace = hasSlot && hoveredSlot.CanPlaceEntry(activeBuildEntry);
+        UpdatePlacementCostPreview(hasSlot ? hoveredSlot : null);
+        bool canPlace = hasSlot && hoveredSlot.CanPlaceEntry(activeBuildEntry, currentPreviewCosts);
 
         if (hasSlot)
         {
@@ -137,7 +148,14 @@ public class ObstaclePlacementController : MonoBehaviour
             invalidPreviewReferenceScale = GetSafeReferenceScale(hoveredSlot.BuildPoint.lossyScale);
             preview.SetVisible(true);
             preview.SnapTo(hoveredSlot.BuildPoint, previewLocalOffset, activeBuildEntry.GetPlacementLocalRotationForLevel(previewLevel), previewScaleMultiplier);
-            preview.SetVisualState(canPlace, GetValidPreviewMaterial(), GetInvalidPreviewMaterial(), validPreviewColor, invalidPreviewColor);
+            if (canPlace && currentPreviewIsRebuild)
+            {
+                preview.SetVisualState(true, GetRebuildPreviewMaterial(), GetInvalidPreviewMaterial(), rebuildPreviewColor, invalidPreviewColor);
+            }
+            else
+            {
+                preview.SetVisualState(canPlace, GetValidPreviewMaterial(), GetInvalidPreviewMaterial(), validPreviewColor, invalidPreviewColor);
+            }
             return;
         }
 
@@ -198,6 +216,7 @@ public class ObstaclePlacementController : MonoBehaviour
     // 진행 중인 배치와 프리뷰 상태를 초기화한다
     public void CancelPlacement()
     {
+        ObstacleBuildEntrySO cancelledBuildEntry = activeBuildEntry;
         activeBuildEntry = null;
         hoveredSlot = null;
         currentPreviewPrefab = null;
@@ -205,6 +224,8 @@ public class ObstaclePlacementController : MonoBehaviour
         {
             preview.Hide();
         }
+
+        PublishDefaultPlacementCost(cancelledBuildEntry);
     }
 
     // 프리뷰 객체와 런타임 머티리얼이 준비되었는지 확인한다
@@ -242,6 +263,12 @@ public class ObstaclePlacementController : MonoBehaviour
         return invalidPreviewMaterial != null ? invalidPreviewMaterial : runtimeInvalidPreviewMaterial;
     }
 
+    // 재설치 프리뷰에 사용할 머티리얼을 반환한다
+    private Material GetRebuildPreviewMaterial()
+    {
+        return rebuildPreviewMaterial != null ? rebuildPreviewMaterial : runtimeRebuildPreviewMaterial;
+    }
+
     // 인스펙터 머티리얼이 없으면 런타임 프리뷰 머티리얼을 생성한다
     private void EnsureRuntimePreviewMaterials()
     {
@@ -253,6 +280,11 @@ public class ObstaclePlacementController : MonoBehaviour
         if (runtimeValidPreviewMaterial == null)
         {
             runtimeValidPreviewMaterial = CreatePreviewMaterial("Runtime Valid Obstacle Preview", validPreviewColor);
+        }
+
+        if (runtimeRebuildPreviewMaterial == null)
+        {
+            runtimeRebuildPreviewMaterial = CreatePreviewMaterial("Runtime Rebuild Obstacle Preview", rebuildPreviewColor);
         }
 
         if (runtimeInvalidPreviewMaterial == null)
@@ -270,11 +302,61 @@ public class ObstaclePlacementController : MonoBehaviour
             runtimeValidPreviewMaterial = null;
         }
 
+        if (runtimeRebuildPreviewMaterial != null)
+        {
+            Destroy(runtimeRebuildPreviewMaterial);
+            runtimeRebuildPreviewMaterial = null;
+        }
+
         if (runtimeInvalidPreviewMaterial != null)
         {
             Destroy(runtimeInvalidPreviewMaterial);
             runtimeInvalidPreviewMaterial = null;
         }
+    }
+
+    // 드래그 대상 슬롯이 바뀔 때만 실제 비용과 할인 상태를 다시 계산해 UI에 알린다
+    private void UpdatePlacementCostPreview(ObstacleBuildSlot targetSlot)
+    {
+        if (activeBuildEntry == null ||
+            (lastCostPreviewEntry == activeBuildEntry && lastCostPreviewSlot == targetSlot))
+        {
+            return;
+        }
+
+        lastCostPreviewEntry = activeBuildEntry;
+        lastCostPreviewSlot = targetSlot;
+        if (targetSlot != null)
+        {
+            currentPreviewCosts = targetSlot.GetPlacementCostsForEntry(activeBuildEntry, out currentPreviewIsRebuild);
+        }
+        else
+        {
+            currentPreviewIsRebuild = false;
+            currentPreviewCosts = GetCurrentPlacementCosts(activeBuildEntry);
+        }
+
+        OnPlacementCostPreviewChanged?.Invoke(
+            activeBuildEntry,
+            currentPreviewCosts,
+            currentPreviewIsRebuild,
+            currentPreviewIsRebuild ? activeBuildEntry.RebuildCostDiscount : 0.0f);
+    }
+
+    // 배치 종료 시 해당 엔트리 비용 표시를 일반 설치 가격으로 되돌린다
+    private void PublishDefaultPlacementCost(ObstacleBuildEntrySO buildEntry)
+    {
+        lastCostPreviewEntry = null;
+        lastCostPreviewSlot = null;
+        currentPreviewIsRebuild = false;
+        currentPreviewCosts = Array.Empty<ResourceCost>();
+        if (buildEntry == null)
+        {
+            return;
+        }
+
+        ResourceCost[] defaultCosts = GetCurrentPlacementCosts(buildEntry);
+        OnPlacementCostPreviewChanged?.Invoke(buildEntry, defaultCosts, false, 0.0f);
     }
 
     // 지정 색상으로 투명 프리뷰 머티리얼을 생성한다

@@ -129,7 +129,39 @@ public class ObstacleBuildSlot : MonoBehaviour
 
     public bool HasStoredProgressForEntry(ObstacleBuildEntrySO entry)
     {
-        return hasStoredProgress && storedBuildEntry == entry;
+        if (!hasStoredProgress || entry == null)
+        {
+            return false;
+        }
+
+        if (storedObstacleDefinition != null && entry.ObstacleDefinition != null)
+        {
+            return storedObstacleDefinition == entry.ObstacleDefinition;
+        }
+
+        return storedBuildEntry != null &&
+               !string.IsNullOrWhiteSpace(storedBuildEntry.SaveId) &&
+               string.Equals(storedBuildEntry.SaveId, entry.SaveId, StringComparison.Ordinal);
+    }
+
+    // 현재 빈 슬롯이 지정 배치 항목의 저장 진행도를 이어받는 재설치 위치인지 확인한다
+    public bool IsRebuildForEntry(ObstacleBuildEntrySO entry)
+    {
+        return CurrentObstacle == null && HasStoredProgressForEntry(entry);
+    }
+
+    // 지정 배치 항목의 재설치 여부와 실제 결제 비용을 동일한 규칙으로 계산한다
+    public ResourceCost[] GetPlacementCostsForEntry(ObstacleBuildEntrySO entry, out bool isRebuild)
+    {
+        if (entry == null)
+        {
+            isRebuild = false;
+            return Array.Empty<ResourceCost>();
+        }
+
+        isRebuild = IsRebuildForEntry(entry);
+        int firstPlacementCount = GameManager.Inst != null ? GameManager.Inst.GetFirstPlacementCount(entry) : 0;
+        return entry.GetPlacementCosts(firstPlacementCount, isRebuild);
     }
 
     public bool HasAliveObstacle
@@ -218,7 +250,14 @@ public class ObstacleBuildSlot : MonoBehaviour
     public bool CanPlaceEntry(ObstacleBuildEntrySO buildEntry)
     {
         // 프리뷰 갱신 중 매 프레임 호출되므로 로그와 문자열 포맷팅 없이 빠른 판정만 수행한다.
-        return CanPlaceEntryInternal(buildEntry);
+        ResourceCost[] placementCosts = GetPlacementCostsForEntry(buildEntry, out _);
+        return CanPlaceEntryInternal(buildEntry, placementCosts);
+    }
+
+    // 이미 계산된 비용을 사용해 프리뷰 경로의 중복 배열 생성을 피하며 배치 가능 여부를 확인한다
+    public bool CanPlaceEntry(ObstacleBuildEntrySO buildEntry, ResourceCost[] placementCosts)
+    {
+        return CanPlaceEntryInternal(buildEntry, placementCosts);
     }
 
     // 빌드 항목의 프리팹을 슬롯 위치에 생성하고 점유 상태로 등록한다
@@ -240,9 +279,7 @@ public class ObstacleBuildSlot : MonoBehaviour
             return false;
         }
 
-        bool isRebuild = HasStoredProgressForEntry(buildEntry);
-        int firstPlacementCount = GameManager.Inst != null ? GameManager.Inst.GetFirstPlacementCount(buildEntry) : 0;
-        ResourceCost[] buildCosts = buildEntry.GetPlacementCosts(firstPlacementCount, isRebuild);
+        ResourceCost[] buildCosts = GetPlacementCostsForEntry(buildEntry, out _);
         // 장애물 배치도 터렛 경제와 같은 ResourceCost[] 파이프라인을 사용한다. Coin 전용 fallback은 검증 혼선을 만들기 때문에 사용하지 않는다.
         if (!InventorySystem.Inst.TrySpend(buildCosts))
         {
@@ -318,9 +355,7 @@ public class ObstacleBuildSlot : MonoBehaviour
             return "ItemManager가 없어 재화 보유량을 확인할 수 없습니다.";
         }
 
-        bool isRebuildCheck = HasStoredProgressForEntry(buildEntry);
-        int placementCountCheck = GameManager.Inst != null ? GameManager.Inst.GetFirstPlacementCount(buildEntry) : 0;
-        ResourceCost[] buildCosts = buildEntry.GetPlacementCosts(placementCountCheck, isRebuildCheck);
+        ResourceCost[] buildCosts = GetPlacementCostsForEntry(buildEntry, out _);
         if (!InventorySystem.Inst.CanAfford(buildCosts))
         {
             return $"재화가 부족합니다. 필요 비용: {FormatCosts(buildCosts)}, 보유 재화: {FormatWallet()}";
@@ -330,7 +365,7 @@ public class ObstacleBuildSlot : MonoBehaviour
     }
 
     // 프리뷰 갱신 중 문자열 할당 없이 배치 가능 여부만 확인한다
-    private bool CanPlaceEntryInternal(ObstacleBuildEntrySO buildEntry)
+    private bool CanPlaceEntryInternal(ObstacleBuildEntrySO buildEntry, ResourceCost[] placementCosts)
     {
         if (buildEntry == null)
         {
@@ -358,9 +393,7 @@ public class ObstacleBuildSlot : MonoBehaviour
             return false;
         }
 
-        bool isRebuild = HasStoredProgressForEntry(buildEntry);
-        int count = GameManager.Inst != null ? GameManager.Inst.GetFirstPlacementCount(buildEntry) : 0;
-        return InventorySystem.Inst.CanAfford(buildEntry.GetPlacementCosts(count, isRebuild));
+        return InventorySystem.Inst.CanAfford(placementCosts);
     }
 
     // 장애물 배치 실패 사유를 콘솔에 출력하고, 플레이어에게도 경고 팝업으로 알린다

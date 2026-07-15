@@ -12,11 +12,17 @@ public class TurretRangeIndicator : MonoBehaviour
     [Header("프리팹 표시")]
     [SerializeField] private GameObject indicatorPrefab;
     [SerializeField, Min(0.001f)] private float prefabRadiusAtScaleOne = 1.0f;
+    [Tooltip("파티클 링처럼 실제 보이는 반경이 기준 반경보다 작을 때 추가로 키우는 배율입니다.")]
+    [SerializeField, Min(0.01f)] private float prefabVisualScaleMultiplier = 1.0f;
+    [Tooltip("Canvas 부모 스케일 영향을 피하기 위해 표시 프리팹을 월드 공간에 생성합니다.")]
+    [SerializeField] private bool instantiatePrefabInWorldSpace = true;
     [SerializeField] private bool forcePrefabParticleLoop = true;
     [SerializeField] private bool restartPrefabParticlesOnShow = true;
     [SerializeField] private bool useLineFallbackWhenPrefabMissing = true;
 
     [Header("라인 표시")]
+    [Tooltip("프리팹 표시를 사용해도 정확한 사거리 경계선은 LineRenderer로 함께 표시합니다.")]
+    [SerializeField] private bool showLineWithPrefab = true;
     [SerializeField, Min(12)] private int lineSegments = 96;
     [SerializeField, Min(0.001f)] private float lineWidth = 0.08f;
     [SerializeField] private float yOffset = 0.05f;
@@ -29,6 +35,7 @@ public class TurretRangeIndicator : MonoBehaviour
     private Transform prefabTransform;
     private ParticleSystem[] prefabParticles;
     private GameObject cachedPrefab;
+    private bool cachedWorldSpaceMode;
 
     // 컴포넌트 생성 시 사거리 표시를 숨김 상태로 준비한다
     private void Awake()
@@ -58,7 +65,15 @@ public class TurretRangeIndicator : MonoBehaviour
         if (indicatorPrefab != null)
         {
             ShowPrefab(center, radius, yOffset);
-            HideLineRenderer();
+            if (showLineWithPrefab)
+            {
+                ShowLine(center, radius);
+            }
+            else
+            {
+                HideLineRenderer();
+            }
+
             return;
         }
 
@@ -89,10 +104,10 @@ public class TurretRangeIndicator : MonoBehaviour
 
         float safeRadius = Mathf.Max(MIN_RADIUS, radius);
         float safePrefabRadius = Mathf.Max(MIN_RADIUS, prefabRadiusAtScaleOne);
-        float scale = safeRadius / safePrefabRadius;
+        float scale = safeRadius / safePrefabRadius * Mathf.Max(0.01f, prefabVisualScaleMultiplier);
 
         prefabTransform.position = center + Vector3.up * yOffset;
-        prefabTransform.localScale = Vector3.one * scale;
+        ApplyPrefabWorldScale(scale);
         prefabInstance.SetActive(true);
 
         if (restartPrefabParticlesOnShow)
@@ -133,7 +148,7 @@ public class TurretRangeIndicator : MonoBehaviour
     // 프리팹 인스턴스와 파티클 참조를 준비한다
     private void EnsurePrefabInstance()
     {
-        if (prefabInstance != null && cachedPrefab == indicatorPrefab)
+        if (prefabInstance != null && cachedPrefab == indicatorPrefab && cachedWorldSpaceMode == instantiatePrefabInWorldSpace)
         {
             return;
         }
@@ -144,15 +159,32 @@ public class TurretRangeIndicator : MonoBehaviour
             return;
         }
 
-        prefabInstance = Instantiate(indicatorPrefab, transform);
+        prefabInstance = instantiatePrefabInWorldSpace ? Instantiate(indicatorPrefab) : Instantiate(indicatorPrefab, transform);
         prefabInstance.name = indicatorPrefab.name;
         prefabTransform = prefabInstance.transform;
-        prefabTransform.localPosition = Vector3.zero;
+        prefabTransform.position = Vector3.zero;
         prefabTransform.localRotation = Quaternion.identity;
         prefabTransform.localScale = Vector3.one;
         prefabParticles = prefabInstance.GetComponentsInChildren<ParticleSystem>(true);
         cachedPrefab = indicatorPrefab;
+        cachedWorldSpaceMode = instantiatePrefabInWorldSpace;
         ApplyPrefabParticleLoopSetting();
+    }
+
+    // 부모 Canvas 스케일과 무관하게 프리팹의 실제 월드 반경 스케일을 맞춘다
+    private void ApplyPrefabWorldScale(float scale)
+    {
+        if (prefabTransform.parent == null)
+        {
+            prefabTransform.localScale = Vector3.one * scale;
+            return;
+        }
+
+        Vector3 parentScale = prefabTransform.parent.lossyScale;
+        prefabTransform.localScale = new Vector3(
+            scale / Mathf.Max(MIN_RADIUS, Mathf.Abs(parentScale.x)),
+            scale / Mathf.Max(MIN_RADIUS, Mathf.Abs(parentScale.y)),
+            scale / Mathf.Max(MIN_RADIUS, Mathf.Abs(parentScale.z)));
     }
 
     // 라인 렌더러와 기본 표시 설정을 준비한다
@@ -247,6 +279,7 @@ public class TurretRangeIndicator : MonoBehaviour
         prefabTransform = null;
         prefabParticles = null;
         cachedPrefab = null;
+        cachedWorldSpaceMode = false;
     }
 
     // 원 좌표를 담을 버퍼 크기를 보장한다

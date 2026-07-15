@@ -1,3 +1,4 @@
+using ProjectZima.PolygonModularTurretsPack;
 using UnityEngine;
 
 /// <summary>
@@ -31,15 +32,33 @@ public struct TurretSelectionContext
         Slot = slot;
     }
 
-    // 사거리 표시와 팝업 배치에 사용할 기준 위치를 반환한다
+    // 실제 타겟 탐색 기준 위치를 우선 사용해 사거리 표시 중심을 반환한다
     public Vector3 GetRangeCenter()
     {
+        TargetFinder targetFinder = GetTargetFinder();
+        if (targetFinder != null)
+        {
+            return targetFinder.pivotObject != null ? targetFinder.pivotObject.transform.position : targetFinder.transform.position;
+        }
+
         if (Slot != null && Slot.BuildPoint != null)
         {
             return Slot.BuildPoint.position;
         }
 
         return Turret == null ? Vector3.zero : Turret.transform.position;
+    }
+
+    // 실제 타겟 탐색 반경을 우선 사용해 현재 사거리 표시 반경을 반환한다
+    public float GetRangeRadius()
+    {
+        TargetFinder targetFinder = GetTargetFinder();
+        if (targetFinder != null)
+        {
+            return Mathf.Max(0.0f, targetFinder.radius);
+        }
+
+        return Mathf.Max(0.0f, CalculateCurrentStat().range);
     }
 
     // 터렛 정의에서 표시 이름을 안전하게 가져온다
@@ -91,5 +110,11 @@ public struct TurretSelectionContext
         }
 
         return TurretStatCalculator.Calculate(Turret.CurrentTurretDefinition, Turret.CurrentTierLevel);
+    }
+
+    // 현재 선택 터렛의 TargetFinder 컴포넌트를 반환한다
+    private TargetFinder GetTargetFinder()
+    {
+        return Turret == null ? null : Turret.GetComponent<TargetFinder>();
     }
 }

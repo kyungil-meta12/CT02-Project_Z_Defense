@@ -992,8 +992,12 @@ Engineer buff policy:
 - `TurretRangeIndicator` renders one reusable world-space indicator for the currently selected turret.
 - `TurretRangeIndicator` can use a configured prefab such as `Marker circle simple cyan 1` for polished range presentation, while keeping the previous `LineRenderer` circle as a fallback when no prefab is assigned.
 - Prefab-based range indicators are instantiated once, reused, moved to the selected turret center, and scaled by `range / prefabRadiusAtScaleOne`.
+- Use `prefabVisualScaleMultiplier` to calibrate particle marker prefabs whose visible outer ring is smaller or larger than their authored scale-one radius. This changes only the visual prefab scale, not the live targeting range.
+- Use `showLineWithPrefab` while calibrating particle marker scale against the authoritative LineRenderer boundary, then disable it when the prefab visual matches the live targeting range.
+- Keep prefab-based range indicators in world space by default. If the indicator object is placed under Canvas, parenting the prefab under that Canvas can shrink or stretch the visible radius through inherited transform scale.
+- Selection UI reads the live turret `TargetFinder` center and radius first, so the indicator follows the same pivot and range that target acquisition uses after stat application and evolution.
 - Particle-based range indicator prefabs can have their particle loops forced at runtime so short marker effects can stay visible while a turret remains selected.
-- The indicator uses the selected turret's current calculated runtime range, so level-up and evolution changes are reflected when the popup refreshes.
+- The indicator uses the selected turret's live `TargetFinder` range when available, so level-up and evolution changes are reflected when the popup refreshes.
 - The indicator is hidden when selection is cleared or placement input is active.
 
 ## Pooling Rules

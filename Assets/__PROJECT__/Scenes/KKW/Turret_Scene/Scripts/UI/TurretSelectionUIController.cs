@@ -383,8 +383,7 @@ public class TurretSelectionUIController : MonoBehaviour
             return;
         }
 
-        TurretRuntimeStat stat = currentContext.CalculateCurrentStat();
-        rangeIndicator.Show(currentContext.GetRangeCenter(), stat.range);
+        rangeIndicator.Show(currentContext.GetRangeCenter(), currentContext.GetRangeRadius());
     }
 
     // 사거리 표시를 숨긴다

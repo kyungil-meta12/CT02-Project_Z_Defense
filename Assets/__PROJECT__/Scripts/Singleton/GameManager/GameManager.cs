@@ -74,15 +74,25 @@ public class GameManager : MonoBehaviour, ISaveable
     private readonly List<Survivor> survivors = new List<Survivor>(16);
     private readonly List<SurvivorSaveEntry> pendingSurvivorRestoreEntries = new List<SurvivorSaveEntry>(16);
     private readonly List<ObstaclePlacementSaveEntry> pendingObstacleRestoreEntries = new List<ObstaclePlacementSaveEntry>(16);
+    private readonly List<TurretPlacementSaveEntry> pendingTurretRestoreEntries = new List<TurretPlacementSaveEntry>(16);
+    private readonly List<TurretPlacementCountSaveEntry> pendingTurretPlacementCountEntries = new List<TurretPlacementCountSaveEntry>(8);
     private readonly Dictionary<string, ObstacleBuildEntrySO> obstacleBuildEntriesBySaveId = new Dictionary<string, ObstacleBuildEntrySO>(4);
     private readonly HashSet<string> invalidObstacleBuildEntrySaveIds = new HashSet<string>();
+    private readonly Dictionary<string, TurretDefinitionSO> turretDefinitionsById = new Dictionary<string, TurretDefinitionSO>(32);
+    private readonly HashSet<string> invalidTurretDefinitionIds = new HashSet<string>();
+    private readonly HashSet<TurretDefinitionSO> registeredTurretDefinitions = new HashSet<TurretDefinitionSO>();
+    private readonly Dictionary<string, TurretShopEntrySO> turretShopEntriesBySaveId = new Dictionary<string, TurretShopEntrySO>(8);
+    private readonly HashSet<string> invalidTurretShopEntrySaveIds = new HashSet<string>();
     private readonly List<ZombieSpawner> zombieSpawners = new List<ZombieSpawner>(2);
+    private TurretPlacementController turretPlacementController;
     private Coroutine gameOverCoroutine;
     private Coroutine quitGameCoroutine;
     private bool isWaveProgressionPaused;
     private bool suppressDefenseLineRestore;
     private bool isRestoringSurvivors;
     private bool isRestoringObstacles;
+    private bool isRestoringTurrets;
+    private bool hasStartedTurretRestorePhase;
 
     public int Wave{ get; private set; } = 1;
     public int HighestReachedWave { get; private set; }
@@ -455,6 +465,98 @@ public class GameManager : MonoBehaviour, ISaveable
         if (!isRestoringObstacles)
         {
             SaveManager.Inst?.MarkDirty();
+        }
+    }
+
+    // 터렛 상점 항목과 연결된 진화 Definition을 저장 식별자로 등록한다
+    public void RegisterTurretShopEntry(TurretShopEntrySO shopEntry, TurretPlacementController placementController)
+    {
+        if (shopEntry == null)
+        {
+            return;
+        }
+
+        if (placementController != null)
+        {
+            turretPlacementController = placementController;
+        }
+
+        string saveId = shopEntry.SaveId;
+        if (string.IsNullOrWhiteSpace(saveId))
+        {
+            Debug.LogWarning($"[GameManager] 터렛 상점 항목 '{shopEntry.name}'의 SaveId가 비어 있어 배치 횟수를 복원할 수 없습니다.", shopEntry);
+        }
+        else if (!invalidTurretShopEntrySaveIds.Contains(saveId))
+        {
+            if (turretShopEntriesBySaveId.TryGetValue(saveId, out TurretShopEntrySO registeredEntry) && registeredEntry != shopEntry)
+            {
+                Debug.LogWarning($"[GameManager] 터렛 상점 항목 SaveId가 중복되었습니다: {saveId}", shopEntry);
+                turretShopEntriesBySaveId.Remove(saveId);
+                invalidTurretShopEntrySaveIds.Add(saveId);
+            }
+            else
+            {
+                turretShopEntriesBySaveId[saveId] = shopEntry;
+            }
+        }
+
+        RegisterTurretDefinitionTree(shopEntry.TurretDefinition);
+        TryRestorePendingTurretPlacementCounts();
+        if (hasStartedTurretRestorePhase)
+        {
+            TryRestorePendingTurretPlacements();
+        }
+    }
+
+    // 터렛 배치나 강화 상태 변경을 저장 대상으로 표시한다
+    public void MarkTurretStateDirty()
+    {
+        if (!isRestoringTurrets)
+        {
+            SaveManager.Inst?.MarkDirty();
+        }
+    }
+
+    // 터렛 Definition과 모든 진화 대상을 저장 ID 조회 목록에 재귀 등록한다
+    private void RegisterTurretDefinitionTree(TurretDefinitionSO definition)
+    {
+        if (definition == null || !registeredTurretDefinitions.Add(definition))
+        {
+            return;
+        }
+
+        string turretId = definition.turretId;
+        if (string.IsNullOrWhiteSpace(turretId))
+        {
+            Debug.LogWarning($"[GameManager] 터렛 Definition '{definition.name}'의 turretId가 비어 있어 저장 복원에 사용할 수 없습니다.", definition);
+        }
+        else if (!invalidTurretDefinitionIds.Contains(turretId))
+        {
+            if (turretDefinitionsById.TryGetValue(turretId, out TurretDefinitionSO registeredDefinition) && registeredDefinition != definition)
+            {
+                Debug.LogWarning($"[GameManager] 터렛 Definition의 turretId가 중복되었습니다: {turretId}", definition);
+                turretDefinitionsById.Remove(turretId);
+                invalidTurretDefinitionIds.Add(turretId);
+            }
+            else
+            {
+                turretDefinitionsById[turretId] = definition;
+            }
+        }
+
+        TurretEvolutionProgressionSO progression = definition.evolutionProgressionProfile;
+        if (progression == null || progression.evolutionEntries == null)
+        {
+            return;
+        }
+
+        for (int i = 0; i < progression.evolutionEntries.Length; i++)
+        {
+            TurretEvolutionEntry evolutionEntry = progression.evolutionEntries[i];
+            if (evolutionEntry != null)
+            {
+                RegisterTurretDefinitionTree(evolutionEntry.targetDefinition);
+            }
         }
     }
 
@@ -871,7 +973,11 @@ public class GameManager : MonoBehaviour, ISaveable
 
         EnsureDefaultDefenseLineEntries();
         TryRestorePendingObstaclePlacements();
+        TryRestorePendingTurretPlacementCounts();
+        hasStartedTurretRestorePhase = true;
+        TryRestorePendingTurretPlacements();
         LogPendingObstacleRestoreFailures();
+        LogPendingTurretRestoreFailures();
         for (int i = 0; i < defenseLines.Count; i++)
         {
             DefenseLineEntry defenseLine = defenseLines[i];
@@ -1341,6 +1447,8 @@ public class GameManager : MonoBehaviour, ISaveable
         }
 
         CaptureObstaclePlacements(saveData.Obstacles);
+        CaptureTurretPlacements(saveData.Turrets);
+        CaptureTurretPlacementCounts(saveData.TurretPlacementCounts);
 
         return JsonUtility.ToJson(saveData);
     }
@@ -1380,6 +1488,30 @@ public class GameManager : MonoBehaviour, ISaveable
                 }
             }
         }
+        pendingTurretRestoreEntries.Clear();
+        if (saveData.Turrets != null)
+        {
+            for (int i = 0; i < saveData.Turrets.Count; i++)
+            {
+                TurretPlacementSaveEntry saveEntry = saveData.Turrets[i];
+                if (saveEntry != null)
+                {
+                    pendingTurretRestoreEntries.Add(saveEntry);
+                }
+            }
+        }
+        pendingTurretPlacementCountEntries.Clear();
+        if (saveData.TurretPlacementCounts != null)
+        {
+            for (int i = 0; i < saveData.TurretPlacementCounts.Count; i++)
+            {
+                TurretPlacementCountSaveEntry saveEntry = saveData.TurretPlacementCounts[i];
+                if (saveEntry != null)
+                {
+                    pendingTurretPlacementCountEntries.Add(saveEntry);
+                }
+            }
+        }
         KillCount = 0;
         DestKillCount = 0;
     }
@@ -1391,6 +1523,8 @@ public class GameManager : MonoBehaviour, ISaveable
         public int HighestReachedWave;
         public List<SurvivorSaveEntry> Survivors = new List<SurvivorSaveEntry>();
         public List<ObstaclePlacementSaveEntry> Obstacles = new List<ObstaclePlacementSaveEntry>();
+        public List<TurretPlacementSaveEntry> Turrets = new List<TurretPlacementSaveEntry>();
+        public List<TurretPlacementCountSaveEntry> TurretPlacementCounts = new List<TurretPlacementCountSaveEntry>();
     }
 
     // 현재 슬롯 진행도와 아직 해결하지 못한 복원 항목을 저장 목록에 모은다
@@ -1519,6 +1653,214 @@ public class GameManager : MonoBehaviour, ISaveable
         {
             ObstaclePlacementSaveEntry entry = entries[i];
             if (entry != null && entry.DefenseLineIndex == defenseLineIndex && entry.SlotIndex == slotIndex)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    // 현재 터렛 슬롯 상태와 아직 해결하지 못한 복원 항목을 저장 목록에 모은다
+    private void CaptureTurretPlacements(List<TurretPlacementSaveEntry> destination)
+    {
+        for (int i = 0; i < defenseLines.Count; i++)
+        {
+            DefenseLineEntry defenseLine = defenseLines[i];
+            if (defenseLine == null || defenseLine.turretBaseSlots == null)
+            {
+                continue;
+            }
+
+            for (int j = 0; j < defenseLine.turretBaseSlots.Count; j++)
+            {
+                TurretBaseSlot slot = defenseLine.turretBaseSlots[j];
+                if (slot != null && slot.TryCaptureSaveEntry(i, j, out TurretPlacementSaveEntry saveEntry))
+                {
+                    destination.Add(saveEntry);
+                }
+            }
+        }
+
+        for (int i = 0; i < pendingTurretRestoreEntries.Count; i++)
+        {
+            TurretPlacementSaveEntry pendingEntry = pendingTurretRestoreEntries[i];
+            if (pendingEntry != null && !ContainsTurretPlacement(destination, pendingEntry.DefenseLineIndex, pendingEntry.SlotIndex))
+            {
+                destination.Add(pendingEntry);
+            }
+        }
+    }
+
+    // 현재 누적 배치 횟수와 아직 해결하지 못한 상점 항목을 저장 목록에 모은다
+    private void CaptureTurretPlacementCounts(List<TurretPlacementCountSaveEntry> destination)
+    {
+        if (turretPlacementController != null)
+        {
+            foreach (KeyValuePair<string, TurretShopEntrySO> pair in turretShopEntriesBySaveId)
+            {
+                if (pair.Value == null || invalidTurretShopEntrySaveIds.Contains(pair.Key))
+                {
+                    continue;
+                }
+
+                destination.Add(new TurretPlacementCountSaveEntry
+                {
+                    ShopEntrySaveId = pair.Key,
+                    PlacedCount = Mathf.Max(0, turretPlacementController.GetPlacedCount(pair.Value))
+                });
+            }
+        }
+
+        for (int i = 0; i < pendingTurretPlacementCountEntries.Count; i++)
+        {
+            TurretPlacementCountSaveEntry pendingEntry = pendingTurretPlacementCountEntries[i];
+            if (pendingEntry != null && !ContainsTurretPlacementCount(destination, pendingEntry.ShopEntrySaveId))
+            {
+                destination.Add(pendingEntry);
+            }
+        }
+    }
+
+    // 등록된 슬롯과 Definition을 사용해 가능한 저장 터렛을 모두 복원한다
+    private void TryRestorePendingTurretPlacements()
+    {
+        if (isRestoringTurrets || pendingTurretRestoreEntries.Count == 0)
+        {
+            return;
+        }
+
+        isRestoringTurrets = true;
+        try
+        {
+            for (int i = pendingTurretRestoreEntries.Count - 1; i >= 0; i--)
+            {
+                TurretPlacementSaveEntry saveEntry = pendingTurretRestoreEntries[i];
+                TurretBaseSlot slot = FindTurretBaseSlot(saveEntry.DefenseLineIndex, saveEntry.SlotIndex);
+                if (slot == null || string.IsNullOrWhiteSpace(saveEntry.TurretDefinitionId) ||
+                    !turretDefinitionsById.TryGetValue(saveEntry.TurretDefinitionId, out TurretDefinitionSO definition))
+                {
+                    continue;
+                }
+
+                if (slot.TryRestoreSaveEntry(saveEntry, definition, out _))
+                {
+                    pendingTurretRestoreEntries.RemoveAt(i);
+                }
+                else
+                {
+                    Debug.LogWarning($"[GameManager] 저장 터렛 복원에 실패했습니다. 방어선: {saveEntry.DefenseLineIndex}, 슬롯: {saveEntry.SlotIndex}, turretId: {saveEntry.TurretDefinitionId}", slot);
+                }
+            }
+        }
+        finally
+        {
+            isRestoringTurrets = false;
+        }
+    }
+
+    // 등록된 상점 항목에 저장된 누적 배치 횟수를 적용한다
+    private void TryRestorePendingTurretPlacementCounts()
+    {
+        if (isRestoringTurrets || turretPlacementController == null || pendingTurretPlacementCountEntries.Count == 0)
+        {
+            return;
+        }
+
+        isRestoringTurrets = true;
+        try
+        {
+            for (int i = pendingTurretPlacementCountEntries.Count - 1; i >= 0; i--)
+            {
+                TurretPlacementCountSaveEntry saveEntry = pendingTurretPlacementCountEntries[i];
+                if (saveEntry == null || string.IsNullOrWhiteSpace(saveEntry.ShopEntrySaveId) ||
+                    !turretShopEntriesBySaveId.TryGetValue(saveEntry.ShopEntrySaveId, out TurretShopEntrySO shopEntry))
+                {
+                    continue;
+                }
+
+                turretPlacementController.RestorePlacedCount(shopEntry, saveEntry.PlacedCount);
+                pendingTurretPlacementCountEntries.RemoveAt(i);
+            }
+        }
+        finally
+        {
+            isRestoringTurrets = false;
+        }
+    }
+
+    // 초기 등록 후에도 해결하지 못한 터렛과 배치 횟수 복원 원인을 출력한다
+    private void LogPendingTurretRestoreFailures()
+    {
+        for (int i = 0; i < pendingTurretRestoreEntries.Count; i++)
+        {
+            TurretPlacementSaveEntry saveEntry = pendingTurretRestoreEntries[i];
+            if (saveEntry == null)
+            {
+                continue;
+            }
+
+            if (FindTurretBaseSlot(saveEntry.DefenseLineIndex, saveEntry.SlotIndex) == null)
+            {
+                Debug.LogWarning($"[GameManager] 저장 터렛의 슬롯을 찾지 못했습니다. 방어선: {saveEntry.DefenseLineIndex}, 슬롯: {saveEntry.SlotIndex}", this);
+                continue;
+            }
+
+            if (string.IsNullOrWhiteSpace(saveEntry.TurretDefinitionId) || !turretDefinitionsById.ContainsKey(saveEntry.TurretDefinitionId))
+            {
+                Debug.LogWarning($"[GameManager] 저장 터렛의 Definition을 찾지 못했습니다. turretId: {saveEntry.TurretDefinitionId}", this);
+            }
+        }
+
+        for (int i = 0; i < pendingTurretPlacementCountEntries.Count; i++)
+        {
+            TurretPlacementCountSaveEntry saveEntry = pendingTurretPlacementCountEntries[i];
+            if (saveEntry != null)
+            {
+                Debug.LogWarning($"[GameManager] 저장된 배치 횟수의 상점 항목을 찾지 못했습니다. SaveId: {saveEntry.ShopEntrySaveId}", this);
+            }
+        }
+    }
+
+    // 방어선과 목록 인덱스가 일치하는 터렛 베이스 슬롯을 반환한다
+    private TurretBaseSlot FindTurretBaseSlot(int defenseLineIndex, int slotIndex)
+    {
+        if (defenseLineIndex < 0 || defenseLineIndex >= defenseLines.Count)
+        {
+            return null;
+        }
+
+        DefenseLineEntry defenseLine = defenseLines[defenseLineIndex];
+        if (defenseLine == null || defenseLine.turretBaseSlots == null || slotIndex < 0 || slotIndex >= defenseLine.turretBaseSlots.Count)
+        {
+            return null;
+        }
+
+        return defenseLine.turretBaseSlots[slotIndex];
+    }
+
+    // 저장 목록에 같은 방어선과 터렛 슬롯 식별자가 이미 있는지 확인한다
+    private static bool ContainsTurretPlacement(List<TurretPlacementSaveEntry> entries, int defenseLineIndex, int slotIndex)
+    {
+        for (int i = 0; i < entries.Count; i++)
+        {
+            TurretPlacementSaveEntry entry = entries[i];
+            if (entry != null && entry.DefenseLineIndex == defenseLineIndex && entry.SlotIndex == slotIndex)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    // 저장 목록에 같은 상점 항목의 배치 횟수가 이미 있는지 확인한다
+    private static bool ContainsTurretPlacementCount(List<TurretPlacementCountSaveEntry> entries, string saveId)
+    {
+        for (int i = 0; i < entries.Count; i++)
+        {
+            TurretPlacementCountSaveEntry entry = entries[i];
+            if (entry != null && string.Equals(entry.ShopEntrySaveId, saveId, StringComparison.Ordinal))
             {
                 return true;
             }

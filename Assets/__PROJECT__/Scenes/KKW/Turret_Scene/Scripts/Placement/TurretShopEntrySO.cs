@@ -6,18 +6,23 @@
 [CreateAssetMenu(menuName = "Project Z Defense/Turret Placement Entry")]
 public class TurretShopEntrySO : ScriptableObject
 {
-    [Header("Identity")]
+    [Header("저장 식별자")]
+    [SerializeField] private string saveId;
+
+    [Header("표시 정보")]
     [SerializeField] private string displayName;
     [SerializeField] private Sprite icon;
 
-    [Header("Turret")]
+    [Header("터렛")]
     [SerializeField] private TurretDefinitionSO turretDefinition;
     [SerializeField] private GameObject overridePrefab;
     [SerializeField] private GameObject previewPrefab;
 
-    [Header("Cost")]
+    [Header("비용")]
     [SerializeField] private ResourceCost[] placementCosts;
     [SerializeField] private TurretPlacementCostTier[] placementCostTiers;
+
+    public string SaveId => saveId;
 
     public string DisplayName
     {
@@ -102,6 +107,7 @@ public class TurretShopEntrySO : ScriptableObject
     // 인스펙터 입력값을 유효한 터렛 구매 비용 범위로 보정한다
     private void OnValidate()
     {
+        saveId = string.IsNullOrWhiteSpace(saveId) ? string.Empty : saveId.Trim();
         ValidateCosts(placementCosts);
 
         if (placementCostTiers == null)

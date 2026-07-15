@@ -303,6 +303,14 @@ Runtime policy:
 - Current HP, fracture state, repair reservation, and world position are not saved.
 - Defense-line breach and linked turret-base availability are evaluated after saved obstacles are restored.
 
+## Turret Save And Restore Flow
+
+- The wave save section records each occupied turret base by defense-line index and turret-slot list index.
+- Each turret record stores the final evolved `turretId`, current tier level, and cumulative total level; position, target, damage-meter data, and engineer seating are not saved.
+- Turret shop entries use a stable `SaveId`, and their cumulative successful placement counts are saved so tiered placement costs cannot be reset by restarting the app.
+- After obstacle restoration and before defense-line availability is evaluated, saved turret prefabs are instantiated directly on their build points without placement or evolution costs, effects, or sounds.
+- Restored engineers remain unseated at the survivor rally point and must be assigned to a turret again.
+
 ## Edge Cases To Check
 
 - `GameManager.Inst` missing when prefabs enable.

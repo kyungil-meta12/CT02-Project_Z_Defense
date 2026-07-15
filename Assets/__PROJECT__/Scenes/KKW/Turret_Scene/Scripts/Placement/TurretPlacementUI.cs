@@ -28,9 +28,30 @@ public class TurretPlacementUI : MonoBehaviour
     // 옵션이 켜진 경우에만 레거시 자동 생성 배치 버튼을 만든다
     private void Start()
     {
+        RegisterShopEntriesForSaveRestore();
+
         if (rebuildOnStart)
         {
             Rebuild();
+        }
+    }
+
+    // 상점 항목과 터렛 진화 트리를 저장 복원 조회 목록에 등록한다
+    private void RegisterShopEntriesForSaveRestore()
+    {
+        if (placementController == null)
+        {
+            placementController = FindFirstObjectByType<TurretPlacementController>();
+        }
+
+        if (shopEntries == null || GameManager.Inst == null)
+        {
+            return;
+        }
+
+        for (int i = 0; i < shopEntries.Length; i++)
+        {
+            GameManager.Inst.RegisterTurretShopEntry(shopEntries[i], placementController);
         }
     }
 

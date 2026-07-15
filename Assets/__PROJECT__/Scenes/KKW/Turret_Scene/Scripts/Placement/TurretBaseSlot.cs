@@ -1,5 +1,19 @@
+using System;
 using ProjectZDefense.Audio;
 using UnityEngine;
+
+[Serializable]
+/// <summary>
+/// 저장 파일에서 터렛 슬롯과 강화 상태를 식별한다.
+/// </summary>
+public class TurretPlacementSaveEntry
+{
+    public int DefenseLineIndex;
+    public int SlotIndex;
+    public string TurretDefinitionId;
+    public int TierLevel;
+    public int TotalLevel;
+}
 
 /// <summary>
 /// 터렛 배치 지점의 점유 상태와 실제 터렛 설치 처리를 관리한다.
@@ -53,6 +67,62 @@ public class TurretBaseSlot : MonoBehaviour
         {
             return gameObject.activeSelf;
         }
+    }
+
+    // 현재 슬롯의 터렛 배치와 강화 상태를 저장 항목으로 만든다
+    public bool TryCaptureSaveEntry(int defenseLineIndex, int slotIndex, out TurretPlacementSaveEntry saveEntry)
+    {
+        saveEntry = null;
+        TurretDefinitionRuntimeController turret = RefreshAndGetCurrentTurret();
+        TurretDefinitionSO definition = turret == null ? null : turret.CurrentTurretDefinition;
+        if (definition == null || string.IsNullOrWhiteSpace(definition.turretId))
+        {
+            return false;
+        }
+
+        saveEntry = new TurretPlacementSaveEntry
+        {
+            DefenseLineIndex = defenseLineIndex,
+            SlotIndex = slotIndex,
+            TurretDefinitionId = definition.turretId,
+            TierLevel = Mathf.Max(1, turret.CurrentTierLevel),
+            TotalLevel = Mathf.Max(1, turret.CurrentTotalLevel)
+        };
+        return true;
+    }
+
+    // 저장된 터렛을 비용과 연출 없이 현재 슬롯에 생성한다
+    public bool TryRestoreSaveEntry(TurretPlacementSaveEntry saveEntry, TurretDefinitionSO definition, out TurretDefinitionRuntimeController restoredTurret)
+    {
+        restoredTurret = null;
+        RefreshCurrentTurret();
+        if (!CanPlace || saveEntry == null || definition == null || definition.basePrefab == null)
+        {
+            return false;
+        }
+
+        GameObject turretObject = Instantiate(definition.basePrefab, buildPoint);
+        if (turretObject == null)
+        {
+            return false;
+        }
+
+        turretObject.transform.localPosition = Vector3.zero;
+        turretObject.transform.localRotation = Quaternion.identity;
+        turretObject.transform.localScale = TurretDefinitionRuntimeController.ResolveEvolutionLocalScale(definition, buildPoint);
+        TurretSelectionLayerUtility.ApplyTo(turretObject, this);
+
+        restoredTurret = turretObject.GetComponent<TurretDefinitionRuntimeController>();
+        if (restoredTurret == null)
+        {
+            Destroy(turretObject);
+            return false;
+        }
+
+        currentTurretObject = turretObject;
+        currentTurret = restoredTurret;
+        restoredTurret.SetDefinition(definition, Mathf.Max(1, saveEntry.TotalLevel), Mathf.Max(1, saveEntry.TierLevel));
+        return true;
     }
 
     // 현재 슬롯 하위 터렛 상태를 갱신하고 터렛 컨트롤러를 반환한다
@@ -148,6 +218,7 @@ public class TurretBaseSlot : MonoBehaviour
         }
 
         TurretEconomyLogUtility.LogResult("설치", GetShopEntryName(shopEntry), placementCosts, true, this);
+        GameManager.Inst?.MarkTurretStateDirty();
         return true;
     }
 

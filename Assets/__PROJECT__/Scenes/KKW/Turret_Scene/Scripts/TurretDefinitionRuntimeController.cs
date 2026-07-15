@@ -261,6 +261,7 @@ public class TurretDefinitionRuntimeController : MonoBehaviour
         level = 1;
         Apply();
         PlayAudioEvent(TurretAudioEvent.Evolution);
+        MarkSaveStateDirty();
         return true;
     }
 
@@ -351,7 +352,7 @@ public class TurretDefinitionRuntimeController : MonoBehaviour
     }
 
     // 진화 대상 프리팹이 슬롯 부모 스케일을 중복 상속하지 않도록 로컬 스케일을 계산한다
-    private static Vector3 ResolveEvolutionLocalScale(TurretDefinitionSO targetDefinition, Transform parentTransform)
+    public static Vector3 ResolveEvolutionLocalScale(TurretDefinitionSO targetDefinition, Transform parentTransform)
     {
         GameObject targetPrefab = targetDefinition == null ? null : targetDefinition.basePrefab;
         Vector3 prefabLocalScale = targetPrefab == null ? Vector3.one : targetPrefab.transform.localScale;
@@ -425,6 +426,7 @@ public class TurretDefinitionRuntimeController : MonoBehaviour
         level = nextLevel;
         totalLevel += Mathf.Max(0, level - previousLevel);
         Apply();
+        MarkSaveStateDirty();
     }
 
     // 비용 없이 현재 티어 레벨을 지정한 수량만큼 증가시킨다
@@ -492,6 +494,13 @@ public class TurretDefinitionRuntimeController : MonoBehaviour
         totalLevel = Mathf.Max(1, totalLevel_);
         level = GetClampedLevelForProgression(tierLevel_, 1);
         Apply();
+        MarkSaveStateDirty();
+    }
+
+    // 터렛 Definition이나 강화 단계 변경을 저장 대상으로 표시한다
+    private void MarkSaveStateDirty()
+    {
+        GameManager.Inst?.MarkTurretStateDirty();
     }
 
     [ContextMenu("Evolve To First Available")]

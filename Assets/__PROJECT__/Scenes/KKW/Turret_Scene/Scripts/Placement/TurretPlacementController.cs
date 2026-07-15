@@ -4,6 +4,16 @@ using ProjectZDefense.Audio;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
+[Serializable]
+/// <summary>
+/// 저장 파일에서 상점 항목별 누적 터렛 배치 횟수를 기록한다.
+/// </summary>
+public class TurretPlacementCountSaveEntry
+{
+    public string ShopEntrySaveId;
+    public int PlacedCount;
+}
+
 /// <summary>
 /// 터렛 배치 입력, 프리뷰, 설치 횟수 기반 비용 계산을 관리한다.
 /// </summary>
@@ -231,6 +241,18 @@ public class TurretPlacementController : MonoBehaviour
         }
 
         return placedCountsByEntry.TryGetValue(shopEntry, out int count) ? count : 0;
+    }
+
+    // 저장 복원 시 상점 항목의 누적 배치 횟수를 비용 계산에 적용한다
+    public void RestorePlacedCount(TurretShopEntrySO shopEntry, int placedCount)
+    {
+        if (shopEntry == null)
+        {
+            return;
+        }
+
+        placedCountsByEntry[shopEntry] = Mathf.Max(0, placedCount);
+        OnPlacementCountChanged?.Invoke(shopEntry);
     }
 
     // 성공한 배치 횟수를 기록하고 관련 UI에 변경을 알린다

@@ -20,7 +20,7 @@ MonoBehaviour:
   - Type: 42
     Count: 10
   - Type: 12
-    Count: 20
+    Count: 5
   Decomposable: 0
   ItemsFromDecompose: []
   SellCoinCount: 5000

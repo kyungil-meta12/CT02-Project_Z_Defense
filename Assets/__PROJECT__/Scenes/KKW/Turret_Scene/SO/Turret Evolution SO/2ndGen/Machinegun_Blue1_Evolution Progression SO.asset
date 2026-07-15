@@ -18,7 +18,7 @@ MonoBehaviour:
     displayName: Machinegun_Blue_2
     evolutionCosts:
     - currencyType: 0
-      amount: 150000
+      amount: 100000
     - currencyType: 28
       amount: 1
     - currencyType: 71

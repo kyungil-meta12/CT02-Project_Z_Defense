@@ -18,7 +18,7 @@ MonoBehaviour:
     displayName: Lethal_Green_1
     evolutionCosts:
     - currencyType: 0
-      amount: 90000
+      amount: 50000
     - currencyType: 7
       amount: 1
     - currencyType: 20
@@ -36,7 +36,7 @@ MonoBehaviour:
     displayName: Lethal_Red_1
     evolutionCosts:
     - currencyType: 0
-      amount: 90000
+      amount: 50000
     - currencyType: 7
       amount: 1
     - currencyType: 20
@@ -54,7 +54,7 @@ MonoBehaviour:
     displayName: Plasma_Blue_1
     evolutionCosts:
     - currencyType: 0
-      amount: 90000
+      amount: 50000
     - currencyType: 7
       amount: 1
     - currencyType: 20
@@ -72,7 +72,7 @@ MonoBehaviour:
     displayName: Plasma_Yellow_1
     evolutionCosts:
     - currencyType: 0
-      amount: 90000
+      amount: 50000
     - currencyType: 7
       amount: 1
     - currencyType: 20

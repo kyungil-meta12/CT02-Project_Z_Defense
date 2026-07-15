@@ -18,7 +18,7 @@ MonoBehaviour:
     displayName: Lethal_Green_3
     evolutionCosts:
     - currencyType: 0
-      amount: 450000
+      amount: 300000
     - currencyType: 52
       amount: 1
     - currencyType: 71

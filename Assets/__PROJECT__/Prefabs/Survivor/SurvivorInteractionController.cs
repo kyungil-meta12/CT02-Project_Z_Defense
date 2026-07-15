@@ -259,7 +259,7 @@ public class SurvivorInteractionController : MonoBehaviour
 
         if (titleText != null)
         {
-            titleText.text = "Survivor";
+            titleText.text = "생존자";
         }
 
         if (statusText != null)
@@ -282,35 +282,35 @@ public class SurvivorInteractionController : MonoBehaviour
 
         if (survivor.CanRequestTreatment)
         {
-            return "Treatment Required";
+            return "치료가 필요합니다";
         }
 
         if (survivor.CanAssignRole)
         {
-            return "Choose Role";
+            return "역할을 선택하세요";
         }
 
         if (survivor.Role == SurvivorRole.constructionWorker)
         {
-            return "Construction Worker";
+            return "건축 노동자";
         }
 
         if (survivor.Role == SurvivorRole.engineer)
         {
-            return "Engineer";
+            return "엔지니어";
         }
 
         if (survivor.IsMovingForInteraction)
         {
-            return "Moving";
+            return "이동 중";
         }
 
         if (survivor.IsWaitingForInteraction)
         {
-            return "Waiting";
+            return "대기 중";
         }
 
-        return "Survivor";
+        return "생존자";
     }
 
     // 버튼 표시 상태를 변경한다

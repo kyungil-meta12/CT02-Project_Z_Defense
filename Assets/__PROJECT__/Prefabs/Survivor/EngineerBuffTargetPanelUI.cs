@@ -112,14 +112,14 @@ public class EngineerBuffTargetPanelUI : MonoBehaviour
     {
         if (titleText != null)
         {
-            titleText.text = "Select Buff Target";
+            titleText.text = "버프 대상 선택";
         }
 
         int availableButtonCount = RefreshTargetButtons();
 
         if (statusText != null)
         {
-            statusText.text = availableButtonCount > 0 ? "Choose a turret to buff." : "No turret available.";
+            statusText.text = availableButtonCount > 0 ? "버프를 적용할 터렛을 선택하세요." : "사용 가능한 터렛이 없습니다.";
         }
     }
 
@@ -153,7 +153,7 @@ public class EngineerBuffTargetPanelUI : MonoBehaviour
         TurretDefinitionRuntimeController currentTurret = slot == null ? null : slot.RefreshAndGetCurrentTurret();
         if (currentTurret == null)
         {
-            return "Target " + displayIndex + " - Empty";
+            return "대상 " + displayIndex + " - 비어있음";
         }
 
         string turretName = currentTurret.CurrentTurretName;
@@ -162,7 +162,7 @@ public class EngineerBuffTargetPanelUI : MonoBehaviour
             turretName = currentTurret.name;
         }
 
-        return "Target " + displayIndex + " - " + turretName;
+        return "대상 " + displayIndex + " - " + turretName;
     }
 
     // 등록된 터렛 베이스와 버튼을 1:1로 갱신한다

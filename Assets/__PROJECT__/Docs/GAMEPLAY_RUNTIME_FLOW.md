@@ -265,6 +265,20 @@ Runtime policy:
 - Defense-line turret bases are enabled only for fully rebuilt lines; empty or partially rebuilt lines remain breached and keep their linked turret bases disabled.
 - Gate breach can still issue survivor retreat, but the restart sequence is responsible for restoring obstacles and engineer buffs.
 
+## Wave Save And Restore Flow
+
+1. `GameManager` registers itself with `SaveManager` before `ZombieSpawner.Start()` initializes the active wave.
+2. The save file stores only the current wave number under the `Wave` section.
+3. A successful wave increase or a game-over checkpoint rollback marks the save data dirty.
+4. On the next launch, `GameManager` restores the saved wave before spawners read it.
+5. The restored wave starts from the beginning with zero kills and a newly calculated target spawn count.
+
+Runtime policy:
+
+- Currency earned before closing the app remains governed by the currency save section.
+- Current-wave kill count, remaining spawn count, turrets, obstacles, survivors, and wave bonus accumulation are not restored.
+- Missing save data uses the scene `startWave`; invalid saved wave values are clamped to wave 1.
+
 ## Edge Cases To Check
 
 - `GameManager.Inst` missing when prefabs enable.

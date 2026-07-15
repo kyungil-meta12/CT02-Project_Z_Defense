@@ -25,7 +25,7 @@ public class WaveController : Editor
 /// <summary>
 /// 웨이브 진행, 게임 배속, 방어선 상태, 생존자/장애물 등록을 관리한다.
 /// </summary>
-public class GameManager : MonoBehaviour
+public class GameManager : MonoBehaviour, ISaveable
 {
 
     private const int DEFAULT_DEFENSE_LINE_COUNT = 4;
@@ -51,6 +51,9 @@ public class GameManager : MonoBehaviour
     }
 
     public static GameManager Inst;
+
+    // SaveManager 저장 파일 안에서 웨이브 데이터를 구분하는 키
+    public string SaveKey => "Wave";
 
     [Header("방어선")]
     [SerializeField] private List<DefenseLineEntry> defenseLines = new List<DefenseLineEntry>(DEFAULT_DEFENSE_LINE_COUNT);
@@ -118,6 +121,7 @@ public class GameManager : MonoBehaviour
         Inst = this;
 
         Wave = startWave;
+        SaveManager.Inst.Register(this);
         SetGameTimeScale(startTimeScale);
         BeginZombieDpsMeasurementWave();
 
@@ -144,6 +148,11 @@ public class GameManager : MonoBehaviour
     {
         if (Inst == this)
         {
+            if (SaveManager.Inst != null)
+            {
+                SaveManager.Inst.Unregister(this);
+            }
+
             Inst = null;
         }
     }
@@ -170,6 +179,7 @@ public class GameManager : MonoBehaviour
         RebuildAllDefenseLines(true);
         KillCount = 0;
         Wave++;
+        SaveManager.Inst?.MarkDirty();
         InventorySystem.Inst.AddCoinBouns(waveClearCoinBonusPercentage);
         OnWaveIncrease?.Invoke(Wave);
         OnWaveIncrease?.Invoke(Wave);
@@ -1174,6 +1184,7 @@ public class GameManager : MonoBehaviour
     private void PreparePreviousWaveRestart()
     {
         Wave = ResolveBossCheckpointRestartWave(Wave);
+        SaveManager.Inst?.MarkDirty();
         KillCount = 0;
         DestKillCount = 0;
         // 웨이브 실패 패널티: 그동안 모은 코인량을 초기화해 클리어 보너스에 누적되지 않도록 한다.
@@ -1195,6 +1206,37 @@ public class GameManager : MonoBehaviour
         InputDestKillCount(totalSpawnCount);
         OnWaveDecrease?.Invoke(Wave);
         BeginZombieDpsMeasurementWave();
+    }
+
+    // 현재 웨이브 번호를 SaveManager가 저장할 JSON으로 직렬화한다
+    public string CaptureSaveData()
+    {
+        WaveSaveData saveData = new WaveSaveData
+        {
+            Wave = Mathf.Max(1, Wave)
+        };
+
+        return JsonUtility.ToJson(saveData);
+    }
+
+    // 저장된 웨이브 번호를 복원하고 현재 웨이브를 처음부터 시작할 수 있도록 초기화한다
+    public void RestoreSaveData(string json)
+    {
+        WaveSaveData saveData = JsonUtility.FromJson<WaveSaveData>(json);
+        if (saveData == null)
+        {
+            return;
+        }
+
+        Wave = Mathf.Max(1, saveData.Wave);
+        KillCount = 0;
+        DestKillCount = 0;
+    }
+
+    [Serializable]
+    private class WaveSaveData
+    {
+        public int Wave;
     }
 
     // 실패 웨이브 이전의 마지막 보스 웨이브 다음 체크포인트를 계산한다

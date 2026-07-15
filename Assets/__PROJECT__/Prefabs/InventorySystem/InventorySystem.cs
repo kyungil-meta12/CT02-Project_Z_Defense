@@ -102,7 +102,7 @@ public class InventorySystem : MonoBehaviour, ISaveable
         CheckItemMetaDataValidation();
         // SaveManager에 등록한다. 저장된 재화가 있으면 이 시점에 즉시 복원되며,
         // 복원에 성공하면 IsEmpty()가 false가 되어 아래 초기 자본 지급은 자동으로 건너뛴다.
-        //SaveManager.Inst.Register(this);
+        SaveManager.Inst.Register(this);
         // 초기 자본 추가
         ApplyInitialWalletIfNeeded();
     }

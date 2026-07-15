@@ -483,11 +483,11 @@ Current Poison projectile assets:
 | Asset | Role |
 | --- | --- |
 | `Prefabs/Turret/3rdGen/Poison_Turret.prefab` | Runtime turret prefab. |
-| `SO/TurretDefinition/3rdGen/Poison_Turret_Definition.asset` | Poison turret definition. |
-| `SO/TurretVfxProgresstion/3rdGen/Poison_Turret_VFX Progression SO.asset` | Selects the Poison projectile VFX profile. |
-| `SO/VFXProfiles/Projectile/VFX_Slime/VFX_Slime 1.asset` | Current Poison projectile VFX profile. |
-| `SO/Turret Stat Profile/3rdGen/Poison_Status_Profile_SO.asset` | Current Poison status profile connected to the turret definition. |
-| `SO/AttackProfiles/Poison Death Burst Profile SO.asset` | Current Poison death burst and weak area Poison profile. |
+| `SO/Turret Definition SO/3rdGen/Poison_Turret_Definition.asset` | Poison turret definition. |
+| `SO/Turret Vfx SO/3rdGen/Poison_Turret_VFX Progression SO.asset` | Selects the Poison projectile VFX profile. |
+| `SO/VFX SO/Projectile/VFX_Slime/VFX_Slime 1.asset` | Current Poison projectile VFX profile. |
+| `SO/Turret Stat SO/3rdGen/Poison_Status_Profile_SO.asset` | Current Poison status profile connected to the turret definition. |
+| `SO/Attack Profiles SO/Poison Death Burst Profile SO.asset` | Current Poison death burst and weak area Poison profile. |
 | `Prefabs/Status Effect/Poison_Turret/MiasmaCannister 1.prefab` | Current foot/ground Poison visual. |
 | `Prefabs/Status Effect/Poison_Turret/19_Poison_Aura_Hazard_Mixed 1.prefab` | Current body Poison aura visual containing the optional `PoisonIcon` child. |
 
@@ -631,10 +631,10 @@ Current Frost beam assets:
 | --- | --- |
 | `Prefabs/Turret/3rdGen/Frost_Turret.prefab` | Runtime turret prefab. |
 | `Prefabs/Beam/FrostRay/FrostRay_TurretBeam.prefab` | Project-owned duplicated/adapted FrostRay beam VFX prefab. |
-| `SO/TurretDefinition/3rdGen/Frost_Turret_Definition.asset` | Frost turret definition. |
-| `SO/TurretVfxProgresstion/3rdGen/Forst_Turret_VFX Progression SO.asset` | Selects the FrostRay VFX profile. |
-| `SO/VFXProfiles/Beam/VFX_ForstRay/New Turret VFX Profile SO.asset` | Beam VFX profile for FrostRay. |
-| `SO/AttackProfiles/Frost_BeamAttackProfile.asset` | Beam attack rules for Frost. |
+| `SO/Turret Definition SO/3rdGen/Frost_Turret_Definition.asset` | Frost turret definition. |
+| `SO/Turret Vfx SO/3rdGen/Forst_Turret_VFX Progression SO.asset` | Selects the FrostRay VFX profile. |
+| `SO/VFX SO/Beam/VFX_ForstRay/New Turret VFX Profile SO.asset` | Beam VFX profile for FrostRay. |
+| `SO/Attack Profiles SO/Frost_BeamAttackProfile.asset` | Beam attack rules for Frost. |
 
 Required Frost prefab wiring:
 

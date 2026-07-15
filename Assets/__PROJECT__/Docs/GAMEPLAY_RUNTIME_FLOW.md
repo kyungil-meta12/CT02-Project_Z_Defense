@@ -17,7 +17,7 @@ This document summarizes the current runtime flow for waves, zombies, obstacles,
 9. Spawn profile runtime multipliers can adjust spawned zombie HP, attack damage, move/attack speed, and reward amount.
 10. Runtime-only fallback scaling applies after the final finite wave range in `ZombieWaveSpawnProfileSO`: the next wave immediately adds the configured HP and attack multiplier increments, then repeats every configured interval.
 11. Zombies notify kill progress through `GameManager.IncreaseKillCount` when their death flow completes.
-12. `GameManager.Update` increases `Wave` when `KillCount == DestKillCount` and invokes `OnWaveIncrease`.
+12. `GameManager.Update` fully restores or rebuilds all registered obstacle slots when `KillCount == DestKillCount`, increases `Wave`, and invokes `OnWaveIncrease`.
 13. `ZombieSpawner` receives the next wave and recalculates spawn settings from the active wave profile.
 14. Game-over restart lowers the active wave through `PreparePreviousWaveRestart` and invokes `OnWaveDecrease` for UI systems that must refresh on rollback.
 

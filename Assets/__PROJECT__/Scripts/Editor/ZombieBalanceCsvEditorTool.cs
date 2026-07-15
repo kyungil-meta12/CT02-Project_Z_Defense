@@ -12,11 +12,11 @@ using UnityEngine;
 /// </summary>
 public class ZombieBalanceCsvEditorTool : EditorWindow
 {
-    private const string WAVE_PROFILE_PATH = "Assets/__PROJECT__/Scenes/KKW/Turret_Scene/SO/Zombie Wave Spawn Profile/ZombieWaveSpawnProfile.asset";
-    private const string WAVE_CSV_PATH = "Assets/__PROJECT__/Scenes/KKW/Turret_Scene/SO/Zombie Wave Spawn Profile/ZombieWaveSpawnProfile.csv";
-    private const string BOSS_SCHEDULE_CSV_PATH = "Assets/__PROJECT__/Scenes/KKW/Turret_Scene/SO/Zombie Wave Spawn Profile/ZombieBossSpawnSchedule.csv";
-    private const string REWARD_ROOT_PATH = "Assets/__PROJECT__/Scenes/KKW/Turret_Scene/SO/Rewards";
-    private const string REWARD_CSV_PATH = "Assets/__PROJECT__/Scenes/KKW/Turret_Scene/SO/Rewards/ZombieRewardProfiles.csv";
+    private const string WAVE_PROFILE_PATH = "Assets/__PROJECT__/Scenes/KKW/Turret_Scene/SO/Zombie Wave Spawn SO/ZombieWaveSpawnProfile.asset";
+    private const string WAVE_CSV_PATH = "Assets/__PROJECT__/Scenes/KKW/Turret_Scene/SO/Zombie Wave Spawn SO/ZombieWaveSpawnProfile.csv";
+    private const string BOSS_SCHEDULE_CSV_PATH = "Assets/__PROJECT__/Scenes/KKW/Turret_Scene/SO/Zombie Wave Spawn SO/ZombieBossSpawnSchedule.csv";
+    private const string REWARD_ROOT_PATH = "Assets/__PROJECT__/Scenes/KKW/Turret_Scene/SO/Zombie Rewards SO";
+    private const string REWARD_CSV_PATH = "Assets/__PROJECT__/Scenes/KKW/Turret_Scene/SO/Zombie Rewards SO/ZombieRewardProfiles.csv";
     private const string SURVIVOR_RESCUE_PROFILE_PATH = "Assets/__PROJECT__/Prefabs/Survivor/SurvivorRescueSpawnProfile.asset";
     private const string SURVIVOR_RESCUE_CSV_PATH = "Assets/__PROJECT__/Prefabs/Survivor/SurvivorRescueSpawnProfile.csv";
 

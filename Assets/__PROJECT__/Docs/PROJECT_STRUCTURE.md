@@ -24,7 +24,7 @@ This document is the shortest map for finding where project code, scenes, prefab
 | Zombies | `Prefabs/Damageable/NormalZombie`, `Prefabs/Damageable/BossZombie` | Movement, attack, damage, death, pool return, boss behavior. |
 | Obstacles and repair | `Prefabs/Damageable/Obstacle`, `Prefabs/Survivor` | Obstacle HP/fracture/repair reservation, survivor retreat/return/repair/vault. |
 | Obstacle placement | `Prefabs/Damageable/Obstacle/ObstacleBuild*`, `Prefabs/Damageable/Obstacle/ObstaclePlacement*` | Fixed defense-line obstacle/gate slot placement and rebuild UI. |
-| Spawning | `Prefabs/ZombieSpawner`, `Scenes/KKW/Turret_Scene/SO/Zombie Wave Spawn Profile`, `Scenes/KKW/Turret_Scene/SO/Zombie_Specs` | `ZombieWaveSpawnProfileSO` driven wave ranges, spawn counts, weighted normal entries, boss spawn schedules, and runtime stat/reward multipliers. Zombie specs own only baseline stats and random variance. |
+| Spawning | `Prefabs/ZombieSpawner`, `Scenes/KKW/Turret_Scene/SO/Zombie Wave Spawn SO`, `Scenes/KKW/Turret_Scene/SO/Zombie Specs SO` | `ZombieWaveSpawnProfileSO` driven wave ranges, spawn counts, weighted normal entries, boss spawn schedules, and runtime stat/reward multipliers. Zombie specs own only baseline stats and random variance. |
 | Turrets | `Scenes/KKW/Turret_Scene` | Turret definitions, stats, evolution, placement, projectile damage, VFX profile data. |
 | Common feedback | `Scripts/DamagePopup*`, `Resources/UI` | World-space DNP damage number policy, spawning, sorting, and runtime profiling settings. |
 | Status effects | `Scripts/StatusEffects` | Shared status-effect visuals and per-target runtimes such as `FrostStatusRuntime` and `PoisonStatusRuntime`. |
@@ -39,7 +39,7 @@ This document is the shortest map for finding where project code, scenes, prefab
 | A prefab-specific behavior | Near the prefab under `Assets/__PROJECT__/Prefabs/...` |
 | Obstacle/gate placement and defense-line slot behavior | `Assets/__PROJECT__/Prefabs/Damageable/Obstacle` |
 | Turret, projectile, placement, skill, or turret SO work | `Assets/__PROJECT__/Scenes/KKW/Turret_Scene/...` until the turret module is moved to a shared folder |
-| Turret special attack profiles | `Assets/__PROJECT__/Scenes/KKW/Turret_Scene/SO/AttackProfiles/...` |
+| Turret special attack profiles | `Assets/__PROJECT__/Scenes/KKW/Turret_Scene/SO/Attack Profiles SO/...` |
 | Turret-owned status effect VFX prefabs | `Assets/__PROJECT__/Scenes/KKW/Turret_Scene/Prefabs/Status Effect/...` |
 | Runtime-loaded UI settings or prefabs | `Assets/__PROJECT__/Resources/UI` only when `Resources.Load` is required |
 | Documentation | `Assets/__PROJECT__/Docs` |

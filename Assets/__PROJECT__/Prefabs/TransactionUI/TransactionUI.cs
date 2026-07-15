@@ -19,7 +19,7 @@ public struct TransactionCellData
     public int BuyCost;
 }
 
-public class TransactionUI : MonoBehaviour
+public class TransactionUI : TouchBackHandler
 {
     const float NO_ITEM_BRIGHTNESS = 0.4f;
     const float HAS_ITEM_BRIGHTNESS = 1f;
@@ -138,6 +138,8 @@ public class TransactionUI : MonoBehaviour
         autoBuy.SetExecuteEnterTime(autoExecuteEnterTime);
         autoBuy.SetExecuteInterval (autoExecuteInterval);
         autoBuy.RegisterAction(BuyItem);
+
+        OnTouchBackAction += OnCloseTransactionUI;
     }
 
     void OnDestroy()
@@ -154,6 +156,9 @@ public class TransactionUI : MonoBehaviour
         {
             return;
         }
+
+        // 뒤로가기 버튼 인식 업데이트
+        UpdateTouchBackHandler();
         
         // 자동 판매 실행 업데이트
         autoSell.Update();

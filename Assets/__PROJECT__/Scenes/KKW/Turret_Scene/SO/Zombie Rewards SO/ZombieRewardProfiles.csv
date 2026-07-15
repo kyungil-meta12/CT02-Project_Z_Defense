@@ -24,7 +24,7 @@ NZ_Tourist,Frog,1,0.1,0.8,1.2
 NZ_Tourist,HollyPlant,1,0.1,0.8,1.2
 NZ_Tourist,GoldRing,1,0.1,0.8,1.2
 NZ_Tourist,Clover,1,0.1,0.8,1.2
-NZ_Tourist,NuclerRadioactive,1,0.1,0.8,1.2
+NZ_Tourist,UraniumOre,1,0.1,0.8,1.2
 NZ_Bellhop,Coin,50,1,0.8,1.2
 NZ_Bellhop,Stone,20,0.345,0.8,1.2
 NZ_Bellhop,Bone,5,0.5,0.8,1.2
@@ -50,7 +50,7 @@ NZ_Bellhop,Frog,1,0.1,0.8,1.2
 NZ_Bellhop,HollyPlant,1,0.1,0.8,1.2
 NZ_Bellhop,GoldRing,1,0.1,0.8,1.2
 NZ_Bellhop,Clover,1,0.1,0.8,1.2
-NZ_Bellhop,NuclerRadioactive,1,0.1,0.8,1.2
+NZ_Bellhop,UraniumOre,1,0.1,0.8,1.2
 NZ_ShopKeeper,Coin,50,1,0.8,1.2
 NZ_ShopKeeper,Stone,20,0.345,0.8,1.2
 NZ_ShopKeeper,Bone,5,0.5,0.8,1.2
@@ -76,7 +76,7 @@ NZ_ShopKeeper,Frog,1,0.1,0.8,1.2
 NZ_ShopKeeper,HollyPlant,1,0.1,0.8,1.2
 NZ_ShopKeeper,GoldRing,1,0.1,0.8,1.2
 NZ_ShopKeeper,Clover,1,0.1,0.8,1.2
-NZ_ShopKeeper,NuclerRadioactive,1,0.1,0.8,1.2
+NZ_ShopKeeper,UraniumOre,1,0.1,0.8,1.2
 NZ_BusinessMan,Coin,75,1,0.8,1.2
 NZ_BusinessMan,Stone,20,0.345,0.8,1.2
 NZ_BusinessMan,Bone,5,0.5,0.8,1.2
@@ -102,7 +102,7 @@ NZ_BusinessMan,Frog,1,0.1,0.8,1.2
 NZ_BusinessMan,HollyPlant,1,0.1,0.8,1.2
 NZ_BusinessMan,GoldRing,1,0.1,0.8,1.2
 NZ_BusinessMan,Clover,1,0.1,0.8,1.2
-NZ_BusinessMan,NuclerRadioactive,1,0.1,0.8,1.2
+NZ_BusinessMan,UraniumOre,1,0.1,0.8,1.2
 NZ_Hobo,Coin,75,1,0.8,1.2
 NZ_Hobo,Stone,20,0.345,0.8,1.2
 NZ_Hobo,Bone,5,0.5,0.8,1.2
@@ -128,7 +128,7 @@ NZ_Hobo,Frog,1,0.1,0.8,1.2
 NZ_Hobo,HollyPlant,1,0.1,0.8,1.2
 NZ_Hobo,GoldRing,1,0.1,0.8,1.2
 NZ_Hobo,Clover,1,0.1,0.8,1.2
-NZ_Hobo,NuclerRadioactive,1,0.1,0.8,1.2
+NZ_Hobo,UraniumOre,1,0.1,0.8,1.2
 NZ_AirportWorker,Coin,75,1,0.8,1.2
 NZ_AirportWorker,Stone,20,0.345,0.8,1.2
 NZ_AirportWorker,Bone,5,0.5,0.8,1.2
@@ -154,7 +154,7 @@ NZ_AirportWorker,Frog,1,0.1,0.8,1.2
 NZ_AirportWorker,HollyPlant,1,0.1,0.8,1.2
 NZ_AirportWorker,GoldRing,1,0.1,0.8,1.2
 NZ_AirportWorker,Clover,1,0.1,0.8,1.2
-NZ_AirportWorker,NuclerRadioactive,1,0.1,0.8,1.2
+NZ_AirportWorker,UraniumOre,1,0.1,0.8,1.2
 NZ_Farmer,Coin,75,1,0.8,1.2
 NZ_Farmer,Stone,20,0.345,0.8,1.2
 NZ_Farmer,Bone,5,0.5,0.8,1.2
@@ -180,7 +180,7 @@ NZ_Farmer,Frog,1,0.1,0.8,1.2
 NZ_Farmer,HollyPlant,1,0.1,0.8,1.2
 NZ_Farmer,GoldRing,1,0.1,0.8,1.2
 NZ_Farmer,Clover,1,0.1,0.8,1.2
-NZ_Farmer,NuclerRadioactive,1,0.1,0.8,1.2
+NZ_Farmer,UraniumOre,1,0.1,0.8,1.2
 NZ_Runner,Coin,90,1,0.8,1.2
 NZ_Runner,Stone,20,0.345,0.8,1.2
 NZ_Runner,Bone,5,0.5,0.8,1.2
@@ -206,7 +206,7 @@ NZ_Runner,Frog,1,0.1,0.8,1.2
 NZ_Runner,HollyPlant,1,0.1,0.8,1.2
 NZ_Runner,GoldRing,1,0.1,0.8,1.2
 NZ_Runner,Clover,1,0.1,0.8,1.2
-NZ_Runner,NuclerRadioactive,1,0.1,0.8,1.2
+NZ_Runner,UraniumOre,1,0.1,0.8,1.2
 NZ_RoadWorker,Coin,130,1,0.8,1.2
 NZ_RoadWorker,Stone,20,0.345,0.8,1.2
 NZ_RoadWorker,Bone,5,0.5,0.8,1.2
@@ -232,7 +232,7 @@ NZ_RoadWorker,Frog,1,0.1,0.8,1.2
 NZ_RoadWorker,HollyPlant,1,0.1,0.8,1.2
 NZ_RoadWorker,GoldRing,1,0.1,0.8,1.2
 NZ_RoadWorker,Clover,1,0.1,0.8,1.2
-NZ_RoadWorker,NuclerRadioactive,1,0.1,0.8,1.2
+NZ_RoadWorker,UraniumOre,1,0.1,0.8,1.2
 NZ_Mechanic,Coin,130,1,0.8,1.2
 NZ_Mechanic,Stone,20,0.345,0.8,1.2
 NZ_Mechanic,Bone,5,0.5,0.8,1.2
@@ -258,7 +258,7 @@ NZ_Mechanic,Frog,1,0.1,0.8,1.2
 NZ_Mechanic,HollyPlant,1,0.1,0.8,1.2
 NZ_Mechanic,GoldRing,1,0.1,0.8,1.2
 NZ_Mechanic,Clover,1,0.1,0.8,1.2
-NZ_Mechanic,NuclerRadioactive,1,0.1,0.8,1.2
+NZ_Mechanic,UraniumOre,1,0.1,0.8,1.2
 NZ_Trucker,Coin,130,1,0.8,1.2
 NZ_Trucker,Stone,20,0.345,0.8,1.2
 NZ_Trucker,Bone,5,0.5,0.8,1.2
@@ -284,7 +284,7 @@ NZ_Trucker,Frog,1,0.1,0.8,1.2
 NZ_Trucker,HollyPlant,1,0.1,0.8,1.2
 NZ_Trucker,GoldRing,1,0.1,0.8,1.2
 NZ_Trucker,Clover,1,0.1,0.8,1.2
-NZ_Trucker,NuclerRadioactive,1,0.1,0.8,1.2
+NZ_Trucker,UraniumOre,1,0.1,0.8,1.2
 NZ_Pimp,Coin,150,1,0.8,1.2
 NZ_Pimp,Stone,20,0.345,0.8,1.2
 NZ_Pimp,Bone,5,0.5,0.8,1.2
@@ -310,7 +310,7 @@ NZ_Pimp,Frog,1,0.1,0.8,1.2
 NZ_Pimp,HollyPlant,1,0.1,0.8,1.2
 NZ_Pimp,GoldRing,1,0.1,0.8,1.2
 NZ_Pimp,Clover,1,0.1,0.8,1.2
-NZ_Pimp,NuclerRadioactive,1,0.1,0.8,1.2
+NZ_Pimp,UraniumOre,1,0.1,0.8,1.2
 NZ_Prizoner,Coin,150,1,0.8,1.2
 NZ_Prizoner,Stone,20,0.345,0.8,1.2
 NZ_Prizoner,Bone,5,0.5,0.8,1.2
@@ -336,7 +336,7 @@ NZ_Prizoner,Frog,1,0.1,0.8,1.2
 NZ_Prizoner,HollyPlant,1,0.1,0.8,1.2
 NZ_Prizoner,GoldRing,1,0.1,0.8,1.2
 NZ_Prizoner,Clover,1,0.1,0.8,1.2
-NZ_Prizoner,NuclerRadioactive,1,0.1,0.8,1.2
+NZ_Prizoner,UraniumOre,1,0.1,0.8,1.2
 NZ_AirportSecurity,Coin,150,1,0.8,1.2
 NZ_AirportSecurity,Stone,20,0.345,0.8,1.2
 NZ_AirportSecurity,Bone,5,0.5,0.8,1.2
@@ -362,7 +362,7 @@ NZ_AirportSecurity,Frog,1,0.1,0.8,1.2
 NZ_AirportSecurity,HollyPlant,1,0.1,0.8,1.2
 NZ_AirportSecurity,GoldRing,1,0.1,0.8,1.2
 NZ_AirportSecurity,Clover,1,0.1,0.8,1.2
-NZ_AirportSecurity,NuclerRadioactive,1,0.1,0.8,1.2
+NZ_AirportSecurity,UraniumOre,1,0.1,0.8,1.2
 NZ_FireFighter,Coin,220,1,0.8,1.2
 NZ_FireFighter,Stone,20,0.345,0.8,1.2
 NZ_FireFighter,Bone,5,0.5,0.8,1.2
@@ -388,7 +388,7 @@ NZ_FireFighter,Frog,1,0.1,0.8,1.2
 NZ_FireFighter,HollyPlant,1,0.1,0.8,1.2
 NZ_FireFighter,GoldRing,1,0.1,0.8,1.2
 NZ_FireFighter,Clover,1,0.1,0.8,1.2
-NZ_FireFighter,NuclerRadioactive,1,0.1,0.8,1.2
+NZ_FireFighter,UraniumOre,1,0.1,0.8,1.2
 NZ_Solider,Coin,220,1,0.8,1.2
 NZ_Solider,Stone,20,0.345,0.8,1.2
 NZ_Solider,Bone,5,0.5,0.8,1.2
@@ -414,7 +414,7 @@ NZ_Solider,Frog,1,0.1,0.8,1.2
 NZ_Solider,HollyPlant,1,0.1,0.8,1.2
 NZ_Solider,GoldRing,1,0.1,0.8,1.2
 NZ_Solider,Clover,1,0.1,0.8,1.2
-NZ_Solider,NuclerRadioactive,1,0.1,0.8,1.2
+NZ_Solider,UraniumOre,1,0.1,0.8,1.2
 Boomer,Coin,1000,1,0.8,1.2
 Boomer,SuitCase,1,0.1,0.8,1.2
 Boomer,GreenEye,1,0.1,0.8,1.2

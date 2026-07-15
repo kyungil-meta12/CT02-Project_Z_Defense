@@ -29,7 +29,7 @@ internal sealed class TurretBalanceReportTableBuilder
     // 아이템 밸런스 표 캐시를 만든다
     private static void BuildItemBalanceTableCache(TurretBalanceReportResult report, ReportTableModel table)
     {
-        RewardCurrencyType[] currencyTypes = GetSortedCurrencyTypes(TurretBalanceReportCurrencyProjector.BuildTurretCurrencyScope(report));
+        RewardCurrencyType[] currencyTypes = GetSortedCurrencyTypes(TurretBalanceReportCurrencyProjector.BuildAllCurrencyScope());
         string[] headers = new string[1 + currencyTypes.Length];
         headers[0] = "웨이브";
         for (int i = 0; i < currencyTypes.Length; i++)
@@ -37,7 +37,7 @@ internal sealed class TurretBalanceReportTableBuilder
             headers[1 + i] = currencyTypes[i].ToString();
         }
 
-        table.Reset("item_balance.csv", "각 웨이브 시작 시점의 누적 보상에 드랍 기대값, 웨이브 보상 배율, 아이템 데이터 CSV의 조합/분해 기대값을 반영한 아이템별 최대 참조 수량입니다. 터렛 업그레이드/진화 비용에 직접 필요한 재화만 표시하며, 각 열은 해당 아이템을 목표로 했을 때의 독립 참조값입니다.", headers);
+        table.Reset("item_balance.csv", "각 웨이브 시작 시점의 누적 보상에 드랍 기대값, 웨이브 보상 배율, 아이템 데이터 CSV의 조합/분해 기대값을 반영한 아이템별 최대 참조 수량입니다. 아이템 데이터에 대응하는 전체 재화를 표시하며, 각 열은 해당 아이템을 목표로 했을 때의 독립 참조값입니다.", headers);
         for (int rowIndex = 0; rowIndex < report.ItemBalanceRows.Count; rowIndex++)
         {
             ItemBalanceRow row = report.ItemBalanceRows[rowIndex];

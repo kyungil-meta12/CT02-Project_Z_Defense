@@ -888,7 +888,7 @@ A complete path from Sentinel-01 tier level 1 to a second-generation `_3` tier l
 ## Placement Runtime Flow
 
 1. Scene-placed `TurretPlacementSlotUI` buttons reference a `TurretShopEntrySO` and `TurretPlacementController` directly.
-2. `TurretPlacementSlotUI` starts placement by drag or click.
+2. `TurretPlacementSlotUI` starts placement only by drag; a simple button click does not enter placement mode.
 3. `TurretPlacementController` raycasts against the TurretBase layer and expects `PlacementHitArea`.
 4. Hit collider must have `TurretBaseSlot` in parent hierarchy.
 5. If the slot has `BuildPoint` and no turret, preview snaps to `BuildPoint` and shows valid state.
@@ -901,6 +901,7 @@ A complete path from Sentinel-01 tier level 1 to a second-generation `_3` tier l
 12. `TurretBaseSlot` records the occupied turret controller or fallback GameObject.
 13. `TurretPlacementController` records successful placement count per placement entry.
 14. Placement entries can use `Placement Cost Tiers` to change the next placement cost by successful placement count.
+15. Placement is confirmed only by `OnEndDrag`; world clicks never confirm an active preview.
 
 Placement preview scale rules:
 

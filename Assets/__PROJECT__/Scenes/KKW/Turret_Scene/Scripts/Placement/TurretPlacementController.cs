@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using ProjectZDefense.Audio;
 using UnityEngine;
-using UnityEngine.EventSystems;
 
 [Serializable]
 /// <summary>
@@ -29,7 +28,6 @@ public class TurretPlacementController : MonoBehaviour
     [Header("프리뷰")]
     [SerializeField] private bool hidePreviewWhenNoBase = true;
     [SerializeField] private bool showInvalidPreviewOnWorld = true;
-    [SerializeField] private bool allowWorldClickPlacement = true;
     [SerializeField, Tooltip("설치 가능 프리뷰에 직접 사용할 머티리얼입니다. 값이 있으면 Valid Preview Color는 적용되지 않습니다.")]
     private Material validPreviewMaterial;
     [SerializeField, Tooltip("설치 불가 프리뷰에 직접 사용할 머티리얼입니다. 값이 있으면 Invalid Preview Color는 적용되지 않습니다.")]
@@ -93,10 +91,10 @@ public class TurretPlacementController : MonoBehaviour
         DestroyRuntimePreviewMaterials();
     }
 
-    // 월드 클릭 배치 입력을 처리한다
+    // 드래그 배치 중 프리뷰 이동과 취소 입력을 처리한다
     private void Update()
     {
-        if (!IsPlacing || !allowWorldClickPlacement)
+        if (!IsPlacing)
         {
             return;
         }
@@ -110,10 +108,6 @@ public class TurretPlacementController : MonoBehaviour
             return;
         }
 
-        if (WasPrimaryPointerPressed() && !IsPointerOverUI())
-        {
-            EndPlacement(pointerPosition);
-        }
     }
 
     // 배치 엔트리로 터렛 배치 프리뷰를 시작한다
@@ -557,33 +551,5 @@ public class TurretPlacementController : MonoBehaviour
         return true;
     }
 
-    // 현재 프레임에 주 입력 포인터가 눌렸는지 확인한다
-    private static bool WasPrimaryPointerPressed()
-    {
-        if (Input.touchCount > 0)
-        {
-            Touch touch = Input.GetTouch(0);
-            return touch.phase == TouchPhase.Began;
-        }
-
-        return Input.GetMouseButtonDown(0);
-    }
-
-    // 현재 주 입력 포인터가 UI 위에 있는지 확인한다
-    private static bool IsPointerOverUI()
-    {
-        if (EventSystem.current == null)
-        {
-            return false;
-        }
-
-        if (Input.touchCount > 0)
-        {
-            Touch touch = Input.GetTouch(0);
-            return EventSystem.current.IsPointerOverGameObject(touch.fingerId);
-        }
-
-        return EventSystem.current.IsPointerOverGameObject();
-    }
 }
 

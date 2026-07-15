@@ -8,7 +8,7 @@ using UnityEngine.UI;
 /// 터렛 배치 슬롯 UI의 입력과 설치 횟수별 비용 표시를 관리한다.
 /// </summary>
 [DisallowMultipleComponent]
-public class TurretPlacementSlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler, IPointerClickHandler
+public class TurretPlacementSlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler
 {
     [Header("참조")]
     [SerializeField] private Image iconImage;
@@ -107,25 +107,6 @@ public class TurretPlacementSlotUI : MonoBehaviour, IBeginDragHandler, IDragHand
         }
 
         placementController.EndPlacement(eventData.position);
-    }
-
-    // 슬롯 클릭 시 배치 모드를 시작하거나 기존 배치 모드를 취소한다
-    public void OnPointerClick(PointerEventData eventData)
-    {
-        ResolveController();
-
-        if (placementController == null || shopEntry == null)
-        {
-            return;
-        }
-
-        if (placementController.IsPlacing)
-        {
-            placementController.CancelPlacement();
-            return;
-        }
-
-        placementController.BeginPlacement(shopEntry, eventData.position);
     }
 
     // 수동 배치 버튼에 컨트롤러가 비어 있으면 씬에서 한 번 찾아 연결한다

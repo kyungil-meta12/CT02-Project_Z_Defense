@@ -1,6 +1,5 @@
 using System;
 using UnityEngine;
-using UnityEngine.EventSystems;
 
 /// <summary>
 /// 장애물/게이트 배치 입력, 프리뷰, 슬롯 확정을 관리한다.
@@ -87,7 +86,7 @@ public class ObstaclePlacementController : MonoBehaviour
         DestroyRuntimePreviewMaterials();
     }
 
-    // 배치 중 포인터 위치와 취소 입력을 처리한다
+    // 드래그 배치 중 프리뷰 이동과 취소 입력을 처리한다
     private void Update()
     {
         if (!IsPlacing)
@@ -104,10 +103,6 @@ public class ObstaclePlacementController : MonoBehaviour
             return;
         }
 
-        if (WasPrimaryPointerPressed() && !IsPointerOverUI())
-        {
-            EndPlacement(pointerPosition);
-        }
     }
 
     // 선택한 빌드 항목으로 장애물 배치를 시작한다
@@ -551,32 +546,4 @@ public class ObstaclePlacementController : MonoBehaviour
         return true;
     }
 
-    // 마우스 또는 터치의 기본 누름 입력이 시작됐는지 확인한다
-    private static bool WasPrimaryPointerPressed()
-    {
-        if (Input.touchCount > 0)
-        {
-            Touch touch = Input.GetTouch(0);
-            return touch.phase == TouchPhase.Began;
-        }
-
-        return Input.GetMouseButtonDown(0);
-    }
-
-    // 현재 포인터가 UI 위에 있는지 확인한다
-    private static bool IsPointerOverUI()
-    {
-        if (EventSystem.current == null)
-        {
-            return false;
-        }
-
-        if (Input.touchCount > 0)
-        {
-            Touch touch = Input.GetTouch(0);
-            return EventSystem.current.IsPointerOverGameObject(touch.fingerId);
-        }
-
-        return EventSystem.current.IsPointerOverGameObject();
-    }
 }

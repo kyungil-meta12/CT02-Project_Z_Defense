@@ -106,7 +106,7 @@ Important policy:
 ## Obstacle Placement Flow
 
 1. Scene-placed `ObstaclePlacementSlotUI` buttons reference an `ObstacleBuildEntrySO` and `ObstaclePlacementController` directly.
-2. `ObstaclePlacementSlotUI` starts placement by drag or click.
+2. `ObstaclePlacementSlotUI` starts placement only by drag; a simple button click does not enter placement mode.
 3. `ObstaclePlacementController` raycasts against `ObstacleBuildSlot` hit areas.
 4. During drag, preview follows the pointer on the configured world plane as a red invalid preview when no slot is under the pointer.
 5. When the pointer enters a slot, preview snaps to the slot `BuildPoint` and shows its valid or invalid placement color.
@@ -121,6 +121,7 @@ Important policy:
 14. The placed obstacle receives its `ObstacleDefinitionSO` and inherited or initial level through `ObstacleUpgradeRuntimeController`.
 15. The placed obstacle is assigned to the slot and `GameManager.NotifyObstaclePlaced` is called.
 16. If the line was breached and all registered slots on that defense line are occupied again, `GameManager.NotifyDefenseLineRestored` restores that defense line.
+17. Placement is confirmed only by `OnEndDrag`; world clicks never confirm an active preview.
 
 `ObstaclePlacementUI` remains available as an optional runtime rebuild helper, but manual scene buttons are the default setup.
 

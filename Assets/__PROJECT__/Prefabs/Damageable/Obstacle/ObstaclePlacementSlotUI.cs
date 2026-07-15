@@ -8,7 +8,7 @@ using UnityEngine.UI;
 /// 장애물/게이트 배치 버튼의 표시 정보와 클릭/드래그 배치 입력을 처리한다.
 /// </summary>
 [DisallowMultipleComponent]
-public class ObstaclePlacementSlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler, IPointerClickHandler
+public class ObstaclePlacementSlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler
 {
     [Header("참조")]
     [SerializeField] private Image iconImage;
@@ -118,25 +118,6 @@ public class ObstaclePlacementSlotUI : MonoBehaviour, IBeginDragHandler, IDragHa
         }
 
         placementController.EndPlacement(eventData.position);
-    }
-
-    // 버튼 클릭으로 배치를 시작하거나 진행 중인 배치를 취소한다
-    public void OnPointerClick(PointerEventData eventData)
-    {
-        ResolveController();
-
-        if (placementController == null || buildEntry == null)
-        {
-            return;
-        }
-
-        if (placementController.IsPlacing)
-        {
-            placementController.CancelPlacement();
-            return;
-        }
-
-        placementController.BeginPlacement(buildEntry, eventData.position);
     }
 
     // 수동 배치 버튼에 컨트롤러가 비어 있으면 씬에서 한 번 찾아 연결한다

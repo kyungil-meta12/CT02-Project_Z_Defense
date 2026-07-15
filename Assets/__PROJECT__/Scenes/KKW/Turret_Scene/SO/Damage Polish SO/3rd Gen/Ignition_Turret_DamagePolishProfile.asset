@@ -15,7 +15,7 @@ MonoBehaviour:
   useDamageVariance: 1
   minDamageMultiplier: 0.9
   maxDamageMultiplier: 1.1
-  criticalChance: 0.33900002
+  criticalChance: 0.05
   criticalMultiplier: 2
-  heavyHitChance: 0.347
+  heavyHitChance: 0.02
   heavyHitMultiplier: 3

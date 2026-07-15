@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 64086bcb185c80947a81b76bc4479622, type: 3}
   m_Name: Machinegun_Red_1
   m_EditorClassIdentifier: Assembly-CSharp::TurretStatProfileSO
-  damage: 203.125
+  damage: 317.2458
   range: 47
   fireInterval: 0.75
   projectileSpeed: 45

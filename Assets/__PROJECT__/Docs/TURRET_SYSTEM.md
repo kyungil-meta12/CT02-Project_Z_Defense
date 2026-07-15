@@ -947,6 +947,7 @@ Engineer buff policy:
 - Initial engineer seat limits are 1st generation `1`, 2nd generation `2`, and 3rd generation `3`; future balance changes should adjust the SO or CSV value, not the runtime code.
 - `TurretDataCsvEditorTool` exports and imports this value through the `MaxEngineerSeatCount` column.
 - `TurretDataCsvEditorTool` exports and imports `TurretDamagePolishProfileSO.criticalChance` and `heavyHitChance` through the single `CriticalChancePercent` column. The CSV cell uses `criticalPercent;heavyPercent` such as `7;1`, while the ScriptableObject stores both values as `0~1`. Importing a legacy single value such as `7` updates only `criticalChance` and keeps the existing `heavyHitChance`.
+- `TurretDataCsvEditorTool` exports definitions in breadth-first evolution order, starting from definitions that are not targeted by another managed evolution entry. Child order follows each `TurretEvolutionProgressionSO.evolutionEntries` array, and disconnected or cyclic definitions are appended deterministically by generation path so no managed definition is omitted.
 
 ## Targeting And Firing Notes
 

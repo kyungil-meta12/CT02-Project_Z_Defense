@@ -455,12 +455,107 @@ public class TurretDataCsvEditorTool : EditorWindow
             }
         }
 
-        definitions.Sort(CompareTurretDefinitions);
-        return definitions;
+        definitions.Sort(CompareTurretDefinitionsByPath);
+        return SortDefinitionsByEvolutionOrder(definitions);
+    }
+
+    // 터렛 Definition을 실제 진화 트리의 너비 우선 순서로 정렬한다
+    private static List<TurretDefinitionSO> SortDefinitionsByEvolutionOrder(List<TurretDefinitionSO> definitions)
+    {
+        List<TurretDefinitionSO> sortedDefinitions = new List<TurretDefinitionSO>(definitions.Count);
+        HashSet<TurretDefinitionSO> managedDefinitions = new HashSet<TurretDefinitionSO>(definitions);
+        HashSet<TurretDefinitionSO> targetedDefinitions = new HashSet<TurretDefinitionSO>();
+        HashSet<TurretDefinitionSO> visitedDefinitions = new HashSet<TurretDefinitionSO>();
+        Queue<TurretDefinitionSO> queue = new Queue<TurretDefinitionSO>();
+
+        for (int i = 0; i < definitions.Count; i++)
+        {
+            AddEvolutionTargets(definitions[i], managedDefinitions, targetedDefinitions);
+        }
+
+        for (int i = 0; i < definitions.Count; i++)
+        {
+            TurretDefinitionSO definition = definitions[i];
+            if (!targetedDefinitions.Contains(definition))
+            {
+                queue.Enqueue(definition);
+            }
+        }
+
+        AppendEvolutionBreadthFirst(queue, managedDefinitions, visitedDefinitions, sortedDefinitions);
+
+        // 잘못 끊긴 참조나 순환이 있어도 관리 대상 Definition이 CSV에서 누락되지 않게 경로 순으로 덧붙인다.
+        for (int i = 0; i < definitions.Count; i++)
+        {
+            TurretDefinitionSO definition = definitions[i];
+            if (visitedDefinitions.Add(definition))
+            {
+                sortedDefinitions.Add(definition);
+            }
+        }
+
+        return sortedDefinitions;
+    }
+
+    // Definition의 관리 대상 진화 목표를 집합에 추가한다
+    private static void AddEvolutionTargets(
+        TurretDefinitionSO definition,
+        HashSet<TurretDefinitionSO> managedDefinitions,
+        HashSet<TurretDefinitionSO> targetedDefinitions)
+    {
+        TurretEvolutionProgressionSO progression = definition == null ? null : definition.evolutionProgressionProfile;
+        TurretEvolutionEntry[] entries = progression == null ? null : progression.evolutionEntries;
+        if (entries == null)
+        {
+            return;
+        }
+
+        for (int i = 0; i < entries.Length; i++)
+        {
+            TurretDefinitionSO targetDefinition = entries[i] == null ? null : entries[i].targetDefinition;
+            if (targetDefinition != null && managedDefinitions.Contains(targetDefinition))
+            {
+                targetedDefinitions.Add(targetDefinition);
+            }
+        }
+    }
+
+    // 대기열의 Definition과 자식 진화 후보를 너비 우선 순서로 결과에 추가한다
+    private static void AppendEvolutionBreadthFirst(
+        Queue<TurretDefinitionSO> queue,
+        HashSet<TurretDefinitionSO> managedDefinitions,
+        HashSet<TurretDefinitionSO> visitedDefinitions,
+        List<TurretDefinitionSO> sortedDefinitions)
+    {
+        while (queue.Count > 0)
+        {
+            TurretDefinitionSO definition = queue.Dequeue();
+            if (definition == null || !visitedDefinitions.Add(definition))
+            {
+                continue;
+            }
+
+            sortedDefinitions.Add(definition);
+            TurretEvolutionProgressionSO progression = definition.evolutionProgressionProfile;
+            TurretEvolutionEntry[] entries = progression == null ? null : progression.evolutionEntries;
+            if (entries == null)
+            {
+                continue;
+            }
+
+            for (int i = 0; i < entries.Length; i++)
+            {
+                TurretDefinitionSO targetDefinition = entries[i] == null ? null : entries[i].targetDefinition;
+                if (targetDefinition != null && managedDefinitions.Contains(targetDefinition) && !visitedDefinitions.Contains(targetDefinition))
+                {
+                    queue.Enqueue(targetDefinition);
+                }
+            }
+        }
     }
 
     // 터렛 Definition을 파일 디렉토리 세대와 경로 기준으로 정렬한다
-    private static int CompareTurretDefinitions(TurretDefinitionSO left, TurretDefinitionSO right)
+    private static int CompareTurretDefinitionsByPath(TurretDefinitionSO left, TurretDefinitionSO right)
     {
         string leftPath = AssetDatabase.GetAssetPath(left);
         string rightPath = AssetDatabase.GetAssetPath(right);

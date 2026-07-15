@@ -73,12 +73,16 @@ public class GameManager : MonoBehaviour, ISaveable
     public event Action<int> OnFirstWaveReached; // 웨이브 최초 도달 이벤트
     private readonly List<Survivor> survivors = new List<Survivor>(16);
     private readonly List<SurvivorSaveEntry> pendingSurvivorRestoreEntries = new List<SurvivorSaveEntry>(16);
+    private readonly List<ObstaclePlacementSaveEntry> pendingObstacleRestoreEntries = new List<ObstaclePlacementSaveEntry>(16);
+    private readonly Dictionary<string, ObstacleBuildEntrySO> obstacleBuildEntriesBySaveId = new Dictionary<string, ObstacleBuildEntrySO>(4);
+    private readonly HashSet<string> invalidObstacleBuildEntrySaveIds = new HashSet<string>();
     private readonly List<ZombieSpawner> zombieSpawners = new List<ZombieSpawner>(2);
     private Coroutine gameOverCoroutine;
     private Coroutine quitGameCoroutine;
     private bool isWaveProgressionPaused;
     private bool suppressDefenseLineRestore;
     private bool isRestoringSurvivors;
+    private bool isRestoringObstacles;
 
     public int Wave{ get; private set; } = 1;
     public int HighestReachedWave { get; private set; }
@@ -410,6 +414,48 @@ public class GameManager : MonoBehaviour, ISaveable
         }
 
         slot.RefreshCurrentObstacleReference();
+        RegisterObstacleBuildEntry(slot.StoredBuildEntry);
+        TryRestorePendingObstaclePlacements();
+    }
+
+    // 장애물 빌드 항목을 저장 식별자로 등록한다
+    public void RegisterObstacleBuildEntry(ObstacleBuildEntrySO buildEntry)
+    {
+        if (buildEntry == null)
+        {
+            return;
+        }
+
+        string saveId = buildEntry.SaveId;
+        if (string.IsNullOrWhiteSpace(saveId))
+        {
+            Debug.LogWarning($"[GameManager] 장애물 빌드 항목 '{buildEntry.name}'의 SaveId가 비어 있어 저장 복원에 사용할 수 없습니다.", buildEntry);
+            return;
+        }
+
+        if (invalidObstacleBuildEntrySaveIds.Contains(saveId))
+        {
+            return;
+        }
+
+        if (obstacleBuildEntriesBySaveId.TryGetValue(saveId, out ObstacleBuildEntrySO registeredEntry) && registeredEntry != buildEntry)
+        {
+            Debug.LogWarning($"[GameManager] 장애물 빌드 항목 SaveId가 중복되었습니다: {saveId}", buildEntry);
+            obstacleBuildEntriesBySaveId.Remove(saveId);
+            invalidObstacleBuildEntrySaveIds.Add(saveId);
+            return;
+        }
+
+        obstacleBuildEntriesBySaveId[saveId] = buildEntry;
+    }
+
+    // 장애물 배치나 레벨 변경을 저장 대상으로 표시한다
+    public void MarkObstacleStateDirty()
+    {
+        if (!isRestoringObstacles)
+        {
+            SaveManager.Inst?.MarkDirty();
+        }
     }
 
     // 지정 배치 항목으로 최초 점유된 슬롯 수를 반환한다
@@ -824,6 +870,8 @@ public class GameManager : MonoBehaviour, ISaveable
         yield return null;
 
         EnsureDefaultDefenseLineEntries();
+        TryRestorePendingObstaclePlacements();
+        LogPendingObstacleRestoreFailures();
         for (int i = 0; i < defenseLines.Count; i++)
         {
             DefenseLineEntry defenseLine = defenseLines[i];
@@ -1292,6 +1340,8 @@ public class GameManager : MonoBehaviour, ISaveable
             }
         }
 
+        CaptureObstaclePlacements(saveData.Obstacles);
+
         return JsonUtility.ToJson(saveData);
     }
 
@@ -1318,6 +1368,18 @@ public class GameManager : MonoBehaviour, ISaveable
                 }
             }
         }
+        pendingObstacleRestoreEntries.Clear();
+        if (saveData.Obstacles != null)
+        {
+            for (int i = 0; i < saveData.Obstacles.Count; i++)
+            {
+                ObstaclePlacementSaveEntry saveEntry = saveData.Obstacles[i];
+                if (saveEntry != null)
+                {
+                    pendingObstacleRestoreEntries.Add(saveEntry);
+                }
+            }
+        }
         KillCount = 0;
         DestKillCount = 0;
     }
@@ -1328,6 +1390,141 @@ public class GameManager : MonoBehaviour, ISaveable
         public int Wave;
         public int HighestReachedWave;
         public List<SurvivorSaveEntry> Survivors = new List<SurvivorSaveEntry>();
+        public List<ObstaclePlacementSaveEntry> Obstacles = new List<ObstaclePlacementSaveEntry>();
+    }
+
+    // 현재 슬롯 진행도와 아직 해결하지 못한 복원 항목을 저장 목록에 모은다
+    private void CaptureObstaclePlacements(List<ObstaclePlacementSaveEntry> destination)
+    {
+        for (int i = 0; i < defenseLines.Count; i++)
+        {
+            DefenseLineEntry defenseLine = defenseLines[i];
+            if (defenseLine == null || defenseLine.obstacleSlots == null)
+            {
+                continue;
+            }
+
+            for (int j = 0; j < defenseLine.obstacleSlots.Count; j++)
+            {
+                ObstacleBuildSlot slot = defenseLine.obstacleSlots[j];
+                if (slot != null && slot.TryCaptureSaveEntry(out ObstaclePlacementSaveEntry saveEntry))
+                {
+                    destination.Add(saveEntry);
+                }
+            }
+        }
+
+        for (int i = 0; i < pendingObstacleRestoreEntries.Count; i++)
+        {
+            ObstaclePlacementSaveEntry pendingEntry = pendingObstacleRestoreEntries[i];
+            if (pendingEntry != null && !ContainsObstaclePlacement(destination, pendingEntry.DefenseLineIndex, pendingEntry.SlotIndex))
+            {
+                destination.Add(pendingEntry);
+            }
+        }
+    }
+
+    // 등록된 슬롯과 빌드 항목을 사용해 가능한 저장 장애물을 모두 복원한다
+    private void TryRestorePendingObstaclePlacements()
+    {
+        if (isRestoringObstacles || pendingObstacleRestoreEntries.Count == 0)
+        {
+            return;
+        }
+
+        isRestoringObstacles = true;
+        try
+        {
+            for (int i = pendingObstacleRestoreEntries.Count - 1; i >= 0; i--)
+            {
+                ObstaclePlacementSaveEntry saveEntry = pendingObstacleRestoreEntries[i];
+                ObstacleBuildSlot slot = FindDefenseLineSlot(saveEntry.DefenseLineIndex, saveEntry.SlotIndex);
+                if (slot == null || string.IsNullOrWhiteSpace(saveEntry.BuildEntrySaveId) ||
+                    !obstacleBuildEntriesBySaveId.TryGetValue(saveEntry.BuildEntrySaveId, out ObstacleBuildEntrySO buildEntry))
+                {
+                    continue;
+                }
+
+                if (slot.TryRestoreSaveEntry(saveEntry, buildEntry, out _))
+                {
+                    pendingObstacleRestoreEntries.RemoveAt(i);
+                }
+                else
+                {
+                    Debug.LogWarning($"[GameManager] 저장 장애물 복원에 실패했습니다. 방어선: {saveEntry.DefenseLineIndex}, 슬롯: {saveEntry.SlotIndex}, SaveId: {saveEntry.BuildEntrySaveId}", slot);
+                }
+            }
+        }
+        finally
+        {
+            isRestoringObstacles = false;
+        }
+    }
+
+    // 초기 등록 후에도 해결하지 못한 장애물 복원 항목의 원인을 출력한다
+    private void LogPendingObstacleRestoreFailures()
+    {
+        for (int i = 0; i < pendingObstacleRestoreEntries.Count; i++)
+        {
+            ObstaclePlacementSaveEntry saveEntry = pendingObstacleRestoreEntries[i];
+            if (saveEntry == null)
+            {
+                continue;
+            }
+
+            if (FindDefenseLineSlot(saveEntry.DefenseLineIndex, saveEntry.SlotIndex) == null)
+            {
+                Debug.LogWarning($"[GameManager] 저장 장애물의 슬롯을 찾지 못했습니다. 방어선: {saveEntry.DefenseLineIndex}, 슬롯: {saveEntry.SlotIndex}", this);
+                continue;
+            }
+
+            if (string.IsNullOrWhiteSpace(saveEntry.BuildEntrySaveId) ||
+                !obstacleBuildEntriesBySaveId.ContainsKey(saveEntry.BuildEntrySaveId))
+            {
+                Debug.LogWarning($"[GameManager] 저장 장애물의 빌드 항목을 찾지 못했습니다. SaveId: {saveEntry.BuildEntrySaveId}", this);
+            }
+        }
+    }
+
+    // 방어선과 슬롯 인덱스가 일치하는 장애물 슬롯을 반환한다
+    private ObstacleBuildSlot FindDefenseLineSlot(int defenseLineIndex, int slotIndex)
+    {
+        if (defenseLineIndex < 0 || defenseLineIndex >= defenseLines.Count)
+        {
+            return null;
+        }
+
+        DefenseLineEntry defenseLine = defenseLines[defenseLineIndex];
+        if (defenseLine == null || defenseLine.obstacleSlots == null)
+        {
+            return null;
+        }
+
+        for (int i = 0; i < defenseLine.obstacleSlots.Count; i++)
+        {
+            ObstacleBuildSlot slot = defenseLine.obstacleSlots[i];
+            if (slot != null && slot.SlotIndex == slotIndex)
+            {
+                return slot;
+            }
+        }
+
+        return null;
+    }
+
+    // 저장 목록에 같은 방어선과 슬롯 식별자가 이미 있는지 확인한다
+    private static bool ContainsObstaclePlacement(List<ObstaclePlacementSaveEntry> entries, int defenseLineIndex, int slotIndex)
+    {
+        for (int i = 0; i < entries.Count; i++)
+        {
+            ObstaclePlacementSaveEntry entry = entries[i];
+            if (entry != null && entry.DefenseLineIndex == defenseLineIndex && entry.SlotIndex == slotIndex)
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     // 실패 웨이브 이전의 마지막 보스 웨이브 다음 체크포인트를 계산한다

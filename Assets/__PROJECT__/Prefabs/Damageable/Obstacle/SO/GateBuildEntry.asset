@@ -12,6 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 417ea8b0f63d4937af1ad737b48664bb, type: 3}
   m_Name: GateBuildEntry
   m_EditorClassIdentifier: Assembly-CSharp::ObstacleBuildEntrySO
+  saveId: gate
   displayName: Gate
   icon: {fileID: 0}
   slotType: 1

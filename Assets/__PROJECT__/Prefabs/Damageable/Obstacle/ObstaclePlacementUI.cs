@@ -25,9 +25,25 @@ public class ObstaclePlacementUI : MonoBehaviour
     // 옵션이 켜진 경우 시작 시 배치 버튼을 자동 생성한다
     private void Start()
     {
+        RegisterBuildEntriesForSaveRestore();
+
         if (rebuildOnStart)
         {
             Rebuild();
+        }
+    }
+
+    // 배치 UI가 보유한 장애물 항목을 저장 복원 조회 목록에 등록한다
+    private void RegisterBuildEntriesForSaveRestore()
+    {
+        if (GameManager.Inst == null || buildEntries == null)
+        {
+            return;
+        }
+
+        for (int i = 0; i < buildEntries.Length; i++)
+        {
+            GameManager.Inst.RegisterObstacleBuildEntry(buildEntries[i]);
         }
     }
 

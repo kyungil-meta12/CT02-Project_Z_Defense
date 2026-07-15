@@ -295,6 +295,14 @@ Runtime policy:
 - Untreated survivors return as wounded and treatment-ready; treated survivors without a role return role-selection-ready.
 - Position, HP, movement target, repair reservation, defense-line state, and engineer turret assignment are not saved.
 
+## Obstacle Save And Restore Flow
+
+- The wave save section records each occupied-progress slot by defense-line index, slot index, stable build-entry ID, and upgrade level.
+- Previously placed obstacles remain owned save progress even when fractured before saving.
+- After scene slots register, saved obstacles are rebuilt without cost through the existing slot rebuild path and restored to full HP.
+- Current HP, fracture state, repair reservation, and world position are not saved.
+- Defense-line breach and linked turret-base availability are evaluated after saved obstacles are restored.
+
 ## Edge Cases To Check
 
 - `GameManager.Inst` missing when prefabs enable.

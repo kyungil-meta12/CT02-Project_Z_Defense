@@ -4,6 +4,18 @@ using System.Text;
 using UnityEngine;
 
 /// <summary>
+/// 저장 파일에 기록되는 장애물 슬롯 배치와 레벨 정보다.
+/// </summary>
+[Serializable]
+public class ObstaclePlacementSaveEntry
+{
+    public int DefenseLineIndex;
+    public int SlotIndex;
+    public string BuildEntrySaveId;
+    public int Level;
+}
+
+/// <summary>
 /// 방어선 장애물/게이트 설치 슬롯의 점유 상태와 배치 비용 소비를 관리한다.
 /// </summary>
 [DisallowMultipleComponent]
@@ -82,6 +94,38 @@ public class ObstacleBuildSlot : MonoBehaviour
     }
 
     public ObstacleBuildEntrySO StoredBuildEntry => storedBuildEntry;
+
+    // 현재 슬롯의 저장 진행도를 파일 저장 항목으로 반환한다
+    public bool TryCaptureSaveEntry(out ObstaclePlacementSaveEntry saveEntry)
+    {
+        saveEntry = null;
+        if (!hasStoredProgress || storedBuildEntry == null || string.IsNullOrWhiteSpace(storedBuildEntry.SaveId))
+        {
+            return false;
+        }
+
+        saveEntry = new ObstaclePlacementSaveEntry
+        {
+            DefenseLineIndex = defenseLineIndex,
+            SlotIndex = slotIndex,
+            BuildEntrySaveId = storedBuildEntry.SaveId,
+            Level = Mathf.Max(1, storedLevel)
+        };
+        return true;
+    }
+
+    // 저장된 배치 정보를 슬롯에 적용하고 비용 없이 최대 체력으로 재건한다
+    public bool TryRestoreSaveEntry(ObstaclePlacementSaveEntry saveEntry, ObstacleBuildEntrySO buildEntry, out Obstacle restoredObstacle)
+    {
+        restoredObstacle = null;
+        if (saveEntry == null || buildEntry == null || buildEntry.SlotType != slotType)
+        {
+            return false;
+        }
+
+        StoreObstacleProgress(buildEntry, Mathf.Max(1, saveEntry.Level));
+        return TryRebuildStoredObstacleWithoutCost(out restoredObstacle);
+    }
 
     public bool HasStoredProgressForEntry(ObstacleBuildEntrySO entry)
     {
@@ -481,14 +525,26 @@ public class ObstacleBuildSlot : MonoBehaviour
             return;
         }
 
+        int safeLevel = Mathf.Max(1, level);
+        bool hasChanged = !hasStoredProgress ||
+                          storedObstacleDefinition != definition ||
+                          storedLevel != safeLevel ||
+                          (buildEntry != null && storedBuildEntry != buildEntry);
+
         if (buildEntry != null)
         {
             storedBuildEntry = buildEntry;
+            GameManager.Inst?.RegisterObstacleBuildEntry(buildEntry);
         }
 
         storedObstacleDefinition = definition;
-        storedLevel = Mathf.Max(1, level);
+        storedLevel = safeLevel;
         hasStoredProgress = true;
+
+        if (hasChanged)
+        {
+            GameManager.Inst?.MarkObstacleStateDirty();
+        }
     }
 
     // 현재 슬롯의 저장 레벨과 정의를 장애물 런타임 컨트롤러에서 가져와 갱신한다

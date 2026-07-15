@@ -13,6 +13,9 @@ public enum ObstacleBuildSlotType
 [CreateAssetMenu(fileName = "ObstacleBuildEntry", menuName = "Project Z Defense/Obstacle Build Entry")]
 public class ObstacleBuildEntrySO : ScriptableObject
 {
+    [Header("저장 식별자")]
+    [SerializeField] private string saveId;
+
     [Header("배치 UI 표시 정보 - 이름과 아이콘")]
     [SerializeField] private string displayName;
     [SerializeField] private Sprite icon;
@@ -105,6 +108,7 @@ public class ObstacleBuildEntrySO : ScriptableObject
     }
 
     public float AdditionalCostPercentPerPlacement => additionalCostPercentPerPlacement;
+    public string SaveId => saveId;
 
     public ResourceCost[] BuildCosts
     {
@@ -184,6 +188,8 @@ public class ObstacleBuildEntrySO : ScriptableObject
     // 인스펙터 비용 값을 음수가 아닌 값으로 보정한다
     private void OnValidate()
     {
+        saveId = saveId == null ? string.Empty : saveId.Trim();
+
         if (buildCosts == null)
         {
             return;

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using ProjectZDefense.Audio;
 using UnityEngine;
 using UnityEngine.UI;
@@ -12,6 +13,7 @@ public class SellerTruckMovement : MonoBehaviour
     public TransactionPopup popup;
     public GameObject survivors;
     public LayerMask groundMask;
+    public GameObject[] particleObjects;
     [Header("나타나는 웨이브 단위")] public int appearWaveUnit; 
     [Header("테스트 모드")] public bool testMode;
 
@@ -26,12 +28,24 @@ public class SellerTruckMovement : MonoBehaviour
     private float stayTime = 0f;
     private bool isRunning = false;
 
+    private List<ParticleSystem> particles = new();
+
     void Awake()
     {
         traveler = GetComponent<WaypointsTraveler>();
         originMoveSpeed = traveler.MoveSpeed;
         originLookAtSpeed = traveler.LookAtSpeed;
         survivors.SetActive(false);
+
+        // 모든 파티클 오브젝트를 리스트에 저장
+        foreach(var o in particleObjects)
+        {
+            var particleComp = o.GetComponentInChildren<ParticleSystem>();
+            if(particleComp)
+            {
+                particles.Add(particleComp);
+            }
+        }
     }
 
     void Start()
@@ -183,6 +197,10 @@ public class SellerTruckMovement : MonoBehaviour
         isLeaving = false;
         isRunning = true;
         engineSound.Play();
+        foreach(var particle in particles)
+        {
+            particle.Play();
+        }
     }
 
     /// <summary>
@@ -199,6 +217,10 @@ public class SellerTruckMovement : MonoBehaviour
         image.fillAmount = 0f;
         isLeaving = false;
         isRunning = false;
+        foreach(var particle in particles)
+        {
+            particle.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+        }
         engineSound.Stop();
     }
 

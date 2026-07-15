@@ -1,6 +1,38 @@
 using UnityEngine;
 
 /// <summary>
+/// 터렛 선택 UI를 외부 팝업 뒤에서 복구할 때 다시 열 페이지를 나타낸다.
+/// </summary>
+public enum TurretSelectionRestorePage
+{
+    None,
+    RangeOnly,
+    Select,
+    Upgrade,
+    Detail,
+    Evolution,
+    Skill
+}
+
+/// <summary>
+/// 외부 UI를 열기 전 터렛 선택 컨텍스트와 표시 페이지를 보관한다.
+/// </summary>
+public struct TurretSelectionRestoreState
+{
+    public readonly bool CanRestore;
+    public readonly TurretSelectionContext Context;
+    public readonly TurretSelectionRestorePage Page;
+
+    // 터렛 UI 복구에 필요한 선택 컨텍스트와 페이지를 저장한다
+    public TurretSelectionRestoreState(bool canRestore, TurretSelectionContext context, TurretSelectionRestorePage page)
+    {
+        CanRestore = canRestore;
+        Context = context;
+        Page = page;
+    }
+}
+
+/// <summary>
 /// 터렛 클릭 선택, 사거리 표시, 선택 허브 팝업과 하위 팝업 전환을 조율한다.
 /// </summary>
 [DisallowMultipleComponent]
@@ -106,6 +138,55 @@ public class TurretSelectionUIController : MonoBehaviour
         ClearPendingTurretClick();
         HideAllPopups();
         HideRangeIndicator();
+    }
+
+    // 외부 UI 표시 전 현재 터렛 선택 UI 상태를 복구용으로 캡처한다
+    public TurretSelectionRestoreState CaptureRestoreState()
+    {
+        if (!currentContext.IsValid)
+        {
+            return new TurretSelectionRestoreState(false, currentContext, TurretSelectionRestorePage.None);
+        }
+
+        return new TurretSelectionRestoreState(true, currentContext, GetCurrentRestorePage());
+    }
+
+    // 외부 UI가 닫힌 뒤 이전 터렛 선택 UI 상태를 복구한다
+    public void RestoreSelection(TurretSelectionRestoreState state)
+    {
+        if (!state.CanRestore || !state.Context.IsValid)
+        {
+            return;
+        }
+
+        switch (state.Page)
+        {
+            case TurretSelectionRestorePage.Select:
+                OpenSelectPopup(state.Context);
+                break;
+            case TurretSelectionRestorePage.Upgrade:
+                currentContext = state.Context;
+                OpenUpgradePopup();
+                break;
+            case TurretSelectionRestorePage.Detail:
+                currentContext = state.Context;
+                OpenDetailPopup();
+                break;
+            case TurretSelectionRestorePage.Evolution:
+                currentContext = state.Context;
+                OpenEvolutionPopup();
+                break;
+            case TurretSelectionRestorePage.Skill:
+                currentContext = state.Context;
+                OpenSkillPopup();
+                break;
+            case TurretSelectionRestorePage.RangeOnly:
+                SelectRangeOnly(state.Context);
+                break;
+            default:
+                SelectRangeOnly(state.Context);
+                break;
+        }
     }
 
     // 하위 팝업에서 변경된 선택 터렛 컨텍스트를 현재 선택에 반영한다
@@ -313,6 +394,37 @@ public class TurretSelectionUIController : MonoBehaviour
         {
             rangeIndicator.Hide();
         }
+    }
+
+    // 현재 열려 있는 터렛 UI 페이지를 복구용 값으로 반환한다
+    private TurretSelectionRestorePage GetCurrentRestorePage()
+    {
+        if (selectPopup != null && selectPopup.IsVisible)
+        {
+            return TurretSelectionRestorePage.Select;
+        }
+
+        if (upgradePopup != null && upgradePopup.Visible)
+        {
+            return TurretSelectionRestorePage.Upgrade;
+        }
+
+        if (detailPopup != null && detailPopup.Visible)
+        {
+            return TurretSelectionRestorePage.Detail;
+        }
+
+        if (evolutionPopup != null && evolutionPopup.Visible)
+        {
+            return TurretSelectionRestorePage.Evolution;
+        }
+
+        if (skillPopup != null && skillPopup.Visible)
+        {
+            return TurretSelectionRestorePage.Skill;
+        }
+
+        return TurretSelectionRestorePage.RangeOnly;
     }
 
     // 마지막 클릭 대기 상태를 초기화한다

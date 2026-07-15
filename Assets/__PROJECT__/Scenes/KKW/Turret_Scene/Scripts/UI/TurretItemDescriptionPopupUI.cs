@@ -46,6 +46,7 @@ public class TurretItemDescriptionPopupUI : MonoBehaviour
 
     [Header("연결 UI")]
     [SerializeField] private InventoryUI inventoryUI;
+    [SerializeField] private TurretSelectionUIController turretSelectionUI;
 
     [Header("탐색")]
     [SerializeField, Min(1)] private int historyLimit = DEFAULT_HISTORY_LIMIT;
@@ -54,6 +55,12 @@ public class TurretItemDescriptionPopupUI : MonoBehaviour
     private RewardCurrencyType currentType;
     private RelationMode currentRelationMode = RelationMode.RequiredForCraft;
     private bool hasCurrentItem;
+    private TurretSelectionRestoreState pendingTurretRestoreState;
+    private bool hasPendingTurretRestore;
+    private readonly List<RewardCurrencyType> pendingItemHistory = new List<RewardCurrencyType>(DEFAULT_HISTORY_LIMIT);
+    private RewardCurrencyType pendingItemRestoreType;
+    private RelationMode pendingItemRestoreMode;
+    private bool hasPendingItemRestore;
 
     // 컴포넌트 추가 시 표시 루트를 현재 오브젝트로 설정한다
     private void Reset()
@@ -72,6 +79,7 @@ public class TurretItemDescriptionPopupUI : MonoBehaviour
     // 파괴 시 버튼 이벤트를 해제한다
     private void OnDestroy()
     {
+        UnbindInventoryRestoreListener();
         UnbindButtonListeners();
     }
 
@@ -128,14 +136,126 @@ public class TurretItemDescriptionPopupUI : MonoBehaviour
     // 인벤토리 버튼 입력으로 인벤토리 UI를 연다
     public void OpenInventory()
     {
+        CaptureItemRestoreState();
+        CaptureTurretRestoreState();
         Hide();
+        ClearTurretSelectionForInventory();
         if (inventoryUI != null)
         {
+            BindInventoryRestoreListener();
             inventoryUI.OnOpenInventory();
             return;
         }
 
         Debug.LogWarning("[TurretItemDescriptionPopupUI] Inventory UI 참조가 없어 인벤토리를 열 수 없습니다.", this);
+    }
+
+    // 인벤토리 입력을 막는 터렛 선택 팝업 상태를 정리한다
+    private void ClearTurretSelectionForInventory()
+    {
+        if (turretSelectionUI != null)
+        {
+            turretSelectionUI.ClearSelection();
+        }
+    }
+
+    // 인벤토리 열기 전 복구할 터렛 UI 상태를 저장한다
+    private void CaptureTurretRestoreState()
+    {
+        hasPendingTurretRestore = false;
+
+        if (turretSelectionUI == null)
+        {
+            return;
+        }
+
+        pendingTurretRestoreState = turretSelectionUI.CaptureRestoreState();
+        hasPendingTurretRestore = pendingTurretRestoreState.CanRestore;
+    }
+
+    // 인벤토리 열기 전 복구할 아이템 설명 팝업 상태를 저장한다
+    private void CaptureItemRestoreState()
+    {
+        hasPendingItemRestore = false;
+        pendingItemHistory.Clear();
+
+        if (!hasCurrentItem)
+        {
+            return;
+        }
+
+        pendingItemRestoreType = currentType;
+        pendingItemRestoreMode = currentRelationMode;
+        for (int i = 0; i < history.Count; i++)
+        {
+            pendingItemHistory.Add(history[i]);
+        }
+
+        hasPendingItemRestore = true;
+    }
+
+    // 인벤토리 닫힘 이벤트에 터렛 UI 복구 처리를 연결한다
+    private void BindInventoryRestoreListener()
+    {
+        if (inventoryUI == null)
+        {
+            return;
+        }
+
+        inventoryUI.InventoryClosed -= OnInventoryClosedAfterDescriptionRoute;
+        inventoryUI.InventoryClosed += OnInventoryClosedAfterDescriptionRoute;
+    }
+
+    // 인벤토리 닫힘 이벤트의 터렛 UI 복구 처리를 해제한다
+    private void UnbindInventoryRestoreListener()
+    {
+        if (inventoryUI != null)
+        {
+            inventoryUI.InventoryClosed -= OnInventoryClosedAfterDescriptionRoute;
+        }
+    }
+
+    // 아이템 설명 팝업 경로로 열린 인벤토리가 닫히면 이전 UI 상태를 복구한다
+    private void OnInventoryClosedAfterDescriptionRoute()
+    {
+        UnbindInventoryRestoreListener();
+
+        RestoreTurretSelectionAfterInventory();
+        RestoreItemDescriptionAfterInventory();
+    }
+
+    // 인벤토리 닫힘 후 이전 터렛 선택 UI를 복구한다
+    private void RestoreTurretSelectionAfterInventory()
+    {
+        if (hasPendingTurretRestore && turretSelectionUI != null)
+        {
+            turretSelectionUI.RestoreSelection(pendingTurretRestoreState);
+        }
+
+        hasPendingTurretRestore = false;
+    }
+
+    // 인벤토리 닫힘 후 이전 아이템 설명 팝업을 복구한다
+    private void RestoreItemDescriptionAfterInventory()
+    {
+        if (!hasPendingItemRestore)
+        {
+            return;
+        }
+
+        history.Clear();
+        for (int i = 0; i < pendingItemHistory.Count; i++)
+        {
+            history.Add(pendingItemHistory[i]);
+        }
+
+        currentType = pendingItemRestoreType;
+        currentRelationMode = pendingItemRestoreMode;
+        hasCurrentItem = true;
+        hasPendingItemRestore = false;
+        pendingItemHistory.Clear();
+        SetRootActive(true);
+        Refresh();
     }
 
     // 현재 아이템 정보를 다시 표시한다
@@ -620,6 +740,11 @@ public class TurretItemDescriptionPopupUI : MonoBehaviour
         if (inventoryUI == null)
         {
             Debug.LogWarning("[TurretItemDescriptionPopupUI] Inventory UI 참조가 비어 있습니다.", this);
+        }
+
+        if (turretSelectionUI == null)
+        {
+            Debug.LogWarning("[TurretItemDescriptionPopupUI] Turret Selection UI 참조가 비어 있습니다. 인벤토리 열기 시 터렛 팝업 입력 차단이 남을 수 있습니다.", this);
         }
     }
 

@@ -51,6 +51,8 @@ public class TurretSelectPopupUI : MonoBehaviour
     public event UnityAction SkillRequested;
     public event UnityAction CloseRequested;
 
+    public bool IsVisible => popupRoot != null && popupRoot.activeInHierarchy;
+
     // 컴포넌트 추가 시 하위 UI 참조를 자동으로 찾는다
     private void Reset()
     {

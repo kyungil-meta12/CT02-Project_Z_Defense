@@ -567,10 +567,14 @@ Detail_Popup_Panel
 - `다음을 위해 필요` 모드는 현재 아이템을 재료로 사용하는 제작 결과 아이템들을 `ItemMetaDataSo.ItemsToCreate` 역참조로 표시하고, 현재 아이템을 진화 비용으로 사용하는 터렛 진화 대상도 함께 표시한다.
 - `제작시 필요 자원` 모드는 현재 아이템을 제작할 때 필요한 재료들을 현재 아이템의 `ItemMetaDataSo.ItemsToCreate` 목록 기준으로 표시한다.
 - 뒤로가기는 최근 아이템 탐색 히스토리를 사용하며, 히스토리가 없으면 팝업을 닫는다. 히스토리 최대 개수는 `TurretItemDescriptionPopupUI.historyLimit`로 제한한다.
+- 인벤토리 버튼은 `ItemDiscriptionPopup`을 닫은 뒤 `TurretSelectionUIController.ClearSelection()`을 호출해 `TurretSelectPopup`, `UpgradePopup`, `EvolutionPopup` 같은 터렛 선택 팝업을 먼저 정리하고 `InventoryUI.OnOpenInventory()`를 호출한다. 터렛 팝업 배경이 남아 있으면 인벤토리 입력 레이캐스트가 막힐 수 있다.
+- 아이템 설명 팝업 경로로 인벤토리를 열 때는 닫기 직전 터렛 선택 컨텍스트와 표시 중인 터렛 팝업 종류를 저장한다. 해당 인벤토리가 닫히면 `TurretSelectionUIController.RestoreSelection()`으로 이전 `Select/Upgrade/Detail/Evolution/Skill` 팝업 또는 사거리 표시 상태를 복구한다.
+- 같은 경로에서 현재 아이템 설명 팝업의 아이템 타입, 관계 표시 모드, 뒤로가기 히스토리도 함께 저장한다. 인벤토리가 닫히면 터렛 UI를 먼저 복구한 뒤 `ItemDiscriptionPopup`을 다시 표시해 인벤토리 진입 직전의 아이템 설명 화면으로 돌아간다.
+- `InventoryUI.InventoryClosed` 이벤트는 실제로 열려 있던 인벤토리가 닫힐 때만 발생한다. `TurretItemDescriptionPopupUI`는 이 이벤트를 한 번만 구독해 일반 창고 아이콘 경로의 인벤토리 닫기와 섞이지 않도록 한다.
 
 ### Inspector Rules
 
-- `ItemDiscriptionPopup` 오브젝트에는 `TurretItemDescriptionPopupUI`를 직접 붙이고 상단 이름/설명 TMP, 아이콘 Image, 토글, 닫기/뒤로가기/인벤토리 버튼, 관계 슬롯 배열, `InventoryUI`를 직접 연결한다. 보유량 TMP는 사용하지 않는다.
+- `ItemDiscriptionPopup` 오브젝트에는 `TurretItemDescriptionPopupUI`를 직접 붙이고 상단 이름/설명 TMP, 아이콘 Image, 토글, 닫기/뒤로가기/인벤토리 버튼, 관계 슬롯 배열, `InventoryUI`, `TurretSelectionUIController`를 직접 연결한다. 보유량 TMP는 사용하지 않는다.
 - `TurretItemDescriptionPopupUI.Related Turret Definitions`에는 아이템 설명 팝업에서 진화 재료 역참조 대상으로 표시할 `TurretDefinitionSO`들을 수동 연결한다. 각 정의의 `evolutionProgressionProfile.evolutionEntries[].evolutionCosts`만 검사한다.
 - 하단 관계 아이템 슬롯마다 `TurretItemDescriptionRelationSlotUI`를 붙이고 슬롯 루트, 버튼, 아이콘, 이름 TMP, 수량 TMP를 직접 연결한다.
 - `UpgradePopup`과 `EvolutionPopup`의 필요 재화 버튼마다 `TurretItemDescriptionOpenButton`을 붙이고, 각 팝업 UI의 `Item Description Popup`과 `Resource Item Buttons` 배열에 슬롯 순서대로 직접 연결한다.

@@ -93,6 +93,7 @@ public class InventoryUI : TouchBackHandler
     [Header("자동 제작 및 분해 사운드")] public AudioClip autoExecuteSound;
 
     public bool BatchWorkMode { get; set; } = false;
+    public event Action InventoryClosed;
 
     private EventTrigger makeButtonEvent;
     private TextMeshProUGUI makeButtonText;
@@ -421,10 +422,16 @@ public class InventoryUI : TouchBackHandler
     /// </summary>
     public void OnCloseInventory()
     {
+        bool wasOpen = openState;
         mainController.SetActive(false);
         background.gameObject.SetActive(false);
         UIManager.Inst.RevertGameUI();
         openState = false;
+
+        if (wasOpen)
+        {
+            InventoryClosed?.Invoke();
+        }
     }
 
     /// <summary>

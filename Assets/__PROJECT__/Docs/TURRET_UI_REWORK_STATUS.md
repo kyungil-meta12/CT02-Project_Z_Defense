@@ -524,6 +524,15 @@ Detail_Popup_Panel
 - `TurretDetailPopupUI`의 `dpsText` 직렬화 호환과 `DPS` 자동 참조 fallback은 제거했다. 상세 팝업은 `Damage`, `TotalKills`, `DamageDeviation` 계층명과 Inspector 직접 참조를 기준으로 한다.
 - `TurretUpgradePopupUI`의 인스펙터 필드명은 `Dps` 대신 `Damage` 기준으로 정리했다. 기존 씬 연결은 `FormerlySerializedAs`로 유지한다.
 
+## 2026-07-16 Turret Range Indicator Calibration
+
+### Completed
+
+- `TurretRangeIndicator`의 기본 운영 표시를 파티클 프리팹 기반 월드 공간 마커로 정리했다.
+- 현재 `Main.unity`의 `Marker circle simple cyan 11`은 `prefabVisualScaleMultiplier = 1.45`로 보정되어 실제 `TargetFinder` 사거리와 맞춘다.
+- `Show Line With Prefab`은 보정 확인용으로만 사용하고, 현재 씬에서는 꺼둔다.
+- `LineRenderer`는 프리팹이 비어 있을 때의 fallback 또는 보정 기준선 역할만 담당한다.
+
 ### Current Rule
 
 - `Reset`과 `참조 다시 연결` 컨텍스트 메뉴는 에디터 세팅 보조용으로만 사용한다.

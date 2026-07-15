@@ -989,11 +989,12 @@ Engineer buff policy:
 - Evolution material slots live under `MiddleLowPanel/RequireSorceImagePanel` and are capped at eight visible slots. `RequireSorceText` is a static title and should not be overwritten at runtime.
 - Evolution material icons should be applied to an icon child Image under each `RequireSorceImageFrame`; the frame Image itself should remain a frame/background and not be used as the runtime icon target.
 - Empty evolution material slots should keep their authored placeholder image, currently `crosshair`, while clearing `ItemName` and `ItemCount` text.
-- `TurretRangeIndicator` renders one reusable world-space indicator for the currently selected turret.
-- `TurretRangeIndicator` can use a configured prefab such as `Marker circle simple cyan 1` for polished range presentation, while keeping the previous `LineRenderer` circle as a fallback when no prefab is assigned.
-- Prefab-based range indicators are instantiated once, reused, moved to the selected turret center, and scaled by `range / prefabRadiusAtScaleOne`.
+- `TurretRangeIndicator` renders one reusable world-space range marker for the currently selected turret.
+- The active production marker is the configured particle prefab, currently `Marker circle simple cyan 11`, with `prefabVisualScaleMultiplier = 1.45` in `Main.unity`.
+- Prefab-based range indicators are instantiated once, reused, moved to the selected turret center, and scaled by `range / prefabRadiusAtScaleOne * prefabVisualScaleMultiplier`.
 - Use `prefabVisualScaleMultiplier` to calibrate particle marker prefabs whose visible outer ring is smaller or larger than their authored scale-one radius. This changes only the visual prefab scale, not the live targeting range.
 - Use `showLineWithPrefab` while calibrating particle marker scale against the authoritative LineRenderer boundary, then disable it when the prefab visual matches the live targeting range.
+- `LineRenderer` remains only as a calibration aid and a fallback when no indicator prefab is assigned; do not treat it as the normal production visual.
 - Keep prefab-based range indicators in world space by default. If the indicator object is placed under Canvas, parenting the prefab under that Canvas can shrink or stretch the visible radius through inherited transform scale.
 - Selection UI reads the live turret `TargetFinder` center and radius first, so the indicator follows the same pivot and range that target acquisition uses after stat application and evolution.
 - Particle-based range indicator prefabs can have their particle loops forced at runtime so short marker effects can stay visible while a turret remains selected.

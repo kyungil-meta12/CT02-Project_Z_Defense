@@ -371,8 +371,9 @@
  * Runtime Range Indicator
  *
  * - TurretSelectionUIController owns selected-turret range display because it already owns click selection and selection clearing.
- * - TurretRangeIndicator renders one reusable world-space LineRenderer circle for the currently selected turret.
- * - The indicator uses the selected turret's current calculated runtime range, so level-up and evolution changes are reflected on UI refresh.
+ * - TurretRangeIndicator renders one reusable world-space prefab marker for the currently selected turret.
+ * - The particle marker is calibrated with prefabVisualScaleMultiplier; LineRenderer is only a calibration aid or missing-prefab fallback.
+ * - The indicator uses the selected turret's live TargetFinder center and radius when available, so level-up and evolution changes are reflected on UI refresh.
  * - The indicator is hidden when selection is cleared or placement input is active.
  *
  * Targeting And Firing Notes

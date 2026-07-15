@@ -1,7 +1,7 @@
 using UnityEngine;
 
 /// <summary>
-/// 선택된 터렛의 현재 사거리를 Game 뷰에서 프리팹 또는 원형 라인으로 표시한다.
+/// 선택된 터렛의 현재 사거리를 Game 뷰에서 보정 가능한 프리팹 비주얼로 표시한다.
 /// </summary>
 [DisallowMultipleComponent]
 public class TurretRangeIndicator : MonoBehaviour
@@ -18,11 +18,12 @@ public class TurretRangeIndicator : MonoBehaviour
     [SerializeField] private bool instantiatePrefabInWorldSpace = true;
     [SerializeField] private bool forcePrefabParticleLoop = true;
     [SerializeField] private bool restartPrefabParticlesOnShow = true;
+    [Tooltip("표시 프리팹이 비어 있을 때만 LineRenderer 대체 표시를 사용합니다.")]
     [SerializeField] private bool useLineFallbackWhenPrefabMissing = true;
 
     [Header("라인 표시")]
-    [Tooltip("프리팹 표시를 사용해도 정확한 사거리 경계선은 LineRenderer로 함께 표시합니다.")]
-    [SerializeField] private bool showLineWithPrefab = true;
+    [Tooltip("프리팹 보정 중 정확한 사거리 경계선을 함께 표시합니다. 보정 후에는 끕니다.")]
+    [SerializeField] private bool showLineWithPrefab;
     [SerializeField, Min(12)] private int lineSegments = 96;
     [SerializeField, Min(0.001f)] private float lineWidth = 0.08f;
     [SerializeField] private float yOffset = 0.05f;
@@ -116,7 +117,7 @@ public class TurretRangeIndicator : MonoBehaviour
         }
     }
 
-    // 기존 라인 렌더러 방식으로 사거리 원을 표시한다
+    // 프리팹 보정 확인 또는 프리팹 누락 대체용 사거리 원을 표시한다
     private void ShowLine(Vector3 center, float radius)
     {
         EnsureLineRenderer();

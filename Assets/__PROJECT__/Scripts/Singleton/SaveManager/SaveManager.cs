@@ -9,6 +9,7 @@ using UnityEngine;
 /// 각 시스템은 ISaveable을 구현해 Register만 하면 되고, 저장 시점 최적화(더티 체크 + 주기 저장)와
 /// 파일 IO는 이 매니저가 전담한다.
 /// </summary>
+[DefaultExecutionOrder(-10000)]
 public class SaveManager : MonoBehaviour
 {
     public static SaveManager Inst;
@@ -46,10 +47,17 @@ public class SaveManager : MonoBehaviour
         managerObject.AddComponent<SaveManager>();
     }
 
-    void Awake()
+    // 싱글톤을 초기화하고 씬 인스턴스의 저장 초기화 요청을 가장 먼저 처리한다
+    private void Awake()
     {
         if (Inst && Inst != this)
         {
+            if (resetSaveDataOnLoad)
+            {
+                Inst.ResetSaveData();
+                resetSaveDataOnLoad = false;
+            }
+
             Destroy(gameObject);
             return;
         }
@@ -64,12 +72,14 @@ public class SaveManager : MonoBehaviour
         }
     }
 
-    void Start()
+    // 자동 저장 코루틴을 시작한다
+    private void Start()
     {
         StartCoroutine(AutoSaveLoop());
     }
 
-    void OnDestroy()
+    // 현재 싱글톤 인스턴스가 제거될 때 정적 참조를 정리한다
+    private void OnDestroy()
     {
         if (Inst == this)
         {
@@ -78,7 +88,7 @@ public class SaveManager : MonoBehaviour
     }
 
     // 모바일에서 홈 버튼 등으로 앱이 백그라운드로 전환될 때 변경 사항을 저장한다
-    void OnApplicationPause(bool pauseStatus)
+    private void OnApplicationPause(bool pauseStatus)
     {
         if (pauseStatus && isDirty)
         {
@@ -87,7 +97,7 @@ public class SaveManager : MonoBehaviour
     }
 
     // 앱 종료(에디터 플레이 모드 정지 포함) 시 변경 사항을 저장한다
-    void OnApplicationQuit()
+    private void OnApplicationQuit()
     {
         if (isDirty)
         {
@@ -194,21 +204,28 @@ public class SaveManager : MonoBehaviour
     // 저장 파일과 캐시된 데이터를 모두 삭제해 초기 상태로 되돌린다
     private void ResetSaveData()
     {
+        bool resetSucceeded = true;
         if (File.Exists(SaveFilePath))
         {
             try
             {
                 File.Delete(SaveFilePath);
             }
-            catch (IOException exception)
+            catch (Exception exception)
             {
                 Debug.LogWarning($"[SaveManager] 저장 파일 삭제에 실패했습니다: {exception.Message}");
+                resetSucceeded = false;
             }
         }
 
         loadedSections.Clear();
         isFileLoaded = true;
         isDirty = false;
+
+        if (resetSucceeded)
+        {
+            Debug.Log($"[SaveManager] 저장 데이터를 초기화했습니다: {SaveFilePath}", this);
+        }
     }
 
     // 저장 파일을 한 번만 읽어 구간별 JSON을 캐시에 올려둔다

@@ -289,7 +289,12 @@ public class TurretSelectPopupUI : MonoBehaviour
     // 좌석에 탑승 중인 엔지니어가 적용하는 버프 수치를 UI 문자열로 변환한다
     private static string FormatEngineerSeatBuffText(Survivor engineer, TurretEngineerBuffReceiver buffReceiver)
     {
-        if (engineer == null || buffReceiver == null || buffReceiver.DamageBonusRatioPerEngineer <= 0.0f)
+        if (engineer == null)
+        {
+            return "빈 좌석";
+        }
+
+        if (buffReceiver == null || buffReceiver.DamageBonusRatioPerEngineer <= 0.0f)
         {
             return string.Empty;
         }

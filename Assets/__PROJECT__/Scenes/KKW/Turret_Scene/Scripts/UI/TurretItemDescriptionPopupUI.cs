@@ -24,6 +24,7 @@ public class TurretItemDescriptionPopupUI : MonoBehaviour
 
     [Header("상단 아이템 정보")]
     [SerializeField] private TMP_Text itemNameText;
+    [SerializeField] private TMP_Text itemCountText;
     [SerializeField] private TMP_Text itemDescriptionText;
     [SerializeField] private Image itemImage;
 
@@ -72,6 +73,7 @@ public class TurretItemDescriptionPopupUI : MonoBehaviour
     private void Awake()
     {
         ValidateRequiredReferences();
+        ConfigureNonInteractiveHeaderTexts();
         BindButtonListeners();
         Hide();
     }
@@ -283,6 +285,7 @@ public class TurretItemDescriptionPopupUI : MonoBehaviour
         Sprite sprite = metadata == null ? null : metadata.ItemImage;
 
         SetText(itemNameText, "{" + displayName + "}");
+        SetText(itemCountText, FormatOwnedCountText(currentType));
         SetText(itemDescriptionText, description);
         SetImage(itemImage, sprite);
     }
@@ -291,6 +294,7 @@ public class TurretItemDescriptionPopupUI : MonoBehaviour
     private void ClearHeader()
     {
         SetText(itemNameText, string.Empty);
+        SetText(itemCountText, string.Empty);
         SetText(itemDescriptionText, string.Empty);
         SetImage(itemImage, null);
     }
@@ -637,6 +641,13 @@ public class TurretItemDescriptionPopupUI : MonoBehaviour
         return itemType.ToString();
     }
 
+    // 현재 보유 아이템 수량 표시 문구를 만든다
+    private static string FormatOwnedCountText(RewardCurrencyType itemType)
+    {
+        string countText = InventorySystem.Inst == null ? "0" : InventorySystem.Inst.GetCountString(itemType);
+        return "{" + countText + "}개 보유";
+    }
+
     // 팝업 루트 활성 상태를 변경한다
     private void SetRootActive(bool isActive)
     {
@@ -717,7 +728,7 @@ public class TurretItemDescriptionPopupUI : MonoBehaviour
             Debug.LogWarning("[TurretItemDescriptionPopupUI] Popup Root 참조가 비어 있습니다.", this);
         }
 
-        if (itemNameText == null || itemDescriptionText == null || itemImage == null)
+        if (itemNameText == null || itemCountText == null || itemDescriptionText == null || itemImage == null)
         {
             Debug.LogWarning("[TurretItemDescriptionPopupUI] 상단 아이템 정보 참조가 일부 비어 있습니다.", this);
         }
@@ -748,6 +759,14 @@ public class TurretItemDescriptionPopupUI : MonoBehaviour
         }
     }
 
+    // 상단 표시용 텍스트가 버튼 입력을 가로채지 않도록 설정한다
+    private void ConfigureNonInteractiveHeaderTexts()
+    {
+        SetTextRaycastTarget(itemNameText, false);
+        SetTextRaycastTarget(itemCountText, false);
+        SetTextRaycastTarget(itemDescriptionText, false);
+    }
+
     // 토글 참조가 있을 때 이벤트 없이 값을 적용한다
     private static void SetToggle(Toggle toggle, bool isOn)
     {
@@ -763,6 +782,15 @@ public class TurretItemDescriptionPopupUI : MonoBehaviour
         if (targetText != null)
         {
             targetText.text = value;
+        }
+    }
+
+    // 텍스트 그래픽의 레이캐스트 대상 여부를 설정한다
+    private static void SetTextRaycastTarget(TMP_Text targetText, bool isRaycastTarget)
+    {
+        if (targetText != null)
+        {
+            targetText.raycastTarget = isRaycastTarget;
         }
     }
 

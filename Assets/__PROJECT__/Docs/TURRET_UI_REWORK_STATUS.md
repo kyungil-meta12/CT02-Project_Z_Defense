@@ -564,6 +564,7 @@ Detail_Popup_Panel
 - `TurretItemDescriptionPopupUI`는 업그레이드/진화 필요 재화 슬롯에서 열린 아이템 설명, 관계 슬롯, 뒤로가기 히스토리, 인벤토리 열기 버튼을 담당한다.
 - `TurretItemDescriptionOpenButton`은 업그레이드/진화 비용 슬롯 버튼에 붙는 클릭 전달 컴포넌트다. 비용 UI가 갱신될 때 현재 슬롯의 `RewardCurrencyType`과 공용 팝업 참조를 받는다.
 - `TurretItemDescriptionRelationSlotUI`는 아이템 설명 팝업 하단 관계 슬롯 하나를 표시한다. 아이템 슬롯은 클릭 시 같은 팝업에서 해당 아이템으로 이동하고, 터렛 슬롯은 진화 대상 표시 전용으로 둔다.
+- 상단 `ItemCountText`는 현재 아이템의 보유량을 `InventorySystem.GetCountString()` 기준 `{수량}개 보유` 형식으로 표시한다.
 - `다음을 위해 필요` 모드는 현재 아이템을 재료로 사용하는 제작 결과 아이템들을 `ItemMetaDataSo.ItemsToCreate` 역참조로 표시하고, 현재 아이템을 진화 비용으로 사용하는 터렛 진화 대상도 함께 표시한다.
 - `제작시 필요 자원` 모드는 현재 아이템을 제작할 때 필요한 재료들을 현재 아이템의 `ItemMetaDataSo.ItemsToCreate` 목록 기준으로 표시한다.
 - 뒤로가기는 최근 아이템 탐색 히스토리를 사용하며, 히스토리가 없으면 팝업을 닫는다. 히스토리 최대 개수는 `TurretItemDescriptionPopupUI.historyLimit`로 제한한다.
@@ -574,7 +575,8 @@ Detail_Popup_Panel
 
 ### Inspector Rules
 
-- `ItemDiscriptionPopup` 오브젝트에는 `TurretItemDescriptionPopupUI`를 직접 붙이고 상단 이름/설명 TMP, 아이콘 Image, 토글, 닫기/뒤로가기/인벤토리 버튼, 관계 슬롯 배열, `InventoryUI`, `TurretSelectionUIController`를 직접 연결한다. 보유량 TMP는 사용하지 않는다.
+- `ItemDiscriptionPopup` 오브젝트에는 `TurretItemDescriptionPopupUI`를 직접 붙이고 상단 이름/보유량/설명 TMP, 아이콘 Image, 토글, 닫기/뒤로가기/인벤토리 버튼, 관계 슬롯 배열, `InventoryUI`, `TurretSelectionUIController`를 직접 연결한다.
+- 상단 표시용 TMP(`ItemNameText`, `ItemCountText`, `ItemDescriptionText`)는 버튼 입력을 막지 않도록 런타임에 `raycastTarget = false`로 정리한다. 에디터에서도 표시 전용 텍스트는 Raycast Target을 꺼두는 것을 기본으로 한다.
 - `TurretItemDescriptionPopupUI.Related Turret Definitions`에는 아이템 설명 팝업에서 진화 재료 역참조 대상으로 표시할 `TurretDefinitionSO`들을 수동 연결한다. 각 정의의 `evolutionProgressionProfile.evolutionEntries[].evolutionCosts`만 검사한다.
 - 하단 관계 아이템 슬롯마다 `TurretItemDescriptionRelationSlotUI`를 붙이고 슬롯 루트, 버튼, 아이콘, 이름 TMP, 수량 TMP를 직접 연결한다.
 - `UpgradePopup`과 `EvolutionPopup`의 필요 재화 버튼마다 `TurretItemDescriptionOpenButton`을 붙이고, 각 팝업 UI의 `Item Description Popup`과 `Resource Item Buttons` 배열에 슬롯 순서대로 직접 연결한다.

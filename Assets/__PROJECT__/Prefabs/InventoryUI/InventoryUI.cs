@@ -147,9 +147,6 @@ public class InventoryUI : TouchBackHandler
     ButtonAutoExecute makeAutoExecute = new();
     ButtonAutoExecute decompAutoExecute = new();
 
-    // 사운드 재생기
-    private AudioSource aSource;
-
     // 인벤토리를 닫은 상태로 시작
     void Awake()
     {
@@ -313,11 +310,6 @@ public class InventoryUI : TouchBackHandler
 
         // 인벤토리 UI 숨기기
         OnCloseInventory();
-
-
-        aSource = GetComponent<AudioSource>();
-        aSource.volume = ProjectAudioManager.Inst.GetEffectiveVolume(ProjectAudioBus.Ui);
-        ProjectAudioManager.Inst.OnVolumeChanged += OnVolumeChanged; // 볼륨 변경 이벤트 구독
     }
 
     void OnDestroy()
@@ -325,10 +317,6 @@ public class InventoryUI : TouchBackHandler
         if (InventorySystem.Inst)
         {
             InventorySystem.Inst.OnItemCountChange -= OnItemValueChanged;
-        }
-        if(ProjectAudioManager.Inst)
-        {
-            ProjectAudioManager.Inst.OnVolumeChanged -= OnVolumeChanged;
         }
     }
 
@@ -365,14 +353,6 @@ public class InventoryUI : TouchBackHandler
         }
 
         UpdateTouchBackHandler();
-    }
-
-    public void OnVolumeChanged(ProjectAudioBus bus, float volume)
-    {
-        if(bus == ProjectAudioBus.Ui)
-        {
-            aSource.volume = volume;
-        }
     }
 
     // 아이템 개수가 변경 될 때마다 아이템에 해당하는 인덱스의 정보를 업데이트 한다.
@@ -414,7 +394,7 @@ public class InventoryUI : TouchBackHandler
         SetToInventoryTab();
         UIManager.Inst.HideGameUI();
         openState = true;
-        PlayTabClickSound();
+        UISoundPlayer.Inst.PlayDefaultClick();
     }
 
     /// <summary>
@@ -453,7 +433,7 @@ public class InventoryUI : TouchBackHandler
         SetInfoText(metaData);
         SetInfoImage(metaData);
 
-        PlayCellClickSound();
+        UISoundPlayer.Inst.PlayCellClick();
     }
 
     /// <summary>
@@ -504,7 +484,7 @@ public class InventoryUI : TouchBackHandler
         // 테두리 활성화
         itemViewerRect.gameObject.SetActive(true);
 
-        PlayCellClickSound();
+        UISoundPlayer.Inst.PlayCellClick();
     }
 
     /// <summary>
@@ -556,7 +536,7 @@ public class InventoryUI : TouchBackHandler
         // 테두리 활성화
         itemViewerRect.gameObject.SetActive(true);
 
-        PlayCellClickSound();
+        UISoundPlayer.Inst.PlayCellClick();
     }
 
     /// <summary>
@@ -575,12 +555,14 @@ public class InventoryUI : TouchBackHandler
         itemPopupNameText.text = metaData.Name;
         itemPopupOwnCountText.text = "보유량: " + InventorySystem.Inst.GetCountString(selectedType);
         itemPopupOwnCountText.color = hasItem ? Color.white : Color.red;
+
+        UISoundPlayer.Inst.PlayCellClick();
     }
 
     public void OnCloseButtonClick()
     {
         OnCloseInventory();
-        PlayTabClickSound();   
+        UISoundPlayer.Inst.PlayDefaultClick();
     }
 
     public void OnInventoryTabClick()
@@ -589,7 +571,7 @@ public class InventoryUI : TouchBackHandler
         {
             SetToInventoryTab();
         }
-        PlayTabClickSound();
+        UISoundPlayer.Inst.PlayDefaultClick();
     }
 
     public void OnCraftTabClick()
@@ -598,7 +580,7 @@ public class InventoryUI : TouchBackHandler
         {
             SetToCraftTab();
         }
-        PlayTabClickSound();
+        UISoundPlayer.Inst.PlayDefaultClick();
     }
 
     public void OnDecomposeTabClick()
@@ -607,7 +589,7 @@ public class InventoryUI : TouchBackHandler
         {
             SetToDecomposeTab();
         }
-        PlayTabClickSound();
+        UISoundPlayer.Inst.PlayDefaultClick();
     }
 
     public void OnMakeButtonDown()
@@ -622,7 +604,7 @@ public class InventoryUI : TouchBackHandler
             MakeItem();
         }
         makeAutoExecute.SetPressState(false);
-        PlayMakeSound();
+        UISoundPlayer.Inst.PlayMake();
     }
 
     public void OnDecomposeButtonDown()
@@ -637,7 +619,7 @@ public class InventoryUI : TouchBackHandler
             DecomposeItem();
         }
         decompAutoExecute.SetPressState(false);
-        PlayDecomposeSound();
+        UISoundPlayer.Inst.PlayDecompose();
     }
 
     /// <summary>
@@ -707,7 +689,7 @@ public class InventoryUI : TouchBackHandler
     private void AutoMakeItem()
     {
         MakeItem();
-        PlayAutoExeSound();
+        UISoundPlayer.Inst.PlayAutoExecute();  
     }
 
     /// <summary>
@@ -716,7 +698,7 @@ public class InventoryUI : TouchBackHandler
     private void AutoDecomposeItem()
     {
         DecomposeItem();
-        PlayAutoExeSound();    
+        UISoundPlayer.Inst.PlayAutoExecute();   
     }
     
 
@@ -1117,30 +1099,5 @@ public class InventoryUI : TouchBackHandler
                 SetImageBrightness(cell.Value.CellImage, itemEnough ? HAS_ITEM_BRIGHTNESS : NO_ITEM_BRIGHTNESS);
             }
         }
-    }
-
-    private void PlayTabClickSound()
-    {
-        aSource.PlayOneShot(tabClickSound);
-    }
-
-    private void PlayCellClickSound()
-    {
-        aSource.PlayOneShot(cellClickSound);
-    }
-
-    private void PlayMakeSound()
-    {
-        aSource.PlayOneShot(makeSound);
-    }
-
-    private void PlayDecomposeSound()
-    {
-        aSource.PlayOneShot(decomposeSound);
-    }
-
-    private void PlayAutoExeSound()
-    {
-        aSource.PlayOneShot(autoExecuteSound);
     }
 }

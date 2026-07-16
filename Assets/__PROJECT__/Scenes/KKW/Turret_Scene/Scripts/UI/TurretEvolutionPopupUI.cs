@@ -627,9 +627,9 @@ public class TurretEvolutionPopupUI : TurretPopupPageUI
                 continue;
             }
 
-            SetResourceNameText(visibleIndex, GetCurrencyDisplayName(cost.currencyType));
+            SetResourceNameText(visibleIndex, TurretCurrencyDisplayUtility.GetDisplayName(cost.currencyType));
             SetResourceCountText(visibleIndex, FormatCostAmountText(cost));
-            SetImage(GetImageAt(resourceItemImages, visibleIndex), GetCurrencySprite(cost.currencyType));
+            SetImage(GetImageAt(resourceItemImages, visibleIndex), TurretCurrencyDisplayUtility.GetIcon(cost.currencyType));
             ConfigureResourceButton(visibleIndex, cost.currencyType, true);
             visibleIndex++;
         }
@@ -788,45 +788,6 @@ public class TurretEvolutionPopupUI : TurretPopupPageUI
         }
 
         return entry.evolutionIcon;
-    }
-
-    // 재화 타입을 UI 표시 이름으로 변환한다
-    private static string GetCurrencyLabel(RewardCurrencyType currencyType)
-    {
-        switch (currencyType)
-        {
-            case RewardCurrencyType.Coin:
-                return "Coin";
-            default:
-                return currencyType.ToString();
-        }
-    }
-
-    // 재화 타입을 인벤토리 메타데이터 표시 이름으로 변환한다
-    private static string GetCurrencyDisplayName(RewardCurrencyType currencyType)
-    {
-        if (InventorySystem.Inst != null)
-        {
-            string itemName = InventorySystem.Inst.GetName(currencyType);
-            if (!string.IsNullOrWhiteSpace(itemName))
-            {
-                return itemName;
-            }
-        }
-
-        return GetCurrencyLabel(currencyType);
-    }
-
-    // 재화 타입을 인벤토리 메타데이터 이미지로 변환한다
-    private static Sprite GetCurrencySprite(RewardCurrencyType currencyType)
-    {
-        if (InventorySystem.Inst == null)
-        {
-            return null;
-        }
-
-        ItemMetaDataSo metadata = InventorySystem.Inst.GetMetaData(currencyType);
-        return metadata == null ? null : metadata.ItemImage;
     }
 
     // 비용 수량을 보유량과 요구량 형식으로 변환하고 부족하면 붉은색을 적용한다

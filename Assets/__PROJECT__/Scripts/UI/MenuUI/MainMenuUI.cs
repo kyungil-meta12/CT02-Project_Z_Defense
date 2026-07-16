@@ -36,7 +36,10 @@ public class MainMenuUI : TouchBackHandler
     private void OnDisable()
     {
         UnbindButtonListeners();
-        UIManager.Inst.RevertAll();
+        if(UIManager.Inst)
+        {
+            UIManager.Inst.RevertAll();
+        }
     }
 
     // 파괴 시 뒤로가기 동작 등록을 해제한다

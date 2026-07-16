@@ -1231,8 +1231,8 @@ public class GameManager : MonoBehaviour, ISaveable
 
         DespawnAllZombies();
         RebuildAllDefenseLines();
-        ReassignAllEngineers();
         ResetSurvivorsForWaveRestart();
+        ReassignAllEngineers();
         PreparePreviousWaveRestart();
         
         yield return fadeWait;
@@ -1956,6 +1956,11 @@ public class GameManager : MonoBehaviour, ISaveable
 
         //Debug.Log($"[GameManager] 등록된 생존자 수: {survivors.Count}");
 
+        if (isGateBreached)
+        {
+            PrepareAllEngineersForWaveFailureRetreat();
+        }
+
         int retreatedCount = 0;
         for (int i = survivors.Count - 1; i >= 0; i--)
         {
@@ -1979,6 +1984,22 @@ public class GameManager : MonoBehaviour, ISaveable
         }
 
         //Debug.Log($"[GameManager] {retreatedCount}명의 생존자에게 방어선 {defenseLineIndex} 대피 명령 전달 완료");
+    }
+
+    // 게이트 붕괴 후 전체 생존자 후퇴 전에 탑승 엔지니어를 먼저 하차시킨다
+    private void PrepareAllEngineersForWaveFailureRetreat()
+    {
+        for (int i = survivors.Count - 1; i >= 0; i--)
+        {
+            Survivor survivor = survivors[i];
+            if (survivor == null)
+            {
+                survivors.RemoveAt(i);
+                continue;
+            }
+
+            survivor.PrepareEngineerForWaveFailureRetreat();
+        }
     }
 
     // 등록된 좀비 스포너의 destinations 중 하나를 무작위로 반환한다(생존자 도피 연출용)

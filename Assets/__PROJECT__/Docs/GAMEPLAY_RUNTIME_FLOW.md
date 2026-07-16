@@ -234,9 +234,10 @@ Breach flow:
 3. `Gate` slot breaches are marked separately from normal obstacle breaches.
 4. Linked turret bases and installed turrets stay active after the line is breached; only initial empty-line and rebuild-complete states control turret base activation.
 5. Normal obstacle breaches are only followed by `constructionWorker` survivors.
-6. `Gate` breaches force every survivor role to clear current work and move to the retreat point.
-7. Survivors clear repair targets and move to the retreat point.
-8. After arrival, survivors return to their role idle state, but their active defense-line index remains set for construction workers.
+6. `Gate` breaches first unregister every boarded engineer from its turret, restore its visual and `NavMeshAgent`, and preserve the remembered turret slot for wave restart.
+7. After all engineers are prepared, `Gate` breaches force every survivor role to clear current work and move to the retreat point.
+8. Survivors clear repair targets and move to the retreat point.
+9. After arrival, survivors return to their role idle state, but their active defense-line index remains set for construction workers.
 
 Restore flow:
 
@@ -267,7 +268,7 @@ Runtime policy:
 - `ZombieSpawner` despawns only zombies it spawned and tracks, avoiding full-scene searches during reset.
 - Defense-line rebuild is cost-free and uses `ObstacleBuildSlot` stored progress.
 - Defense-line turret bases are enabled only for fully rebuilt lines; empty or partially rebuilt lines remain breached and keep their linked turret bases disabled.
-- Gate breach can still issue survivor retreat, but the restart sequence is responsible for restoring obstacles and engineer buffs.
+- Gate breach dismounts engineers before survivor retreat. The restart sequence normalizes survivor retreat state first, then reassigns engineers to their remembered turret slots when those turrets still exist.
 
 ## Wave Save And Restore Flow
 

@@ -297,13 +297,30 @@ public class Survivor : MonoBehaviour
 
         if (isGateBreached)
         {
-            ClearEngineerAssignment();
+            PrepareEngineerForWaveFailureRetreat();
         }
 
         activeDefenseLineIndex = defenseLineIndex;
         defenseMoveTarget = retreatPoint;
         ClearRepairTarget();
         ChangeState(SurvivorState.Retreating);
+    }
+
+    // 웨이브 실패 후퇴 전에 엔지니어 탑승을 해제하고 기존 터렛 슬롯 기억을 유지한다
+    public void PrepareEngineerForWaveFailureRetreat()
+    {
+        if (role != SurvivorRole.engineer)
+        {
+            return;
+        }
+
+        ClearEngineerAssignment();
+        SetInteractionVisible(true);
+
+        if (agent != null && agent.enabled && !agent.isOnNavMesh)
+        {
+            TryRecoverAgentToNavMesh();
+        }
     }
 
     // 방어선 복구 시 생존자를 지정한 복귀 포인트로 이동시킨다
@@ -769,10 +786,11 @@ public class Survivor : MonoBehaviour
             return;
         }
 
-        agent.isStopped = false;
-        moveTimer += Time.deltaTime;
-        destinationRefreshTimer -= Time.deltaTime;
-        vaultDetectionTimer -= Time.deltaTime;
+        if (agent == null || !agent.enabled)
+        {
+            AbortDefensePointMove("[Survivor] NavMeshAgent가 비활성 상태여서 방어선 이동을 중단합니다.", false);
+            return;
+        }
 
         if (!agent.isOnNavMesh)
         {
@@ -783,6 +801,11 @@ public class Survivor : MonoBehaviour
 
             return;
         }
+
+        agent.isStopped = false;
+        moveTimer += Time.deltaTime;
+        destinationRefreshTimer -= Time.deltaTime;
+        vaultDetectionTimer -= Time.deltaTime;
 
         agent.nextPosition = transform.position;
 
@@ -993,7 +1016,11 @@ public class Survivor : MonoBehaviour
 
         if (retryMove && defenseMoveTarget != null && IsAgentMoveState())
         {
-            agent.isStopped = true;
+            if (agent != null && agent.enabled && agent.isOnNavMesh)
+            {
+                agent.isStopped = true;
+            }
+
             moveTimer = 0f;
             destinationRefreshTimer = 0f;
             vaultDetectionTimer = 0f;
@@ -1409,7 +1436,10 @@ public class Survivor : MonoBehaviour
             return;
         }
 
-        agent.isStopped = !IsAgentMoveState();
+        if (agent.enabled && agent.isOnNavMesh)
+        {
+            agent.isStopped = !IsAgentMoveState();
+        }
 
         if (state == SurvivorState.Idle)
         {

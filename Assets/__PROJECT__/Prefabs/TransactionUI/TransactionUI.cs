@@ -275,7 +275,7 @@ public class TransactionUI : TouchBackHandler
         infoDiscription.text = "";
         infoCount.text = "";
 
-        UIManager.Inst.HideGameUI();
+        UIManager.Inst.HideAll();
 
         openState = true;
 
@@ -288,7 +288,7 @@ public class TransactionUI : TouchBackHandler
     public void OnCloseTransactionUI()
     {
         mainContent.SetActive(false);
-        UIManager.Inst.RevertGameUI();
+        UIManager.Inst.RevertAll();
         openState = false;
     }
 

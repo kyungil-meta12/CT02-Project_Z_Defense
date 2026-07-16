@@ -392,7 +392,7 @@ public class InventoryUI : TouchBackHandler
         mainController.SetActive(true);
         background.gameObject.SetActive(true);
         SetToInventoryTab();
-        UIManager.Inst.HideGameUI();
+        UIManager.Inst.HideAll();
         openState = true;
         UISoundPlayer.Inst.PlayDefaultClick();
     }
@@ -405,7 +405,7 @@ public class InventoryUI : TouchBackHandler
         bool wasOpen = openState;
         mainController.SetActive(false);
         background.gameObject.SetActive(false);
-        UIManager.Inst.RevertGameUI();
+        UIManager.Inst.RevertAll();
         openState = false;
 
         if (wasOpen)

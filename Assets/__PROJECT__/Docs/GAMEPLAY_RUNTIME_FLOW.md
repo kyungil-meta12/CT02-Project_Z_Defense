@@ -238,6 +238,8 @@ Breach flow:
 7. After all engineers are prepared, `Gate` breaches force every survivor role to clear current work and move to the retreat point.
 8. Survivors clear repair targets and move to the retreat point.
 9. After arrival, survivors return to their role idle state, but their active defense-line index remains set for construction workers.
+10. Before gate retreat overwrites a rescued survivor's runtime state, the survivor stores whether treatment or role selection was pending.
+11. On wave restart, rescued survivors return to the gathering point and restore `TreatmentReady` or `RoleSelectionReady`; treatment in progress is normalized back to treatment pending and does not preserve its remaining timer.
 
 Restore flow:
 
@@ -269,6 +271,7 @@ Runtime policy:
 - Defense-line rebuild is cost-free and uses `ObstacleBuildSlot` stored progress.
 - Defense-line turret bases are enabled only for fully rebuilt lines; empty or partially rebuilt lines remain breached and keep their linked turret bases disabled.
 - Gate breach dismounts engineers before survivor retreat. The restart sequence normalizes survivor retreat state first, then reassigns engineers to their remembered turret slots when those turrets still exist.
+- A rescued survivor whose Agent or gathering point cannot be recovered restores the pending treatment/role-selection interaction immediately at its current position instead of remaining in a generic idle state.
 
 ## Wave Save And Restore Flow
 

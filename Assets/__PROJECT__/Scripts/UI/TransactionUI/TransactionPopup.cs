@@ -5,7 +5,6 @@ using UnityEngine;
 public class TransactionPopup : MonoBehaviour
 {
     public UIAnimationValue animValue;
-    public AudioClip feedbackSound;
 
     private TextMeshProUGUI text;
     private RectTransform rt;
@@ -14,7 +13,6 @@ public class TransactionPopup : MonoBehaviour
     private float popinDelayTime;
     private bool popOutCompleted = false;
 
-    private AudioSource aSource;
 
     void Awake()
     {
@@ -22,30 +20,7 @@ public class TransactionPopup : MonoBehaviour
         rt = text.GetComponent<RectTransform>();
         originScale = rt.localScale;
         rt.localScale = Vector2.zero;
-        aSource = GetComponent<AudioSource>();
         gameObject.SetActive(false);
-    }
-
-    void Start()
-    {
-        aSource.volume = ProjectAudioManager.Inst.GetEffectiveVolume(ProjectAudioBus.Ui);
-        ProjectAudioManager.Inst.OnVolumeChanged += OnVolumeChanged;
-    }
-
-    void OnDestroy()
-    {
-        if(ProjectAudioManager.Inst)
-        {
-            ProjectAudioManager.Inst.OnVolumeChanged -= OnVolumeChanged;
-        }
-    }
-
-    public void OnVolumeChanged(ProjectAudioBus bus, float volume)
-    {
-        if(bus == ProjectAudioBus.Ui)
-        {
-            aSource.volume = volume;
-        }
     }
 
     public void Init()
@@ -55,7 +30,7 @@ public class TransactionPopup : MonoBehaviour
         popOutCompleted = false;
         rt.localScale = Vector2.zero;
         gameObject.SetActive(true);
-        aSource.PlayOneShot(feedbackSound);
+        UISoundPlayer.Inst.PlayPopup();
     }
 
     void Update()

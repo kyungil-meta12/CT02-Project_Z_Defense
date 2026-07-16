@@ -10,10 +10,10 @@
   <Project Path="ACTk.Examples.Runtime.csproj" />
   <Project Path="DinoFracture.Scripts.csproj" />
   <Project Path="DinoFracture.Editor.csproj" />
+  <Project Path="Assembly-CSharp-Editor.csproj" />
   <Project Path="ACTk.Examples.Genuine.Runtime.csproj" />
   <Project Path="DamageNumbersPro.csproj" />
   <Project Path="Lofelt.NiceVibrations.csproj" />
-  <Project Path="Assembly-CSharp-Editor.csproj" />
   <Project Path="Kamgam.UGUIWorldImage.csproj" />
   <Project Path="Lofelt.NiceVibrations.Demo.csproj" />
   <Project Path="TinyGiantStudio.Ranks.csproj" />

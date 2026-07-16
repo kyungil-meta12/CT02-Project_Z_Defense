@@ -62,8 +62,6 @@ public class TransactionUI : TouchBackHandler
     public bool BatchMode{ get; set; } = false;
     private bool openState = false;
 
-    private AudioSource aSource;
-
     void Start()
     {
         costList = costData.CostWithGrade;
@@ -145,10 +143,6 @@ public class TransactionUI : TouchBackHandler
         autoBuy.RegisterAction(AutoBuyItem);
 
         OnTouchBackAction += OnCloseTransactionUI;
-
-        aSource = GetComponent<AudioSource>();
-        aSource.volume = ProjectAudioManager.Inst.GetEffectiveVolume(ProjectAudioBus.Ui);
-        ProjectAudioManager.Inst.OnVolumeChanged += OnVolumeChanged; 
     }
 
     void OnDestroy()
@@ -156,10 +150,6 @@ public class TransactionUI : TouchBackHandler
         if(InventorySystem.Inst)
         {
             InventorySystem.Inst.OnItemCountChange -= OnItemCountChange;
-        }
-        if(ProjectAudioManager.Inst)
-        {
-            ProjectAudioManager.Inst.OnVolumeChanged -= OnVolumeChanged;
         }
     }
 
@@ -192,14 +182,6 @@ public class TransactionUI : TouchBackHandler
         if(truckObject.GetLeaveState())
         {
             OnCloseTransactionUI();
-        }
-    }
-
-    public void OnVolumeChanged(ProjectAudioBus bus, float volume)
-    {
-        if(bus == ProjectAudioBus.Ui)
-        {
-            aSource.volume = volume;
         }
     }
 
@@ -293,11 +275,11 @@ public class TransactionUI : TouchBackHandler
         infoDiscription.text = "";
         infoCount.text = "";
 
-        UIManager.Inst.HideGameUI();
+        UIManager.Inst.HideAll();
 
         openState = true;
 
-        PlayOpenCloseSound();
+        UISoundPlayer.Inst.PlayDefaultClick();
     }
 
     /// <summary>
@@ -306,26 +288,26 @@ public class TransactionUI : TouchBackHandler
     public void OnCloseTransactionUI()
     {
         mainContent.SetActive(false);
-        UIManager.Inst.RevertGameUI();
+        UIManager.Inst.RevertAll();
         openState = false;
     }
 
     public void OnCloseButtonClick()
     {
         OnCloseTransactionUI();   
-        PlayOpenCloseSound();
+        UISoundPlayer.Inst.PlayDefaultClick();
     }
 
     void AutoSellItem()
     {
-        PlayAutoExeSound();
         SellItem();
+        UISoundPlayer.Inst.PlayAutoExecute();
     }
 
     void AutoBuyItem()
     {
-        PlayAutoExeSound();
         BuyItem();
+        UISoundPlayer.Inst.PlayAutoExecute();
     }
 
     /// <summary>
@@ -422,7 +404,7 @@ public class TransactionUI : TouchBackHandler
         bool hasCoinEnough = InventorySystem.Inst.CanUseItem(RewardCurrencyType.Coin, data.BuyCost);
         SetTextButtonEnable(buyButton, buyEvent, buyButtonText, hasCoinEnough);
 
-        PlayCellClickSound();
+        UISoundPlayer.Inst.PlayCellClick();
     }
 
     public void OnSellButtonDown()
@@ -437,7 +419,7 @@ public class TransactionUI : TouchBackHandler
             SellItem();
         }
         autoSell.SetPressState(false);
-        PlayDealSound();
+        UISoundPlayer.Inst.playDeal();
     }
 
     public void OnBuyButtonDown()
@@ -452,7 +434,7 @@ public class TransactionUI : TouchBackHandler
             BuyItem();
         }
         autoBuy.SetPressState(false);
-        PlayDealSound();
+        UISoundPlayer.Inst.playDeal();
     }
 
     /// <summary>
@@ -515,25 +497,5 @@ public class TransactionUI : TouchBackHandler
         var color = image.color;
         color.a = flag ? 1f : 0f;
         image.color = color;
-    }
-
-    private void PlayOpenCloseSound()
-    {
-        aSource.PlayOneShot(openCloseSound);
-    }
-
-    private void PlayCellClickSound()
-    {
-        aSource.PlayOneShot(cellClickSound);
-    }
-
-    private void PlayDealSound()
-    {
-        aSource.PlayOneShot(dealSound);
-    }
-
-    private void PlayAutoExeSound()
-    {
-        aSource.PlayOneShot(autoExecuteSound);
     }
 }

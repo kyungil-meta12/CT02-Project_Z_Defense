@@ -17,8 +17,11 @@ MonoBehaviour:
   Createable: 0
   CountPerCraft: 0
   ItemsToCreate: []
-  Decomposable: 0
-  ItemsFromDecompose: []
+  Decomposable: 1
+  ItemsFromDecompose:
+  - Type: 11
+    Min: 3
+    Max: 5
   SellCoinCount: 5000
   Name: "\uBE48 \uCE94"
   InfoText: "\uAE38\uAC00\uC5D0 \uAD74\uB7EC\uB2E4\uB514\uB294 \uC4F0\uB808\uAE30

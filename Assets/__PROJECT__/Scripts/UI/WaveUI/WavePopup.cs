@@ -8,46 +8,21 @@ using UnityEngine;
 public class WavePopup : MonoBehaviour
 {
     public UIAnimationValue animValue;
-    public TextMeshProUGUI text;
-    public AudioClip feedbackSound;
 
+    private TextMeshProUGUI text;
     private RectTransform rt;
     private Vector2 originScale;
     private float sinNum;
     private float popinDelayTime;
     private bool popOutCompleted = false;
 
-    private AudioSource aSource;
-
     void Awake()
     {
+        text = GetComponent<TextMeshProUGUI>();
         rt = text.GetComponent<RectTransform>();
         originScale = rt.localScale;
         rt.localScale = Vector2.zero;
-        aSource = GetComponent<AudioSource>();
         gameObject.SetActive(false);
-    }
-
-    void Start()
-    {
-        aSource.volume = ProjectAudioManager.Inst.GetEffectiveVolume(ProjectAudioBus.Ui);
-        ProjectAudioManager.Inst.OnVolumeChanged += OnVolumeChanged;
-    }
-
-    void OnDestroy()
-    {
-        if(ProjectAudioManager.Inst)
-        {
-            ProjectAudioManager.Inst.OnVolumeChanged -= OnVolumeChanged;
-        }
-    }
-
-    public void OnVolumeChanged(ProjectAudioBus bus, float volume)
-    {
-        if(bus == ProjectAudioBus.Ui)
-        {
-            aSource.volume = volume;
-        }
     }
 
     public void Init(int waveVal)
@@ -58,7 +33,7 @@ public class WavePopup : MonoBehaviour
         rt.localScale = Vector2.zero;
         text.text = "WAVE " + waveVal.ToString();
         gameObject.SetActive(true);
-        aSource.PlayOneShot(feedbackSound);
+        UISoundPlayer.Inst.PlayPopup();
     }
 
     void Update()

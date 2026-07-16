@@ -14,11 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ItemMetaDataSo
   Type: 11
   Grade: 4
-  Createable: 1
-  CountPerCraft: 5
-  ItemsToCreate:
-  - Type: 46
-    Count: 1
+  Createable: 0
+  CountPerCraft: 0
+  ItemsToCreate: []
   Decomposable: 0
   ItemsFromDecompose: []
   SellCoinCount: 5000

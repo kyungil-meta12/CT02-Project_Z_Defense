@@ -28,12 +28,15 @@ public class MainMenuUI : TouchBackHandler
         {
             HideAudioPanel();
         }
+
+        UIManager.Inst.HideAll();
     }
 
     // 비활성화 시 버튼 입력 연결을 해제한다
     private void OnDisable()
     {
         UnbindButtonListeners();
+        UIManager.Inst.RevertAll();
     }
 
     // 파괴 시 뒤로가기 동작 등록을 해제한다

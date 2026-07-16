@@ -11,6 +11,7 @@ using UnityEngine.Events;
 public class TurretUpgradePopupUI : TurretPopupPageUI
 {
     private const int LEVEL_UP_AMOUNT = 1;
+    private const int MAX_DAMAGE_TEXT_LENGTH = 6;
     private const float HOLD_UPGRADE_START_DELAY = 0.5f;
     private const float HOLD_UPGRADE_RAMP_DURATION = 1.0f;
     private const float HOLD_UPGRADE_START_RATE = 4.0f;
@@ -367,11 +368,11 @@ public class TurretUpgradePopupUI : TurretPopupPageUI
     // 현재와 다음 스탯 수치를 각각 텍스트에 반영한다
     private void SetStatTexts(TurretRuntimeStat currentStat, TurretRuntimeStat nextStat)
     {
-        SetText(currentDamageText, ApplyTemplate(currentDamageTextTemplate, FormatValue(currentStat.damage)));
+        SetText(currentDamageText, ApplyTemplate(currentDamageTextTemplate, FormatDamageValue(currentStat.damage)));
         SetText(currentFireRateText, ApplyTemplate(currentFireRateTextTemplate, FormatValue(currentStat.fireInterval)));
         SetText(currentRangeText, ApplyTemplate(currentRangeTextTemplate, FormatValue(currentStat.range)));
         SetText(currentPierceText, ApplyTemplate(currentPierceTextTemplate, currentStat.pierceCount.ToString()));
-        SetText(nextDamageText, ApplyTemplate(nextDamageTextTemplate, FormatValue(nextStat.damage)));
+        SetText(nextDamageText, ApplyTemplate(nextDamageTextTemplate, FormatDamageValue(nextStat.damage)));
         SetText(nextFireRateText, ApplyTemplate(nextFireRateTextTemplate, FormatValue(nextStat.fireInterval)));
         SetText(nextRangeText, ApplyTemplate(nextRangeTextTemplate, FormatValue(nextStat.range)));
         SetText(nextPierceText, ApplyTemplate(nextPierceTextTemplate, nextStat.pierceCount.ToString()));
@@ -423,9 +424,9 @@ public class TurretUpgradePopupUI : TurretPopupPageUI
 
             TMP_Text countText = GetTextAt(resourceItemCountTexts, visibleIndex);
             EnableRichText(countText);
-            SetText(GetTextAt(resourceItemNameTexts, visibleIndex), GetCurrencyDisplayName(cost.currencyType));
+            SetText(GetTextAt(resourceItemNameTexts, visibleIndex), TurretCurrencyDisplayUtility.GetDisplayName(cost.currencyType));
             SetText(countText, FormatCostAmountText(cost));
-            SetImage(GetImageAt(resourceItemImages, visibleIndex), GetCurrencySprite(cost.currencyType));
+            SetImage(GetImageAt(resourceItemImages, visibleIndex), TurretCurrencyDisplayUtility.GetIcon(cost.currencyType));
             ConfigureResourceButton(visibleIndex, cost.currencyType, true);
             visibleIndex++;
         }
@@ -662,6 +663,52 @@ public class TurretUpgradePopupUI : TurretPopupPageUI
         return value.ToString("0.##");
     }
 
+    // 공격력 표시가 제한 폭을 넘지 않도록 앞자리 우선으로 6자까지 줄인다
+    private static string FormatDamageValue(float value)
+    {
+        string formattedValue = FormatValue(value);
+        if (formattedValue.Length <= MAX_DAMAGE_TEXT_LENGTH)
+        {
+            return formattedValue;
+        }
+
+        bool hasNegativeSign = formattedValue.StartsWith("-");
+        string signText = hasNegativeSign ? "-" : string.Empty;
+        string unsignedValue = hasNegativeSign ? formattedValue.Substring(1) : formattedValue;
+        int decimalIndex = unsignedValue.IndexOf('.');
+        if (decimalIndex < 0)
+        {
+            decimalIndex = unsignedValue.IndexOf(',');
+        }
+
+        string integerText = decimalIndex < 0 ? unsignedValue : unsignedValue.Substring(0, decimalIndex);
+        int unsignedLengthLimit = Mathf.Max(1, MAX_DAMAGE_TEXT_LENGTH - signText.Length);
+        if (integerText.Length >= unsignedLengthLimit)
+        {
+            return signText + integerText.Substring(0, unsignedLengthLimit);
+        }
+
+        if (decimalIndex < 0)
+        {
+            return signText + integerText;
+        }
+
+        int remainingLength = unsignedLengthLimit - integerText.Length;
+        if (remainingLength <= 1)
+        {
+            return signText + integerText;
+        }
+
+        string decimalText = unsignedValue.Substring(decimalIndex + 1);
+        int decimalLength = Mathf.Min(remainingLength - 1, decimalText.Length);
+        if (decimalLength <= 0)
+        {
+            return signText + integerText;
+        }
+
+        return signText + integerText + unsignedValue[decimalIndex] + decimalText.Substring(0, decimalLength);
+    }
+
     // 템플릿의 중괄호 구간을 값으로 교체한다
     private static string ApplyTemplate(string template, string value)
     {
@@ -735,45 +782,6 @@ public class TurretUpgradePopupUI : TurretPopupPageUI
         }
 
         return prefix + signedValue + suffix;
-    }
-
-    // 재화 타입을 UI 표시 이름으로 변환한다
-    private static string GetCurrencyLabel(RewardCurrencyType currencyType)
-    {
-        switch (currencyType)
-        {
-            case RewardCurrencyType.Coin:
-                return "Coin";
-            default:
-                return currencyType.ToString();
-        }
-    }
-
-    // 재화 타입을 인벤토리 메타데이터 표시 이름으로 변환한다
-    private static string GetCurrencyDisplayName(RewardCurrencyType currencyType)
-    {
-        if (InventorySystem.Inst != null)
-        {
-            string itemName = InventorySystem.Inst.GetName(currencyType);
-            if (!string.IsNullOrWhiteSpace(itemName))
-            {
-                return itemName;
-            }
-        }
-
-        return GetCurrencyLabel(currencyType);
-    }
-
-    // 재화 타입을 인벤토리 메타데이터 이미지로 변환한다
-    private static Sprite GetCurrencySprite(RewardCurrencyType currencyType)
-    {
-        if (InventorySystem.Inst == null)
-        {
-            return null;
-        }
-
-        ItemMetaDataSo metadata = InventorySystem.Inst.GetMetaData(currencyType);
-        return metadata == null ? null : metadata.ItemImage;
     }
 
     // 지정 인덱스 이후 재화 슬롯 표시를 비운다

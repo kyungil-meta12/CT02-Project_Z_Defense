@@ -1,9 +1,6 @@
 using IncrementalLib;
-using ProjectZDefense.Audio;
-using ProjectZima.PolygonModularTurretsPack;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -32,7 +29,9 @@ public struct ContentData
 public class CellData {
     public RewardCurrencyType Type;
     public Image CellImage;
-    public TextMeshProUGUI CellText;
+    public TextMeshProUGUI OwnCountText;
+    public TextMeshProUGUI CreateCountText;
+    public TextMeshProUGUI NameText;
 }
 
 // 각 셀 버튼이 가지는 정보를 다루는 클래스
@@ -93,7 +92,7 @@ public class InventoryUI : TouchBackHandler
     [Header("자동 제작 및 분해 사운드")] public AudioClip autoExecuteSound;
 
     public bool BatchWorkMode { get; set; } = false;
-    public event Action InventoryClosed;
+    public event System.Action InventoryClosed;
 
     private EventTrigger makeButtonEvent;
     private TextMeshProUGUI makeButtonText;
@@ -146,9 +145,6 @@ public class InventoryUI : TouchBackHandler
     // 제작/분해 버튼 자동 실행
     ButtonAutoExecute makeAutoExecute = new();
     ButtonAutoExecute decompAutoExecute = new();
-
-    // 사운드 재생기
-    private AudioSource aSource;
 
     // 인벤토리를 닫은 상태로 시작
     void Awake()
@@ -227,7 +223,7 @@ public class InventoryUI : TouchBackHandler
             var cellData = invenDict.Cell[buttonComp];
             cellData.Type = type;
             cellData.CellImage = imageComp;
-            cellData.CellText = textComp;
+            cellData.OwnCountText = textComp;
         }
 
         // 분해 셀 생성
@@ -257,7 +253,7 @@ public class InventoryUI : TouchBackHandler
             var cellData = decompDict.Cell[buttonComp];
             cellData.Type = type;
             cellData.CellImage = imageComp;
-            cellData.CellText = textComp;
+            cellData.OwnCountText = textComp;
         }
 
         // 아이템 중에서 제작 가능한 아이템 종류 개수 만큼 크래프트 셀을 생성한다.
@@ -283,14 +279,21 @@ public class InventoryUI : TouchBackHandler
             var textComp = buttonComp.transform.Find("ItemName").GetComponent<TextMeshProUGUI>();
             textComp.text = metaData.Name;
 
-            var countTextComp = buttonComp.transform.Find("ItemCount").GetComponent<TextMeshProUGUI>();
+            var countTextComp = buttonComp.transform.Find("ItemCreateCount").GetComponent<TextMeshProUGUI>();
             countTextComp.text = "+" + metaData.CountPerCraft.ToString();
 
-            craftDict.Cell.Add(buttonComp, new CellData());
-            var cellData = craftDict.Cell[buttonComp];
-            cellData.Type = type;
-            cellData.CellImage = imageComp;
-            cellData.CellText = buttonComp.transform.Find("ItemName").GetComponent<TextMeshProUGUI>();
+            var ownCountTextComp = buttonComp.transform.Find("ItemOwnCount").GetComponent<TextMeshProUGUI>();
+            ownCountTextComp.text = "";
+
+            var cellData = new CellData
+            {
+                Type = type,
+                CellImage = imageComp,
+                NameText = textComp,
+                CreateCountText = countTextComp,
+                OwnCountText = ownCountTextComp
+            };
+            craftDict.Cell.Add(buttonComp, cellData);
         }
 
         // 왼쪽 상단부터 순서대로 아이템 버튼 참조를 추가
@@ -313,11 +316,6 @@ public class InventoryUI : TouchBackHandler
 
         // 인벤토리 UI 숨기기
         OnCloseInventory();
-
-
-        aSource = GetComponent<AudioSource>();
-        aSource.volume = ProjectAudioManager.Inst.GetEffectiveVolume(ProjectAudioBus.Ui);
-        ProjectAudioManager.Inst.OnVolumeChanged += OnVolumeChanged; // 볼륨 변경 이벤트 구독
     }
 
     void OnDestroy()
@@ -325,10 +323,6 @@ public class InventoryUI : TouchBackHandler
         if (InventorySystem.Inst)
         {
             InventorySystem.Inst.OnItemCountChange -= OnItemValueChanged;
-        }
-        if(ProjectAudioManager.Inst)
-        {
-            ProjectAudioManager.Inst.OnVolumeChanged -= OnVolumeChanged;
         }
     }
 
@@ -365,14 +359,6 @@ public class InventoryUI : TouchBackHandler
         }
 
         UpdateTouchBackHandler();
-    }
-
-    public void OnVolumeChanged(ProjectAudioBus bus, float volume)
-    {
-        if(bus == ProjectAudioBus.Ui)
-        {
-            aSource.volume = volume;
-        }
     }
 
     // 아이템 개수가 변경 될 때마다 아이템에 해당하는 인덱스의 정보를 업데이트 한다.
@@ -412,9 +398,9 @@ public class InventoryUI : TouchBackHandler
         mainController.SetActive(true);
         background.gameObject.SetActive(true);
         SetToInventoryTab();
-        UIManager.Inst.HideGameUI();
+        UIManager.Inst.HideAll();
         openState = true;
-        PlayTabClickSound();
+        UISoundPlayer.Inst.PlayDefaultClick();
     }
 
     /// <summary>
@@ -425,7 +411,7 @@ public class InventoryUI : TouchBackHandler
         bool wasOpen = openState;
         mainController.SetActive(false);
         background.gameObject.SetActive(false);
-        UIManager.Inst.RevertGameUI();
+        UIManager.Inst.RevertAll();
         openState = false;
 
         if (wasOpen)
@@ -453,7 +439,7 @@ public class InventoryUI : TouchBackHandler
         SetInfoText(metaData);
         SetInfoImage(metaData);
 
-        PlayCellClickSound();
+        UISoundPlayer.Inst.PlayCellClick();
     }
 
     /// <summary>
@@ -504,7 +490,7 @@ public class InventoryUI : TouchBackHandler
         // 테두리 활성화
         itemViewerRect.gameObject.SetActive(true);
 
-        PlayCellClickSound();
+        UISoundPlayer.Inst.PlayCellClick();
     }
 
     /// <summary>
@@ -556,7 +542,7 @@ public class InventoryUI : TouchBackHandler
         // 테두리 활성화
         itemViewerRect.gameObject.SetActive(true);
 
-        PlayCellClickSound();
+        UISoundPlayer.Inst.PlayCellClick();
     }
 
     /// <summary>
@@ -575,12 +561,14 @@ public class InventoryUI : TouchBackHandler
         itemPopupNameText.text = metaData.Name;
         itemPopupOwnCountText.text = "보유량: " + InventorySystem.Inst.GetCountString(selectedType);
         itemPopupOwnCountText.color = hasItem ? Color.white : Color.red;
+
+        UISoundPlayer.Inst.PlayCellClick();
     }
 
     public void OnCloseButtonClick()
     {
         OnCloseInventory();
-        PlayTabClickSound();   
+        UISoundPlayer.Inst.PlayDefaultClick();
     }
 
     public void OnInventoryTabClick()
@@ -589,7 +577,7 @@ public class InventoryUI : TouchBackHandler
         {
             SetToInventoryTab();
         }
-        PlayTabClickSound();
+        UISoundPlayer.Inst.PlayDefaultClick();
     }
 
     public void OnCraftTabClick()
@@ -598,7 +586,7 @@ public class InventoryUI : TouchBackHandler
         {
             SetToCraftTab();
         }
-        PlayTabClickSound();
+        UISoundPlayer.Inst.PlayDefaultClick();
     }
 
     public void OnDecomposeTabClick()
@@ -607,7 +595,7 @@ public class InventoryUI : TouchBackHandler
         {
             SetToDecomposeTab();
         }
-        PlayTabClickSound();
+        UISoundPlayer.Inst.PlayDefaultClick();
     }
 
     public void OnMakeButtonDown()
@@ -622,7 +610,7 @@ public class InventoryUI : TouchBackHandler
             MakeItem();
         }
         makeAutoExecute.SetPressState(false);
-        PlayMakeSound();
+        UISoundPlayer.Inst.PlayMake();
     }
 
     public void OnDecomposeButtonDown()
@@ -637,7 +625,7 @@ public class InventoryUI : TouchBackHandler
             DecomposeItem();
         }
         decompAutoExecute.SetPressState(false);
-        PlayDecomposeSound();
+        UISoundPlayer.Inst.PlayDecompose();
     }
 
     /// <summary>
@@ -707,7 +695,7 @@ public class InventoryUI : TouchBackHandler
     private void AutoMakeItem()
     {
         MakeItem();
-        PlayAutoExeSound();
+        UISoundPlayer.Inst.PlayAutoExecute();  
     }
 
     /// <summary>
@@ -716,7 +704,7 @@ public class InventoryUI : TouchBackHandler
     private void AutoDecomposeItem()
     {
         DecomposeItem();
-        PlayAutoExeSound();    
+        UISoundPlayer.Inst.PlayAutoExecute();   
     }
     
 
@@ -1093,8 +1081,8 @@ public class InventoryUI : TouchBackHandler
             {
                 bool hasItem = InventorySystem.Inst.HasItem(cell.Value.Type);
                 SetImageBrightness(cell.Value.CellImage, hasItem ? HAS_ITEM_BRIGHTNESS : NO_ITEM_BRIGHTNESS);
-                cell.Value.CellText.text = InventorySystem.Inst.GetCountString(cell.Value.Type);
-                cell.Value.CellText.color = hasItem ? Color.white : Color.softRed;
+                cell.Value.OwnCountText.text = InventorySystem.Inst.GetCountString(cell.Value.Type);
+                cell.Value.OwnCountText.color = hasItem ? Color.white : Color.softRed;
             }
         }
         else
@@ -1112,35 +1100,13 @@ public class InventoryUI : TouchBackHandler
                         break;
                     }
                 }
+                bool hasItem = InventorySystem.Inst.HasItem(cell.Value.Type);
 
-                cell.Value.CellText.color = itemEnough ? Color.white : Color.softRed;
+                cell.Value.OwnCountText.text = InventorySystem.Inst.GetCountString(cell.Value.Type);
+                cell.Value.OwnCountText.color = hasItem ? Color.white : Color.softRed;
+                cell.Value.NameText.color = itemEnough ? Color.white : Color.softRed;
                 SetImageBrightness(cell.Value.CellImage, itemEnough ? HAS_ITEM_BRIGHTNESS : NO_ITEM_BRIGHTNESS);
             }
         }
-    }
-
-    private void PlayTabClickSound()
-    {
-        aSource.PlayOneShot(tabClickSound);
-    }
-
-    private void PlayCellClickSound()
-    {
-        aSource.PlayOneShot(cellClickSound);
-    }
-
-    private void PlayMakeSound()
-    {
-        aSource.PlayOneShot(makeSound);
-    }
-
-    private void PlayDecomposeSound()
-    {
-        aSource.PlayOneShot(decomposeSound);
-    }
-
-    private void PlayAutoExeSound()
-    {
-        aSource.PlayOneShot(autoExecuteSound);
     }
 }

@@ -1,8 +1,8 @@
 EvolutionProfilePath(임포트 매칭용 진화 프로필 경로)	SourceDisplayName(현재 터렛 이름)	TargetDisplayName(진화 대상 터렛 이름)	RequiredLevel(진화 요구 티어 레벨)	EvolutionCosts(진화 재료: Coin:100;Stone:5)
-Assets/__PROJECT__/Scenes/KKW/Turret_Scene/SO/Turret Evolution SO/1stGen/Sentinel-01_Evolution Progression SO.asset	센티널 포스트	벡터 MG	10	Coin:3000;SuperAlloy:3;MachinePart:3;Bolt:15;ToolBox:1
-Assets/__PROJECT__/Scenes/KKW/Turret_Scene/SO/Turret Evolution SO/1stGen/Sentinel-01_Evolution Progression SO.asset	센티널 포스트	센트리 펄스	10	Coin:3000;SuperAlloy:3;MachinePart:3;Bolt:15;ToolBox:1
-Assets/__PROJECT__/Scenes/KKW/Turret_Scene/SO/Turret Evolution SO/1stGen/Vector MG_Evolution Progression SO.asset	벡터 MG	벌칸 노드	20	Coin:10000;SuperAlloy:4;MachinePart:6;Bolt:30;ToolBox:1
-Assets/__PROJECT__/Scenes/KKW/Turret_Scene/SO/Turret Evolution SO/1stGen/Sentry Pulse_Evolution Progression SO.asset	센트리 펄스	펄스 리피터	20	Coin:10000;SuperAlloy:4;MachinePart:6;Bolt:30;ToolBox:1
+Assets/__PROJECT__/Scenes/KKW/Turret_Scene/SO/Turret Evolution SO/1stGen/Sentinel-01_Evolution Progression SO.asset	센티널 포스트	벡터 MG	10	Coin:3000;SuperAlloy:3;MachinePart:3;Bolt:15
+Assets/__PROJECT__/Scenes/KKW/Turret_Scene/SO/Turret Evolution SO/1stGen/Sentinel-01_Evolution Progression SO.asset	센티널 포스트	센트리 펄스	10	Coin:3000;SuperAlloy:3;MachinePart:3;Bolt:15
+Assets/__PROJECT__/Scenes/KKW/Turret_Scene/SO/Turret Evolution SO/1stGen/Vector MG_Evolution Progression SO.asset	벡터 MG	벌칸 노드	20	Coin:10000;SuperAlloy:4;MachinePart:6;Bolt:30
+Assets/__PROJECT__/Scenes/KKW/Turret_Scene/SO/Turret Evolution SO/1stGen/Sentry Pulse_Evolution Progression SO.asset	센트리 펄스	펄스 리피터	20	Coin:10000;SuperAlloy:4;MachinePart:6;Bolt:30
 Assets/__PROJECT__/Scenes/KKW/Turret_Scene/SO/Turret Evolution SO/1stGen/Vulcan Node_Evolution Progression SO.asset	벌칸 노드	그린 니들	30	Coin:50000;Carbon:1;SuperAlloy:4;GasCan:1;ToolBox:1
 Assets/__PROJECT__/Scenes/KKW/Turret_Scene/SO/Turret Evolution SO/1stGen/Vulcan Node_Evolution Progression SO.asset	벌칸 노드	엠버 다트	30	Coin:50000;Carbon:1;SuperAlloy:4;GasCan:1;ToolBox:1
 Assets/__PROJECT__/Scenes/KKW/Turret_Scene/SO/Turret Evolution SO/1stGen/Vulcan Node_Evolution Progression SO.asset	벌칸 노드	블루 필드	30	Coin:50000;Carbon:1;SuperAlloy:4;GasCan:1;ToolBox:1

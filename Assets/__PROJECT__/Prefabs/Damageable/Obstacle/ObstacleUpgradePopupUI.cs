@@ -348,15 +348,20 @@ public class ObstacleUpgradePopupUI : MonoBehaviour
         ObstacleDefinitionSO definition = selectedUpgradeController == null ? null : selectedUpgradeController.CurrentDefinition;
         string obstacleName = definition == null ? selectedObstacle.name : definition.DisplayName;
         int currentLevel = selectedUpgradeController == null ? 1 : selectedUpgradeController.CurrentLevel;
-        int targetLevel = currentLevel + levelUpAmount;
+        int targetLevel = definition != null && definition.MaxLevel > 0
+            ? Mathf.Min(currentLevel + levelUpAmount, definition.MaxLevel)
+            : currentLevel + levelUpAmount;
+        float nextLevelHp = definition == null || definition.ObstacleSpec == null
+            ? selectedObstacle.TotalHp
+            : Obstacle.CalculateTotalHp(definition.ObstacleSpec, targetLevel);
         ResourceCost[] upgradeCosts = selectedUpgradeController == null ? System.Array.Empty<ResourceCost>() : selectedUpgradeController.GetUpgradeCosts(levelUpAmount);
         bool canUpgrade = selectedUpgradeController != null && selectedUpgradeController.CanUpgrade(levelUpAmount);
         bool prefabWillChange = definition != null &&
                                 definition.GetPrefabForLevel(currentLevel) != definition.GetPrefabForLevel(targetLevel);
 
         titleText.text = obstacleName;
-        levelText.text = FormatLevelText(currentLevel, definition);
-        hpText.text = $"체력 {selectedObstacle.CurrHp:0.#} / {selectedObstacle.TotalHp:0.#}";
+        levelText.text = FormatLevelText(currentLevel, targetLevel);
+        hpText.text = $"내구도 : {selectedObstacle.CurrHp:0.#} / {selectedObstacle.TotalHp:0.#} -> {nextLevelHp:0.#}";
         RefreshCostRows(upgradeCosts);
         statusText.text = GetStatusText(prefabWillChange);
 
@@ -364,15 +369,10 @@ public class ObstacleUpgradePopupUI : MonoBehaviour
         upgradeButtonText.text = canUpgrade ? $"업그레이드 +{levelUpAmount}" : "업그레이드 불가";
     }
 
-    // 현재 레벨과 최대 레벨을 UI 문자열로 변환한다
-    private static string FormatLevelText(int currentLevel, ObstacleDefinitionSO definition)
+    // 현재 레벨과 다음 업그레이드 목표 레벨을 UI 문자열로 변환한다
+    private static string FormatLevelText(int currentLevel, int targetLevel)
     {
-        if (definition == null || definition.MaxLevel <= 0)
-        {
-            return $"레벨 {currentLevel}";
-        }
-
-        return $"레벨 {currentLevel} / {definition.MaxLevel}";
+        return $"레벨 : {currentLevel} -> {targetLevel}";
     }
 
     // 현재 선택 상태의 안내 문구를 반환한다

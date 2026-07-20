@@ -20,7 +20,7 @@ MonoBehaviour:
     maxAmountMultiplier: 1.2
   - currencyType: 1
     amount: 20
-    dropChance: 1
+    dropChance: 0.5
     minAmountMultiplier: 0.8
     maxAmountMultiplier: 1.2
   - currencyType: 2
@@ -30,22 +30,22 @@ MonoBehaviour:
     maxAmountMultiplier: 1.2
   - currencyType: 3
     amount: 3
-    dropChance: 0.0111796865
+    dropChance: 0.01117969
     minAmountMultiplier: 0.8
     maxAmountMultiplier: 1.2
   - currencyType: 4
     amount: 1
-    dropChance: 1
+    dropChance: 0.3
     minAmountMultiplier: 0.8
     maxAmountMultiplier: 1.2
   - currencyType: 5
     amount: 1
-    dropChance: 1
+    dropChance: 0.3
     minAmountMultiplier: 0.8
     maxAmountMultiplier: 1.2
   - currencyType: 6
     amount: 1
-    dropChance: 0.22006701
+    dropChance: 0.220067
     minAmountMultiplier: 0.8
     maxAmountMultiplier: 1.2
   - currencyType: 8
@@ -55,32 +55,32 @@ MonoBehaviour:
     maxAmountMultiplier: 1.2
   - currencyType: 14
     amount: 1
-    dropChance: 0.00070089364
+    dropChance: 0.000700894
     minAmountMultiplier: 0.8
     maxAmountMultiplier: 1.2
   - currencyType: 15
     amount: 1
-    dropChance: 0.00070089364
+    dropChance: 0.000700894
     minAmountMultiplier: 0.8
     maxAmountMultiplier: 1.2
   - currencyType: 16
     amount: 1
-    dropChance: 0.00070089364
+    dropChance: 0.000700894
     minAmountMultiplier: 0.8
     maxAmountMultiplier: 1.2
   - currencyType: 17
     amount: 1
-    dropChance: 0.0035044681
+    dropChance: 0.003504468
     minAmountMultiplier: 0.8
     maxAmountMultiplier: 1.2
   - currencyType: 18
     amount: 1
-    dropChance: 0.0035267149
+    dropChance: 0.003526715
     minAmountMultiplier: 0.8
     maxAmountMultiplier: 1.2
   - currencyType: 19
     amount: 1
-    dropChance: 1
+    dropChance: 0.3
     minAmountMultiplier: 0.8
     maxAmountMultiplier: 1.2
   - currencyType: 23
@@ -90,27 +90,27 @@ MonoBehaviour:
     maxAmountMultiplier: 1.2
   - currencyType: 24
     amount: 1
-    dropChance: 0.036466233
+    dropChance: 0.03646623
     minAmountMultiplier: 0.8
     maxAmountMultiplier: 1.2
   - currencyType: 25
     amount: 1
-    dropChance: 0.0035267149
+    dropChance: 0.003526715
     minAmountMultiplier: 0.8
     maxAmountMultiplier: 1.2
   - currencyType: 27
     amount: 1
-    dropChance: 0.13586824
+    dropChance: 0.1358682
     minAmountMultiplier: 0.8
     maxAmountMultiplier: 1.2
   - currencyType: 38
     amount: 1
-    dropChance: 0.0035267149
+    dropChance: 0.003526715
     minAmountMultiplier: 0.8
     maxAmountMultiplier: 1.2
   - currencyType: 46
-    amount: 1
-    dropChance: 0.040134016
+    amount: 3
+    dropChance: 0.04013402
     minAmountMultiplier: 0.8
     maxAmountMultiplier: 1.2
   - currencyType: 47
@@ -130,7 +130,7 @@ MonoBehaviour:
     maxAmountMultiplier: 1.2
   - currencyType: 54
     amount: 1
-    dropChance: 0.0035267149
+    dropChance: 0.003526715
     minAmountMultiplier: 0.8
     maxAmountMultiplier: 1.2
   - currencyType: 64
@@ -140,7 +140,7 @@ MonoBehaviour:
     maxAmountMultiplier: 1.2
   - currencyType: 63
     amount: 1
-    dropChance: 0.00042320578
+    dropChance: 0.000423206
     minAmountMultiplier: 0.8
     maxAmountMultiplier: 1.2
   modifiers: []

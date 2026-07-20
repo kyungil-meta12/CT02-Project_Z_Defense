@@ -147,6 +147,9 @@ public class Survivor : MonoBehaviour
     private float treatmentTimer;
     private float nextDefenseMoveWarningTime;
     private bool isInitializedAsRescueSurvivor;
+    private bool hasWaveRestartRestoreStage;
+    private bool isWaveRestartReturnInProgress;
+    private SurvivorRestoreStage waveRestartRestoreStage;
     private TurretEngineerBuffReceiver assignedEngineerBuffReceiver;
     private TurretBaseSlot assignedTurretSlot;
     private SkinnedMeshRenderer roleSkinnedMeshRenderer;
@@ -159,6 +162,7 @@ public class Survivor : MonoBehaviour
     public bool CanBeginEngineerAssignment => role == SurvivorRole.engineer && (state == SurvivorState.EngineerReady || state == SurvivorState.EngineerAssigned);
     public bool IsMovingForInteraction => IsAgentMoveState() && agent != null && agent.enabled && agent.isOnNavMesh && agent.desiredVelocity.sqrMagnitude > 0.01f;
     public bool IsWaitingForInteraction => role == SurvivorRole.survivor && !CanRequestTreatment && !CanAssignRole && !IsMovingForInteraction;
+    public event System.Action<Survivor> OnInteractionStateChanged;
 
     // 현재 역할과 치료 진행 상태를 저장 항목으로 반환한다
     public SurvivorSaveEntry CaptureSaveEntry()
@@ -185,6 +189,8 @@ public class Survivor : MonoBehaviour
         defenseMoveTarget = null;
         activeDefenseLineIndex = NO_DEFENSE_LINE;
         isInitializedAsRescueSurvivor = false;
+        hasWaveRestartRestoreStage = false;
+        isWaveRestartReturnInProgress = false;
         role = saveEntry.Role;
         SetInteractionVisible(true);
 
@@ -297,13 +303,31 @@ public class Survivor : MonoBehaviour
 
         if (isGateBreached)
         {
-            ClearEngineerAssignment();
+            CaptureWaveRestartRestoreStage();
+            PrepareEngineerForWaveFailureRetreat();
         }
 
         activeDefenseLineIndex = defenseLineIndex;
         defenseMoveTarget = retreatPoint;
         ClearRepairTarget();
         ChangeState(SurvivorState.Retreating);
+    }
+
+    // 웨이브 실패 후퇴 전에 엔지니어 탑승을 해제하고 기존 터렛 슬롯 기억을 유지한다
+    public void PrepareEngineerForWaveFailureRetreat()
+    {
+        if (role != SurvivorRole.engineer)
+        {
+            return;
+        }
+
+        ClearEngineerAssignment();
+        SetInteractionVisible(true);
+
+        if (agent != null && agent.enabled && !agent.isOnNavMesh)
+        {
+            TryRecoverAgentToNavMesh();
+        }
     }
 
     // 방어선 복구 시 생존자를 지정한 복귀 포인트로 이동시킨다
@@ -361,6 +385,19 @@ public class Survivor : MonoBehaviour
 
         activeDefenseLineIndex = NO_DEFENSE_LINE;
 
+        if (role == SurvivorRole.survivor && hasWaveRestartRestoreStage)
+        {
+            isWaveRestartReturnInProgress = true;
+            SetInteractionVisible(true);
+
+            bool isAgentReady = agent != null && agent.enabled && (agent.isOnNavMesh || TryRecoverAgentToNavMesh());
+            if (finalRearPoint == null || !isAgentReady)
+            {
+                TryRestoreWaveRestartInteractionState();
+                return;
+            }
+        }
+
         if (finalRearPoint == null || agent == null || !agent.enabled || !agent.isOnNavMesh)
         {
             ChangeState(GetIdleStateForRole());
@@ -402,6 +439,8 @@ public class Survivor : MonoBehaviour
     // 스폰 지점에서 최후방 지점으로 뛰어오도록 시작한다
     public void StartRescueRun(Transform finalRearPoint_)
     {
+        hasWaveRestartRestoreStage = false;
+        isWaveRestartReturnInProgress = false;
         role = SurvivorRole.survivor;
         visualCondition = SurvivorVisualCondition.Wounded;
         ApplyRoleVisual();
@@ -769,10 +808,11 @@ public class Survivor : MonoBehaviour
             return;
         }
 
-        agent.isStopped = false;
-        moveTimer += Time.deltaTime;
-        destinationRefreshTimer -= Time.deltaTime;
-        vaultDetectionTimer -= Time.deltaTime;
+        if (agent == null || !agent.enabled)
+        {
+            AbortDefensePointMove("[Survivor] NavMeshAgent가 비활성 상태여서 방어선 이동을 중단합니다.", false);
+            return;
+        }
 
         if (!agent.isOnNavMesh)
         {
@@ -783,6 +823,11 @@ public class Survivor : MonoBehaviour
 
             return;
         }
+
+        agent.isStopped = false;
+        moveTimer += Time.deltaTime;
+        destinationRefreshTimer -= Time.deltaTime;
+        vaultDetectionTimer -= Time.deltaTime;
 
         agent.nextPosition = transform.position;
 
@@ -993,7 +1038,11 @@ public class Survivor : MonoBehaviour
 
         if (retryMove && defenseMoveTarget != null && IsAgentMoveState())
         {
-            agent.isStopped = true;
+            if (agent != null && agent.enabled && agent.isOnNavMesh)
+            {
+                agent.isStopped = true;
+            }
+
             moveTimer = 0f;
             destinationRefreshTimer = 0f;
             vaultDetectionTimer = 0f;
@@ -1003,6 +1052,13 @@ public class Survivor : MonoBehaviour
         }
 
         defenseMoveTarget = null;
+        if (TryRestoreWaveRestartInteractionState())
+        {
+            searchTimer = GetTargetSearchInterval();
+            LogDefenseMoveWarning(message);
+            return;
+        }
+
         ChangeState(GetIdleStateForRole());
         searchTimer = GetTargetSearchInterval();
         LogDefenseMoveWarning(message);
@@ -1406,10 +1462,14 @@ public class Survivor : MonoBehaviour
 
         if (agent == null)
         {
+            OnInteractionStateChanged?.Invoke(this);
             return;
         }
 
-        agent.isStopped = !IsAgentMoveState();
+        if (agent.enabled && agent.isOnNavMesh)
+        {
+            agent.isStopped = !IsAgentMoveState();
+        }
 
         if (state == SurvivorState.Idle)
         {
@@ -1449,6 +1509,8 @@ public class Survivor : MonoBehaviour
             treatmentTimer = Mathf.Max(0f, defaultTreatmentDuration);
             SetInteractionVisible(false);
         }
+
+        OnInteractionStateChanged?.Invoke(this);
     }
 
     // 현재 애니메이션 파라미터를 갱신한다
@@ -1496,6 +1558,12 @@ public class Survivor : MonoBehaviour
             case SurvivorState.ReturningToEngineerGathering:
                 ChangeState(SurvivorState.EngineerReady);
                 break;
+            case SurvivorState.ReturningToDefensePoint:
+                if (!TryRestoreWaveRestartInteractionState())
+                {
+                    ChangeState(GetIdleStateForRole());
+                }
+                break;
             case SurvivorState.MovingToHospital:
                 ChangeState(SurvivorState.InTreatment);
                 break;
@@ -1525,6 +1593,41 @@ public class Survivor : MonoBehaviour
         }
 
         return SurvivorRestoreStage.TreatmentPending;
+    }
+
+    // 게이트 후퇴가 시작될 때 일반 생존자의 치료 진행 단계를 한 번만 보존한다
+    private void CaptureWaveRestartRestoreStage()
+    {
+        if (role != SurvivorRole.survivor || hasWaveRestartRestoreStage)
+        {
+            return;
+        }
+
+        waveRestartRestoreStage = GetRestoreStage();
+        hasWaveRestartRestoreStage = true;
+        isWaveRestartReturnInProgress = false;
+    }
+
+    // 웨이브 재시작 복귀가 끝나면 저장된 치료 진행 단계에 맞는 상호작용 상태를 복원한다
+    private bool TryRestoreWaveRestartInteractionState()
+    {
+        if (role != SurvivorRole.survivor || !hasWaveRestartRestoreStage || !isWaveRestartReturnInProgress)
+        {
+            return false;
+        }
+
+        SurvivorRestoreStage restoreStage = waveRestartRestoreStage;
+        hasWaveRestartRestoreStage = false;
+        isWaveRestartReturnInProgress = false;
+        defenseMoveTarget = null;
+        SetInteractionVisible(true);
+
+        bool needsTreatment = restoreStage == SurvivorRestoreStage.TreatmentPending;
+        visualCondition = needsTreatment ? SurvivorVisualCondition.Wounded : SurvivorVisualCondition.Normal;
+        ApplyRoleVisual();
+        ChangeState(needsTreatment ? SurvivorState.TreatmentReady : SurvivorState.RoleSelectionReady);
+        GameManager.Inst?.MarkSurvivorStateDirty();
+        return true;
     }
 
     // 엔지니어 터렛 배치 등록을 해제한다

@@ -20,6 +20,7 @@ public class SurvivorInteractionController : MonoBehaviour
     [SerializeField] private EngineerBuffTargetPanelUI engineerBuffTargetPanel;
 
     private Survivor selectedSurvivor;
+    private Survivor subscribedSurvivor;
     private Survivor pendingEngineer;
     private bool hasSubscribedCameraTouch;
 
@@ -35,17 +36,20 @@ public class SurvivorInteractionController : MonoBehaviour
     private void OnEnable()
     {
         SubscribeCameraTouchEvent();
+        SubscribeSelectedSurvivor();
     }
 
     // 비활성화될 때 카메라 터치 이벤트를 해제한다
     private void OnDisable()
     {
+        UnsubscribeSelectedSurvivor();
         UnsubscribeCameraTouchEvent();
     }
 
     // 파괴 시 버튼 이벤트를 해제한다
     private void OnDestroy()
     {
+        UnsubscribeSelectedSurvivor();
         UnsubscribeCameraTouchEvent();
         UnbindButtons();
     }
@@ -138,8 +142,6 @@ public class SurvivorInteractionController : MonoBehaviour
             return;
         }
 
-        selectedSurvivor = survivor;
-
         if (survivor.CanBeginEngineerAssignment && survivor.TryBeginEngineerAssignment())
         {
             pendingEngineer = survivor;
@@ -222,7 +224,7 @@ public class SurvivorInteractionController : MonoBehaviour
     // 선택 생존자 상태에 맞춰 팝업을 표시한다
     private void ShowPopup(Survivor survivor)
     {
-        selectedSurvivor = survivor;
+        SetSelectedSurvivor(survivor);
         if (popupPanel != null)
         {
             popupPanel.SetActive(true);
@@ -234,11 +236,60 @@ public class SurvivorInteractionController : MonoBehaviour
     // 팝업을 숨기고 선택을 해제한다
     private void HidePopup()
     {
-        selectedSurvivor = null;
+        SetSelectedSurvivor(null);
         if (popupPanel != null)
         {
             popupPanel.SetActive(false);
         }
+    }
+
+    // 선택된 생존자를 교체하고 상호작용 상태 이벤트 구독을 갱신한다
+    private void SetSelectedSurvivor(Survivor survivor)
+    {
+        if (selectedSurvivor == survivor)
+        {
+            return;
+        }
+
+        UnsubscribeSelectedSurvivor();
+        selectedSurvivor = survivor;
+        SubscribeSelectedSurvivor();
+    }
+
+    // 현재 선택된 생존자의 상호작용 상태 이벤트를 구독한다
+    private void SubscribeSelectedSurvivor()
+    {
+        if (!isActiveAndEnabled || selectedSurvivor == null || subscribedSurvivor == selectedSurvivor)
+        {
+            return;
+        }
+
+        UnsubscribeSelectedSurvivor();
+        subscribedSurvivor = selectedSurvivor;
+        subscribedSurvivor.OnInteractionStateChanged += HandleSelectedSurvivorStateChanged;
+    }
+
+    // 선택된 생존자의 상호작용 상태 이벤트 구독을 해제한다
+    private void UnsubscribeSelectedSurvivor()
+    {
+        if (subscribedSurvivor == null)
+        {
+            return;
+        }
+
+        subscribedSurvivor.OnInteractionStateChanged -= HandleSelectedSurvivorStateChanged;
+        subscribedSurvivor = null;
+    }
+
+    // 선택된 생존자의 상태가 바뀌면 열려 있는 팝업을 즉시 갱신한다
+    private void HandleSelectedSurvivorStateChanged(Survivor survivor)
+    {
+        if (survivor != selectedSurvivor || popupPanel == null || !popupPanel.activeSelf)
+        {
+            return;
+        }
+
+        RefreshPopup();
     }
 
     // UI 클릭 프레임이 끝난 뒤 팝업을 숨겨 입력 처리 순서를 안정화한다

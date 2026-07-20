@@ -505,10 +505,7 @@ public class BossZombie : PoolObject, IDamageable, IAimPointProvider, IFrostStat
             return;
         }
 
-        Transform effectParent = headPosition != null ? headPosition : transform;
-        Vector3 mouthPosition = effectParent.position + effectParent.forward * 5f;
-
-        FeelManager.Inst.boomerSkillFeedback.PlayFeedbacks(mouthPosition);
+        FeelManager.Inst.boomerSkillFeedback.PlayFeedbacks(transform.position);
     }
     
     // 외부 공격으로 받은 데미지를 체력에 반영하고 사망 여부를 확인한다

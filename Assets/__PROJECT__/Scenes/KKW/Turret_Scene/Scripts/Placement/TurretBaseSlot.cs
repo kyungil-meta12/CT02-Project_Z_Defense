@@ -218,6 +218,7 @@ public class TurretBaseSlot : MonoBehaviour
         }
 
         TurretEconomyLogUtility.LogResult("설치", GetShopEntryName(shopEntry), placementCosts, true, this);
+        TurretFeedbackPopupSettings.ShowRandomPlacementSuccess();
         GameManager.Inst?.MarkTurretStateDirty();
         return true;
     }

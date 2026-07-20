@@ -215,6 +215,7 @@ public class TurretEvolutionPopupUI : TurretPopupPageUI
             return;
         }
 
+        TurretDefinitionSO sourceDefinition = CurrentContext.Definition;
         TurretDefinitionRuntimeController evolvedTurret = null;
         if (replacePrefabOnEvolution)
         {
@@ -240,6 +241,7 @@ public class TurretEvolutionPopupUI : TurretPopupPageUI
         CurrentContext = new TurretSelectionContext(evolvedTurret, evolvedSlot);
         RequestSelectionContextUpdate(CurrentContext);
         selectedEvolutionIndex = 0;
+        TurretFeedbackPopupSettings.ShowRandomEvolutionSuccess(sourceDefinition, evolvedTurret.CurrentTurretDefinition);
         RequestBackToSelectPopup();
     }
 

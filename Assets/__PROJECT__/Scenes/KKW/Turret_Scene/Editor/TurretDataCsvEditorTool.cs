@@ -195,7 +195,6 @@ public class TurretDataCsvEditorTool : EditorWindow
             "ProjectileSpeedPerInterval(구간당 투사체 속도 증가)",
             "ProjectileCountIntervalLevel(투사체 수 성장 구간)",
             "PierceCountIntervalLevel(관통 수 성장 구간)",
-            "MaxRange(최대 사거리)",
             "MinFireInterval(최소 공격 간격)",
             "MaxProjectileSpeed(최대 투사체 속도)",
             "MaxProjectileCount(최대 투사체 수)",
@@ -239,7 +238,6 @@ public class TurretDataCsvEditorTool : EditorWindow
             growth == null ? 0.0f : growth.projectileSpeedPerInterval,
             growth == null ? 0 : growth.projectileCountIntervalLevel,
             growth == null ? 0 : growth.pierceCountIntervalLevel,
-            growth == null ? 0.0f : growth.maxRange,
             growth == null ? 0.01f : growth.minFireInterval,
             growth == null ? 0.0f : growth.maxProjectileSpeed,
             growth == null ? 1 : growth.maxProjectileCount,
@@ -408,7 +406,6 @@ public class TurretDataCsvEditorTool : EditorWindow
         growth.projectileSpeedPerInterval = ReadFloat(row, headerMap, "ProjectileSpeedPerInterval", lineNumber, growth.projectileSpeedPerInterval);
         growth.projectileCountIntervalLevel = ReadInt(row, headerMap, "ProjectileCountIntervalLevel", lineNumber, growth.projectileCountIntervalLevel);
         growth.pierceCountIntervalLevel = ReadInt(row, headerMap, "PierceCountIntervalLevel", lineNumber, growth.pierceCountIntervalLevel);
-        growth.maxRange = ReadFloat(row, headerMap, "MaxRange", lineNumber, growth.maxRange);
         growth.minFireInterval = ReadFloat(row, headerMap, "MinFireInterval", lineNumber, growth.minFireInterval);
         growth.maxProjectileSpeed = ReadFloat(row, headerMap, "MaxProjectileSpeed", lineNumber, growth.maxProjectileSpeed);
         growth.maxProjectileCount = ReadInt(row, headerMap, "MaxProjectileCount", lineNumber, growth.maxProjectileCount);

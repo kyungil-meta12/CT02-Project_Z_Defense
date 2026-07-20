@@ -772,7 +772,7 @@ Ignition status handling:
 - Damage growth end level is the nearest `EvolutionProgressionSO.requiredLevel`; if no evolution requirement exists, `TurretDefinitionSO.maxLevel` is used, then fallback level `100`.
 - `TurretData.csv` exports damage growth through `TargetDamageAtMaxLevel` and `DamageLogCurveStrength`; `DamagePercentPerLevel` is no longer used by runtime damage growth.
 - The current curve intentionally allows a tier level `100` turret to be stronger than the next evolved turret at tier level `1`, creating a short power dip after evolution and a higher growth ceiling afterward.
-- Range is capped at `maxRange = 66` because larger ranges exceed the current game view.
+- Range no longer uses a separate max cap. The configured base range plus `rangePerLevel` at that form's growth end level is the final range.
 - Single-target DPS should be checked from runtime stat values as `damage * projectileCount / fireInterval`.
 - `pierceCount` is not part of single-target DPS. Treat it as lane-clearing potential, roughly `DPS * (pierceCount + 1)` only when every pierced target is expected to be hit.
 
@@ -790,27 +790,24 @@ Ignition status handling:
 
 | Family | Lv1 damage | Lv1 range | Lv1 fire interval |
 | --- | --- | --- | --- |
-| Machinegun_Blue_1/2/3 | 365.63 / 771.38 / 1333.5 | 49 / 53 / 57 | 0.45 / 0.3429 / 0.2667 |
-| Machinegun_Red_1/2/3 | 609.38 / 1285.88 / 2221.5 | 47 / 51 / 55 | 0.75 / 0.5715 / 0.4443 |
-| Laser_Blue_1/2/3 | 152.5 / 321.25 / 556 | 55 / 59 / 63 | 0.0938 / 0.0714 / 0.0556 |
-| Laser_Red_1/2/3 | 609.5 / 1285.75 / 2222 | 53 / 57 / 61 | 0.375 / 0.2857 / 0.2222 |
-| Lethal_Green_1/2/3 | 3047 / 6428.75 / 11111 | 45 / 49 / 53 | 1.875 / 1.4286 / 1.1111 |
-| Lethal_Red_1/2/3 | 5078.25 / 10714.5 / 18519 | 43 / 47 / 51 | 3.125 / 2.381 / 1.8519 |
-| Plasma_Blue_1/2/3 | 2031.25 / 4285.75 / 7407 | 51 / 55 / 59 | 1.25 / 0.9524 / 0.7407 |
-| Plasma_Yellow_1/2/3 | 8125 / 17142.75 / 29630 | 49 / 53 / 57 | 5 / 3.8095 / 2.963 |
+| Machinegun_Blue_1/2/3 | 365.63 / 771.38 / 1333.5 | 30 / 35 / 40 | 0.45 / 0.3429 / 0.2667 |
+| Machinegun_Red_1/2/3 | 609.38 / 1285.88 / 2221.5 | 30 / 35 / 40 | 0.75 / 0.5715 / 0.4443 |
+| Laser_Blue_1/2/3 | 152.5 / 321.25 / 556 | 30 / 35 / 40 | 0.0938 / 0.0714 / 0.0556 |
+| Laser_Red_1/2/3 | 609.5 / 1285.75 / 2222 | 30 / 35 / 40 | 0.375 / 0.2857 / 0.2222 |
+| Lethal_Green_1/2/3 | 3047 / 6428.75 / 11111 | 30 / 35 / 40 | 1.875 / 1.4286 / 1.1111 |
+| Lethal_Red_1/2/3 | 5078.25 / 10714.5 / 18519 | 30 / 35 / 40 | 3.125 / 2.381 / 1.8519 |
+| Plasma_Blue_1/2/3 | 2031.25 / 4285.75 / 7407 | 30 / 35 / 40 | 1.25 / 0.9524 / 0.7407 |
+| Plasma_Yellow_1/2/3 | 8125 / 17142.75 / 29630 | 30 / 35 / 40 | 5 / 3.8095 / 2.963 |
 
-### Second-Generation Lv100 Range Targets
+### Range Balance Targets
 
-| Family | Lv100 range |
-| --- | --- |
-| Machinegun_Blue_1/2/3 | 60 / 63 / 66 |
-| Machinegun_Red_1/2/3 | 58 / 62 / 65 |
-| Laser_Blue_1/2/3 | 66 / 66 / 66 |
-| Laser_Red_1/2/3 | 64 / 66 / 66 |
-| Lethal_Green_1/2/3 | 58 / 62 / 64 |
-| Lethal_Red_1/2/3 | 56 / 60 / 62 |
-| Plasma_Blue_1/2/3 | 64 / 66 / 66 |
-| Plasma_Yellow_1/2/3 | 62 / 64 / 66 |
+| Form group | Start range | Final range | Growth end level | Range per level |
+| --- | ---: | ---: | ---: | ---: |
+| Second-generation `_1` | 30 | 35 | 50 | 0.1020408 |
+| Second-generation `_2` | 35 | 40 | 100 | 0.0505051 |
+| Second-generation `_3` | 40 | 45 | 200 | 0.0251256 |
+| Third-generation Frost/Poison/Electro | 50 | 60 | 100 | 0.1010101 |
+| Third-generation Ignition | 12 | 12 | 100 | 0 |
 
 Second-generation fire interval progression uses a family baseline curve: `_1` starts slower, `_2` is slightly faster than baseline, and `_3` reaches the fastest form. Non-machinegun families are balanced against the current fire intervals so each second-generation stage shares the same DPS targets across families: `_1` grows from about 1,625 to 4,250 DPS, `_2` grows from about 4,500 to 9,500 DPS, and `_3` grows from about 10,000 to 15,000 DPS. `Machinegun_Blue` and `Machinegun_Red` trade single-target DPS for lane clearing: their fire intervals are about 3x slower, damage is about 1.5x higher, single-target DPS is about half of the standard second-generation target, and pierce count is `_1 = 1`, `_2 = 2`, `_3 = 3`.
 

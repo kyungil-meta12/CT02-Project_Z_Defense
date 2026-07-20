@@ -288,7 +288,7 @@ public class ObstaclePlacementSlotUI : MonoBehaviour, IBeginDragHandler, IDragHa
         for (int i = 0; i < costs.Length; i++)
         {
             ResourceCost cost = costs[i];
-            if (cost == null || cost.amount <= 0)
+            if (cost == null || cost.RuntimeAmount <= 0)
             {
                 continue;
             }
@@ -297,8 +297,8 @@ public class ObstaclePlacementSlotUI : MonoBehaviour, IBeginDragHandler, IDragHa
             {
                 builder.Append(" / ");
             }
-            
-            builder.Append(cost.amount);
+
+            builder.Append(InventorySystem.FormatIncremental(cost.RuntimeAmount));
         }
 
         return builder.ToString();

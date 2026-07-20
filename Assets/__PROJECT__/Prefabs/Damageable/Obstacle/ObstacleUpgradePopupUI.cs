@@ -1,4 +1,4 @@
-using System.Text;
+using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -15,8 +15,16 @@ public class ObstacleUpgradePopupUI : MonoBehaviour
     private const float HOLD_UPGRADE_RAMP_DURATION = 1.0f;
     private const float HOLD_UPGRADE_START_RATE = 4.0f;
     private const float HOLD_UPGRADE_MAX_RATE = 60.0f;
-    private const string INSUFFICIENT_COST_COLOR = "#FF4040";
     private const float UI_AUTO_REFRESH_INTERVAL = 1.0f;
+
+    // 런타임에 생성한 비용 행의 컴포넌트 참조를 보관한다
+    private sealed class CostRow
+    {
+        public GameObject Root;
+        public Image Icon;
+        public TMP_Text Label;
+        public Color DefaultTextColor;
+    }
 
     [Header("업그레이드 설정 - 버튼 1회 입력으로 올릴 레벨 수")]
     [SerializeField, Min(1)] private int levelUpAmount = 1;
@@ -28,6 +36,8 @@ public class ObstacleUpgradePopupUI : MonoBehaviour
     [SerializeField] private TMP_Text levelText;
     [SerializeField] private TMP_Text hpText;
     [SerializeField] private TMP_Text costText;
+    [SerializeField] private Transform costRowRoot;
+    [SerializeField] private GameObject costRowPrefab;
     [SerializeField] private TMP_Text statusText;
     [SerializeField] private Button upgradeButton;
     [SerializeField] private TMP_Text upgradeButtonText;
@@ -37,6 +47,7 @@ public class ObstacleUpgradePopupUI : MonoBehaviour
     private Obstacle selectedObstacle;
     private ObstacleUpgradeRuntimeController selectedUpgradeController;
     private bool hasLoggedMissingUI;
+    private bool hasLoggedMissingCostRowUI;
     private bool hasSubscribedCameraTouch;
     private float uiRefreshTimer;
     private EventTrigger.Entry upgradePointerDownEntry;
@@ -48,6 +59,7 @@ public class ObstacleUpgradePopupUI : MonoBehaviour
     private float upgradeHoldElapsedTime;
     private float upgradeHoldRepeatElapsedTime;
     private float upgradeHoldAccumulator;
+    private readonly List<CostRow> costRows = new List<CostRow>();
 
     // 컴포넌트 추가 시 기본 참조를 자동으로 찾는다
     private void Reset()
@@ -210,7 +222,7 @@ public class ObstacleUpgradePopupUI : MonoBehaviour
 
         if (costText != null)
         {
-            costText.richText = true;
+            costText.gameObject.SetActive(false);
         }
 
         EnsureButtonListener();
@@ -345,7 +357,7 @@ public class ObstacleUpgradePopupUI : MonoBehaviour
         titleText.text = obstacleName;
         levelText.text = FormatLevelText(currentLevel, definition);
         hpText.text = $"체력 {selectedObstacle.CurrHp:0.#} / {selectedObstacle.TotalHp:0.#}";
-        costText.text = "비용: " + FormatCosts(upgradeCosts);
+        RefreshCostRows(upgradeCosts);
         statusText.text = GetStatusText(prefabWillChange);
 
         upgradeButton.interactable = canUpgrade;
@@ -612,7 +624,6 @@ public class ObstacleUpgradePopupUI : MonoBehaviour
                titleText != null &&
                levelText != null &&
                hpText != null &&
-               costText != null &&
                statusText != null &&
                upgradeButton != null &&
                upgradeButtonText != null;
@@ -642,44 +653,105 @@ public class ObstacleUpgradePopupUI : MonoBehaviour
         return child == null ? null : child.GetComponent<T>();
     }
 
-    // 비용 배열을 UI에 표시할 문자열로 변환한다
-    private static string FormatCosts(ResourceCost[] costs)
+    // 현재 업그레이드 비용 구성에 맞춰 비용 행을 생성하거나 재사용해 갱신한다
+    private void RefreshCostRows(ResourceCost[] costs)
     {
-        if (costs == null || costs.Length == 0)
+        int rowIndex = 0;
+        if (costs != null)
         {
-            return "없음";
+            for (int i = 0; i < costs.Length; i++)
+            {
+                ResourceCost cost = costs[i];
+                if (cost == null || cost.RuntimeAmount <= 0)
+                {
+                    continue;
+                }
+
+                CostRow row = GetOrCreateCostRow(rowIndex);
+                if (row == null)
+                {
+                    break;
+                }
+
+                UpdateCostRow(row, cost);
+                rowIndex++;
+            }
         }
 
-        StringBuilder builder = new StringBuilder(64);
-        for (int i = 0; i < costs.Length; i++)
+        for (int i = rowIndex; i < costRows.Count; i++)
         {
-            ResourceCost cost = costs[i];
-            if (cost == null || cost.amount <= 0)
+            if (costRows[i].Root != null)
             {
-                continue;
+                costRows[i].Root.SetActive(false);
             }
-
-            if (builder.Length > 0)
-            {
-                builder.Append(" / ");
-            }
-
-            builder.Append(FormatSingleCost(cost));
         }
-
-        return builder.Length == 0 ? "없음" : builder.ToString();
     }
 
-    // 재화 한 항목을 현재 보유량과 비교해 부족하면 붉은색으로 표시한다
-    private static string FormatSingleCost(ResourceCost cost)
+    // 지정 인덱스의 비용 행을 반환하고 부족하면 프리팹으로 새 행을 생성한다
+    private CostRow GetOrCreateCostRow(int rowIndex)
     {
-        string label = GetCurrencyLabel(cost.currencyType);
-        if (InventorySystem.Inst != null && !InventorySystem.Inst.CanUseItem(cost.currencyType, cost.amount))
+        if (rowIndex < costRows.Count)
         {
-            return $"<color={INSUFFICIENT_COST_COLOR}>{label} {InventorySystem.Inst.GetCountString(cost.currencyType)}/{cost.amount}</color>";
+            CostRow cachedRow = costRows[rowIndex];
+            cachedRow.Root.SetActive(true);
+            return cachedRow;
         }
 
-        return $"{label} {cost.amount}";
+        if (costRowRoot == null || costRowPrefab == null)
+        {
+            LogMissingCostRowUIOnce();
+            return null;
+        }
+
+        GameObject rowObject = Instantiate(costRowPrefab, costRowRoot);
+        Image icon = rowObject.GetComponentInChildren<Image>(true);
+        TMP_Text label = rowObject.GetComponentInChildren<TMP_Text>(true);
+        if (icon == null || label == null)
+        {
+            Debug.LogWarning("[ObstacleUpgradePopupUI] 비용 행 프리팹의 자식 Image 또는 TMP_Text를 찾을 수 없습니다.", this);
+            Destroy(rowObject);
+            return null;
+        }
+
+        CostRow row = new CostRow
+        {
+            Root = rowObject,
+            Icon = icon,
+            Label = label,
+            DefaultTextColor = label.color
+        };
+        costRows.Add(row);
+        return row;
+    }
+
+    // 비용 행에 아이템 이미지와 필요량 및 현재 소지량을 적용한다
+    private static void UpdateCostRow(CostRow row, ResourceCost cost)
+    {
+        InventorySystem inventory = InventorySystem.Inst;
+        ItemMetaDataSo metaData = inventory == null ? null : inventory.GetMetaData(cost.currencyType);
+        string itemName = metaData != null && !string.IsNullOrWhiteSpace(metaData.Name)
+            ? metaData.Name
+            : GetCurrencyLabel(cost.currencyType);
+        string ownedAmount = inventory == null ? "0" : inventory.GetCountString(cost.currencyType);
+
+        row.Icon.sprite = metaData == null ? null : metaData.ItemImage;
+        row.Icon.enabled = row.Icon.sprite != null;
+        row.Label.text = $"{itemName} : {InventorySystem.FormatIncremental(cost.RuntimeAmount)} / {ownedAmount}";
+        row.Label.color = inventory != null && !inventory.CanUseItem(cost.currencyType, cost.RuntimeAmount)
+            ? new Color(1.0f, 0.25f, 0.25f, row.DefaultTextColor.a)
+            : row.DefaultTextColor;
+    }
+
+    // 비용 행 루트나 프리팹 참조 누락 경고를 한 번만 출력한다
+    private void LogMissingCostRowUIOnce()
+    {
+        if (hasLoggedMissingCostRowUI)
+        {
+            return;
+        }
+
+        hasLoggedMissingCostRowUI = true;
+        Debug.LogWarning("[ObstacleUpgradePopupUI] 비용 행 루트 또는 비용 행 프리팹 참조가 없습니다. Inspector에서 참조를 연결하세요.", this);
     }
 
     // 재화 타입을 UI 표시용 이름으로 변환한다

@@ -1,4 +1,4 @@
-%YAML 1.1
+﻿%YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
 --- !u!114 &11400000
 MonoBehaviour:
@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Laser_Red_1
   m_EditorClassIdentifier: Assembly-CSharp::TurretStatProfileSO
   damage: 208.75954
-  range: 53
+  range: 30
   fireInterval: 0.375
   projectileSpeed: 60
   projectileCount: 1

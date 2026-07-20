@@ -1,4 +1,4 @@
-%YAML 1.1
+﻿%YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
 --- !u!114 &11400000
 MonoBehaviour:
@@ -15,13 +15,12 @@ MonoBehaviour:
   targetDamageAtMaxLevel: 611.48114
   damageLogCurveStrength: 4
   damagePercentPerLevel: 0.622
-  rangePerLevel: 0.1010101
+  rangePerLevel: 0.0505051
   fireIntervalReductionPerLevel: 0.0004329
   projectileSpeedIntervalLevel: 20
   projectileSpeedPerInterval: 5
   projectileCountIntervalLevel: 0
   pierceCountIntervalLevel: 0
-  maxRange: 66
   minFireInterval: 0.3
   maxProjectileSpeed: 90
   maxProjectileCount: 1

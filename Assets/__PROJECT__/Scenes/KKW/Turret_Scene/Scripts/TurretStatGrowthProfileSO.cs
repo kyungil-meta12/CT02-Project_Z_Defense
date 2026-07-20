@@ -27,7 +27,6 @@ public class TurretStatGrowthProfileSO : ScriptableObject
     public int pierceCountIntervalLevel = 0;
 
     [Header("성장 제한")]
-    public float maxRange = 200.0f;
     public float minFireInterval = 0.05f;
     public float maxProjectileSpeed = 200.0f;
     public int maxProjectileCount = 20;
@@ -134,7 +133,6 @@ public class TurretStatGrowthProfileSO : ScriptableObject
         projectileSpeedPerInterval = Mathf.Max(0.0f, projectileSpeedPerInterval);
         projectileCountIntervalLevel = Mathf.Max(0, projectileCountIntervalLevel);
         pierceCountIntervalLevel = Mathf.Max(0, pierceCountIntervalLevel);
-        maxRange = Mathf.Max(0.0f, maxRange);
         minFireInterval = Mathf.Max(0.01f, minFireInterval);
         maxProjectileSpeed = Mathf.Max(0.0f, maxProjectileSpeed);
         maxProjectileCount = Mathf.Max(1, maxProjectileCount);

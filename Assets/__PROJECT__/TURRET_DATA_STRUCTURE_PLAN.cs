@@ -470,7 +470,7 @@
  * - TurretStatGrowthProfileSO grows tier level 1 values toward tier level 100 values.
  * - The current curve intentionally allows a tier level 100 turret to be stronger than the next evolved turret at tier level 1.
  * - This creates a temporary power dip after evolution while giving the evolved turret a higher growth ceiling.
- * - Range is capped at maxRange 66 because larger values exceed the current game view.
+ * - Range no longer uses a separate max cap; base range plus per-level growth defines the final range.
  *
  * Sentinel-01
  * - Tier level 1:

@@ -50,10 +50,6 @@ public static class TurretStatCalculator
         result.damage = CalculateLogDamage(result.damage, growthProfile, level, growthEndLevel);
 
         result.range += growthProfile.rangePerLevel * completedLevels;
-        if (growthProfile.maxRange > 0.0f)
-        {
-            result.range = Mathf.Min(result.range, growthProfile.maxRange);
-        }
 
         result.fireInterval -= growthProfile.fireIntervalReductionPerLevel * completedLevels;
         result.fireInterval = Mathf.Max(growthProfile.minFireInterval, result.fireInterval);

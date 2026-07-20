@@ -35,12 +35,12 @@ MonoBehaviour:
     maxAmountMultiplier: 1.2
   - currencyType: 4
     amount: 1
-    dropChance: 0.3
+    dropChance: 0.1
     minAmountMultiplier: 0.8
     maxAmountMultiplier: 1.2
   - currencyType: 5
     amount: 1
-    dropChance: 0.3
+    dropChance: 0.1
     minAmountMultiplier: 0.8
     maxAmountMultiplier: 1.2
   - currencyType: 6
@@ -80,7 +80,7 @@ MonoBehaviour:
     maxAmountMultiplier: 1.2
   - currencyType: 19
     amount: 1
-    dropChance: 0.3
+    dropChance: 0.1
     minAmountMultiplier: 0.8
     maxAmountMultiplier: 1.2
   - currencyType: 23

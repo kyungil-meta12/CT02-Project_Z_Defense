@@ -6,7 +6,8 @@ Read these first for most tasks:
 
 1. `TEAM_CODING_CONVENTION.md`
 2. `PROJECT_STRUCTURE.md`
-3. This task-specific table below
+3. `PROJECT_ARCHITECTURE.md` when tracing multiple systems or onboarding to the full project
+4. This task-specific table below
 
 Read `PROJECT_OVERVIEW.md` when ownership, design intent, or shared API boundaries are unclear.
 
@@ -15,7 +16,9 @@ Read `PROJECT_OVERVIEW.md` when ownership, design intent, or shared API boundari
 | Task | Read |
 | --- | --- |
 | General code change | `TEAM_CODING_CONVENTION.md`, `PROJECT_STRUCTURE.md` |
-| Architecture or responsibility boundary | `PROJECT_OVERVIEW.md`, `PROJECT_STRUCTURE.md` |
+| Full-project onboarding or cross-system flow | `PROJECT_ARCHITECTURE.md`, `PROJECT_OVERVIEW.md`, `PROJECT_STRUCTURE.md` |
+| Architecture or responsibility boundary | `PROJECT_ARCHITECTURE.md`, `PROJECT_OVERVIEW.md`, `PROJECT_STRUCTURE.md` |
+| Inventory, item, craft, decompose, transaction | `PROJECT_ARCHITECTURE.md`, `REWARD_SYSTEM.md`, `COMMON_SYSTEMS.md` |
 | Survivor, obstacle, defense line, zombie spawn | `GAMEPLAY_RUNTIME_FLOW.md`, `SCENE_SETUP.md` |
 | Turret, projectile, placement, turret UI, turret skill | `TURRET_SYSTEM.md`, `TURRET_UI_REWORK_STATUS.md`, `COMMON_SYSTEMS.md` |
 | Reward, currency, zombie drops, upgrade/evolution costs | `REWARD_SYSTEM.md`, `COMMON_SYSTEMS.md`, relevant feature document |
@@ -28,6 +31,7 @@ Read `PROJECT_OVERVIEW.md` when ownership, design intent, or shared API boundari
 
 | Document | Purpose |
 | --- | --- |
+| `PROJECT_ARCHITECTURE.md` | Whole-project runtime layers, ownership, initialization, cross-system data flows, contracts, and source-of-truth map. |
 | `TEAM_CODING_CONVENTION.md` | Code style, Unity rules, pooling rules, logging, mobile performance. |
 | `PROJECT_OVERVIEW.md` | Game concept, owner boundaries, shared APIs, repository/asset policy. |
 | `PROJECT_STRUCTURE.md` | Folder map, runtime areas, where new work belongs. |

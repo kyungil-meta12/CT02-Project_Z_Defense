@@ -30,6 +30,11 @@ This document is the shortest map for finding where project code, scenes, prefab
 | Status effects | `Scripts/StatusEffects` | Shared status-effect visuals and per-target runtimes such as `FrostStatusRuntime` and `PoisonStatusRuntime`. |
 | Targeting filters | `Scripts/Targeting` | Project-owned target candidate filter interfaces and reusable filter components. |
 | Pooling | `Scripts/Singleton/MemoryPool`, `Scripts/PoolObject` | Runtime object reuse and pool containers. |
+| Inventory and item economy | `Prefabs/InventorySystem`, `Prefabs/InventoryUI`, `Scripts/Rewards` | Item metadata and quantities, multi-currency spend/refund, crafting, decomposition, rewards, and inventory presentation. |
+| Transactions | `Prefabs/TransactionUI` | Item buying/selling presentation backed by `InventorySystem` quantities. |
+| Runtime audio | `Scripts/Audio`, scene audio objects, turret audio adapters | Pooled voices, buses, cue policies, UI/BGM playback, and turret event mapping. |
+| Runtime UI and input | `Scripts/UI`, `Scripts/CameraTools`, feature-local UI scripts | Warning popups, world input filtering, selection, placement, upgrade, evolution, and related UI flows. |
+| Balance/editor tooling | `Scripts/Editor`, `Scenes/KKW/Turret_Scene/Editor` | CSV authoring, validation, economy simulation, wave/turret/obstacle balance reports. |
 
 ## Where To Put New Work
 
@@ -59,7 +64,8 @@ This document is the shortest map for finding where project code, scenes, prefab
 | --- | --- |
 | Any project work | `README.md`, `TEAM_CODING_CONVENTION.md`, this document |
 | Any code change | `TEAM_CODING_CONVENTION.md`, this document, then task-specific Docs |
-| Ownership or architecture decision | `PROJECT_OVERVIEW.md`, this document |
+| Full-project onboarding or cross-system trace | `PROJECT_ARCHITECTURE.md`, `PROJECT_OVERVIEW.md`, this document |
+| Ownership or architecture decision | `PROJECT_ARCHITECTURE.md`, `PROJECT_OVERVIEW.md`, this document |
 | Turret/projectile/placement/damage popup | `TURRET_SYSTEM.md`, `COMMON_SYSTEMS.md` |
 | Survivor/obstacle/defense line/spawner | `GAMEPLAY_RUNTIME_FLOW.md`, `SCENE_SETUP.md` |
 | Scene or prefab reference change | `SCENE_SETUP.md` |

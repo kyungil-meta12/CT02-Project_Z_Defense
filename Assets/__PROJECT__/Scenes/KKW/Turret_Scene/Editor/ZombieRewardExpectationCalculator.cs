@@ -78,7 +78,9 @@ internal sealed class ZombieRewardExpectationCalculator
     private static float CalculateRewardEntryExpectation(RewardEntry reward, ZombieRewardContext context, ZombieRewardModifier[] modifiers)
     {
         float amount = reward.amount;
-        float amountMultiplier = Mathf.Max(0.0f, context.rewardMultiplier);
+        float amountMultiplier = reward.currencyType == RewardCurrencyType.Coin
+            ? Mathf.Max(0.0f, context.rewardMultiplier)
+            : 1.0f;
         float dropChance = reward.dropChance;
 
         if (modifiers != null)

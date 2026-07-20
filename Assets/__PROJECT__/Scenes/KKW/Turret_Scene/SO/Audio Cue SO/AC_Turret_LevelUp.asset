@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f5a3d739db38e584dae58421ff6a3d45, type: 3}
   m_Name: AC_Turret_LevelUp
   m_EditorClassIdentifier: Assembly-CSharp::ProjectZDefense.Audio.AudioCueSO
-  bus: 0
+  bus: 2
   playbackMode: 0
   clips:
   - {fileID: 8300000, guid: a17c77289a0ad9244b0c57a8d0f156cc, type: 3}

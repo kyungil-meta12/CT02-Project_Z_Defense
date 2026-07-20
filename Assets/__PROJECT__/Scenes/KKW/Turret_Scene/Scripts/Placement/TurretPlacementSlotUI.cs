@@ -17,6 +17,9 @@ public class TurretPlacementSlotUI : MonoBehaviour, IBeginDragHandler, IDragHand
     [SerializeField] private Text costText;
     [SerializeField] private TMP_Text tmpCostText;
 
+    [Header("표시 정책")]
+    [SerializeField] private bool applyShopIconToImage = true;
+
     [Header("수동 배치")]
     [SerializeField] private TurretPlacementController placementController;
     [SerializeField] private TurretShopEntrySO shopEntry;
@@ -128,7 +131,7 @@ public class TurretPlacementSlotUI : MonoBehaviour, IBeginDragHandler, IDragHand
             return;
         }
 
-        if (iconImage != null)
+        if (iconImage != null && applyShopIconToImage)
         {
             if (shopEntry.Icon != null)
             {

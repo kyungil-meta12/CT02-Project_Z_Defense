@@ -15,7 +15,7 @@ public class TurretSelectPopupUI : MonoBehaviour
     [SerializeField] private GameObject popupRoot;
 
     [Header("버튼")]
-    [SerializeField] private Button backgroundButton;
+    //[SerializeField] private Button backgroundButton;
     [SerializeField] private Button closeButton;
     [SerializeField] private Button upgradeButton;
     [SerializeField] private Button detailButton;
@@ -132,7 +132,7 @@ public class TurretSelectPopupUI : MonoBehaviour
         }
 
         Transform searchRoot = transform;
-        backgroundButton = backgroundButton != null ? backgroundButton : FindChildComponent<Button>(searchRoot, "TurretSelectPopupBackground");
+     //   backgroundButton = backgroundButton != null ? backgroundButton : FindChildComponent<Button>(searchRoot, "TurretSelectPopupBackground");
         closeButton = closeButton != null ? closeButton : FindChildComponent<Button>(searchRoot, "TurretSelectPopupBackground/HighPanel/ExitFrame/Button");
         upgradeButton = upgradeButton != null ? upgradeButton : FindChildComponent<Button>(searchRoot, "TurretSelectPopupBackground/LowPanel/UpgradeFrame/Upgrade");
         detailButton = detailButton != null ? detailButton : FindChildComponent<Button>(searchRoot, "TurretSelectPopupBackground/LowPanel/InformationFrame/Information");
@@ -367,10 +367,10 @@ public class TurretSelectPopupUI : MonoBehaviour
     {
         UnbindButtonListeners();
 
-        if (backgroundButton != null)
-        {
-            backgroundButton.onClick.AddListener(RequestClose);
-        }
+        //if (backgroundButton != null)
+        //{
+        //    backgroundButton.onClick.AddListener(RequestClose);
+        //}
 
         if (closeButton != null)
         {
@@ -396,10 +396,10 @@ public class TurretSelectPopupUI : MonoBehaviour
     // 버튼 클릭 이벤트를 해제한다
     private void UnbindButtonListeners()
     {
-        if (backgroundButton != null)
-        {
-            backgroundButton.onClick.RemoveListener(RequestClose);
-        }
+        //if (backgroundButton != null)
+        //{
+        //    backgroundButton.onClick.RemoveListener(RequestClose);
+        //}
 
         if (closeButton != null)
         {
@@ -442,10 +442,10 @@ public class TurretSelectPopupUI : MonoBehaviour
             Debug.LogWarning("[TurretSelectPopupUI] Popup Root 참조가 비어 있습니다.", this);
         }
 
-        if (backgroundButton == null)
-        {
-            Debug.LogWarning("[TurretSelectPopupUI] Background Button 참조가 비어 있습니다. 바깥 클릭 닫기가 동작하지 않습니다.", this);
-        }
+        //if (backgroundButton == null)
+        //{
+        //    Debug.LogWarning("[TurretSelectPopupUI] Background Button 참조가 비어 있습니다. 바깥 클릭 닫기가 동작하지 않습니다.", this);
+        //}
 
         if (closeButton == null)
         {

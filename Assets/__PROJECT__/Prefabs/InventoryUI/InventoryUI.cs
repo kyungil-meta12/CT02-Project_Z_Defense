@@ -132,6 +132,11 @@ public class InventoryUI : TouchBackHandler
     private TextMeshProUGUI itemPopupOwnCountText;
     private TextMeshProUGUI itemPopupNameText;
     private TextMeshProUGUI itemPopupInfoText;
+    private Button itemPopupFunctionButton;
+    private TextMeshProUGUI itemPopupFunctionText;
+    private RewardCurrencyType itemPopupType;
+    private bool itemPopupCreateable = false;
+    private bool itemPopupDecomposable = false;
 
     // 마지막으로 선택된 아이템 타입 및 셀
     private RewardCurrencyType selectedType = 0;
@@ -173,6 +178,9 @@ public class InventoryUI : TouchBackHandler
         itemPopupOwnCountText = itemPopup.transform.Find("Popup/ItemOwnCountText").GetComponent<TextMeshProUGUI>();
         itemPopupNameText = itemPopup.transform.Find("Popup/ItemNameText").GetComponent <TextMeshProUGUI>();
         itemPopupInfoText = itemPopup.transform.Find("Popup/ItemInfoText").GetComponent<TextMeshProUGUI>();
+        itemPopupFunctionButton = itemPopup.transform.Find("Popup/FunctionButton").GetComponent<Button>();
+        itemPopupFunctionText = itemPopupFunctionButton.GetComponentInChildren<TextMeshProUGUI>();
+
         itemPopup.SetActive(false);
 
         // 딕셔너리에 패널 컨텐츠 정보 저장
@@ -631,12 +639,42 @@ public class InventoryUI : TouchBackHandler
         var selectedType = selectedButton.Type;
         var metaData = InventorySystem.Inst.GetMetaData(selectedType);
         bool hasItem = InventorySystem.Inst.HasItem(selectedType);
+
+        itemPopupCreateable = metaData.Createable;
+        itemPopupDecomposable = metaData.Decomposable;
+
         itemPopup.SetActive(true);
+        itemPopupType = selectedType;
         itemPopupImage.sprite = metaData.ItemImage;
         itemPopupInfoText.text = metaData.InfoText;
         itemPopupNameText.text = metaData.Name;
         itemPopupOwnCountText.text = "보유량: " + InventorySystem.Inst.GetCountString(selectedType);
         itemPopupOwnCountText.color = hasItem ? Color.white : Color.red;
+
+        itemPopupFunctionButton.gameObject.SetActive(itemPopupCreateable || itemPopupDecomposable);
+        if(itemPopupCreateable)
+        {
+            itemPopupFunctionText.text = "제작";
+        }
+        else if(itemPopupDecomposable)
+        {
+            itemPopupFunctionText.text = "분해";
+        }
+
+        UISoundPlayer.Inst.PlayCellClick();
+    }
+
+    public void OnItemPopupFunctionButtonClick()
+    {
+        itemPopup.SetActive(false);
+        if(itemPopupCreateable)
+        {
+            GoToCraftTabImmediate(itemPopupType);
+        }
+        else if(itemPopupDecomposable)
+        {
+            GoToDecomposeTabImmediate(itemPopupType);
+        }
 
         UISoundPlayer.Inst.PlayCellClick();
     }

@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.UI;
 
 /// <summary>
 /// 터렛 선택 UI를 외부 팝업 뒤에서 복구할 때 다시 열 페이지를 나타낸다.
@@ -38,6 +39,8 @@ public struct TurretSelectionRestoreState
 [DisallowMultipleComponent]
 public class TurretSelectionUIController : MonoBehaviour
 {
+    [Header("배경 패널")] public Image pannel;   
+
     [Header("입력")]
     [SerializeField] private TurretPlacementController placementController;
     [SerializeField] private bool requireSecondClickToOpenSelectPopup = true;
@@ -138,6 +141,12 @@ public class TurretSelectionUIController : MonoBehaviour
         ClearPendingTurretClick();
         HideAllPopups();
         HideRangeIndicator();
+
+        // 배경 패널 비활성화
+        pannel.gameObject.SetActive(false);
+
+        // 인게임 UI 복원
+        UIManager.Inst.RevertAll();
     }
 
     // 외부 UI 표시 전 현재 터렛 선택 UI 상태를 복구용으로 캡처한다
@@ -270,6 +279,12 @@ public class TurretSelectionUIController : MonoBehaviour
 
         selectPopup.Show(currentContext);
         RefreshRangeIndicator();
+
+        // 배경 패널 활성화
+        pannel.gameObject.SetActive(true);
+
+        // 인게임 UI 숨기기
+        UIManager.Inst.HideAll();
     }
 
     // 업그레이드 팝업 열기 요청을 처리한다

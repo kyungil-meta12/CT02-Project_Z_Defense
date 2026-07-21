@@ -190,6 +190,7 @@ public class ObstaclePlacementController : MonoBehaviour
         {
             // 설치 성공으로 다음 설치 비용이 올라갔을 수 있으므로 구독 중인 상점 UI에 알린다.
             OnPlacementCountChanged?.Invoke(placedBuildEntry);
+            UISoundPlayer.Inst.PlayCellClick();
         }
 
         return placed;
@@ -530,6 +531,7 @@ public class ObstaclePlacementController : MonoBehaviour
         }
 
         WarningPopupManager.ShowWarning("장애물 설치 실패");
+        UISoundPlayer.Inst.PlayPopup();
     }
 
     // 마우스 또는 첫 번째 터치의 화면 좌표를 가져온다

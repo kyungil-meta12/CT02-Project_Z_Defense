@@ -123,7 +123,7 @@ public class InventoryUI : TouchBackHandler
     // 아이템 보유량 텍스트 크기
     private Vector2 originItemOwnTextScale;
 
-    // 필요 아이템 표시디 텍스트 크기
+    // 필요 아이템 표시기 텍스트 크기
     private Vector2 originItemViewerTextScale;
 
     // 아이템 정보 팝업

@@ -12,6 +12,13 @@ public class MainMenuUI : TouchBackHandler
     [SerializeField] private Button audioCloseButton;
     [SerializeField] private bool hideAudioPanelOnEnable = true;
 
+    private CanvasGroup group;
+
+    void Awake()
+    {
+        group = GetComponent<CanvasGroup>();
+    }
+
     // 메인 메뉴 뒤로가기 동작을 등록한다
     private void Start()
     {
@@ -51,7 +58,10 @@ public class MainMenuUI : TouchBackHandler
     // 매 프레임 뒤로가기 입력을 확인한다
     private void Update()
     {
-        UpdateTouchBackHandler();
+        if(group.interactable)
+        {
+            UpdateTouchBackHandler();
+        }
     }
 
     // 오디오 설정 팝업을 표시한다

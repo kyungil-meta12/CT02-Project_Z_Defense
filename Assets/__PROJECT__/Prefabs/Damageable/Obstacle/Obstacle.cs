@@ -296,7 +296,7 @@ public class Obstacle : MonoBehaviour, IDamageable
     }
 
     // 지정 스펙과 레벨로 최대 체력을 계산한다
-    private static float CalculateTotalHp(ObstacleSpec spec_, int level)
+    public static float CalculateTotalHp(ObstacleSpec spec_, int level)
     {
         if (spec_ == null)
         {

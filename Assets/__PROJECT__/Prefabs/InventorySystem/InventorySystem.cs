@@ -61,7 +61,7 @@ public class InventorySystem : MonoBehaviour, ISaveable
     // 아이템이 딕셔너리에 추가될 때 사용할 메타데이터 리스트
     public ItemMetaDataListSo itemMetaDataListSo;
     private Dictionary<RewardCurrencyType, ItemData> itemDict = new();
-    private Dictionary<RewardCurrencyType, int> itemCostDict = new();
+    private Dictionary<RewardCurrencyType, Incremental> itemCostDict = new();
     private Dictionary<RewardCurrencyType, ItemMetaDataSo> itemMetaDataDict = new();
     private List<ItemMetaDataSo> metaDataValidationList = new();
 
@@ -371,7 +371,7 @@ public class InventorySystem : MonoBehaviour, ISaveable
                 Count = amount
             };
 
-            var newCountStr = RemoveDemicalPoint(newItem.Count.ToString(), newItem.Count);
+            var newCountStr = FormatIncremental(newItem.Count);
             newItem.CountString = newCountStr;
             itemDict.Add(itemType, newItem);
             InvokeEvent(newItem);
@@ -382,7 +382,7 @@ public class InventorySystem : MonoBehaviour, ISaveable
         {
             var item = itemDict[itemType];
             item.Count += amount;
-            item.CountString = RemoveDemicalPoint(item.Count.ToString(), item.Count);
+            item.CountString = FormatIncremental(item.Count);
             InvokeEvent(item);
             //print($"[InventorySystem] 아이템 획득함 | 타입: {itemType} | 현재 개수: {item.Count}");
         }
@@ -445,7 +445,7 @@ public class InventorySystem : MonoBehaviour, ISaveable
             else
             {
                 item.Count -= amount;
-                item.CountString = RemoveDemicalPoint(item.Count.ToString(), item.Count);
+                item.CountString = FormatIncremental(item.Count);
                 InvokeEvent(item);
                 print($"[InventorySystem] 아이템 사용됨 | 사용 타입: {itemType} | 사용 개수: {amount} | 현재 개수: {item.Count}");
                 return true;
@@ -496,7 +496,7 @@ public class InventorySystem : MonoBehaviour, ISaveable
             else
             {
                 item.Count -= amount;
-                item.CountString = RemoveDemicalPoint(item.Count.ToString(), item.Count);
+                item.CountString = FormatIncremental(item.Count);
                 InvokeEvent(item);
                 amountUsed = amount;
                 print($"[InventorySystem] 아이템 사용됨 | 사용 타입: {itemType} | 사용 개수: {amount} | 남은 개수: {item.Count}");
@@ -599,7 +599,12 @@ public class InventorySystem : MonoBehaviour, ISaveable
     // 단일 비용 데이터를 지갑에 환불한다
     public void Refund(ResourceCost cost)
     {
-        AddItem(cost.currencyType, cost.amount);
+        if (cost == null || cost.RuntimeAmount <= 0)
+        {
+            return;
+        }
+
+        AddItem(cost.currencyType, new Incremental(cost.RuntimeAmount));
     }
 
 
@@ -625,12 +630,12 @@ public class InventorySystem : MonoBehaviour, ISaveable
     // 단일 비용을 현재 보유 재화로 지불할 수 있는지 확인한다
     public bool CanAfford(ResourceCost cost)
     {
-        if (cost == null || cost.amount <= 0)
+        if (cost == null || cost.RuntimeAmount <= 0)
         {
             return true;
         }
 
-        return CanUseItem(cost.currencyType, cost.amount);
+        return CanUseItem(cost.currencyType, cost.RuntimeAmount);
     }
 
 
@@ -672,12 +677,12 @@ public class InventorySystem : MonoBehaviour, ISaveable
     // 단일 비용을 실제로 소비한다
     public bool TrySpend(ResourceCost cost)
     {
-        if (cost == null || cost.amount <= 0)
+        if (cost == null || cost.RuntimeAmount <= 0)
         {
             return true;
         }
 
-        return UseItem(cost.currencyType, cost.amount);
+        return UseItem(cost.currencyType, cost.RuntimeAmount);
     }
 
 
@@ -745,24 +750,30 @@ public class InventorySystem : MonoBehaviour, ISaveable
         // 딕셔너리에 총 비용을 재화 종류별로 저장한다.
         foreach (var costData in costs)
         {
-            if (costData == null || costData.amount <= 0)
+            if (costData == null || costData.RuntimeAmount <= 0)
             {
                 continue;
             }
 
             if(!itemCostDict.ContainsKey(costData.currencyType))
             {
-                itemCostDict.Add(costData.currencyType, costData.amount);
+                itemCostDict.Add(costData.currencyType, new Incremental(costData.RuntimeAmount));
             }
             else
             {
-                itemCostDict[costData.currencyType] += costData.amount;
+                itemCostDict[costData.currencyType] += costData.RuntimeAmount;
             }
         }
     }
-    // 작은 수 표시 문자열에서 불필요한 소수점을 제거한다
-    private string RemoveDemicalPoint(string str, Incremental incrementalInst)
+    // Incremental 값을 인벤토리 수량 표시 규칙에 맞춰 문자열로 변환한다
+    public static string FormatIncremental(Incremental incrementalInst)
     {
+        if (incrementalInst == null)
+        {
+            return "0";
+        }
+
+        string str = incrementalInst.ToString();
         if(incrementalInst >= 1000)
         {
             return str;

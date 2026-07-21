@@ -14,7 +14,7 @@ public class SellerTruckMovement : MonoBehaviour
     public GameObject survivors;
     public LayerMask groundMask;
     public GameObject[] particleObjects;
-    [Header("나타나는 웨이브 단위")] public int appearWaveUnit; 
+    [Header("나타나는 웨이브 단위")] public int[] appearWaveUnits; 
     [Header("테스트 모드")] public bool testMode;
 
     public AudioSource engineSound;
@@ -90,9 +90,16 @@ public class SellerTruckMovement : MonoBehaviour
     public void OnWaveIncrease(int wave)
 
     {
-        if(wave >= appearWaveUnit && wave % appearWaveUnit == 0) // appearWaveUnit마다 트럭이 나타난다.
+        if(wave >= appearWaveUnits[0]) // 특정 웨이브 단위마다 나타난다.
         {
-            Reset();
+            foreach(var unit in appearWaveUnits)
+            {
+                if(wave % unit == 0)
+                {
+                    Reset();
+                    return;
+                }
+            }
         }
     }
 

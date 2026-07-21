@@ -14,17 +14,17 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ItemSellBuyCostSo
   CostWithGrade:
   - Grade: 4
-    CostToSell: 500
-    CostToBuy: 750
+    CostToSell: 100
+    CostToBuy: 1000
   - Grade: 3
-    CostToSell: 1000
-    CostToBuy: 1500
+    CostToSell: 250
+    CostToBuy: 2500
   - Grade: 2
-    CostToSell: 5000
-    CostToBuy: 7500
+    CostToSell: 400
+    CostToBuy: 4000
   - Grade: 1
-    CostToSell: 50000
-    CostToBuy: 75000
+    CostToSell: 1000
+    CostToBuy: 10000
   - Grade: 0
-    CostToSell: 150000
-    CostToBuy: 200000
+    CostToSell: 100000
+    CostToBuy: 1000000

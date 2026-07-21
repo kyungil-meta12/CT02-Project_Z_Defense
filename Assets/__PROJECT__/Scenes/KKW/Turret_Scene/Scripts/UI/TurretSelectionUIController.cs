@@ -39,7 +39,7 @@ public struct TurretSelectionRestoreState
 [DisallowMultipleComponent]
 public class TurretSelectionUIController : MonoBehaviour
 {
-    [Header("배경 패널")] public Image pannel;   
+    public static Image pannel;   
 
     [Header("입력")]
     [SerializeField] private TurretPlacementController placementController;
@@ -77,6 +77,8 @@ public class TurretSelectionUIController : MonoBehaviour
         BindPopupEvents();
         HideAllPopups();
         HideRangeIndicator();
+
+        pannel = transform.Find("Pannel").GetComponent<Image>();
     }
 
     // 활성화될 때 카메라 터치 이벤트 구독을 시도한다
@@ -143,7 +145,7 @@ public class TurretSelectionUIController : MonoBehaviour
         HideRangeIndicator();
 
         // 배경 패널 비활성화
-        pannel.gameObject.SetActive(false);
+        TurretSelectionUIController.pannel.gameObject.SetActive(false);
 
         // 인게임 UI 복원
         UIManager.Inst.RevertAll();
@@ -281,7 +283,7 @@ public class TurretSelectionUIController : MonoBehaviour
         RefreshRangeIndicator();
 
         // 배경 패널 활성화
-        pannel.gameObject.SetActive(true);
+        TurretSelectionUIController.pannel.gameObject.SetActive(true);
 
         // 인게임 UI 숨기기
         UIManager.Inst.HideAll();

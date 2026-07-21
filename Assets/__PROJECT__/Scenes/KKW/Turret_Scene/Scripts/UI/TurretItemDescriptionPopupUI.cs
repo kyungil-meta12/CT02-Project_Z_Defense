@@ -235,6 +235,12 @@ public class TurretItemDescriptionPopupUI : MonoBehaviour
 
         RestoreTurretSelectionAfterInventory();
         RestoreItemDescriptionAfterInventory();
+
+        // 배경 패널 비활성화
+        TurretSelectionUIController.pannel.gameObject.SetActive(true);
+
+        // 인게임 UI 숨김
+        UIManager.Inst.HideAll();
     }
 
     // 인벤토리 닫힘 후 이전 터렛 선택 UI를 복구한다

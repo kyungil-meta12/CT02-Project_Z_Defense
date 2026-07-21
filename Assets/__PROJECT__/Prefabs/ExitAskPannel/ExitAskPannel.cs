@@ -2,7 +2,7 @@ using UnityEngine;
 
 public class ExitAskPannel : TouchBackHandler
 {
-    public CanvasGroup group;
+    private CanvasGroup latestCanvasGroup;
 
     void Awake()
     {
@@ -13,11 +13,16 @@ public class ExitAskPannel : TouchBackHandler
     {
         UpdateTouchBackHandler();
     }
+    
+    public void SetLatestCanvasGroup(CanvasGroup canvasGroup)
+    {
+        latestCanvasGroup = canvasGroup;
+    }
 
     public void DisableAskPannel()
     {
-        group.alpha = 1f;
-        group.interactable = true;
+        latestCanvasGroup.alpha = 1f;
+        latestCanvasGroup.interactable = true;
         gameObject.SetActive(false);
     }
 }

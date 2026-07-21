@@ -33,6 +33,7 @@ public class TurretTechTreeUIController : MonoBehaviour
     private float previousTimeScale = 1.0f;
     private bool hasPausedGame;
     private bool hasRequiredReferences;
+    private bool isInitialized;
 
     // 컴포넌트 추가 시 하위 UI 참조를 자동 수집한다
     private void Reset()
@@ -44,8 +45,7 @@ public class TurretTechTreeUIController : MonoBehaviour
     // 시작 전에 하위 UI를 초기화하고 기본으로 숨긴다
     private void Awake()
     {
-        hasRequiredReferences = ValidateRequiredReferences();
-        InitializeNodeViews();
+        InitializeIfNeeded();
         Hide();
     }
 
@@ -68,6 +68,7 @@ public class TurretTechTreeUIController : MonoBehaviour
     // 터렛 트리 팝업을 표시하고 상태를 갱신한다
     public void Show()
     {
+        InitializeIfNeeded();
         if (!hasRequiredReferences)
         {
             Debug.LogWarning("[터렛 트리 UI] 필수 인스펙터 참조가 누락되어 터렛 트리 창을 열 수 없습니다.", this);
@@ -120,6 +121,7 @@ public class TurretTechTreeUIController : MonoBehaviour
     // 현재 표시 상태에 따라 터렛 트리 팝업을 열거나 닫는다
     public void Toggle()
     {
+        InitializeIfNeeded();
         bool isActive = popupRoot != null && popupRoot.activeSelf;
         if (isActive)
         {
@@ -134,6 +136,7 @@ public class TurretTechTreeUIController : MonoBehaviour
     // 설치된 터렛 기준으로 노드와 연결선 상태를 다시 계산하고 UI에 적용한다
     public void Refresh()
     {
+        InitializeIfNeeded();
         if (!hasRequiredReferences)
         {
             Debug.LogWarning("[터렛 트리 UI] 필수 인스펙터 참조가 누락되어 상태를 새로고침할 수 없습니다.", this);
@@ -147,6 +150,19 @@ public class TurretTechTreeUIController : MonoBehaviour
         CalculateEdgeStates();
         ApplyNodeStates();
         ApplyLineStates();
+    }
+
+    // 비활성 상태에서 외부 버튼이 먼저 호출해도 필요한 초기화를 보장한다
+    private void InitializeIfNeeded()
+    {
+        if (isInitialized)
+        {
+            return;
+        }
+
+        hasRequiredReferences = ValidateRequiredReferences();
+        InitializeNodeViews();
+        isInitialized = true;
     }
 
     // 노드 클릭 시 상세 팝업을 표시한다

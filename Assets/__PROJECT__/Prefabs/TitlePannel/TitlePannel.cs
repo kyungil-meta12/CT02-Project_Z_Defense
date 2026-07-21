@@ -2,10 +2,12 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class TitlePannel : MonoBehaviour
+public class TitlePannel : TouchBackHandler
 {
     public ZombieSpawner spawner;
     public Image logoImage;
+    public ExitAskPannel pannel;
+
     private float sinValue = 0f;
     private float sizeSinValue = 0f;
     private TextMeshProUGUI text;
@@ -20,6 +22,16 @@ public class TitlePannel : MonoBehaviour
         canvasGroup = GetComponent<CanvasGroup>();
         rt = logoImage.rectTransform;
         originImageSize = rt.localScale;
+
+        OnTouchBackAction += OnTouchBack;
+    }
+
+    void OnTouchBack()
+    {
+        canvasGroup.alpha = 0f;
+        canvasGroup.interactable = false;
+        pannel.gameObject.SetActive(true);
+        pannel.SetLatestCanvasGroup(canvasGroup);
     }
 
     void Start()
@@ -56,6 +68,13 @@ public class TitlePannel : MonoBehaviour
                 UIManager.Inst.RevertAll();
                 spawner.gameObject.SetActive(true);
                 Destroy(gameObject);
+            }
+        }
+        else
+        {
+            if(canvasGroup.interactable)
+            {
+                UpdateTouchBackHandler();
             }
         }
     }

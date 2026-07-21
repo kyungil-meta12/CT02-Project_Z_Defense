@@ -143,7 +143,10 @@ public class TurretItemDescriptionPopupUI : MonoBehaviour
         if (inventoryUI != null)
         {
             BindInventoryRestoreListener();
+
+            // 인벤토리 UI를 연 후 즉시 선택한 아이템의 조합 위치로 이동한다.
             inventoryUI.OnOpenInventory();
+            inventoryUI.GoToCraftTabImmediate(currentType);
             return;
         }
 
@@ -273,6 +276,14 @@ public class TurretItemDescriptionPopupUI : MonoBehaviour
         RefreshRelationToggles();
         RefreshRelationSlots(metadata);
         RefreshBackButtonState();
+
+        // 제작이 가능한 아이템에 대해서만 버튼 활성화
+        inventoryButton.interactable = metadata.Createable;
+        var text = inventoryButton.GetComponentInChildren<TextMeshProUGUI>();
+
+        // 텍스트도 같이 변경
+        text.color = inventoryButton.interactable ? Color.white : inventoryButton.colors.disabledColor;
+        text.text = inventoryButton.interactable ? "제작" : "제작 불가";
     }
 
     // 상단 아이템 정보 영역을 갱신한다

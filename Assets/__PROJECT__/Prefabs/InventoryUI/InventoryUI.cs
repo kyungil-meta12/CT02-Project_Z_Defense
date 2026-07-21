@@ -421,6 +421,51 @@ public class InventoryUI : TouchBackHandler
     }
 
     /// <summary>
+    /// 크래프트 탭으로 바로 이동한 후, 전달한 타입에 해당하는 버튼을 찾아 그 버튼이 눌리는 이벤트를 수동으로 직접 호출한다.
+    /// </summary>
+    public void GoToCraftTabImmediate(RewardCurrencyType findType)
+    {
+        SetToCraftTab();
+        var craftCells = cellDict[ContentType.Craft];
+        foreach(var cell in craftCells.Cell)
+        {
+            if(cell.Value.Type == findType)
+            {
+                OnCraftCellClick(cell.Key); // 버튼 클릭 이벤트를 직접 호출한다.
+                ScrollToButton(cell.Key, scrollRect); // 해당 위치로 스크롤을 옮긴다.
+            }
+        }
+    }
+
+    /// <summary>
+    /// 셀의 위치로 스크롤을 옮긴다.
+    /// </summary>
+    /// <param name="targetButton"></param>
+    /// <param name="scrollRect"></param>
+    private void ScrollToButton(Button targetButton, ScrollRect scrollRect)
+    {
+        if (targetButton == null || scrollRect == null || scrollRect.content == null)
+            return;
+
+        // GridLayoutGroup 레이아웃 연산 결과 강제 업데이트
+        Canvas.ForceUpdateCanvases();
+
+        RectTransform buttonRect = targetButton.GetComponent<RectTransform>();
+        RectTransform content = scrollRect.content;
+        RectTransform viewport = scrollRect.viewport != null ? scrollRect.viewport : scrollRect.GetComponent<RectTransform>();
+
+        // Viewport 좌표계 기준으로 버튼과 Content의 Y 위치 계산
+        float buttonLocalY = viewport.InverseTransformPoint(buttonRect.position).y;
+        float contentLocalY = viewport.InverseTransformPoint(content.position).y;
+
+        // Y축 목표 위치 적용
+        Vector2 targetPosition = content.anchoredPosition;
+        targetPosition.y = contentLocalY - buttonLocalY;
+
+        content.anchoredPosition = targetPosition;
+    }
+
+    /// <summary>
     /// 인벤토리 셀 클릭 이벤트 // 클릭 시 버튼에 해당하는 타입에 해당하는 메타데이터에 있는 이름과 정보를 불러온다.
     /// </summary>
     /// <param name="button"></param>

@@ -151,11 +151,11 @@ public class TurretItemDescriptionPopupUI : MonoBehaviour
 
             if(createableCurrentItem)
             {
-                inventoryUI.GoToCraftTabImmediate(currentType);
+                inventoryUI.GoToCraftTabImmediate(currentType, true);
             }
             else if(decomposableCurrentItem)
             {
-                inventoryUI.GoToDecomposeTabImmediate(currentType);
+                inventoryUI.GoToDecomposeTabImmediate(currentType, true);
             }
             return;
         }

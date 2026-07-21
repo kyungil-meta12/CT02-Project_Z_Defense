@@ -141,6 +141,8 @@ public class InventoryUI : TouchBackHandler
     // 마지막으로 선택된 아이템 타입 및 셀
     private RewardCurrencyType selectedType = 0;
     private Button selectedCell;
+    private bool selectedCreateable = false;
+    private bool selectedDecomposable = false;
 
     // 원본 셀 버튼 색상
     private Color originCellColor;
@@ -422,7 +424,7 @@ public class InventoryUI : TouchBackHandler
         background.gameObject.SetActive(false);
 
         // 터렛 UI를 통해 연 경우 복원하지 않는다.
-        if(enabledFromTurretUI)
+        if(!enabledFromTurretUI)
         {
             UIManager.Inst.RevertAll();
         }
@@ -439,7 +441,7 @@ public class InventoryUI : TouchBackHandler
     /// <summary>
     /// 크래프트 탭으로 바로 이동한 후, 전달한 타입에 해당하는 셀을 찾아 그 셀이 눌리는 이벤트를 수동으로 직접 호출한다.
     /// </summary>
-    public void GoToCraftTabImmediate(RewardCurrencyType findType)
+    public void GoToCraftTabImmediate(RewardCurrencyType findType, bool fromOtherUI=false)
     {
         SetToCraftTab();
         var craftCells = cellDict[ContentType.Craft];
@@ -452,7 +454,7 @@ public class InventoryUI : TouchBackHandler
                 return;
             }
         }
-        enabledFromTurretUI = true;
+        enabledFromTurretUI = fromOtherUI;
     }
 
 
@@ -460,7 +462,7 @@ public class InventoryUI : TouchBackHandler
    /// 분해 탭으로 바로 이동한 후 전달한 타입에 해당하는 셀을 찾아 그 셀이 눌리는 이벤트를 수동으로 호출한다.
    /// </summary>
    /// <param name="findType"></param>
-   public void GoToDecomposeTabImmediate(RewardCurrencyType findType)
+   public void GoToDecomposeTabImmediate(RewardCurrencyType findType, bool fromOtherUI = false)
     {
         SetToDecomposeTab();
         var decompCells = cellDict[ContentType.Decompose];
@@ -473,7 +475,7 @@ public class InventoryUI : TouchBackHandler
                 return;
             }
         }
-        enabledFromTurretUI = true;
+        enabledFromTurretUI = fromOtherUI;
     }
 
     /// <summary>
@@ -522,6 +524,24 @@ public class InventoryUI : TouchBackHandler
         var metaData = InventorySystem.Inst.GetMetaData(selectedType);
         SetInfoText(metaData);
         SetInfoImage(metaData);
+
+        selectedCreateable = metaData.Createable;
+        selectedDecomposable = metaData.Decomposable;
+        // 기능 버튼 활성화 / 비활성화
+        // 분해 또는 제작이 가능하다면 활성화, 그렇지 않다면 비활성화
+        var functionButton = contentDict[ContentType.Inventory].FunctionButton;
+        functionButton.gameObject.SetActive(selectedCreateable || selectedDecomposable);
+
+        // 분해 또는 제작 가능 여부에 따라 텍스트 업데이트
+        var text = functionButton.GetComponentInChildren<TextMeshProUGUI>();
+        if(selectedCreateable)
+        {
+            text.text = "제작";
+        }
+        else if(selectedDecomposable)
+        {
+            text.text = "분해";
+        }
 
         UISoundPlayer.Inst.PlayCellClick();
     }
@@ -676,6 +696,20 @@ public class InventoryUI : TouchBackHandler
             GoToDecomposeTabImmediate(itemPopupType);
         }
 
+        UISoundPlayer.Inst.PlayCellClick();
+    }
+
+    public void OnInventoryFunctionButtonClick()
+    {
+        var metaData = InventorySystem.Inst.GetMetaData(selectedType);
+        if(selectedCreateable)
+        {
+            GoToCraftTabImmediate(selectedType);
+        }
+        else if(selectedDecomposable)
+        {
+            GoToDecomposeTabImmediate(selectedType);
+        }
         UISoundPlayer.Inst.PlayCellClick();
     }
 
@@ -1161,8 +1195,8 @@ public class InventoryUI : TouchBackHandler
         SetButtonColor(selectedTabButton, selectedTabColor);
 
         if(selectedFunctionButton)
-        {
-            selectedFunctionButton.gameObject.SetActive(true);
+        { // 인벤토리 컨텐츠 선택 시에는 예외적으로 비활성화 한다.
+            selectedFunctionButton.gameObject.SetActive(type != ContentType.Inventory);
         }
         if(selectedFunctionToggle)
         {

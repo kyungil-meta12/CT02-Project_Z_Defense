@@ -93,6 +93,7 @@ public class InventoryUI : TouchBackHandler
 
     public bool BatchWorkMode { get; set; } = false;
     public event System.Action InventoryClosed;
+    private bool enabledFromTurretUI = false; // 이 값이 활성화 되면 게임 UI를 복원하지 않는다.
 
     private EventTrigger makeButtonEvent;
     private TextMeshProUGUI makeButtonText;
@@ -411,13 +412,88 @@ public class InventoryUI : TouchBackHandler
         bool wasOpen = openState;
         mainController.SetActive(false);
         background.gameObject.SetActive(false);
-        UIManager.Inst.RevertAll();
+
+        // 터렛 UI를 통해 연 경우 복원하지 않는다.
+        if(enabledFromTurretUI)
+        {
+            UIManager.Inst.RevertAll();
+        }
+        enabledFromTurretUI = false;
+
         openState = false;
 
         if (wasOpen)
         {
             InventoryClosed?.Invoke();
         }
+    }
+
+    /// <summary>
+    /// 크래프트 탭으로 바로 이동한 후, 전달한 타입에 해당하는 셀을 찾아 그 셀이 눌리는 이벤트를 수동으로 직접 호출한다.
+    /// </summary>
+    public void GoToCraftTabImmediate(RewardCurrencyType findType)
+    {
+        SetToCraftTab();
+        var craftCells = cellDict[ContentType.Craft];
+        foreach(var cell in craftCells.Cell)
+        {
+            if(cell.Value.Type == findType)
+            {
+                OnCraftCellClick(cell.Key); // 버튼 클릭 이벤트를 직접 호출한다.
+                ScrollToButton(cell.Key, scrollRect); // 해당 위치로 스크롤을 옮긴다.
+                return;
+            }
+        }
+        enabledFromTurretUI = true;
+    }
+
+
+   /// <summary>
+   /// 분해 탭으로 바로 이동한 후 전달한 타입에 해당하는 셀을 찾아 그 셀이 눌리는 이벤트를 수동으로 호출한다.
+   /// </summary>
+   /// <param name="findType"></param>
+   public void GoToDecomposeTabImmediate(RewardCurrencyType findType)
+    {
+        SetToDecomposeTab();
+        var decompCells = cellDict[ContentType.Decompose];
+        foreach(var cell in decompCells.Cell)
+        {
+            if(cell.Value.Type == findType)
+            {
+                OnDecomposeCellClick(cell.Key); // 버튼 클릭 이벤트를 직접 호출한다.
+                ScrollToButton(cell.Key, scrollRect); // 해당 위치로 스크롤을 옮긴다.
+                return;
+            }
+        }
+        enabledFromTurretUI = true;
+    }
+
+    /// <summary>
+    /// 셀의 위치로 스크롤을 옮긴다.
+    /// </summary>
+    /// <param name="targetButton"></param>
+    /// <param name="scrollRect"></param>
+    private void ScrollToButton(Button targetButton, ScrollRect scrollRect)
+    {
+        if (targetButton == null || scrollRect == null || scrollRect.content == null)
+            return;
+
+        // GridLayoutGroup 레이아웃 연산 결과 강제 업데이트
+        Canvas.ForceUpdateCanvases();
+
+        RectTransform buttonRect = targetButton.GetComponent<RectTransform>();
+        RectTransform content = scrollRect.content;
+        RectTransform viewport = scrollRect.viewport != null ? scrollRect.viewport : scrollRect.GetComponent<RectTransform>();
+
+        // Viewport 좌표계 기준으로 버튼과 Content의 Y 위치 계산
+        float buttonLocalY = viewport.InverseTransformPoint(buttonRect.position).y;
+        float contentLocalY = viewport.InverseTransformPoint(content.position).y;
+
+        // Y축 목표 위치 적용
+        Vector2 targetPosition = content.anchoredPosition;
+        targetPosition.y = contentLocalY - buttonLocalY;
+
+        content.anchoredPosition = targetPosition;
     }
 
     /// <summary>

@@ -54,6 +54,8 @@ public class TurretItemDescriptionPopupUI : MonoBehaviour
     private RewardCurrencyType currentType;
     private RelationMode currentRelationMode = RelationMode.RequiredForCraft;
     private bool hasCurrentItem;
+    private bool createableCurrentItem = false;
+    private bool decomposableCurrentItem = false;
     private TurretSelectionRestoreState pendingTurretRestoreState;
     private bool hasPendingTurretRestore;
     private readonly List<RewardCurrencyType> pendingItemHistory = new List<RewardCurrencyType>(DEFAULT_HISTORY_LIMIT);
@@ -143,7 +145,18 @@ public class TurretItemDescriptionPopupUI : MonoBehaviour
         if (inventoryUI != null)
         {
             BindInventoryRestoreListener();
+
+            // 인벤토리 UI를 연 후 즉시 선택한 아이템의 조합 위치로 이동한다.
             inventoryUI.OnOpenInventory();
+
+            if(createableCurrentItem)
+            {
+                inventoryUI.GoToCraftTabImmediate(currentType);
+            }
+            else if(decomposableCurrentItem)
+            {
+                inventoryUI.GoToDecomposeTabImmediate(currentType);
+            }
             return;
         }
 
@@ -222,6 +235,12 @@ public class TurretItemDescriptionPopupUI : MonoBehaviour
 
         RestoreTurretSelectionAfterInventory();
         RestoreItemDescriptionAfterInventory();
+
+        // 배경 패널 비활성화
+        TurretSelectionUIController.pannel.gameObject.SetActive(true);
+
+        // 인게임 UI 숨김
+        UIManager.Inst.HideAll();
     }
 
     // 인벤토리 닫힘 후 이전 터렛 선택 UI를 복구한다
@@ -273,6 +292,38 @@ public class TurretItemDescriptionPopupUI : MonoBehaviour
         RefreshRelationToggles();
         RefreshRelationSlots(metadata);
         RefreshBackButtonState();
+
+        // 제작 또는 분해가 가능한 아이템에 대해서만 버튼 활성화
+        var text = inventoryButton.GetComponentInChildren<TextMeshProUGUI>();
+        createableCurrentItem = metadata.Createable;
+        decomposableCurrentItem = metadata.Decomposable;
+        
+        if(currentType != RewardCurrencyType.Coin)
+        {
+            inventoryButton.interactable = true;
+            text.color = Color.white;
+
+            if (createableCurrentItem)
+            {
+                text.text = "제작";
+            }
+            else if (decomposableCurrentItem)
+            {
+                text.text = "분해";
+            }
+            else
+            {
+                text.text = "분해를 통해 획득";
+                inventoryButton.interactable = false;
+                text.color = inventoryButton.colors.disabledColor;
+            }
+        }
+        else // 코인은 분해도, 제작도 불가능
+        {
+            text.text = "-";
+            inventoryButton.interactable = false;
+            text.color = inventoryButton.colors.disabledColor;
+        }
     }
 
     // 상단 아이템 정보 영역을 갱신한다
